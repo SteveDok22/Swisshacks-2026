@@ -1,0 +1,48 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: swisshacks-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - ENVIRONMENT=development
+      - DEBUG=true
+      - DATABASE_URL=sqlite+aiosqlite:///./data/risk_platform.db
+    env_file:
+      - ./backend/.env
+    volumes:
+      # Live code reload (dev only)
+      - ./backend/app:/home/app/app:ro
+      - ./backend/data:/home/app/data
+    command: >
+      uvicorn app.main:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+      --reload-dir /home/app/app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - swisshacks
+
+  # === Frontend будет добавлен на День 15 ===
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #   ports:
+  #     - "3000:3000"
+  #   depends_on:
+  #     - backend
+
+networks:
+  swisshacks:
+    driver: bridge
+
+volumes:
+  backend_data:

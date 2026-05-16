@@ -22,7 +22,7 @@ mkdir -p ~/Projects
 cd ~/Projects
 
 # Распакуй архив (предполагаю что скачал в Downloads)
-unzip ~/Downloads/swisshacks-2026.zip -d .
+unzip ~/Downloads/swisshacks-2026.zip -d 
 
 # Перейди в проект
 cd swisshacks-2026

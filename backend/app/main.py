@@ -14,8 +14,10 @@ from typing import AsyncIterator
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.v1 import api_router
 from app.core.config import settings
 from app.core.logging import get_logger, setup_logging
+from app.services.store import get_store
 
 # Initialize logging FIRST, before anything else
 setup_logging()
@@ -38,6 +40,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         "application_starting",
         app_name=settings.app_name,
         environment=settings.environment,
+    )
+    
+    # Seed in-memory store with mock data
+    store = get_store()
+    logger.info(
+        "store_initialized",
+        clients=len(store.clients),
+        cases=len(store.cases),
     )
     
     # TODO День 3: Load ML models here
@@ -92,7 +102,4 @@ async def root() -> dict[str, str]:
 
 
 # === API Routers ===
-# TODO День 2: Include API routers here
-# from app.api.v1 import cases, scoring, audit
-# app.include_router(cases.router, prefix=settings.api_v1_prefix)
-# app.include_router(scoring.router, prefix=settings.api_v1_prefix)
+app.include_router(api_router, prefix=settings.api_v1_prefix)

@@ -27,6 +27,12 @@ from app.schemas.enums import (
     Jurisdiction,
     RiskLevel,
 )
+from app.schemas.scoring import (
+    FeatureContribution,
+    RiskScoreResult,
+    ScoringRequest,
+    ScoringResponse,
+)
 
 __all__ = [
     # Enums
@@ -52,4 +58,9 @@ __all__ = [
     "CaseCreate",
     "CaseListItem",
     "CaseRead",
+    # Scoring
+    "FeatureContribution",
+    "RiskScoreResult",
+    "ScoringRequest",
+    "ScoringResponse",
 ]

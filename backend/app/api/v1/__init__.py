@@ -9,9 +9,10 @@ To add a new router:
 
 from fastapi import APIRouter
 
-from app.api.v1 import cases, clients
+from app.api.v1 import cases, clients, scoring
 
 api_router = APIRouter()
 
 api_router.include_router(cases.router)
 api_router.include_router(clients.router)
+api_router.include_router(scoring.router)

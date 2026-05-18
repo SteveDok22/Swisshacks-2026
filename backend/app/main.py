@@ -17,6 +17,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1 import api_router
 from app.core.config import settings
 from app.core.logging import get_logger, setup_logging
+from app.ml.registry import get_registry
 from app.services.store import get_store
 
 # Initialize logging FIRST, before anything else
@@ -50,7 +51,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         cases=len(store.cases),
     )
     
-    # TODO День 3: Load ML models here
+    # Load ML models into registry
+    registry = get_registry()
+    logger.info(
+        "ml_models_loaded",
+        loaded_count=len(registry.loaded_case_types),
+        case_types=[ct.value for ct in registry.loaded_case_types],
+    )
+    
     # TODO День 6: Initialize database here
     
     logger.info("application_ready")

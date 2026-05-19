@@ -1,0 +1,45 @@
+# European Union — MiCA (Markets in Crypto-Assets) regulation
+# Reference: MiCA Regulation (EU) 2023/1114, effective Dec 2024
+
+code: EU
+name: European Union
+regulator: ESMA / National Competent Authorities
+description: Markets in Crypto-Assets Regulation (MiCA)
+
+# Travel Rule under TFR (Transfer of Funds Regulation)
+travel_rule:
+  threshold_chf: 1000  # EUR 1,000 equivalent
+  required_fields:
+    - originator_name
+    - originator_address
+    - originator_dob_or_id
+    - beneficiary_name
+    - beneficiary_account
+    - transfer_purpose  # MiCA-specific
+
+# CDD requirements
+cdd:
+  enhanced_due_diligence_threshold_chf: 150000
+  ongoing_review_max_days: 365
+  pep_review_max_days: 180
+
+score_modifiers:
+  client_is_pep: 1.20            # Stricter than CH
+  destination_is_new: 1.10
+  amount_above_eddrequires_threshold: 1.25
+  cross_border_within_eu: 0.95   # Lower for intra-EU
+  cross_border_outside_eu: 1.30
+
+action_thresholds:
+  allow_max: 30
+  step_up_max: 60
+  escalate_max: 85
+
+reporting:
+  fiu_threshold_chf: 100000
+  suspicious_activity_24h: true
+
+officer_notes: >
+  Under MiCA, CASPs must implement enhanced governance and disclosure.
+  All transfers >EUR 1,000 require full Travel Rule data.
+  Cross-border transfers outside EEA receive stricter scoring.

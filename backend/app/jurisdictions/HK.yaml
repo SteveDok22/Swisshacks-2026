@@ -1,0 +1,43 @@
+# Hong Kong — SFC (Securities and Futures Commission)
+# Reference: AMLO, SFC VASP licensing regime
+
+code: HK
+name: Hong Kong
+regulator: SFC / HKMA
+description: Securities and Futures Commission / Hong Kong Monetary Authority
+
+# Travel Rule (HK adopted full FATF requirements June 2023)
+travel_rule:
+  threshold_chf: 8000  # HKD 8,000 equivalent ~ CHF 8,000
+  required_fields:
+    - originator_name
+    - originator_id
+    - originator_address
+    - beneficiary_name
+    - beneficiary_account
+
+cdd:
+  enhanced_due_diligence_threshold_chf: 120000
+  ongoing_review_max_days: 365
+  pep_review_max_days: 180
+
+score_modifiers:
+  client_is_pep: 1.18
+  destination_is_new: 1.12
+  amount_above_eddrequires_threshold: 1.18
+  hk_local_transfer: 0.92  # Slightly lower for HK-internal
+
+action_thresholds:
+  allow_max: 28
+  step_up_max: 58
+  escalate_max: 82
+
+reporting:
+  jfiu_threshold_chf: 120000  # Joint Financial Intelligence Unit
+  suspicious_activity_24h: false  # 7 days under HK AMLO
+  suspicious_activity_max_days: 7
+
+officer_notes: >
+  HK requires comprehensive AMLO compliance for VASPs.
+  Suspicious activity reports to JFIU within 7 days.
+  Trading hours align with APAC markets — different baseline behavior.

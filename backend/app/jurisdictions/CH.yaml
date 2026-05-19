@@ -1,0 +1,48 @@
+# Switzerland — FINMA / AMLA regulations
+# Reference: AMLA Article 7, FINMA Circular 2016/1
+
+code: CH
+name: Switzerland
+regulator: FINMA
+description: Swiss Financial Market Supervisory Authority
+
+# Travel Rule — beneficiary information for transfers
+travel_rule:
+  threshold_chf: 1000  # Above this, full Travel Rule data required
+  required_fields:
+    - originator_name
+    - originator_address
+    - originator_account
+    - beneficiary_name
+    - beneficiary_account
+
+# Customer Due Diligence thresholds
+cdd:
+  enhanced_due_diligence_threshold_chf: 100000
+  ongoing_review_max_days: 365
+  pep_review_max_days: 180
+
+# Risk scoring adjustments (applied AFTER ML model)
+# Multiply ML score by these factors based on context
+score_modifiers:
+  client_is_pep: 1.15           # +15% risk for PEP clients
+  destination_is_new: 1.10      # +10% for unwhitelisted destinations
+  amount_above_eddrequires_threshold: 1.20  # +20% for amounts triggering EDD
+
+# Action thresholds (override default 30/60/85 buckets)
+action_thresholds:
+  allow_max: 25                  # Stricter than default
+  step_up_max: 55
+  escalate_max: 80
+  # Above 80: BLOCK
+
+# Reporting obligations
+reporting:
+  mros_threshold_chf: 100000     # Mandatory reporting to MROS
+  suspicious_activity_24h: true   # 24h reporting requirement
+
+# Notes for compliance officer (shown in UI)
+officer_notes: >
+  Under FINMA AMLA, suspicious transactions must be reported to MROS
+  within 24h of detection. Enhanced Due Diligence required for amounts
+  exceeding CHF 100,000 or PEP clients.

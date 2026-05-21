@@ -20,12 +20,25 @@ from app.schemas.common import (
     PaginatedResponse,
     TimestampedModel,
 )
+from app.schemas.counterfactual import (
+    Counterfactual,
+    CounterfactualResponse,
+    FeatureChange,
+)
 from app.schemas.enums import (
     CaseStatus,
     CaseType,
     DecisionAction,
     Jurisdiction,
     RiskLevel,
+)
+from app.schemas.jurisdiction import (
+    ActionThresholds,
+    CDDConfig,
+    JurisdictionAdjustedScore,
+    JurisdictionRules,
+    ReportingConfig,
+    TravelRuleConfig,
 )
 from app.schemas.scoring import (
     FeatureContribution,
@@ -63,4 +76,15 @@ __all__ = [
     "RiskScoreResult",
     "ScoringRequest",
     "ScoringResponse",
+    # Counterfactuals
+    "Counterfactual",
+    "CounterfactualResponse",
+    "FeatureChange",
+    # Jurisdiction
+    "ActionThresholds",
+    "CDDConfig",
+    "JurisdictionAdjustedScore",
+    "JurisdictionRules",
+    "ReportingConfig",
+    "TravelRuleConfig",
 ]

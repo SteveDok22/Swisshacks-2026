@@ -32,6 +32,12 @@ from app.schemas.enums import (
     Jurisdiction,
     RiskLevel,
 )
+from app.schemas.explanation import (
+    AnonymizationPreview,
+    CaseExplanation,
+    ExplanationMetadata,
+    ExplanationStreamChunk,
+)
 from app.schemas.jurisdiction import (
     ActionThresholds,
     CDDConfig,
@@ -80,6 +86,11 @@ __all__ = [
     "Counterfactual",
     "CounterfactualResponse",
     "FeatureChange",
+    # Explanations
+    "AnonymizationPreview",
+    "CaseExplanation",
+    "ExplanationMetadata",
+    "ExplanationStreamChunk",
     # Jurisdiction
     "ActionThresholds",
     "CDDConfig",

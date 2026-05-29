@@ -15,6 +15,7 @@ dependencies = [
     # Database
     "sqlmodel>=0.0.22",
     "aiosqlite>=0.20.0",
+    "greenlet>=3.0",
     
     # ML core
     "xgboost>=2.1.0",

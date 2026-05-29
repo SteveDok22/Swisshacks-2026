@@ -17,26 +17,19 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.v1 import api_router
 from app.core.config import settings
 from app.core.logging import get_logger, setup_logging
+from app.db.seed import seed_if_empty
+from app.db.session import close_db, init_db, session_scope
 from app.ml.registry import get_registry
-from app.services.jurisdiction import get_jurisdiction_service
-from app.services.store import get_store
+from app.services.jurisdiction import JurisdictionService
 
-# Initialize logging FIRST, before anything else
+# Initialize logging FIRST
 setup_logging()
 logger = get_logger(__name__)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """
-    Application lifespan: startup and shutdown logic.
-    
-    Use this to:
-    - Load ML models into memory (so they're ready for first request)
-    - Initialize database connections
-    - Warm up caches
-    - On shutdown: close connections, flush logs
-    """
+    """Application lifespan: startup and shutdown logic."""
     # === STARTUP ===
     logger.info(
         "application_starting",
@@ -44,15 +37,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         environment=settings.environment,
     )
     
-    # Seed in-memory store with mock data
-    store = get_store()
-    logger.info(
-        "store_initialized",
-        clients=len(store.clients),
-        cases=len(store.cases),
-    )
+    # Initialize database schema
+    await init_db()
     
-    # Load ML models into registry
+    # Seed with mock data if empty
+    async with session_scope() as session:
+        seeded = await seed_if_empty(session)
+        if seeded:
+            logger.info("database_seeded_with_mock_data")
+    
+    # Load ML models
     registry = get_registry()
     logger.info(
         "ml_models_loaded",
@@ -60,22 +54,21 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         case_types=[ct.value for ct in registry.loaded_case_types],
     )
     
-    # Load jurisdiction rules
-    jurisdictions = get_jurisdiction_service()
+    # Pre-load jurisdiction rules (class-level cache)
+    jurisdictions = JurisdictionService()
     logger.info(
         "jurisdictions_loaded",
         count=len(jurisdictions.loaded_jurisdictions),
         codes=[j.value for j in jurisdictions.loaded_jurisdictions],
     )
     
-    # TODO День 6: Initialize database here
-    
     logger.info("application_ready")
     
-    yield  # Application runs here
+    yield
     
     # === SHUTDOWN ===
     logger.info("application_shutting_down")
+    await close_db()
 
 
 # Create FastAPI app
@@ -89,8 +82,7 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# === Middleware ===
-# CORS — allow our frontend to call this API
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
@@ -100,17 +92,15 @@ app.add_middleware(
 )
 
 
-# === Health check endpoint ===
-# Always have this. Kubernetes/Docker uses it to know if app is alive.
 @app.get("/health", tags=["meta"])
 async def health_check() -> dict[str, str]:
-    """Liveness probe — confirms the app is running."""
+    """Liveness probe."""
     return {"status": "healthy", "app": settings.app_name}
 
 
 @app.get("/", tags=["meta"])
 async def root() -> dict[str, str]:
-    """Root endpoint — basic info."""
+    """Root endpoint."""
     return {
         "app": settings.app_name,
         "version": "0.1.0",

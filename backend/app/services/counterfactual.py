@@ -1,35 +1,23 @@
 """
-Counterfactual Service — DiCE-based "what-if" analysis.
+Counterfactual Service — async DB version.
 
-This is ONE OF OUR KEY DIFFERENTIATORS.
-Other teams will show SHAP. We'll show SHAP + counterfactuals.
-
-For a compliance officer, counterfactuals answer:
-"Show me what would make this case acceptable" —
-which is exactly the question they need to escalate
-or rule-out concerns with the relationship manager.
-
-Implementation notes:
-- DiCE is computationally expensive (~500ms per call)
-- We cache training data in memory (loaded once at startup)
-- We use 'random' method for speed (genetic/kdtree are slower)
-- We fix categorical features to avoid impossible counterfactuals
+DiCE-based "what-if" analysis.
 """
 
 from __future__ import annotations
 
 import warnings
+from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-import numpy as np
 import pandas as pd
+from sqlalchemy.ext.asyncio import AsyncSession
 
-# DiCE prints a lot of warnings; suppress for clean logs
 warnings.filterwarnings("ignore", category=UserWarning)
 
 from app.core.logging import get_logger
-from app.ml.base import RiskModel, score_to_level
+from app.ml.base import RiskModel
 from app.ml.registry import ModelRegistry, get_registry
 from app.ml.training import generate_synthetic_social_engineering_data
 from app.schemas.counterfactual import (
@@ -38,14 +26,11 @@ from app.schemas.counterfactual import (
     FeatureChange,
 )
 from app.schemas.enums import CaseType
-from app.services.store import InMemoryStore, get_store
+from app.services.db_store import DbStore
 
 logger = get_logger(__name__)
 
 
-# Features that DiCE can vary (continuous/orderable)
-# We include all numeric features (even if some are "static" like AUM)
-# to give DiCE flexibility in the feasibility region.
 _VARIABLE_FEATURES_BY_CASE_TYPE: dict[CaseType, list[str]] = {
     CaseType.SOCIAL_ENGINEERING: [
         "amount_chf_log",
@@ -58,12 +43,11 @@ _VARIABLE_FEATURES_BY_CASE_TYPE: dict[CaseType, list[str]] = {
         "pressure_signals",
         "transcript_length",
         "days_since_last_review",
-        "client_aum_log",  # Static but needed for DiCE feasibility
+        "client_aum_log",
     ],
 }
 
 
-# Human-readable change templates
 _CHANGE_TEMPLATES: dict[str, str] = {
     "amount_chf_log": "amount were {value}",
     "amount_vs_typical_ratio": "amount were {value:.1f}x typical (vs current {original:.1f}x)",
@@ -79,29 +63,25 @@ _CHANGE_TEMPLATES: dict[str, str] = {
 
 
 class CounterfactualService:
-    """
-    Generates "what-would-change-the-decision" scenarios.
+    """Async DB version of CounterfactualService."""
     
-    Uses DiCE (Diverse Counterfactual Explanations) from Microsoft Research.
-    """
+    # Class-level caches (shared across requests — DiCE is expensive)
+    _dice_cache: dict[CaseType, Any] = {}
+    _training_data: dict[CaseType, pd.DataFrame] = {}
     
     def __init__(
         self,
-        store: InMemoryStore | None = None,
+        session: AsyncSession,
         registry: ModelRegistry | None = None,
     ) -> None:
-        self.store = store or get_store()
+        self.session = session
+        self.store = DbStore(session)
         self.registry = registry or get_registry()
-        # Cache DiCE explainers per case_type (expensive to build)
-        self._dice_cache: dict[CaseType, Any] = {}
-        # Cache training data for DiCE
-        self._training_data: dict[CaseType, pd.DataFrame] = {}
     
     def _get_training_data(self, case_type: CaseType) -> pd.DataFrame:
         """Get cached training data for a case type."""
         if case_type not in self._training_data:
             if case_type == CaseType.SOCIAL_ENGINEERING:
-                # Larger sample for better feature coverage in DiCE
                 df = generate_synthetic_social_engineering_data(n_samples=3000)
                 self._training_data[case_type] = df
             else:
@@ -109,17 +89,13 @@ class CounterfactualService:
         return self._training_data[case_type]
     
     def _get_dice_explainer(self, case_type: CaseType, model: RiskModel) -> Any:
-        """Get cached DiCE explainer for a case type."""
         if case_type in self._dice_cache:
             return self._dice_cache[case_type]
         
-        # Import here to avoid loading at module level
         from dice_ml import Data, Dice, Model
         
         df = self._get_training_data(case_type)
         feature_names = model.feature_extractor.feature_names
-        
-        # DiCE needs to know which features are continuous
         variable_features = _VARIABLE_FEATURES_BY_CASE_TYPE.get(case_type, [])
         
         data_interface = Data(
@@ -128,40 +104,25 @@ class CounterfactualService:
             outcome_name="label",
         )
         model_interface = Model(model=model.model, backend="sklearn")
-        
-        # 'random' method is fastest (vs 'genetic', 'kdtree')
         explainer = Dice(data_interface, model_interface, method="random")
         
         self._dice_cache[case_type] = explainer
         logger.info("dice_explainer_built", case_type=case_type.value)
-        
         return explainer
     
-    def generate(
+    async def generate(
         self,
         case_id: UUID,
         n_scenarios: int = 3,
     ) -> CounterfactualResponse:
-        """
-        Generate counterfactuals for a case.
-        
-        Args:
-            case_id: The case to analyze
-            n_scenarios: How many alternative scenarios to generate
-        
-        Returns:
-            CounterfactualResponse with original outcome + alternative scenarios
-        """
-        # Fetch case
-        case = self.store.get_case(case_id)
+        """Generate counterfactuals for a case."""
+        case = await self.store.get_case(case_id)
         if case is None:
             raise ValueError(f"Case {case_id} not found")
         
-        # Get model
         model = self.registry.get_or_raise(case.case_type)
         
-        # Extract features for this case
-        client = self.store.get_client(case.client_id)
+        client = await self.store.get_client(case.client_id)
         client_context = self._build_client_context(client)
         features = model.feature_extractor.extract(case, client_context)
         feature_names = model.feature_extractor.feature_names
@@ -170,26 +131,20 @@ class CounterfactualService:
             name: features.get(name, 0.0) for name in feature_names
         }])
         
-        # Current prediction
         proba = model.model.predict_proba(query_df)[0]
         original_score = float(proba[1]) * 100
         original_class = int(proba[1] > 0.5)
         original_outcome = "high_risk" if original_class == 1 else "low_risk"
         
-        # If already low risk, no useful counterfactuals
         if original_class == 0:
             return CounterfactualResponse(
                 case_id=str(case_id),
                 original_score=round(original_score, 2),
                 original_outcome=original_outcome,
                 counterfactuals=[],
-                notes=(
-                    "Case is already low-risk. "
-                    "Counterfactuals not generated."
-                ),
+                notes="Case is already low-risk. Counterfactuals not generated.",
             )
         
-        # Generate counterfactuals (flip to class 0 = low risk)
         explainer = self._get_dice_explainer(case.case_type, model)
         variable_features = _VARIABLE_FEATURES_BY_CASE_TYPE.get(case.case_type, [])
         
@@ -221,18 +176,15 @@ class CounterfactualService:
                 notes="No counterfactuals found in feasible region.",
             )
         
-        # Convert to schema objects
         counterfactuals = []
         for idx, cf_row in enumerate(cf_df.itertuples(index=False), start=1):
             cf_dict = cf_row._asdict()
             
-            # Find changed features
             changes = []
             for feat in variable_features:
                 orig_val = float(query_df[feat].iloc[0])
                 new_val = float(cf_dict.get(feat, orig_val))
                 
-                # Only show meaningful changes (>5% difference)
                 if abs(new_val - orig_val) > max(abs(orig_val) * 0.05, 0.1):
                     template = _CHANGE_TEMPLATES.get(feat, f"{feat} were {{value}}")
                     description = template.format(value=new_val, original=orig_val)
@@ -244,13 +196,11 @@ class CounterfactualService:
                         change_description=description,
                     ))
             
-            # Summary string
             if changes:
                 top_changes = changes[:2]
                 summary_parts = [c.change_description for c in top_changes]
                 summary = (
-                    "If "
-                    + " and ".join(summary_parts)
+                    "If " + " and ".join(summary_parts)
                     + " — this case would be approved."
                 )
             else:
@@ -263,12 +213,6 @@ class CounterfactualService:
                 summary=summary,
             ))
         
-        logger.info(
-            "counterfactuals_generated",
-            case_id=str(case_id),
-            count=len(counterfactuals),
-        )
-        
         return CounterfactualResponse(
             case_id=str(case_id),
             original_score=round(original_score, 2),
@@ -277,8 +221,6 @@ class CounterfactualService:
         )
     
     def _build_client_context(self, client) -> dict:
-        """Mirror the logic from risk_engine."""
-        from datetime import datetime
         if client is None:
             return {}
         profile = client.profile
@@ -295,15 +237,3 @@ class CounterfactualService:
             "whitelist_wallets": profile.whitelist_wallets,
             "days_since_review": days_since_review,
         }
-
-
-# Singleton
-_service: CounterfactualService | None = None
-
-
-def get_counterfactual_service() -> CounterfactualService:
-    """FastAPI dependency."""
-    global _service
-    if _service is None:
-        _service = CounterfactualService()
-    return _service

@@ -1,9 +1,5 @@
 """
-Scoring API — trigger ML scoring on cases.
-
-Endpoints:
-- POST /scoring/{case_id}      Score a specific case
-- GET  /scoring/models         List available models
+Scoring API — async DB version.
 """
 
 from __future__ import annotations
@@ -12,11 +8,13 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import get_logger
+from app.db.session import get_session
 from app.ml.registry import ModelRegistry, get_registry
 from app.schemas.scoring import ScoringResponse
-from app.services.risk_engine import RiskEngine, get_risk_engine
+from app.services.risk_engine import RiskEngine
 
 logger = get_logger(__name__)
 
@@ -26,24 +24,16 @@ router = APIRouter(prefix="/scoring", tags=["scoring"])
 @router.post("/{case_id}", response_model=ScoringResponse)
 async def score_case(
     case_id: UUID,
-    engine: Annotated[RiskEngine, Depends(get_risk_engine)],
+    session: Annotated[AsyncSession, Depends(get_session)],
 ) -> ScoringResponse:
-    """
-    Run ML scoring on a case.
+    """Run ML scoring on a case."""
+    engine = RiskEngine(session)
     
-    Returns:
-    - Risk score (0-100)
-    - Risk level (low/medium/high/critical)
-    - Confidence
-    - Recommended action
-    - Top features with SHAP contributions
-    """
     try:
-        result = engine.score_case(case_id)
+        result = await engine.score_case(case_id)
     except ValueError as e:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
+            status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
         ) from e
     except Exception as e:
         logger.exception("scoring_failed", case_id=str(case_id))

@@ -1,11 +1,12 @@
 """
-Cases API — the central resource of the platform.
+Cases API — async DB version.
 
 Endpoints:
 - GET    /cases                    List cases (filterable)
 - GET    /cases/{case_id}          Get single case (full detail)
 - POST   /cases                    Create a new case
 - PATCH  /cases/{case_id}/status   Update case status
+- GET    /cases/{case_id}/history  Audit trail for this case
 """
 
 from __future__ import annotations
@@ -14,18 +15,21 @@ from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import get_logger
+from app.db.session import get_session
+from app.schemas.audit import AuditEntryRead
 from app.schemas.case import (
     Case,
-    CaseContext,
     CaseCreate,
     CaseListItem,
     CaseRead,
 )
 from app.schemas.common import PaginatedResponse
 from app.schemas.enums import CaseStatus, CaseType, Jurisdiction
-from app.services.store import InMemoryStore, get_store
+from app.services.audit import AuditService
+from app.services.db_store import DbStore
 
 logger = get_logger(__name__)
 
@@ -34,22 +38,18 @@ router = APIRouter(prefix="/cases", tags=["cases"])
 
 @router.get("", response_model=PaginatedResponse)
 async def list_cases(
-    store: Annotated[InMemoryStore, Depends(get_store)],
-    case_type: CaseType | None = Query(None, description="Filter by case type"),
+    session: Annotated[AsyncSession, Depends(get_session)],
+    case_type: CaseType | None = Query(None),
     status_filter: CaseStatus | None = Query(None, alias="status"),
     jurisdiction: Jurisdiction | None = Query(None),
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
 ) -> PaginatedResponse:
-    """
-    List cases with optional filtering.
-    
-    Returns compact CaseListItem objects suitable for list views.
-    Use GET /cases/{id} for full detail.
-    """
+    """List cases with optional filtering."""
+    store = DbStore(session)
     offset = (page - 1) * page_size
     
-    cases, total = store.list_cases(
+    cases, total = await store.list_cases(
         case_type=case_type.value if case_type else None,
         status=status_filter.value if status_filter else None,
         jurisdiction=jurisdiction.value if jurisdiction else None,
@@ -71,17 +71,6 @@ async def list_cases(
         for c in cases
     ]
     
-    logger.info(
-        "cases_listed",
-        count=len(items),
-        total=total,
-        filters={
-            "case_type": case_type,
-            "status": status_filter,
-            "jurisdiction": jurisdiction,
-        },
-    )
-    
     return PaginatedResponse(
         items=items,
         total=total,
@@ -93,48 +82,32 @@ async def list_cases(
 @router.get("/{case_id}", response_model=CaseRead)
 async def get_case(
     case_id: UUID,
-    store: Annotated[InMemoryStore, Depends(get_store)],
+    session: Annotated[AsyncSession, Depends(get_session)],
 ) -> CaseRead:
     """Get a single case by ID with full context."""
+    store = DbStore(session)
+    case = await store.get_case(case_id)
     
-    case = store.get_case(case_id)
     if case is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Case {case_id} not found",
         )
     
-    return CaseRead(
-        id=case.id,
-        client_id=case.client_id,
-        case_type=case.case_type,
-        jurisdiction=case.jurisdiction,
-        status=case.status,
-        context=case.context,
-        risk_score=case.risk_score,
-        risk_level=case.risk_level,
-        confidence=case.confidence,
-        assigned_to=case.assigned_to,
-        created_at=case.created_at,
-        scored_at=case.scored_at,
-        resolved_at=case.resolved_at,
-    )
+    return _case_to_read(case)
 
 
 @router.post("", response_model=CaseRead, status_code=status.HTTP_201_CREATED)
 async def create_case(
     payload: CaseCreate,
-    store: Annotated[InMemoryStore, Depends(get_store)],
+    session: Annotated[AsyncSession, Depends(get_session)],
 ) -> CaseRead:
-    """
-    Create a new case.
-    
-    Note: This does NOT trigger scoring automatically.
-    Call POST /scoring/{case_id} after creation (or use POST /scoring/score-now).
-    """
+    """Create a new case."""
+    store = DbStore(session)
+    audit = AuditService(session)
     
     # Validate client exists
-    if store.get_client(payload.client_id) is None:
+    if await store.get_client(payload.client_id) is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Client {payload.client_id} does not exist",
@@ -148,16 +121,85 @@ async def create_case(
         status=CaseStatus.PENDING,
     )
     
-    store.add_case(case)
+    await store.add_case(case)
     
-    logger.info(
-        "case_created",
-        case_id=str(case.id),
-        case_type=case.case_type,
-        jurisdiction=case.jurisdiction,
-        client_id=str(case.client_id),
+    # Audit log
+    await audit.log(
+        event_type="case_created",
+        case_id=case.id,
+        client_id=case.client_id,
+        payload={
+            "case_type": case.case_type.value,
+            "jurisdiction": case.jurisdiction.value,
+            "summary": case.context.summary,
+        },
     )
     
+    return _case_to_read(case)
+
+
+@router.patch("/{case_id}/status", response_model=CaseRead)
+async def update_case_status(
+    case_id: UUID,
+    new_status: CaseStatus,
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> CaseRead:
+    """Update a case's workflow status."""
+    store = DbStore(session)
+    audit = AuditService(session)
+    
+    updated = await store.update_case(case_id, status=new_status)
+    if updated is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Case {case_id} not found",
+        )
+    
+    await audit.log(
+        event_type="case_status_updated",
+        case_id=case_id,
+        payload={"new_status": new_status.value},
+    )
+    
+    return _case_to_read(updated)
+
+
+@router.get(
+    "/{case_id}/history",
+    response_model=list[AuditEntryRead],
+)
+async def get_case_history(
+    case_id: UUID,
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> list[AuditEntryRead]:
+    """
+    Get the complete audit trail for a case.
+    
+    Returns all events (scoring, explanations, decisions) in chronological order.
+    Used by UI "History" panel.
+    """
+    audit = AuditService(session)
+    entries = await audit.export_case_trail(case_id)
+    
+    return [
+        AuditEntryRead(
+            id=e.id,
+            event_type=e.event_type,
+            case_id=e.case_id,
+            client_id=e.client_id,
+            actor_id=e.actor_id,
+            actor_type=e.actor_type,
+            payload=e.payload,
+            risk_score=e.risk_score,
+            risk_level=e.risk_level,
+            occurred_at=e.occurred_at,
+        )
+        for e in entries
+    ]
+
+
+def _case_to_read(case: Case) -> CaseRead:
+    """Convert domain Case to API CaseRead."""
     return CaseRead(
         id=case.id,
         client_id=case.client_id,
@@ -172,42 +214,4 @@ async def create_case(
         created_at=case.created_at,
         scored_at=case.scored_at,
         resolved_at=case.resolved_at,
-    )
-
-
-@router.patch("/{case_id}/status", response_model=CaseRead)
-async def update_case_status(
-    case_id: UUID,
-    new_status: CaseStatus,
-    store: Annotated[InMemoryStore, Depends(get_store)],
-) -> CaseRead:
-    """Update a case's workflow status."""
-    
-    updated = store.update_case(case_id, status=new_status)
-    if updated is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Case {case_id} not found",
-        )
-    
-    logger.info(
-        "case_status_updated",
-        case_id=str(case_id),
-        new_status=new_status,
-    )
-    
-    return CaseRead(
-        id=updated.id,
-        client_id=updated.client_id,
-        case_type=updated.case_type,
-        jurisdiction=updated.jurisdiction,
-        status=updated.status,
-        context=updated.context,
-        risk_score=updated.risk_score,
-        risk_level=updated.risk_level,
-        confidence=updated.confidence,
-        assigned_to=updated.assigned_to,
-        created_at=updated.created_at,
-        scored_at=updated.scored_at,
-        resolved_at=updated.resolved_at,
     )

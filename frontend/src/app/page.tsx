@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { CaseQueue } from "@/components/cases/CaseQueue";
 import { CaseDetailPanel } from "@/components/cases/CaseDetailPanel";
+import { WelcomeModal } from "@/components/WelcomeModal";
 
 /**
  * Main workspace — three-pane layout:
@@ -16,6 +17,7 @@ export default function Home() {
 
   return (
     <div className="flex h-screen overflow-hidden relative z-10">
+      <WelcomeModal />
       <Sidebar />
 
       {/* Case queue — fixed width middle column */}

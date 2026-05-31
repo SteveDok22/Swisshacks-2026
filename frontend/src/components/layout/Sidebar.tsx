@@ -7,7 +7,9 @@ import {
   FileSearch,
   Scale,
   Settings,
+  Info,
 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 
 const NAV_ITEMS = [
@@ -69,6 +71,13 @@ export function Sidebar() {
 
       {/* Footer */}
       <div className="px-3 py-4 border-t border-paper-line">
+        <Link
+          href="/about"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium text-ink-soft hover:bg-paper-sunken hover:text-ink transition-colors"
+        >
+          <Info className="h-4 w-4" strokeWidth={2} />
+          About Sentinel
+        </Link>
         <button className="w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium text-ink-soft hover:bg-paper-sunken hover:text-ink transition-colors">
           <Settings className="h-4 w-4" strokeWidth={2} />
           Settings

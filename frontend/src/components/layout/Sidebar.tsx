@@ -10,28 +10,65 @@ import {
   Info,
 } from "lucide-react";
 import Link from "next/link";
-import { useState } from "react";
 
-const NAV_ITEMS = [
-  { id: "queue", label: "Case Queue", icon: LayoutGrid, active: true },
-  { id: "alerts", label: "Live Alerts", icon: ShieldAlert, active: false },
-  { id: "audit", label: "Audit Log", icon: FileSearch, active: false },
-  { id: "jurisdictions", label: "Jurisdictions", icon: Scale, active: false },
+interface NavItem {
+  id: string;
+  label: string;
+  icon: typeof LayoutGrid;
+  active: boolean;
+  enabled: boolean;
+  href?: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  {
+    id: "queue",
+    label: "Case Queue",
+    icon: LayoutGrid,
+    active: true,
+    enabled: true,
+    href: "/",
+  },
+  {
+    id: "alerts",
+    label: "Live Alerts",
+    icon: ShieldAlert,
+    active: false,
+    enabled: false,
+  },
+  {
+    id: "audit",
+    label: "Audit Log",
+    icon: FileSearch,
+    active: false,
+    enabled: false,
+  },
+  {
+    id: "jurisdictions",
+    label: "Jurisdictions",
+    icon: Scale,
+    active: false,
+    enabled: false,
+  },
 ];
 
 /**
  * Left sidebar navigation.
  *
- * Design: narrow, icon-forward, with the AMINA-style wordmark up top.
- * The active state uses a left-edge accent bar — a precise, Swiss touch.
+ * MVP scope: only Case Queue is functional. Other nav items are
+ * deliberately disabled with a "Soon" badge — honest about scope
+ * rather than fake-interactive buttons that lead nowhere.
+ *
+ * Each disabled item has a tooltip on hover explaining what it will be.
  */
 export function Sidebar() {
-  const [active, setActive] = useState("queue");
-
   return (
     <aside className="w-60 shrink-0 border-r border-paper-line bg-paper-raised flex flex-col">
       {/* Wordmark */}
-      <div className="h-16 flex items-center px-5 border-b border-paper-line">
+      <Link
+        href="/"
+        className="h-16 flex items-center px-5 border-b border-paper-line hover:bg-paper-sunken transition-colors"
+      >
         <div className="flex items-center gap-2.5">
           <div className="h-7 w-7 rounded bg-accent flex items-center justify-center">
             <span className="text-paper-raised font-semibold text-sm">S</span>
@@ -41,30 +78,55 @@ export function Sidebar() {
             <div className="text-2xs text-ink-muted">Risk Intelligence</div>
           </div>
         </div>
-      </div>
+      </Link>
 
       {/* Nav */}
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
-          const isActive = active === item.id;
-          return (
-            <button
-              key={item.id}
-              onClick={() => setActive(item.id)}
-              className={cn(
-                "w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium relative transition-colors",
-                isActive
-                  ? "bg-accent-bg text-accent"
-                  : "text-ink-soft hover:bg-paper-sunken hover:text-ink",
-              )}
-            >
-              {isActive && (
+
+          if (!item.enabled) {
+            return (
+              <div
+                key={item.id}
+                title="Coming soon — backend APIs ready, UI in development"
+                className={cn(
+                  "w-full flex items-center gap-3 px-3 py-2 rounded text-sm",
+                  "text-ink-faint cursor-not-allowed select-none",
+                )}
+              >
+                <Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
+                <span className="flex-1">{item.label}</span>
+                <span className="text-2xs px-1.5 py-0.5 rounded bg-paper-sunken text-ink-muted font-medium">
+                  Soon
+                </span>
+              </div>
+            );
+          }
+
+          if (item.active) {
+            return (
+              <Link
+                key={item.id}
+                href={item.href ?? "/"}
+                className="w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium relative bg-accent-bg text-accent"
+              >
                 <span className="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-r bg-accent" />
-              )}
+                <Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
+                {item.label}
+              </Link>
+            );
+          }
+
+          return (
+            <Link
+              key={item.id}
+              href={item.href ?? "/"}
+              className="w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium text-ink-soft hover:bg-paper-sunken hover:text-ink transition-colors"
+            >
               <Icon className="h-4 w-4 shrink-0" strokeWidth={2} />
               {item.label}
-            </button>
+            </Link>
           );
         })}
       </nav>
@@ -78,10 +140,13 @@ export function Sidebar() {
           <Info className="h-4 w-4" strokeWidth={2} />
           About Sentinel
         </Link>
-        <button className="w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium text-ink-soft hover:bg-paper-sunken hover:text-ink transition-colors">
+        <div
+          title="Coming soon"
+          className="w-full flex items-center gap-3 px-3 py-2 rounded text-sm font-medium text-ink-faint cursor-not-allowed select-none"
+        >
           <Settings className="h-4 w-4" strokeWidth={2} />
           Settings
-        </button>
+        </div>
         <div className="mt-3 px-3 flex items-center gap-2">
           <div className="h-7 w-7 rounded-full bg-paper-sunken flex items-center justify-center">
             <span className="text-2xs font-semibold text-ink-soft">AM</span>

@@ -25,25 +25,94 @@ import type {
 
 const BASE = "/api/backend";
 
-/** Generic fetch wrapper with error handling. */
+/**
+ * Custom error class with HTTP status code preserved.
+ * Lets UI distinguish "404 not found" from "500 server error" etc.
+ */
+export class ApiError extends Error {
+  constructor(
+    public readonly status: number,
+    public readonly detail: string,
+    public readonly endpoint: string,
+  ) {
+    super(`API ${status} on ${endpoint}: ${detail}`);
+    this.name = "ApiError";
+  }
+}
+
+/**
+ * Wait helper for exponential backoff.
+ */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+/**
+ * Generic fetch wrapper with timeout, retry, and typed errors.
+ *
+ * - Timeout: 15s default (Claude streaming can be slow)
+ * - Retry: 1 retry on network failure or 5xx, with 500ms backoff
+ * - Does NOT retry: 4xx errors (client errors, retrying won't help)
+ */
 async function apiFetch<T>(
   path: string,
-  options?: RequestInit,
+  options?: RequestInit & { timeoutMs?: number; retries?: number },
 ): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    ...options,
-    headers: {
-      "Content-Type": "application/json",
-      ...options?.headers,
-    },
-  });
+  const { timeoutMs = 15_000, retries = 1, ...fetchOptions } = options ?? {};
+  let lastError: Error | null = null;
 
-  if (!res.ok) {
-    const detail = await res.text().catch(() => res.statusText);
-    throw new Error(`API ${res.status}: ${detail}`);
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      const res = await fetch(`${BASE}${path}`, {
+        ...fetchOptions,
+        signal: controller.signal,
+        headers: {
+          "Content-Type": "application/json",
+          ...fetchOptions.headers,
+        },
+      });
+      clearTimeout(timeoutId);
+
+      if (!res.ok) {
+        const detail = await res.text().catch(() => res.statusText);
+        const err = new ApiError(res.status, detail, path);
+        // Don't retry client errors (4xx)
+        if (res.status >= 400 && res.status < 500) {
+          throw err;
+        }
+        lastError = err;
+        // Retry 5xx after backoff
+        if (attempt < retries) {
+          await sleep(500 * (attempt + 1));
+          continue;
+        }
+        throw err;
+      }
+
+      return res.json() as Promise<T>;
+    } catch (err) {
+      clearTimeout(timeoutId);
+      if (err instanceof ApiError) throw err; // already handled above
+      if (err instanceof Error && err.name === "AbortError") {
+        lastError = new Error(
+          `Request timed out after ${timeoutMs}ms: ${path}`,
+        );
+      } else {
+        lastError = err instanceof Error ? err : new Error(String(err));
+      }
+      // Network errors — retry
+      if (attempt < retries) {
+        await sleep(500 * (attempt + 1));
+        continue;
+      }
+      throw lastError;
+    }
   }
 
-  return res.json() as Promise<T>;
+  throw lastError ?? new Error(`Unknown error fetching ${path}`);
 }
 
 // === Cases ===

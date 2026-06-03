@@ -37,6 +37,18 @@ export function WelcomeModal() {
     }
   }, []);
 
+  // Esc to close — important for demo: if it accidentally opens mid-pitch,
+  // you can dismiss it without clicking the (small) X button
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") dismiss();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   const dismiss = () => {
     setOpen(false);
     try {

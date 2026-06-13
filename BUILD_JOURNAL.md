@@ -19,6 +19,7 @@
 | [10](#день-10) | Pitch & Demo Materials |
 | [11](#день-11) | Hardening & Polish |
 | [12](#день-12) | Drift Engine — ядро (BOCPD + Drift Velocity + Симулятор) |
+| [13](#день-13) | Risk Contagion + Cost Cascade + интеграция в API |
 | [Hotfix 9.1](#hotfix-91) | Backend fallback + Sidebar disabled items |
 
 ---
@@ -3422,6 +3423,124 @@ Helena (counterparty migration) даёт накопленный drift всего
 - `contagion.py` — ownership graph + personalized PageRank (Layer 3)
 - `cascade.py` — Tier router с cost accounting (BR7)
 - `service.py` + API — интеграция в Sentinel как case type `kyc_drift`
+
+---
+
+<!-- ================== DAY 13 ================== -->
+
+# День 13: Risk Contagion + Cost Cascade + интеграция в API
+
+Сегодня добавили Layer 3 (ownership contagion), cost cascade router (BR7), и **интегрировали Drift Engine в Sentinel API** как case type `kyc_drift`. Sentinel: 19 → 26 endpoints. Всё протестировано end-to-end.
+
+## Что построили
+
+1. **`app/drift/contagion.py`** — ownership graph + personalized PageRank (NetworkX)
+2. **`app/drift/cascade.py`** — три-tier cost router с information-economics
+3. **`app/drift/service.py`** — DriftEngine оркестратор (fusion всех слоёв)
+4. **`app/schemas/drift.py`** — Pydantic схемы
+5. **`app/api/v1/drift.py`** — 7 endpoints
+6. `kyc_drift` добавлен в CaseType enum, router смонтирован
+
+## Результаты валидации
+
+| Тест | Результат |
+|---|---|
+| Contagion (H3) | drift-004, drift-002 подсвечены через 2 hops; остальные 0 |
+| Cost cascade (H4) | 79.9% экономии на demo-книге, 96.2% на 1000 клиентов |
+| Multi-layer fusion | Sergei (drift+contagion) = 92.6, самый высокий |
+| Red-team inject | Phantom (combined) пойман: score 85 |
+| RFI targeting | Helena → counterparty question (правильный layer) |
+
+## API endpoints (7)
+
+| Method | Endpoint | Назначение |
+|---|---|---|
+| GET | `/drift/customers` | Book overview, sorted by risk |
+| GET | `/drift/customers/{id}` | Full layer breakdown + timeline |
+| GET | `/drift/customers/{id}/timeline` | Timeline scrubber data |
+| POST | `/drift/scan` | Cascade pass + cost report |
+| GET | `/drift/contagion` | Ownership graph + propagated risk |
+| POST | `/drift/inject` | Red-team scenario injection |
+| POST | `/drift/rfi/{id}` | VoI-ranked request-for-information |
+
+## Шаг 1: Распакуй архив
+
+```bash
+cd ~/Documents/Projects/swisshacks-2026
+cp backend/.env backend/.env.backup 2>/dev/null || true
+unzip -qo ~/Downloads/swisshacks-2026-day13.zip -d /tmp/swisshacks-update
+cp -a /tmp/swisshacks-update/swisshacks-2026/. .
+mv backend/.env.backup backend/.env 2>/dev/null || true
+rm -rf /tmp/swisshacks-update
+```
+
+## Шаг 2: Установи networkx
+
+```bash
+cd backend && source .venv/bin/activate
+pip install networkx   # новая зависимость для contagion
+```
+
+## Шаг 3: Запусти backend и проверь Swagger
+
+```bash
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+Открой http://localhost:8000/docs — увидишь новую секцию **drift** с 7 endpoints.
+
+## Шаг 4: Проверь через curl
+
+```bash
+# Список drift клиентов (отсортирован по риску)
+curl -s http://localhost:8000/api/v1/drift/customers | python3 -m json.tool | head -30
+
+# Cost cascade report
+curl -s -X POST http://localhost:8000/api/v1/drift/scan | python3 -m json.tool
+
+# Ownership contagion граф
+curl -s http://localhost:8000/api/v1/drift/contagion | python3 -m json.tool | head -40
+
+# Red-team: inject phantom
+curl -s -X POST http://localhost:8000/api/v1/drift/inject \
+  -H "Content-Type: application/json" \
+  -d '{"scenario":"combined","name":"Red Team Test"}' | python3 -m json.tool
+```
+
+## Шаг 5: Git commit
+
+```bash
+git add -A
+git commit -m "Day 13: Risk contagion + cost cascade + API integration
+
+- contagion.py: ownership graph + personalized PageRank (Layer 3)
+- cascade.py: 3-tier cost router, 96% savings vs LLM-on-everything
+- service.py: DriftEngine multi-layer fusion orchestrator
+- 7 new API endpoints under /api/v1/drift (Sentinel: 19->26)
+- kyc_drift case type; red-team inject + VoI-ranked RFI
+- Validation: contagion 2-hop propagation, fusion ranks combined-drift highest
+"
+git push origin main
+```
+
+## Что узнал (теория)
+
+### Personalized PageRank для risk contagion
+
+Обычный PageRank даёт глобальную важность узла. **Personalized** PageRank с teleport-вектором, сконцентрированным на seed-узлах (санкционированные entities), даёт "близость к источнику риска". Запускаем на undirected stake-weighted view — риск течёт в обе стороны (владелец → актив и актив → владелец). Клиент в 2 hop'ах от санкции получает propagated risk **до** появления в любом списке.
+
+### Cost cascade как information-economics
+
+Не if-else, а правило: escalate iff `E[info gain] × case_value > tier_cost`. Customer reaching tier k incurs cost всех tier'ов до k (работа реально сделана). На 1000 клиентов: 940 остаются на T0 (free), 22 на T1 ($0.012), 38 на T2 ($1.90) — итого $1.91 против $50 за LLM-on-everything. 96% экономии **с сохранением recall**.
+
+### Singleton engine pattern
+
+DriftEngine генерирует книгу один раз на процесс (`get_drift_engine()`), чтобы customer IDs были стабильны между запросами. Inject добавляет в ту же книгу — red-team scenario виден сразу в `/customers`.
+
+## Дальше: День 14
+
+- Frontend: Drift Radar (scatter score×velocity) + timeline scrubber + contagion граф
+- Это визуальное сердце demo для жюри AMINA
 
 ---
 

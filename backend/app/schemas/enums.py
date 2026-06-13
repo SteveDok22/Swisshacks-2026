@@ -36,6 +36,9 @@ class CaseType(StrEnum):
     # Ripple use cases
     XRPL_TRANSACTION = "xrpl_transaction"      # AML scoring on-chain
 
+    # AMINA Challenge 4 — Dynamic Risk Profiling
+    KYC_DRIFT = "kyc_drift"                     # Slow structural risk drift
+
 
 class RiskLevel(StrEnum):
     """

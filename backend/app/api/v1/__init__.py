@@ -13,6 +13,7 @@ from app.api.v1 import (
     explanations,
     jurisdictions,
     scoring,
+    drift,
 )
 
 api_router = APIRouter()
@@ -25,3 +26,4 @@ api_router.include_router(jurisdictions.router)
 api_router.include_router(explanations.router)
 api_router.include_router(decisions.router)
 api_router.include_router(audit.router)
+api_router.include_router(drift.router)

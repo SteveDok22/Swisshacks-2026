@@ -198,3 +198,81 @@ export interface PaginatedResponse<T> {
   page: number;
   page_size: number;
 }
+
+// === Drift Engine (AMINA Challenge 4) ===
+
+export interface LayerContribution {
+  layer: number;
+  name: string;
+  llr: number;
+  status: string;
+  detail: string | null;
+}
+
+export interface DriftCustomerSummary {
+  customer_id: string;
+  name: string;
+  drift_score: number;
+  drift_velocity: number;
+  velocity_band: string;
+  reached_tier: string;
+  sanctions_hit: boolean;
+  propagated_risk: number;
+  scenario: string | null;
+}
+
+export interface DriftTimelinePoint {
+  month: number;
+  drift_bits: number;
+  velocity: number;
+  acceleration: number;
+  bocpd_changepoint: boolean;
+}
+
+export interface DriftCustomerDetail {
+  customer_id: string;
+  name: string;
+  drift_score: number;
+  drift_velocity: number;
+  velocity_band: string;
+  reached_tier: string;
+  escalation_reasons: string[];
+  layers: LayerContribution[];
+  timeline: DriftTimelinePoint[];
+  scenario: string | null;
+  drift_start_month: number | null;
+  sanctions_month: number | null;
+  bocpd_changepoint_day: number | null;
+}
+
+export interface CascadeCostReport {
+  total_customers: number;
+  tier_counts: Record<string, number>;
+  tier_costs: Record<string, number>;
+  total_cost: number;
+  summary: string;
+  llm_on_everything_cost: number;
+  savings_pct: number;
+}
+
+export interface ContagionNode {
+  id: string;
+  name: string;
+  is_customer: boolean;
+  entity_type: string;
+  risk: number;
+  hops_from_seed: number | null;
+  is_seed: boolean;
+}
+
+export interface ContagionEdge {
+  source: string;
+  target: string;
+  stake: number;
+}
+
+export interface ContagionGraphData {
+  nodes: ContagionNode[];
+  edges: ContagionEdge[];
+  seeds: string[];
+}

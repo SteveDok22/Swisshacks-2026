@@ -220,3 +220,39 @@ export const auditApi = {
     );
   },
 };
+
+// === Drift Engine (AMINA Challenge 4) ===
+import type {
+  DriftCustomerSummary,
+  DriftCustomerDetail,
+  CascadeCostReport,
+  ContagionGraphData,
+} from "@/types/api";
+
+export const driftApi = {
+  customers: () =>
+    apiFetch<DriftCustomerSummary[]>("/drift/customers"),
+
+  customer: (id: string) =>
+    apiFetch<DriftCustomerDetail>(`/drift/customers/${id}`),
+
+  scan: () =>
+    apiFetch<CascadeCostReport>("/drift/scan", { method: "POST" }),
+
+  contagion: () =>
+    apiFetch<ContagionGraphData>("/drift/contagion"),
+
+  inject: (scenario: string, name: string) =>
+    apiFetch<DriftCustomerDetail>("/drift/inject", {
+      method: "POST",
+      body: JSON.stringify({ scenario, name }),
+    }),
+
+  rfi: (id: string) =>
+    apiFetch<{
+      customer_id: string;
+      questions: string[];
+      rationale: string;
+      estimated_info_gain_bits: number;
+    }>(`/drift/rfi/${id}`, { method: "POST" }),
+};

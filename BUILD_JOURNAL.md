@@ -20,6 +20,7 @@
 | [11](#день-11) | Hardening & Polish |
 | [12](#день-12) | Drift Engine — ядро (BOCPD + Drift Velocity + Симулятор) |
 | [13](#день-13) | Risk Contagion + Cost Cascade + интеграция в API |
+| [14](#день-14) | Визуальное сердце demo — Drift Radar + Timeline + Contagion |
 | [Hotfix 9.1](#hotfix-91) | Backend fallback + Sidebar disabled items |
 
 ---
@@ -3541,6 +3542,103 @@ DriftEngine генерирует книгу один раз на процесс 
 
 - Frontend: Drift Radar (scatter score×velocity) + timeline scrubber + contagion граф
 - Это визуальное сердце demo для жюри AMINA
+
+---
+
+<!-- ================== DAY 14 ================== -->
+
+# День 14: Визуальное сердце demo — Drift Radar + Timeline + Contagion граф
+
+Frontend для AMINA Challenge 4. Три визуализации, которые жюри запомнит. Новый route `/drift`, всё на существующем design system. Build чистый.
+
+## Что построили
+
+1. **`DriftRadar.tsx`** — scatter plot (x=score, y=velocity), верхний правый квадрант = приоритет
+2. **`DriftTimeline.tsx`** — timeline scrubber с двумя маркерами: "Drift Engine flags" (опережающий) vs "Sanctions hit" (запаздывающий), показывает lead time
+3. **`ContagionGraph.tsx`** — SVG ownership граф, риск растекается от санкционированной entity к клиентам
+4. **`app/drift/page.tsx`** — страница: radar + cost meter + red-team кнопка слева, timeline + layers + contagion справа
+5. Sidebar: добавлен пункт **Drift Engine**, навигация теперь route-aware (usePathname)
+6. `driftApi` в api client + drift типы
+
+## Шаг 1: Распакуй архив
+
+```bash
+cd ~/Documents/Projects/swisshacks-2026
+cp backend/.env backend/.env.backup 2>/dev/null || true
+unzip -qo ~/Downloads/swisshacks-2026-day14.zip -d /tmp/swisshacks-update
+cp -a /tmp/swisshacks-update/swisshacks-2026/. .
+mv backend/.env.backup backend/.env 2>/dev/null || true
+rm -rf /tmp/swisshacks-update
+```
+
+## Шаг 2: Запусти backend и frontend
+
+Backend без изменений сегодня — просто запусти если не запущен:
+```bash
+cd backend && source .venv/bin/activate
+uvicorn app.main:app --reload --port 8000
+```
+
+Frontend — hot reload подхватит, или перезапусти:
+```bash
+cd frontend && npm run dev
+```
+
+## Шаг 3: Открой Drift Engine
+
+http://localhost:3000/drift (или клик "Drift Engine" в sidebar)
+
+Что увидишь:
+- **Cost meter** наверху — T0/T1/T2 распределение, "−80% vs LLM-on-everything"
+- **Drift Radar** — точки клиентов, Sergei в верхнем правом (rapid), кликай для выбора
+- **Red-team кнопка** — "inject synthetic drift scenario", добавляет phantom-клиента вживую
+- Справа для выбранного клиента: **Timeline scrubber** (тяни ползунок, смотри как velocity растёт за месяцы до sanctions hit), **Signal Layers** (L1/L3/L4/L5 с LLR), **Contagion граф** (Orion Capital → shells → 2 клиента)
+
+## Шаг 4: Demo-репетиция
+
+Это финальный demo flow для жюри:
+1. Открой /drift → cost meter показывает экономику
+2. Radar: "вот вся книга, верхний правый квадрант = с чего начинается утро"
+3. Кликни Sergei → Timeline: тяни ползунок, "Drift Engine флагует на месяце 13, санкции на 17 — 4 месяца форы"
+4. Покажи Contagion: "Sergei сам ни в одном списке, но связан через shell с санкционированной Orion"
+5. Red-team: нажми inject → "система ловит даже синтетический сценарий который мы только что создали"
+
+## Шаг 5: Git commit
+
+```bash
+git add -A
+git commit -m "Day 14: Drift Engine frontend — radar, timeline, contagion graph
+
+- DriftRadar: score x velocity scatter, priority quadrant
+- DriftTimeline: scrubber showing lead time vs sanctions hit
+- ContagionGraph: ownership risk propagation visualization
+- /drift page: cost meter + red-team inject button
+- Sidebar: route-aware nav with Drift Engine entry
+"
+git push origin main
+```
+
+## Что узнал (теория)
+
+### Custom SVG вместо chart library
+
+Recharts/Chart.js дали бы generic вид. Кастомный SVG (~120 строк на компонент) даёт полный контроль над quadrant shading, маркерами timeline, нашими design tokens. Для demo это разница между "ещё один dashboard" и "продукт с характером".
+
+### Detерминированный layout графа
+
+Force-directed layout (d3-force) каждый запуск кладёт узлы по-разному — demo выглядит иначе каждый раз. Для contagion графа использован layered layout (seed сверху, shells в середине, клиенты снизу) — **детерминированно**, demo идентичен каждый прогон.
+
+### setState в render → useEffect
+
+Auto-select первого клиента нельзя делать прямо в теле компонента (React warning про setState during render). Перенесено в useEffect с зависимостью [customers, selectedId].
+
+### usePathname для route-aware nav
+
+Sidebar раньше хардкодил active=queue. Теперь usePathname() сравнивает с href каждого пункта — подсветка следует за реальным маршрутом.
+
+## Дальше
+
+Осталось 5 дней до хакатона. Drift Engine полнофункционален: backend (BOCPD, velocity, contagion, cascade) + frontend (radar, timeline, contagion). Возможные направления: drift demo script, интеграция drift в pitch deck, или подготовка под Deep-Dive Friday.
 
 ---
 

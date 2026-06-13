@@ -24,6 +24,10 @@ dependencies = [
     "numpy>=1.26.0",
     "pandas>=2.2.0",
     "joblib>=1.4.0",
+
+    # Drift Engine (AMINA Challenge 4): BOCPD + ownership contagion
+    "scipy>=1.13.0",
+    "networkx>=3.3",
     
     # Counterfactuals (наш дифференциатор)
     "dice-ml>=0.11",

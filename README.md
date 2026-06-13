@@ -43,6 +43,84 @@ actually trust.
 
 ---
 
+## Drift Engine — AMINA Challenge 4
+
+> *"Sanctions lists tell you who became toxic yesterday. Drift velocity tells you who is becoming toxic right now."*
+
+The Drift Engine extends Sentinel with early detection of **KYC drift** — slow structural
+changes that quietly invalidate a customer's original risk profile (the explicit core of
+AMINA's Challenge 4 brief).
+
+### The reframe
+
+A KYC profile is not a document. It is a **snapshot of the parameters of a stochastic
+process** taken at onboarding. The customer is the process; the profile is a frozen
+estimate. Drift is the divergence between the frozen declared model and the evolving
+observed trajectory. The question changes from *"did something bad happen?"* to
+*"has the generative process behind this customer's behavior changed?"* — a well-posed
+statistical question with 50 years of theory behind it.
+
+### Signal layers
+
+| Layer | Signal | Method | Tier / Cost |
+|---|---|---|---|
+| 1 · Deterministic | Sanctions / PEP / watchlist | Exact + fuzzy matching | T0 · free |
+| 2 · Adverse media | News mention severity | Embedding classifier | T1 · cents |
+| 3 · Ownership topology | UBO changes, shell chains | Graph diff + personalized PageRank | T1 · cents |
+| 4 · Behavioral drift | Transaction process vs baseline | **BOCPD** + drift velocity | T0 · free |
+| 5 · Declared consistency | Stated profile vs observed flows | Statistical tests | T0 · free |
+| 6 · Peer divergence | Distance from segment cohort | Embedding distance | T1 · cents |
+| 7 · Active intelligence | VoI-ranked RFI + adversarial self-test | Claude reasoning | T2 · rare |
+
+Cheap tiers run on 100% of the book daily; expensive reasoning fires only on the
+uncertain/high band — AMINA's cost-awareness criterion as an architectural principle,
+not a bolt-on.
+
+### Mathematical core
+
+**BOCPD** (Adams & MacKay, 2007) maintains a posterior over the run length r_t — the
+number of observations since the last changepoint in the customer's transaction stream.
+A collapse in the MAP run length means the generative process just changed. Threshold
+rules catch *outliers*; BOCPD catches *regime change* — a customer who slowly raised
+average volume from 5K to 9K never crosses a 10K threshold, but the distribution shift
+is plainly visible to the run-length posterior.
+
+**Drift velocity** — our signature metric:
+
+```
+Drift(t) = KL( P_baseline || P_current(t) )    accumulated divergence, bits
+DV(t)    = d/dt Drift(t)                       drift velocity, bits per month
+```
+
+Rising velocity is the earliest precursor — it fires before the absolute divergence
+crosses any sane alert threshold.
+
+**Risk contagion** — personalized PageRank from newly flagged entities over the ownership
+graph surfaces at-risk customers who carry **no direct flag of their own**.
+
+### Validation results (synthetic scenario suite, ground truth known)
+
+| Metric | Result | Target |
+|---|---|---|
+| Classification | 10/10 customers | — |
+| Lead time before simulated sanctions hit | 2–7 months (median 5.5) | ≥ 3 months |
+| False positives on stable customers | 0 of 6 | < 5% |
+
+Scenarios: stable (control), volume creep, counterparty migration, corridor shift,
+combined. Module: `backend/app/drift/` (`bocpd.py`, `velocity.py`, `simulator.py`).
+
+### Drift Engine references
+
+* Adams & MacKay (2007). *Bayesian Online Changepoint Detection.* arXiv:0710.3742.
+* Page (1954). *Continuous Inspection Schemes.* Biometrika 41 — CUSUM.
+* Kullback & Leibler (1951). *On Information and Sufficiency.* Ann. Math. Stat. 22.
+* Page, Brin, Motwani & Winograd (1999). *The PageRank Citation Ranking.* Stanford.
+* Howard (1966). *Information Value Theory.* IEEE Trans. SSC — VoI for RFI ranking.
+* FATF (2023). *Guidance on Beneficial Ownership of Legal Persons.*
+* FINMA Circular 2024/3. *Operational risks and resilience — banks.*
+
+---
+
 ## Architecture overview
 
 ```
@@ -136,9 +214,10 @@ Decision is logged immutably to the audit trail at
 swisshacks-2026/
 ├── backend/                      # FastAPI + ML + DB
 │   ├── app/
-│   │   ├── api/v1/              # 8 routers, 19 endpoints
+│   │   ├── api/v1/              # routers + endpoints
 │   │   ├── core/                # config, logging
 │   │   ├── db/                  # SQLModel + async session
+│   │   ├── drift/               # Drift Engine: BOCPD, velocity, simulator
 │   │   ├── jurisdictions/       # YAML rule packs (CH/EU/HK/AE)
 │   │   ├── ml/                  # XGBoost + SHAP + feature extractors
 │   │   ├── schemas/             # Pydantic API schemas
@@ -153,7 +232,10 @@ swisshacks-2026/
 │   │   ├── lib/                 # API client, hooks, utils
 │   │   └── types/               # TypeScript mirrors of backend schemas
 │   └── tailwind.config.ts       # Swiss institutional design tokens
-└── DAY_N_GUIDE.md               # Daily build journals (1 through current)
+├── pitch/                        # Deck, demo script, onboarding, walkthrough
+├── README.md                     # This file — single source of truth
+├── BUILD_JOURNAL.md              # Day-by-day build log (all days + hotfix)
+└── WRAP_UP.md                    # Pre-announcement checklist
 ```
 
 ---
@@ -168,12 +250,73 @@ TanStack Query · Radix UI · Motion · Lucide icons · Geist + IBM Plex Mono
 
 ---
 
+## Pitch materials
+
+All presentation materials live in `pitch/`:
+
+| File | Purpose | Audience |
+|---|---|---|
+| `deck.md` | 10-slide pitch deck (Marp) | Judges |
+| `demo-script.md` | Second-by-second 3-minute demo flow | Presenter |
+| `team-onboarding.md` | New team member first 30 minutes | Team |
+| `code-walkthrough.md` | Architecture tour | Team / judges / interviewers |
+| `announcement.md` | Team announcement templates | Team channels |
+
+Convert the deck: install **Marp for VS Code** extension and export from the editor, or:
+
+```bash
+npm install -g @marp-team/marp-cli
+marp pitch/deck.md --pdf --allow-local-files -o pitch/deck.pdf
+```
+
+---
+
 ## Team & credits
 
 Built by **Stiven Ntoktorov** as the project backbone, with team contributions
 incoming. Designed for the SwissHacks 2026 hackathon (Tenity, Zurich).
 
 Architecture conversations and code review by Claude (Anthropic).
+
+---
+
+## Project stats
+
+| | |
+|---|---|
+| **Backend** | 50 Python files · ~5,000 LOC |
+| **Frontend** | 23 TS/TSX files · ~3,000 LOC |
+| **API endpoints** | 19 |
+| **Jurisdiction rule packs** | 4 (CH/EU/HK/AE, YAML-edited) |
+| **Mock cases** | 18 (across 3 case types, 4 jurisdictions) |
+| **Pitch documents** | 5 (deck, demo script, onboarding, walkthrough, index) |
+| **Daily build journals** | 12 |
+| **First Load JS** | 138 KB (Next.js bundle) |
+
+---
+
+## Roadmap
+
+**Ready for hackathon day** (pre-built):
+- ✅ Core risk scoring with XGBoost + SHAP
+- ✅ DiCE counterfactuals
+- ✅ Streaming Claude explanations (SSE)
+- ✅ FINMA-compliant anonymization
+- ✅ Four-jurisdiction rule engine
+- ✅ Immutable audit trail
+- ✅ Production-grade UI with error boundaries, retry logic, skeleton loaders
+- ✅ Mock-mode fallback (works without API key)
+- ✅ 18 demo-ready cases
+
+**Hackathon weekend additions** (planned with team):
+- 🔨 Voice biometric layer (if AMINA challenge is selected)
+- 🔨 Julius Baer skin with PRIIP/MiFID compliance walkthrough
+- 🔨 Ripple skin with RLUSD escrow integration
+- 🔨 Real-time alert WebSocket subscriber
+- 🔨 Audit Log UI page
+
+The backend already supports all three case types via the same engine.
+Adding new ones is hours, not days.
 
 ---
 

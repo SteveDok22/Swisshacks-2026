@@ -214,6 +214,17 @@ export interface CausalVerdict {
   contributions: Record<string, number>;
 }
 
+
+export interface StabilityVerdict {
+  suspicion: number;
+  stability_anomaly: number;
+  environmental_movement: number;
+  own_volatility: number;
+  cohort_volatility: number;
+  is_suspicious: boolean;
+  detail: string;
+}
+
 export interface PublicSignal {
   month: number;
   signal_type: string;
@@ -243,6 +254,8 @@ export interface DriftCustomerSummary {
   confirmation_lift: number;
   causal_label: string;
   causal_p_risk: number;
+  suspicion: number;
+  is_suspicious: boolean;
   scenario: string | null;
 }
 
@@ -273,6 +286,7 @@ export interface DriftCustomerDetail {
   confirmation_lift: number;
   public_signals: PublicSignal[];
   causal: CausalVerdict | null;
+  stability: StabilityVerdict | null;
 }
 
 export interface CascadeCostReport {

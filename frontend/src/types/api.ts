@@ -202,6 +202,18 @@ export interface PaginatedResponse<T> {
 // === Drift Engine (AMINA Challenge 4) ===
 
 
+
+export interface CausalVerdict {
+  causal_llr: number;
+  p_risk: number;
+  label: string;
+  volume_change: number;
+  margin_change: number;
+  counterparty_change: number;
+  corridor_change: number;
+  contributions: Record<string, number>;
+}
+
 export interface PublicSignal {
   month: number;
   signal_type: string;
@@ -229,6 +241,8 @@ export interface DriftCustomerSummary {
   propagated_risk: number;
   public_risk: number;
   confirmation_lift: number;
+  causal_label: string;
+  causal_p_risk: number;
   scenario: string | null;
 }
 
@@ -258,6 +272,7 @@ export interface DriftCustomerDetail {
   internal_risk: number;
   confirmation_lift: number;
   public_signals: PublicSignal[];
+  causal: CausalVerdict | null;
 }
 
 export interface CascadeCostReport {

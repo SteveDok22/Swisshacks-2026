@@ -2,8 +2,14 @@
 
 Two terminals: one for the backend (API + ML), one for the frontend (dashboard).
 
-**Prerequisites**: Python 3.11+, Node.js 20+, Git.
+**Prerequisites**: Python 3.11+, Node.js 20+.
 Check: `python3 --version` and `node --version`.
+
+> **No API key needed.** Sentinel runs fully in **mock mode** without an
+> Anthropic API key and without internet — the AI explanations use a built-in
+> fallback. Everything you need to evaluate the project works offline. (If you
+> *do* want live Claude responses, copy `backend/.env.example` to
+> `backend/.env` and add your key — optional.)
 
 ---
 

@@ -19,6 +19,7 @@ import numpy as np
 
 from app.drift.bocpd import BOCPD, standardize
 from app.drift.cascade import CascadeRouter, CustomerSignal
+from app.drift.causal import causal_assessment
 from app.drift.contagion import build_demo_graph, OwnershipGraph
 from app.drift.public_intel import (
     assess_public_risk,
@@ -29,6 +30,7 @@ from app.drift.simulator import SyntheticCustomer, generate_book, generate_custo
 from app.drift.velocity import compute_drift_series, velocity_band
 from app.schemas.drift import (
     CascadeCostReport,
+    CausalVerdictOut,
     ContagionGraph,
     DriftCustomerDetail,
     DriftCustomerSummary,
@@ -116,6 +118,25 @@ class DriftEngine:
         amplification = 1.0 + min((lift - 1.0) / 3.0, 1.0) * 0.35
         score = min(base * amplification * 100.0, 100.0)
 
+        # --- CAUSAL: is this drift risk-shaped or life-shaped? ---
+        # Uses causal_windows (includes margin_ratio, the discriminator) which
+        # is deliberately kept OUT of velocity so the two measures stay
+        # orthogonal: velocity = how much changed, causal = in which direction.
+        causal = causal_assessment(cust.causal_windows())
+
+        # Causal modulation — the whole point of the causal layer is to act on
+        # the verdict, not just display it. A high-magnitude drift that is
+        # clearly LIFE-SHAPED (benign) should NOT sit at the top of the
+        # officer's queue; a risk-shaped drift is confirmed. We modulate the
+        # score by a factor derived from p_risk:
+        #   p_risk ~1.0 (risk)   -> factor ~1.0  (score stands)
+        #   p_risk ~0.5 (unsure) -> factor ~0.85 (mild discount)
+        #   p_risk ~0.0 (benign) -> factor ~0.45 (strong discount)
+        # Benign business growth is demoted, not erased — an officer can still
+        # see it, but it stops generating false-positive alerts.
+        causal_factor = 0.45 + 0.55 * causal.p_risk
+        score = min(score * causal_factor, 100.0)
+
         return {
             "drift_series": ds,
             "latest_velocity": latest_velocity,
@@ -129,6 +150,7 @@ class DriftEngine:
             "public_risk": pi.public_risk,
             "public_peak_month": pi.peak_signal_month,
             "confirmation_lift": lift,
+            "causal": causal,
             "drift_score": score,
         }
 
@@ -215,6 +237,8 @@ class DriftEngine:
                     propagated_risk=round(a["propagated_risk"], 3),
                     public_risk=round(a["public_risk"], 3),
                     confirmation_lift=round(a["confirmation_lift"], 2),
+                    causal_label=a["causal"].label,
+                    causal_p_risk=round(a["causal"].p_risk, 3),
                     scenario=cust.scenario,
                 )
             )
@@ -266,6 +290,16 @@ class DriftEngine:
             public_signals=[
                 PublicSignalOut(**s.to_dict()) for s in a["public_signals"]
             ],
+            causal=CausalVerdictOut(
+                causal_llr=round(a["causal"].causal_llr, 2),
+                p_risk=round(a["causal"].p_risk, 3),
+                label=a["causal"].label,
+                volume_change=round(a["causal"].signature.volume_change, 3),
+                margin_change=round(a["causal"].signature.margin_change, 3),
+                counterparty_change=round(a["causal"].signature.counterparty_change, 3),
+                corridor_change=round(a["causal"].signature.corridor_change, 3),
+                contributions={k: round(v, 2) for k, v in a["causal"].contributions.items()},
+            ),
         )
 
     def scan(self) -> CascadeCostReport:

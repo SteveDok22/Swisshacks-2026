@@ -23,6 +23,7 @@
 | [14](#день-14) | Визуальное сердце demo — Drift Radar + Timeline + Contagion |
 | [15](#день-15) | Public Intelligence Layer (Layer 2) + Confirmation Lift |
 | [16](#день-16) | Causal Drift — risk-shaped vs life-shaped change |
+| [17](#день-17) | Suspicious Stability — детектор slow-walker |
 | [Hotfix 9.1](#hotfix-91) | Backend fallback + Sidebar disabled items |
 
 ---
@@ -3861,6 +3862,124 @@ Causal не отменяет drift score, а модулирует: benign ×0.45
 
 ## Дальше: День 17 — Suspicious Stability
 Детектор "slow-walker": клиент подозрительно стабилен, когда окружение движется. Ловит тех, кто ЗНАЕТ про drift-мониторинг и держит velocity низкой нарочно.
+
+---
+
+<!-- ================== DAY 17 ================== -->
+
+# День 17: Suspicious Stability — детектор slow-walker
+
+Вторая фича связки. Контр-интуитивная: все слои ловят ДВИЖЕНИЕ, эта ловит подозрительную НЕПОДВИЖНОСТЬ. Закрывает вопрос жюри: "а если злоумышленник знает про ваш drift-мониторинг?"
+
+## Проблема
+
+Умный отмыватель, знающий что банк следит за drift, делает очевидное: двигается ещё медленнее, держит метрики гладкими, не пробивает пороги. Все наши предыдущие слои его пропустят — он же не дрейфует.
+
+## Переворот
+
+Реальные люди ШУМЯТ. Их метрики дрожат естественно. Кто держит подозрительно гладкую траекторию, особенно когда окружение движется — это аномалия сама по себе. Не drift, а анти-drift.
+
+## Математика: произведение двух факторов
+
+```
+suspicion = stability_anomaly  ×  environmental_movement
+```
+
+- **stability_anomaly**: насколько клиент глаже когорты (CV клиента vs median CV книги)
+- **environmental_movement**: движутся ли контрагенты/корридоры/public вокруг него
+
+ПРОИЗВЕДЕНИЕ, не сумма — нужны ОБА. Гладкий клиент в спокойной среде = нормальный (большинство книги). Гладкий, когда вокруг штормит = flag.
+
+## Что построили
+
+1. **`app/drift/stability.py`** — CV-анализ, cohort reference, произведение факторов
+2. **`simulator.py`** — suspicious_stability сценарий (volume noise 2% вместо 15%) + движущееся окружение + двое клиентов: Pavel Novak (slow-walker) и Irina Volkova (sleeper)
+3. **Score elevation** — slow-walker иначе проскользнул бы с near-zero score; при флаге score поднимается до 50+suspicion*40
+4. **`StabilityPanel.tsx`** — два фактора × произведение, volatility vs cohort, slow-walker badge
+
+## Доказано цифрами
+
+- **13/13** классификация (Pavel+Irina флагуются, 11 остальных нет)
+- **8/8** устойчивость по seeds (Pavel 0.44-0.61, stable всегда 0.000)
+- Helena/Tomas имеют движущееся окружение (env 0.67), но stability_anomaly=0 (сами дрейфуют) → suspicion=0. Произведение работает.
+- Pavel own_vol 0.0054 vs cohort 0.0301 — в 6 раз глаже нормы
+
+## Честный момент
+
+Сначала Pavel/Irina не флагнулись (suspicion 0.24-0.28 < порог 0.35). Разобрал: их env_movement был низкий, потому что я забыл задать движущееся окружение в симуляторе — сделал их гладкими, но мир вокруг стоял. Исправил: suspicious_stability теперь двигает контрагенты+корридоры (клиента втягивают в сеть), сам клиент гладкий. После этого 13/13.
+
+## Шаг 1: Распакуй
+
+```bash
+cd ~/Documents/Projects/swisshacks-2026
+cp backend/.env backend/.env.backup 2>/dev/null || true
+unzip -qo ~/Downloads/swisshacks-2026-day17.zip -d /tmp/swisshacks-update
+cp -a /tmp/swisshacks-update/swisshacks-2026/. .
+mv backend/.env.backup backend/.env 2>/dev/null || true
+rm -rf /tmp/swisshacks-update
+```
+
+## Шаг 2: Проверь детектор
+
+```bash
+cd backend && source .venv/bin/activate
+python -c "
+from app.drift.simulator import generate_book
+from app.drift.stability import assess_stability, cohort_volatility
+from app.drift.public_intel import generate_signals_for_customer, assess_public_risk
+book = generate_book()
+cv = cohort_volatility([c.monthly_volume for c in book])
+for c in book:
+    s = generate_signals_for_customer(c.customer_id,c.name,c.scenario,drift_start_month=c.drift_start_month,seed=hash(c.customer_id)%9999)
+    p = assess_public_risk(s)
+    r = assess_stability(c.monthly_volume, cv, counterparty_monthly=c.counterparty_risk, corridor_monthly=c.corridor_risk, public_risk=p.public_risk)
+    print(f'{c.name:18s} suspicion={r.suspicion:.3f} {\"FLAG\" if r.is_suspicious else \"\"}')
+"
+```
+
+## Шаг 3: Demo
+
+```bash
+uvicorn app.main:app --reload --port 8000   # терм 1
+cd frontend && npm run dev                   # терм 2
+```
+
+http://localhost:3000/drift → открой **Pavel Novak** или **Irina Volkova**:
+- Suspicious Stability panel: smoothness 64 × environment 72 = suspicion 0.46
+- badge "slow-walker"
+- score элевирован (68) несмотря на низкий drift
+
+Контраст: открой обычного stable клиента — panel не показывается (suspicion ~0).
+
+## Шаг 4: Commit
+
+```bash
+git add -A
+git commit -m "Day 17: Suspicious Stability — slow-walker detector
+
+- stability.py: CV anomaly x environmental movement (product of two factors)
+- suspicious_stability scenario: robotic 2% noise + moving environment
+- Pavel (slow-walker) + Irina (sleeper) demo customers
+- score elevation so flagged slow-walkers cannot hide below radar
+- StabilityPanel frontend: two factors, product equation, slow-walker badge
+- Validation: 13/13 classification, 8/8 seed robustness
+"
+git push origin main
+```
+
+## Что узнал (теория)
+
+### Произведение vs сумма для AND-условий
+suspicion = anomaly × movement. Произведение требует ОБА фактора: если один near-zero, результат near-zero. Сумма дала бы ложные срабатывания (только smoothness ИЛИ только movement). Это формализация "подозрительно ТОЛЬКО когда гладкий И окружение движется".
+
+### Coefficient of variation как scale-free мера
+CV = std/mean. Не зависит от абсолютного масштаба клиента (богатый/бедный). Сравниваем CV клиента с median CV когорты — относительная гладкость, а не абсолютная.
+
+### Inverse detection
+Все детекторы ищут сигнал. Этот ищет ОТСУТСТВИЕ естественного шума там, где он должен быть. Score elevation замыкает: пойманный slow-walker поднимается в очереди, хотя его drift низкий — иначе вся фича бессмысленна.
+
+## Дальше: День 18 — Time-Travel Audit
+As-of replay: "что система знала бы на месяце -7, используя только данные до того момента". Доказательство регулятору что нет look-ahead. Третья и последняя фича связки.
 
 ---
 

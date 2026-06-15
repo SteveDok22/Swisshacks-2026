@@ -22,6 +22,7 @@
 | [13](#день-13) | Risk Contagion + Cost Cascade + интеграция в API |
 | [14](#день-14) | Визуальное сердце demo — Drift Radar + Timeline + Contagion |
 | [15](#день-15) | Public Intelligence Layer (Layer 2) + Confirmation Lift |
+| [16](#день-16) | Causal Drift — risk-shaped vs life-shaped change |
 | [Hotfix 9.1](#hotfix-91) | Backend fallback + Sidebar disabled items |
 
 ---
@@ -3742,6 +3743,124 @@ git push origin main
 ## Дальше
 
 BR1 закрыт, two-layer явная. Остаётся: drift demo script, drift в pitch deck, или resilience polish новых компонентов.
+
+---
+
+<!-- ================== DAY 16 ================== -->
+
+# День 16: Causal Drift — risk-shaped vs life-shaped change
+
+Первая из трёх "гениальных" фич. Закрывает самый опасный вопрос жюри AMINA: *"а если клиент просто развивает легальный бизнес — вы его тоже флагуете?"* Causal Drift отвечает: нет, мы различаем риск от нормальной жизни по корреляционной сигнатуре, а не по величине изменения.
+
+## Проблема, которую закрывает
+
+Чистый drift-детектор кричит на ЛЮБОЕ структурное изменение. Но клиент, продавший бизнес и купивший три новых, двигает те же метрики, что и клиент-транзит для отмывания. Velocity их не различает — оба дают высокий drift.
+
+## Ключевая инженерная идея
+
+Benign и risk отличаются не ВЕЛИЧИНОЙ, а КОРРЕЛЯЦИОННОЙ СИГНАТУРОЙ:
+
+- **Benign** (легальный рост): volume ↑, маржа СОХРАНЯЕТСЯ, контрагенты чистые, корридоры стабильны
+- **Risk** (транзит): volume ↑, маржа РУШИТСЯ (деньги текут насквозь), контрагенты концентрируются на рисковых, корридоры сдвигаются в high-risk
+
+Дискриминатор — **margin_ratio** (новая 4-я метрика). Оба растят оборот, но маржа разводит их.
+
+## Математика
+
+Два генеративных профиля (benign/risk), likelihood ratio между ними:
+
+```
+causal_LLR = log P(сигнатура | RISK) / P(сигнатура | BENIGN)
+```
+
+LLR > 0 → risk-shaped, LLR < 0 → life-shaped. Плюс forensic-принцип "absence of evidence is not evidence of absence": метрика в нейтральной зоне не штрафует против риска (демпфирование anti-risk вклада).
+
+## Что построили
+
+1. **`app/drift/causal.py`** — два профиля, LLR, асимметричная forensic-логика, per-metric contributions
+2. **`simulator.py`** — margin_ratio метрика + benign_expansion сценарий + Maria Steiner (benign-близнец Viktor'а). Ортогональность: margin только в causal_windows, velocity на 3 поведенческих метриках
+3. **Causal модуляция score** — benign демотируется (×0.45), risk подтверждается (×1.0). Замыкает causal в реальное действие (приоритизация очереди)
+4. **`CausalPanel.tsx`** — benign vs risk hypothesis competition, diverging bars per metric, causal badge в header
+
+## Доказано цифрами
+
+- **11/11** классификация на книге
+- **8/8** устойчивость по разным seeds (не подгонка)
+- **Killer pair**: Viktor (velocity 13, score 96, risk) vs Maria (velocity 9, score 45, benign) — близкая velocity, causal развёл score вдвое
+
+## Честный инженерный момент
+
+Viktor сначала вышел "ambiguous" (P=65%) — его единственный сильный сигнал это падение маржи, три другие метрики спокойны. Я не стал подгонять вслепую: сначала проверил, не правильнее ли оставить ambiguous (честная калибровка). Потом понял методологически верное: margin — сильнейший дискриминатор транзита, его профиль должен быть увереннее (узкий std 0.05). После этого 11/11 + устойчивость по 8 seeds подтвердили.
+
+## Шаг 1: Распакуй архив
+
+```bash
+cd ~/Documents/Projects/swisshacks-2026
+cp backend/.env backend/.env.backup 2>/dev/null || true
+unzip -qo ~/Downloads/swisshacks-2026-day16.zip -d /tmp/swisshacks-update
+cp -a /tmp/swisshacks-update/swisshacks-2026/. .
+mv backend/.env.backup backend/.env 2>/dev/null || true
+rm -rf /tmp/swisshacks-update
+```
+
+## Шаг 2: Проверь causal на книге
+
+```bash
+cd backend && source .venv/bin/activate
+python -c "
+from app.drift.simulator import generate_book
+from app.drift.causal import causal_assessment
+for c in generate_book():
+    v = causal_assessment(c.causal_windows())
+    print(f'{c.name:18s} {c.scenario:22s} {v.label:>10s} P(risk)={v.p_risk:.0%}')
+"
+```
+
+## Шаг 3: Запусти и открой demo
+
+```bash
+uvicorn app.main:app --reload --port 8000   # терминал 1
+cd frontend && npm run dev                   # терминал 2
+```
+
+http://localhost:3000/drift → сравни два клиента:
+- **Viktor Antonov** (volume_creep): score ~96, badge "risk", Causal Panel показывает margin collapse
+- **Maria Steiner** (benign_expansion): score ~45, badge "✓ benign" — НЕСМОТРЯ на высокую velocity
+
+Это killer demo: оба сильно дрейфуют по величине, но система понимает что Maria — легальный рост.
+
+## Шаг 4: Git commit
+
+```bash
+git add -A
+git commit -m "Day 16: Causal Drift — risk-shaped vs life-shaped change
+
+- causal.py: two generative hypotheses (benign/risk), likelihood ratio
+- margin_ratio discriminator + benign_expansion scenario + Maria twin
+- forensic asymmetric logic (absence of evidence != evidence of absence)
+- causal modulates score: benign demoted, risk confirmed
+- CausalPanel frontend: hypothesis competition + per-metric contributions
+- Validation: 11/11 classification, 8/8 seed robustness, Viktor vs Maria pair
+"
+git push origin main
+```
+
+## Что узнал (теория)
+
+### Likelihood ratio для causal hypotheses
+Не "насколько изменился" (drift magnitude), а "в какую сторону" (risk vs benign signature). Та же LR-механика что в Voice Engine, применённая к конкурирующим причинным гипотезам.
+
+### Ортогональность измерений
+margin держим вне velocity намеренно: velocity меряет величину дрифта, causal — направление. Если бы margin тёк в обе — они бы коррелировали и путались. Разделение через metric_windows (поведенческие) vs causal_windows (+margin).
+
+### Forensic asymmetry
+Спокойная метрика не должна аргументировать ПРОТИВ риска. Падение маржи — сильный сигнал транзита даже если контрагенты чистые. Демпфируем anti-risk вклад метрик в нейтральной зоне (z_benign > 1).
+
+### Модуляция, не замена
+Causal не отменяет drift score, а модулирует: benign ×0.45 (демотируется, но виден), risk ×1.0. Officer всё ещё видит benign-клиента, но он не генерирует ложную тревогу.
+
+## Дальше: День 17 — Suspicious Stability
+Детектор "slow-walker": клиент подозрительно стабилен, когда окружение движется. Ловит тех, кто ЗНАЕТ про drift-мониторинг и держит velocity низкой нарочно.
 
 ---
 

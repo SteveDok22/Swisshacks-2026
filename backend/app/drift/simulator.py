@@ -32,6 +32,7 @@ SCENARIOS = (
     "corridor_shift",
     "combined",
     "benign_expansion",
+    "suspicious_stability",
 )
 
 # Country risk weights reused conceptually from the social-engineering extractor
@@ -111,11 +112,14 @@ def generate_customer(
 
     rng = np.random.default_rng(seed)
     # Causal ground-truth label: benign_expansion is the only benign drift;
+    # suspicious_stability is its own category (the slow-walker / sleeper);
     # all other non-stable scenarios are risk.
     if scenario == "stable":
         causal_truth = None
     elif scenario == "benign_expansion":
         causal_truth = "benign"
+    elif scenario == "suspicious_stability":
+        causal_truth = "suspicious"
     else:
         causal_truth = "risk"
 
@@ -144,7 +148,11 @@ def generate_customer(
         vol_mult = 1.0
         if scenario in ("volume_creep", "combined", "benign_expansion"):
             vol_mult = 1.0 + 1.2 * intensity  # up to +120% by the end
-        volumes = rng.normal(base_volume * vol_mult, base_volume * 0.15, days_per_month)
+        # suspicious_stability: anomalously LOW noise — the slow-walker keeps an
+        # unnaturally smooth profile. Real customers jitter (~15% daily noise);
+        # a 2% profile is robotic and is itself the signal.
+        vol_noise = 0.02 if scenario == "suspicious_stability" else 0.15
+        volumes = rng.normal(base_volume * vol_mult, base_volume * vol_noise, days_per_month)
         volumes = np.maximum(volumes, 100.0)
 
         # --- Counterparty risk (share of tx with risky counterparties) ---
@@ -152,6 +160,12 @@ def generate_customer(
         risky_share = base_risky_share
         if scenario in ("counterparty_migration", "combined"):
             risky_share = base_risky_share + 0.45 * intensity  # up to 50%
+        # suspicious_stability: the ENVIRONMENT moves (counterparties drift
+        # risky, as if the customer is being pulled into a network) even though
+        # the customer's OWN volume stays robotically smooth. That mismatch is
+        # the whole signal.
+        if scenario == "suspicious_stability":
+            risky_share = base_risky_share + 0.35 * intensity
         # Benign expansion DIVERSIFIES (slightly more counterparties) but they
         # stay low-risk — share barely moves.
         cp_risk = rng.binomial(1, min(risky_share, 0.95), days_per_month).astype(float)
@@ -160,6 +174,8 @@ def generate_customer(
         # --- Corridor risk ---
         if scenario in ("corridor_shift", "combined"):
             p_high = 0.03 + 0.5 * intensity
+        elif scenario == "suspicious_stability":
+            p_high = 0.03 + 0.35 * intensity  # corridors shift while client calm
         else:
             p_high = 0.03
         corridors = [
@@ -207,6 +223,7 @@ def generate_book(
         "corridor_shift": "Tomas Lindqvist",
         "combined": "Sergei Mikhailov",
         "benign_expansion": "Maria Steiner",
+        "suspicious_stability": "Pavel Novak",
     }
     stable_names = [
         "Anna Keller", "Luca Moretti", "Sophie Brunner",
@@ -225,6 +242,18 @@ def generate_book(
             )
         )
         idx += 1
+    # A second suspicious_stability customer (the "sleeper") — public signals
+    # appear about him, but his transactions stay unnaturally calm. Shows a
+    # different face of the same idea: reaction that doesn't match the world.
+    book.append(
+        generate_customer(
+            customer_id=f"drift-{idx:03d}",
+            name="Irina Volkova",
+            scenario="suspicious_stability",
+            seed=seed + 200,
+        )
+    )
+    idx += 1
     for i in range(n_stable):
         book.append(
             generate_customer(

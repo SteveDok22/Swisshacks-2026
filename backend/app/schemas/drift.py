@@ -40,6 +40,18 @@ class CausalVerdictOut(BaseModel):
     contributions: dict[str, float] = Field(default_factory=dict)
 
 
+class StabilityOut(BaseModel):
+    """Suspicious-stability assessment: the slow-walker / sleeper detector."""
+
+    suspicion: float = Field(description="0-1 product of the two factors")
+    stability_anomaly: float = Field(description="0-1 how unnaturally smooth")
+    environmental_movement: float = Field(description="0-1 how much surroundings move")
+    own_volatility: float = Field(description="customer coefficient of variation")
+    cohort_volatility: float = Field(description="cohort median CV (reference)")
+    is_suspicious: bool
+    detail: str
+
+
 class DriftCustomerSummary(BaseModel):
     """Book-overview row: one customer's drift snapshot."""
 
@@ -55,6 +67,8 @@ class DriftCustomerSummary(BaseModel):
     confirmation_lift: float = Field(default=1.0, description="Public-internal co-occurrence lift")
     causal_label: str = Field(default="ambiguous", description="risk | benign | ambiguous")
     causal_p_risk: float = Field(default=0.5, description="Posterior P(risk)")
+    suspicion: float = Field(default=0.0, description="Suspicious-stability score 0-1")
+    is_suspicious: bool = Field(default=False, description="Slow-walker flag")
     scenario: str | None = Field(default=None, description="Ground-truth scenario (demo)")
 
 
@@ -94,6 +108,9 @@ class DriftCustomerDetail(BaseModel):
 
     # Causal drift: risk-shaped vs life-shaped change
     causal: CausalVerdictOut | None = None
+
+    # Suspicious stability: the slow-walker / sleeper detector
+    stability: StabilityOut | None = None
 
 
 class CascadeCostReport(BaseModel):

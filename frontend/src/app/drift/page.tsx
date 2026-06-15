@@ -10,6 +10,7 @@ import { DriftTimeline } from "@/components/drift/DriftTimeline";
 import { ContagionGraph } from "@/components/drift/ContagionGraph";
 import { TwoLayerPanel } from "@/components/drift/TwoLayerPanel";
 import { CausalPanel } from "@/components/drift/CausalPanel";
+import { StabilityPanel } from "@/components/drift/StabilityPanel";
 import { Activity, Zap, DollarSign, FlaskConical, Loader2 } from "lucide-react";
 
 /**
@@ -171,6 +172,11 @@ export default function DriftPage() {
                     {detail.causal.label === "benign" ? "✓ benign" : detail.causal.label}
                   </span>
                 )}
+                {detail.stability?.is_suspicious && (
+                  <span className="text-2xs px-2 py-0.5 rounded font-medium bg-risk-high text-white">
+                    slow-walker
+                  </span>
+                )}
                 {detail.scenario && (
                   <span className="text-2xs text-ink-faint font-mono">
                     [{detail.scenario}]
@@ -192,6 +198,9 @@ export default function DriftPage() {
 
             {/* Causal analysis — risk or normal life? */}
             {detail.causal && <CausalPanel causal={detail.causal} />}
+
+            {/* Suspicious stability — the slow-walker check */}
+            {detail.stability && <StabilityPanel stability={detail.stability} />}
 
             {/* Timeline */}
             <DriftTimeline detail={detail} />

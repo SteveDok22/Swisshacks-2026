@@ -11,6 +11,7 @@ import { ContagionGraph } from "@/components/drift/ContagionGraph";
 import { TwoLayerPanel } from "@/components/drift/TwoLayerPanel";
 import { CausalPanel } from "@/components/drift/CausalPanel";
 import { StabilityPanel } from "@/components/drift/StabilityPanel";
+import { TimeTravelPanel } from "@/components/drift/TimeTravelPanel";
 import { Activity, Zap, DollarSign, FlaskConical, Loader2 } from "lucide-react";
 
 /**
@@ -204,6 +205,9 @@ export default function DriftPage() {
 
             {/* Timeline */}
             <DriftTimeline detail={detail} />
+
+            {/* Time-Travel Audit — as-of replay, no look-ahead */}
+            <TimeTravelPanel customerId={detail.customer_id} />
 
             {/* Two-layer intelligence (public + internal + confirmation lift) */}
             <TwoLayerPanel detail={detail} />

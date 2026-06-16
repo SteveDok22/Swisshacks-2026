@@ -52,6 +52,30 @@ class StabilityOut(BaseModel):
     detail: str
 
 
+class AsOfPointOut(BaseModel):
+    """The score the system WOULD have produced at month T, using only data
+    available up to T (no look-ahead)."""
+
+    month: int
+    as_of_score: float
+    velocity: float
+    public_risk: float
+    contagion_active: bool
+    causal_p_risk: float
+
+
+class ReplayResult(BaseModel):
+    """Time-Travel Audit: full as-of replay proving no look-ahead bias."""
+
+    customer_id: str
+    name: str
+    points: list[AsOfPointOut]
+    alert_month: int | None
+    sanctions_month: int | None
+    lead_time_months: int | None
+    alert_threshold: float
+
+
 class DriftCustomerSummary(BaseModel):
     """Book-overview row: one customer's drift snapshot."""
 

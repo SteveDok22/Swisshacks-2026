@@ -142,12 +142,12 @@ export function TimeTravelPanel({ customerId }: TimeTravelPanelProps) {
         )}
 
         {/* Full trajectory (faint) */}
-        <path d={path} fill="none" stroke="var(--accent, #1e3a5f)" strokeWidth={1} opacity={0.2} />
+        <path d={path} fill="none" stroke="var(--accent, #003d4c)" strokeWidth={1} opacity={0.2} />
         {/* Known-so-far trajectory (solid) */}
-        <path d={knownPath} fill="none" stroke="var(--accent, #1e3a5f)" strokeWidth={2} />
+        <path d={knownPath} fill="none" stroke="var(--accent, #003d4c)" strokeWidth={2} />
 
         {/* Cursor point */}
-        <circle cx={mx(cur.month)} cy={sy(cur.as_of_score)} r={5} fill="var(--accent,#1e3a5f)" stroke="white" strokeWidth={2} />
+        <circle cx={mx(cur.month)} cy={sy(cur.as_of_score)} r={5} fill="var(--accent, #003d4c)" stroke="white" strokeWidth={2} />
       </svg>
 
       {/* Slider */}

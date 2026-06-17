@@ -12,7 +12,8 @@ import { TwoLayerPanel } from "@/components/drift/TwoLayerPanel";
 import { CausalPanel } from "@/components/drift/CausalPanel";
 import { StabilityPanel } from "@/components/drift/StabilityPanel";
 import { TimeTravelPanel } from "@/components/drift/TimeTravelPanel";
-import { Activity, Zap, DollarSign, FlaskConical, Loader2 } from "lucide-react";
+import type { DriftCustomerDetail } from "@/types/api";
+import { Activity, Zap, DollarSign, FlaskConical, Loader2, ArrowRight, ShieldCheck, ShieldAlert } from "lucide-react";
 
 /**
  * Drift Engine workspace — AMINA Challenge 4.
@@ -197,48 +198,51 @@ export default function DriftPage() {
               </div>
             </div>
 
-            {/* Causal analysis — risk or normal life? */}
-            {detail.causal && <CausalPanel causal={detail.causal} />}
+            {/* === VERDICT BAR — the one-line "what to do" summary === */}
+            <VerdictBar detail={detail} />
 
-            {/* Suspicious stability — the slow-walker check */}
-            {detail.stability && <StabilityPanel stability={detail.stability} />}
+            {/* === Two-column analysis grid (was a long vertical scroll) === */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 items-start">
+              {/* Left column: what is happening */}
+              <div className="space-y-5">
+                {detail.causal && <CausalPanel causal={detail.causal} />}
+                <DriftTimeline detail={detail} />
+                <TwoLayerPanel detail={detail} />
+              </div>
 
-            {/* Timeline */}
-            <DriftTimeline detail={detail} />
+              {/* Right column: evidence & context */}
+              <div className="space-y-5">
+                {detail.stability && <StabilityPanel stability={detail.stability} />}
+                <TimeTravelPanel customerId={detail.customer_id} />
 
-            {/* Time-Travel Audit — as-of replay, no look-ahead */}
-            <TimeTravelPanel customerId={detail.customer_id} />
-
-            {/* Two-layer intelligence (public + internal + confirmation lift) */}
-            <TwoLayerPanel detail={detail} />
-
-            {/* Layers */}
-            <div className="border border-paper-line rounded bg-paper-raised p-4">
-              <h3 className="text-2xs font-semibold uppercase tracking-wide text-ink-muted mb-3">
-                Signal Layers
-              </h3>
-              <div className="space-y-2">
-                {detail.layers.map((l) => (
-                  <div key={l.layer} className="flex items-start gap-3 py-1.5 border-b border-paper-line/50 last:border-0">
-                    <span className="font-mono text-2xs text-ink-faint w-5 shrink-0">L{l.layer}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs text-ink font-medium">{l.name}</span>
-                        <span className="font-mono text-2xs tabular text-ink-soft">
-                          LLR {l.llr.toFixed(2)}
-                        </span>
+                {/* Signal Layers */}
+                <div className="border border-paper-line rounded bg-paper-raised p-4">
+                  <h3 className="text-2xs font-semibold uppercase tracking-wide text-ink-muted mb-3">
+                    Signal Layers
+                  </h3>
+                  <div className="space-y-2">
+                    {detail.layers.map((l) => (
+                      <div key={l.layer} className="flex items-start gap-3 py-1.5 border-b border-paper-line/50 last:border-0">
+                        <span className="font-mono text-2xs text-ink-faint w-5 shrink-0">L{l.layer}</span>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-xs text-ink font-medium">{l.name}</span>
+                            <span className="font-mono text-2xs tabular text-ink-soft">
+                              LLR {l.llr.toFixed(2)}
+                            </span>
+                          </div>
+                          {l.detail && (
+                            <p className="text-2xs text-ink-muted mt-0.5">{l.detail}</p>
+                          )}
+                        </div>
                       </div>
-                      {l.detail && (
-                        <p className="text-2xs text-ink-muted mt-0.5">{l.detail}</p>
-                      )}
-                    </div>
+                    ))}
                   </div>
-                ))}
+                </div>
+
+                {contagion && <ContagionGraph data={contagion} />}
               </div>
             </div>
-
-            {/* Contagion graph */}
-            {contagion && <ContagionGraph data={contagion} />}
           </div>
         ) : (
           <div className="flex items-center justify-center h-full text-ink-muted text-sm">
@@ -246,6 +250,58 @@ export default function DriftPage() {
           </div>
         )}
       </main>
+    </div>
+  );
+}
+
+function VerdictBar({ detail }: { detail: DriftCustomerDetail }) {
+  // Derive a single recommended action from the full picture.
+  const score = detail.drift_score;
+  const causal = detail.causal?.label ?? "ambiguous";
+  const suspicious = detail.stability?.is_suspicious ?? false;
+
+  let action: string;
+  let tone: "critical" | "high" | "medium" | "low";
+  let Icon = ShieldAlert;
+
+  if (suspicious) {
+    action = "Escalate — suspicious stability (possible slow-walker)";
+    tone = "high";
+  } else if (causal === "benign") {
+    action = "Monitor only — change matches legitimate business growth";
+    tone = "low";
+    Icon = ShieldCheck;
+  } else if (score >= 70 || causal === "risk") {
+    action = "Escalate to enhanced due diligence — risk-shaped drift";
+    tone = "critical";
+  } else if (score >= 40 || causal === "ambiguous") {
+    action = "Request information — ambiguous, needs human review";
+    tone = "medium";
+  } else {
+    action = "No action — within normal range";
+    tone = "low";
+    Icon = ShieldCheck;
+  }
+
+  const toneClasses = {
+    critical: "border-risk-critical/25 bg-risk-critical-bg text-risk-critical",
+    high: "border-risk-high/25 bg-risk-high-bg text-risk-high",
+    medium: "border-risk-medium/25 bg-risk-medium-bg text-risk-medium",
+    low: "border-risk-low/25 bg-risk-low-bg text-risk-low",
+  }[tone];
+
+  return (
+    <div className={cn("flex items-center gap-3 rounded border p-3", toneClasses)}>
+      <Icon className="h-5 w-5 shrink-0" strokeWidth={2} />
+      <div className="flex-1 min-w-0">
+        <div className="text-2xs uppercase tracking-wide opacity-70">Recommended action</div>
+        <div className="text-sm font-semibold">{action}</div>
+      </div>
+      <div className="flex items-center gap-2 text-2xs shrink-0">
+        <span className="font-mono font-semibold text-base tabular">{Math.round(score)}</span>
+        <ArrowRight className="h-3.5 w-3.5 opacity-50" />
+        <span className="font-mono uppercase">{detail.reached_tier.replace("_", " ")}</span>
+      </div>
     </div>
   );
 }

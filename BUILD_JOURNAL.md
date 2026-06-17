@@ -25,6 +25,7 @@
 | [16](#день-16) | Causal Drift — risk-shaped vs life-shaped change |
 | [17](#день-17) | Suspicious Stability — детектор slow-walker |
 | [18](#день-18) | Time-Travel Audit — as-of replay без look-ahead |
+| [19](#день-19) | AMINA-brand polish + UX-перегруппировка |
 | [18](#день-18) | Time-Travel Audit — доказательство без look-ahead |
 | [Hotfix 9.1](#hotfix-91) | Backend fallback + Sidebar disabled items |
 
@@ -4212,6 +4213,92 @@ Timeline scrubber был визуализацией. Time-Travel — доказ�
 - Time-Travel Audit (День 18): "докажите регулятору"
 
 Три вопроса инженера AMINA — три ответа, которых не даст команда с "news + LLM + dashboard".
+
+---
+
+<!-- ================== DAY 19 ================== -->
+
+# День 19: AMINA-brand polish + UX-перегруппировка
+
+Не новая фича, а полировка под жюри AMINA: тонкий бренд-мост (их teal) и практичная перегруппировка панелей (verdict bar + 2-колоночная сетка).
+
+## Что сделали
+
+### 1. Бренд-выравнивание с AMINA (тонко, без присвоения)
+- Accent token сдвинут navy #1e3a5f -> teal **#003d4c** (точный бренд-цвет AMINA из их CSS)
+- soft/bg варианты гармонизированы (#1a5f6f, #e8f1f3)
+- CSS-переменные в :root для SVG (раньше fallback'и были старый navy)
+- Контраст teal на белом: 11.9 (WCAG AAA, лучше старого navy 11.5)
+- НЕ ставили логотип AMINA — это их товарный знак, для банка присвоение бренда = плохой сигнал. Вместо этого текстовая подпись "AMINA Challenge 4" в шапке.
+
+### 2. UX-перегруппировка drift-страницы
+- **Verdict Bar** наверху — итоговая строка "что делать": score -> рекомендованное действие -> tier. Officer видит вывод за 1 секунду, не читая 6 панелей.
+- **2-колоночная сетка** (xl:grid-cols-2) вместо длинного вертикального скролла:
+  - Левая колонка "что происходит": Causal, Timeline, Two-Layer
+  - Правая "доказательства": Stability, Time-Travel, Signal Layers, Contagion
+- На узких экранах схлопывается в одну колонку (responsive)
+
+## Verdict Bar логика
+
+Derives action from full picture:
+- suspicious stability -> "Escalate — possible slow-walker"
+- causal benign -> "Monitor only — legitimate growth"
+- score>=70 or risk -> "Escalate to EDD — risk-shaped drift"
+- score>=40 or ambiguous -> "Request information — needs review"
+- else -> "No action — normal range"
+
+## Шаг 1: Распакуй
+
+```bash
+cd ~/Documents/Projects/swisshacks-2026
+cp backend/.env backend/.env.backup 2>/dev/null || true
+unzip -qo ~/Downloads/swisshacks-2026-day19.zip -d /tmp/swisshacks-update
+cp -a /tmp/swisshacks-update/swisshacks-2026/. .
+mv backend/.env.backup backend/.env 2>/dev/null || true
+rm -rf /tmp/swisshacks-update
+```
+
+## Шаг 2: Запусти и сравни
+
+```bash
+cd frontend && npm run dev
+```
+
+http://localhost:3000/drift — теперь:
+- Акцентный цвет — AMINA teal (логотип в sidebar, активные элементы, графики)
+- Сверху detail — цветная Verdict Bar с рекомендованным действием
+- Панели в 2 колонки на широком экране (не длинный скролл)
+
+Открой Maria (benign) -> зелёная "Monitor only". Открой Sergei (risk) -> красная "Escalate to EDD". Открой Pavel (slow-walker) -> "Escalate — possible slow-walker".
+
+## Шаг 3: Commit
+
+```bash
+git add -A
+git commit -m "Day 19: AMINA teal branding + UX regroup (verdict bar + 2-col grid)
+
+- accent token navy -> AMINA brand teal #003d4c (WCAG AAA contrast)
+- CSS root variables for SVG fills, removed stale navy fallbacks
+- VerdictBar: one-line recommended action derived from full picture
+- two-column analysis grid replaces long vertical scroll
+- text-only AMINA reference (no logo — avoid trademark appropriation)
+"
+git push origin main
+```
+
+## Что узнал (теория)
+
+### Брендинг чужого продукта на хакатоне
+Цвета — да (показывает что изучил клиента), логотип — нет (товарный знак, presumption of endorsement). Граница: подражание уважительно, присвоение — нет. Для регулируемого банка это особенно важно.
+
+### Single-token theming
+Смена одного accent токена перекрасила 15 файлов разом — потому что дизайн-система использует семантический токен, а не хардкод. Единственная ловушка: SVG fill не читают Tailwind-классы, им нужны CSS-переменные. Поэтому :root.
+
+### Verdict-first UX
+Officer'у не нужны 6 панелей чтобы решить — ему нужен вывод, а панели для обоснования. Verdict bar сверху = вывод; панели ниже = доказательства если он хочет копать. Это инвертирует "прочитай всё -> реши" в "вот решение -> вот почему".
+
+### Progressive disclosure через grid
+2 колонки не просто экономят скролл — они группируют по смыслу (что происходит | доказательства). Это снижает когнитивную нагрузку: глаз знает где искать.
 
 ---
 

@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+/* === Design tokens as CSS variables (for SVG fill/stroke that can't use
+   Tailwind classes). Kept in sync with tailwind.config.ts. === */
+:root {
+  --accent: #003d4c;          /* AMINA deep teal */
+  --accent-soft: #1a5f6f;
+  --risk-critical: #b91c1c;
+  --risk-high: #c2410c;
+  --risk-medium: #a16207;
+  --risk-low: #15803d;
+}
+
+
 /* === Fonts: Geist (UI) + IBM Plex Mono (data) === */
 /* Geist via Google Fonts-compatible CDN; IBM Plex Mono via Google Fonts */
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap");

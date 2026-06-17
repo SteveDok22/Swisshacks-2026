@@ -38,11 +38,11 @@ const config: Config = {
           critical: "#b91c1c",  // deep red
           "critical-bg": "#fef2f2",
         },
-        // === Functional accent (navy — Swiss banking) ===
+        // === Functional accent (teal — AMINA brand-aligned) ===
         accent: {
-          DEFAULT: "#1e3a5f",   // deep navy
-          soft: "#2d5a8f",
-          bg: "#eff4f9",
+          DEFAULT: "#003d4c",   // AMINA deep teal
+          soft: "#1a5f6f",      // lighter teal for hover/active
+          bg: "#e8f1f3",        // pale teal wash
         },
       },
       fontFamily: {

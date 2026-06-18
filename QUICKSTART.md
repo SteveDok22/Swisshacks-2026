@@ -84,8 +84,7 @@ curl -s http://localhost:8000/api/v1/drift/customers | python3 -m json.tool | he
 
 1. **Dashboard** (localhost:3000) — click "Marc Weber" case, watch the AI explanation stream in, scroll through SHAP / counterfactuals / jurisdiction toggle.
 2. **API docs** (localhost:8000/docs) — try the `drift` section: `/drift/scan`, `/drift/customers`, `/drift/contagion`.
-3. **The journal** — `BUILD_JOURNAL.md` at the repo root documents every build day.
-4. **The Drift Engine spec** — `DRIFT_ENGINE_README.md` explains the AMINA Challenge 4 approach.
+3. **The Drift Engine spec** — `DRIFT_ENGINE_README.md` explains the AMINA Challenge 4 approach.
 
 ---
 

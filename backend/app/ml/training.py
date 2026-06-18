@@ -3,8 +3,8 @@ Synthetic data generation + model training.
 
 This is YOUR PP5 PATTERN applied to AMINA social engineering:
 - Generate balanced synthetic data with realistic distributions
-- Use SMOTE-like balancing (we'll add real SMOTE on Day 11)
-- Train XGBoost with sensible defaults (Optuna optimization on Day 11)
+- Use SMOTE-like balancing (real SMOTE can be added as a future enhancement)
+- Train XGBoost with sensible defaults (Optuna optimization is a future enhancement)
 - Save model to disk
 
 Run via CLI:
@@ -244,7 +244,7 @@ def train_social_engineering_model(
     
     # === 3. Train XGBoost ===
     # PP5 lesson: scale_pos_weight handles class imbalance better than SMOTE
-    # for tree-based models. Optuna tuning will come on Day 11.
+    # for tree-based models. Optuna tuning is a planned enhancement.
     pos_weight = float((y_train == 0).sum() / max((y_train == 1).sum(), 1))
     
     model = xgb.XGBClassifier(

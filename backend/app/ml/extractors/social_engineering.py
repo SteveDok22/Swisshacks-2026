@@ -10,7 +10,7 @@ We extract signals from THREE dimensions:
 2. Contextual: is the channel/timing/destination unusual?
 3. Linguistic: does the request show urgency, secrecy, pressure?
 
-Voice features (deepfake detection) will be added in Day 8-9 when
+Voice features (deepfake detection) are a planned extension for when
 we integrate librosa / Resemblyzer. For now we work with metadata.
 """
 

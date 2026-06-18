@@ -23,9 +23,8 @@ profile, often months before a sanctions listing.
 |---|---|---|
 | 1 | **`QUICKSTART.md`** | Run it locally in ~10 minutes (no API key needed) |
 | 2 | **`DRIFT_ENGINE_README.md`** | The AMINA Challenge 4 approach, math, and references |
-| 3 | **`BUILD_JOURNAL.md`** | Day-by-day build history (how it was made) |
-| 4 | **`pitch/deck.md`** | The pitch deck |
-| 5 | **`pitch/demo-script.md`** | The 3-minute demo walkthrough |
+| 3 | **`pitch/deck.md`** | The pitch deck |
+| 4 | **`pitch/demo-script.md`** | The 3-minute demo walkthrough |
 
 ---
 
@@ -79,8 +78,7 @@ START_HERE.md            <- you are here
 QUICKSTART.md            <- run instructions
 README.md                <- product overview
 DRIFT_ENGINE_README.md   <- AMINA Challenge 4 technical spec
-BUILD_JOURNAL.md         <- full build history
-backend/                 <- FastAPI + ML (26 endpoints)
+backend/                 <- FastAPI + ML (33 endpoints)
 frontend/                <- Next.js dashboard
 pitch/                   <- deck, demo script, onboarding
 docs/                    <- supporting docs

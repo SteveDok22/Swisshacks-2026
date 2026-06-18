@@ -226,7 +226,7 @@ When a backend developer changes a Pydantic schema, the frontend developer sees 
 
 ## What we **didn't** build (and why)
 
-- **WebSocket real-time alerts** — Day 19 in our plan, not MVP-critical
+- **WebSocket real-time alerts** — a planned enhancement, not MVP-critical
 - **Multi-user RBAC** — single compliance officer assumed for demo
 - **Encryption at rest** — SQLite, dev only. Postgres path ready for prod.
 - **Rate limiting / API keys** — internal tool, single-tenant

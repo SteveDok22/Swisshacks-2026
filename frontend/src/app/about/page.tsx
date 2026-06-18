@@ -3,144 +3,215 @@
 import Link from "next/link";
 import {
   ArrowRight,
-  Shield,
-  Layers,
   Activity,
-  Lock,
+  Zap,
   GitBranch,
-  Scale,
-  Sparkles,
-  Github,
+  Snowflake,
+  Clock,
+  Network,
+  Globe,
+  DollarSign,
+  ShieldCheck,
 } from "lucide-react";
 
 /**
- * About / Welcome page.
+ * About / Welcome page — Sentinel Drift Engine.
  *
- * First thing a new team member sees when they fork the repo.
- * Also serves as a "what is this product" reference during demo.
- *
- * Tone: Swiss-institutional, factual, no marketing fluff.
+ * First thing a teammate or judge sees. Swiss-institutional base (it is a
+ * bank compliance tool), lifted with a hero, feature cards, and the
+ * architecture diagram. AMINA teal accent throughout.
  */
 export default function AboutPage() {
   return (
     <div className="min-h-screen bg-paper relative z-10">
       {/* Top bar */}
-      <header className="border-b border-paper-line bg-paper-raised">
-        <div className="max-w-5xl mx-auto px-8 py-4 flex items-center justify-between">
+      <header className="border-b border-paper-line bg-paper-raised/90 backdrop-blur sticky top-0 z-20">
+        <div className="max-w-6xl mx-auto px-8 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
             <div className="h-7 w-7 rounded bg-accent flex items-center justify-center">
               <span className="text-paper-raised font-semibold text-sm">S</span>
             </div>
             <div className="leading-tight">
               <div className="font-semibold text-sm text-ink">Sentinel</div>
-              <div className="text-2xs text-ink-muted">Risk Intelligence</div>
+              <div className="text-2xs text-ink-muted">Drift Engine</div>
             </div>
           </Link>
           <Link
-            href="/"
+            href="/drift"
             className="text-xs font-medium text-accent hover:text-accent-soft flex items-center gap-1"
           >
-            Open dashboard
+            Open Drift Engine
             <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
           </Link>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-8 py-12">
-        {/* Hero */}
-        <section className="mb-16 max-w-3xl">
-          <div className="text-2xs font-semibold uppercase tracking-wide text-accent mb-3">
-            SwissHacks 2026 · Risk Intelligence Platform
+      {/* ===== HERO ===== */}
+      <section className="relative overflow-hidden border-b border-paper-line">
+        {/* soft teal wash backdrop */}
+        <div
+          className="absolute inset-0 -z-0"
+          style={{
+            background:
+              "radial-gradient(ellipse 80% 60% at 20% 0%, #e8f1f3 0%, rgba(232,241,243,0) 60%), radial-gradient(ellipse 60% 50% at 100% 100%, #f0fdf4 0%, rgba(240,253,244,0) 55%)",
+          }}
+        />
+        <div className="relative max-w-6xl mx-auto px-8 py-20">
+          <div className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent-bg px-3 py-1 text-2xs font-semibold uppercase tracking-wide text-accent mb-6">
+            <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
+            SwissHacks 2026 · AMINA Challenge 4
           </div>
-          <h1 className="text-3xl font-semibold text-ink leading-tight mb-4 tracking-tight">
-            Explainable AI for compliance officers in regulated banks.
+          <h1 className="text-4xl sm:text-5xl font-semibold text-ink leading-[1.08] tracking-tight max-w-3xl">
+            Catch KYC drift{" "}
+            <span className="text-accent">before</span> it becomes a sanctions hit.
           </h1>
-          <p className="text-base text-ink-soft leading-relaxed">
-            Sentinel adapts a universal risk engine to multiple challenges —
-            social engineering attacks, investment recommendations, on-chain
-            transactions, client onboarding — all with the same explainable
-            backbone: SHAP analysis, counterfactual reasoning, and
-            jurisdiction-specific rule packs.
+          <p className="mt-6 text-lg text-ink-soft leading-relaxed max-w-2xl">
+            Sentinel detects the slow structural changes that quietly invalidate a
+            customer&apos;s original risk profile — combining real-time public
+            signals with internal bank data, months ahead of any watchlist.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Link
+              href="/drift"
+              className="inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-3 text-sm font-semibold text-white hover:bg-accent-soft transition-colors"
+            >
+              Open the Drift Engine
+              <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
+            </Link>
+            <a
+              href="#architecture"
+              className="inline-flex items-center gap-2 rounded-lg border border-paper-line bg-paper-raised px-5 py-3 text-sm font-semibold text-ink-soft hover:text-ink hover:border-accent/30 transition-colors"
+            >
+              See the architecture
+            </a>
+          </div>
+
+          {/* Stat strip */}
+          <div className="mt-14 grid grid-cols-2 sm:grid-cols-4 gap-px rounded-xl overflow-hidden border border-paper-line bg-paper-line">
+            <Stat value="2–7 mo" label="Lead time vs sanctions" />
+            <Stat value="96%" label="Cheaper than LLM-on-all" />
+            <Stat value="0" label="False positives on stable" />
+            <Stat value="8" label="Detection layers" />
+          </div>
+        </div>
+      </section>
+
+      <main className="max-w-6xl mx-auto px-8 py-16">
+        {/* ===== THE PROBLEM ===== */}
+        <section className="mb-20 max-w-3xl">
+          <SectionLabel>The problem</SectionLabel>
+          <p className="text-xl text-ink leading-relaxed font-light">
+            A customer is onboarded as low-risk. Two years later their company
+            has taken money from a sanctioned entity, their counterparties have
+            shifted to high-risk corridors, and their volume has tripled — but{" "}
+            <span className="font-medium text-accent">gradually</span>. No single
+            event tripped an alert. The original KYC profile is now invalid, and
+            nobody noticed.
           </p>
         </section>
 
-        {/* Differentiators */}
-        <section className="mb-16">
-          <h2 className="text-2xs font-semibold uppercase tracking-wide text-ink-muted mb-6">
-            What makes this different
-          </h2>
-          <div className="grid grid-cols-2 gap-5">
-            <Differentiator
-              icon={Lock}
-              title="Local-first AI"
-              body="Critical client data never leaves the bank. Names become pseudonyms, exact amounts become buckets. Only anonymized features reach the LLM — auditable, FINMA-compliant by design."
+        {/* ===== HOW IT WORKS (feature cards) ===== */}
+        <section className="mb-20">
+          <SectionLabel>How it works</SectionLabel>
+          <p className="text-ink-soft mb-8 max-w-2xl">
+            Eight layers fuse into a single drift score. The first four read the
+            signal; the last three are what no other team will have.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <FeatureCard
+              icon={Activity}
+              kicker="Layer 1"
+              title="Behavioral Drift"
+              body="Bayesian Online Changepoint Detection catches a regime change the moment the process shifts — even slow creep that never trips a threshold."
             />
-            <Differentiator
+            <FeatureCard
+              icon={Zap}
+              kicker="Layer 2"
+              title="Drift Velocity"
+              body="The time-derivative of KL divergence from the onboarding profile. Rising velocity is the earliest precursor — it leads the drift level."
+            />
+            <FeatureCard
+              icon={Network}
+              kicker="Layer 3"
+              title="Ownership Contagion"
+              body="Personalized PageRank propagates risk from a sanctioned entity through ownership links to customers on no watchlist themselves."
+            />
+            <FeatureCard
+              icon={Globe}
+              kicker="Layer 4"
+              title="Public Intelligence + Lift"
+              body="Public signals fused with internal drift. Confirmation Lift measures how much an external story and internal behavior, co-occurring in time, reinforce each other."
+            />
+            <FeatureCard
               icon={GitBranch}
-              title="Counterfactual reasoning"
-              body="Beyond SHAP, we use Microsoft Research's DiCE to answer the question compliance officers actually ask: what would need to change for this to be approved?"
+              kicker="Differentiator"
+              title="Causal Drift"
+              body="A likelihood ratio between two hypotheses separates risk-shaped change from legitimate business growth. Same velocity, opposite verdict."
+              accent
             />
-            <Differentiator
-              icon={Scale}
-              title="Jurisdiction rule packs"
-              body="Same case, four regulators. FINMA, MiCA, SFC, FSRA each have YAML-defined thresholds, modifiers, and reporting requirements. Toggle the jurisdiction, watch the action change."
+            <FeatureCard
+              icon={Snowflake}
+              kicker="Differentiator"
+              title="Suspicious Stability"
+              body="Flags the slow-walker: a customer anomalously smooth while their environment moves — the launderer who knows drift is monitored and stays still."
+              accent
             />
-            <Differentiator
-              icon={Sparkles}
-              title="Streaming AI narrative"
-              body="Server-Sent Events stream Claude's analysis progressively. The officer reads the reasoning as it's generated — not a wall of pre-computed text."
+            <FeatureCard
+              icon={Clock}
+              kicker="Differentiator"
+              title="Time-Travel Audit"
+              body="Replays any customer as-of any past month using only data available then — proving early detection with no look-ahead bias. Regulator-grade."
+              accent
+            />
+            <FeatureCard
+              icon={DollarSign}
+              kicker="Cost control"
+              title="Cost-Aware Cascade"
+              body="Cheap rules filter first, ML next, LLM reasoning only where it pays off. 96% cheaper than running the model on everyone."
+            />
+            <FeatureCard
+              icon={ShieldCheck}
+              kicker="Guardrails"
+              title="Explain · HITL · Audit"
+              body="Per-layer breakdown on every score, a verdict bar with the recommended action, officer override with rationale, and an immutable audit log."
             />
           </div>
         </section>
 
-        {/* Architecture */}
-        <section className="mb-16">
-          <h2 className="text-2xs font-semibold uppercase tracking-wide text-ink-muted mb-6">
-            Architecture
-          </h2>
-          <div className="border border-paper-line rounded p-6 bg-paper-raised">
-            <pre className="font-mono text-2xs text-ink-soft leading-relaxed overflow-x-auto">
-{`Case  →  RiskEngine  →  SHAP        →  Anonymizer  →  Claude  →  Narrative
-              ↓                                            ↓
-        Counterfactuals                              Jurisdiction
-        (DiCE)                                       Rule Pack
-              ↓                                            ↓
-                          Decision (Allow / Escalate / Block)
-                                       ↓
-                          Append-only Audit Log (SQLite)`}
-            </pre>
+        {/* ===== ARCHITECTURE ===== */}
+        <section id="architecture" className="mb-20 scroll-mt-20">
+          <SectionLabel>Architecture</SectionLabel>
+          <p className="text-ink-soft mb-6 max-w-2xl">
+            The Drift Engine sits at the center; the rest of the platform —
+            scoring, privacy, jurisdiction packs, the officer decision flow —
+            wraps around it.
+          </p>
+          <div className="rounded-xl border border-paper-line bg-paper-raised p-3 sm:p-5 overflow-hidden">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/sentinel-architecture.png"
+              alt="Sentinel Drift Engine architecture diagram"
+              className="w-full h-auto rounded-lg"
+            />
           </div>
         </section>
 
-        {/* For teammates */}
-        <section className="mb-16">
-          <h2 className="text-2xs font-semibold uppercase tracking-wide text-ink-muted mb-6">
-            For team members joining the project
-          </h2>
-          <div className="space-y-3">
+        {/* ===== FOR TEAMMATES ===== */}
+        <section className="mb-20">
+          <SectionLabel>For team members joining the project</SectionLabel>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <TeammateStep
               n="1"
-              title="Read the day-by-day guides"
-              body="BUILD_JOURNAL.md walks through every architectural decision, day by day. Skim it in order to understand why things are built this way."
+              title="Read the technical spec"
+              body="DRIFT_ENGINE_README.md explains the approach, the math behind each layer, and the academic references."
             />
             <TeammateStep
               n="2"
               title="Run it locally"
               body={
                 <>
-                  <code className="font-mono text-2xs bg-paper-sunken px-1.5 py-0.5 rounded">
-                    backend
-                  </code>
-                  : <code className="font-mono text-2xs bg-paper-sunken px-1.5 py-0.5 rounded">
-                    uvicorn app.main:app --reload
-                  </code>{" "}
-                  ·{" "}
-                  <code className="font-mono text-2xs bg-paper-sunken px-1.5 py-0.5 rounded">
-                    frontend
-                  </code>
-                  : <code className="font-mono text-2xs bg-paper-sunken px-1.5 py-0.5 rounded">
-                    npm install &amp;&amp; npm run dev
-                  </code>
+                  <Code>uvicorn app.main:app --reload</Code> ·{" "}
+                  <Code>npm install &amp;&amp; npm run dev</Code>
                 </>
               }
             />
@@ -149,38 +220,33 @@ export default function AboutPage() {
               title="Explore the API"
               body={
                 <>
-                  19 endpoints documented at{" "}
-                  <code className="font-mono text-2xs bg-paper-sunken px-1.5 py-0.5 rounded">
-                    localhost:8000/docs
-                  </code>
-                  . Each one auto-generated from Pydantic schemas.
+                  33 endpoints at <Code>localhost:8000/docs</Code>, auto-generated
+                  from Pydantic schemas.
                 </>
               }
             />
             <TeammateStep
               n="4"
               title="Pick an area to deepen"
-              body="Voice deepfake detection (AMINA), Julius Baer skin, Ripple XRPL integration, behavioral baselines, more sophisticated mock data — pick what excites you, the architecture supports it."
+              body="Real public-signal feeds, richer ownership graphs, more drift scenarios, conformal prediction — the architecture supports it."
             />
           </div>
         </section>
 
-        {/* Tech stack */}
+        {/* ===== STACK ===== */}
         <section className="mb-16">
-          <h2 className="text-2xs font-semibold uppercase tracking-wide text-ink-muted mb-6">
-            Stack
-          </h2>
-          <div className="grid grid-cols-3 gap-3 text-2xs">
+          <SectionLabel>Stack</SectionLabel>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-2xs">
             <StackBlock
               label="Backend"
               items={[
-                "FastAPI · Pydantic",
-                "SQLite + SQLModel (async)",
-                "XGBoost + SHAP",
-                "DiCE counterfactuals",
+                "FastAPI · Pydantic v2",
+                "SQLModel + SQLite (async)",
+                "NumPy · SciPy (BOCPD, KL)",
+                "NetworkX (PageRank)",
+                "XGBoost · SHAP · DiCE",
                 "Anthropic Claude SDK",
-                "sse-starlette streaming",
-                "structlog · uv",
+                "SSE streaming · structlog",
               ]}
             />
             <StackBlock
@@ -188,7 +254,7 @@ export default function AboutPage() {
               items={[
                 "Next.js 15 · React 19",
                 "TypeScript strict",
-                "Tailwind v3",
+                "Tailwind v3 · AMINA teal",
                 "TanStack Query",
                 "Radix UI primitives",
                 "Geist + IBM Plex Mono",
@@ -199,11 +265,11 @@ export default function AboutPage() {
               label="Infra"
               items={[
                 "Docker Compose",
-                "uv (Python deps)",
-                "npm (frontend)",
-                "Git",
-                "Server-Sent Events",
+                "33 endpoints · 4 rule packs",
+                "8 drift modules",
                 "Mock mode (no API key)",
+                "All data synthetic",
+                "Git · GitHub",
               ]}
             />
           </div>
@@ -211,13 +277,13 @@ export default function AboutPage() {
 
         {/* Footer */}
         <footer className="border-t border-paper-line pt-6 mt-12 flex items-center justify-between text-2xs text-ink-muted">
-          <div>Built for SwissHacks 2026 · Zürich</div>
+          <div>Sentinel · Drift Engine · Built for SwissHacks 2026 · Zürich</div>
           <Link
-            href="/"
-            className="flex items-center gap-1.5 hover:text-ink transition-colors"
+            href="/drift"
+            className="flex items-center gap-1.5 hover:text-accent transition-colors"
           >
             <Activity className="h-3 w-3" strokeWidth={2} />
-            Open Sentinel dashboard
+            Open Drift Engine
           </Link>
         </footer>
       </main>
@@ -225,20 +291,63 @@ export default function AboutPage() {
   );
 }
 
-function Differentiator({
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <h2 className="text-2xs font-semibold uppercase tracking-wide text-accent mb-4 flex items-center gap-2">
+      <span className="h-px w-6 bg-accent/40" />
+      {children}
+    </h2>
+  );
+}
+
+function Stat({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="bg-paper-raised px-5 py-5">
+      <div className="font-mono text-2xl font-semibold text-accent tabular-nums">
+        {value}
+      </div>
+      <div className="text-2xs text-ink-muted mt-1 leading-tight">{label}</div>
+    </div>
+  );
+}
+
+function FeatureCard({
   icon: Icon,
+  kicker,
   title,
   body,
+  accent = false,
 }: {
-  icon: typeof Shield;
+  icon: typeof Activity;
+  kicker: string;
   title: string;
   body: string;
+  accent?: boolean;
 }) {
   return (
-    <div className="border border-paper-line rounded p-5 bg-paper-raised">
-      <div className="flex items-center gap-2 mb-2">
-        <Icon className="h-3.5 w-3.5 text-accent" strokeWidth={2} />
-        <h3 className="text-sm font-semibold text-ink">{title}</h3>
+    <div
+      className={
+        "rounded-xl border p-5 transition-colors " +
+        (accent
+          ? "border-accent/30 bg-accent-bg/40 hover:border-accent/50"
+          : "border-paper-line bg-paper-raised hover:border-accent/25")
+      }
+    >
+      <div className="flex items-center gap-2.5 mb-2.5">
+        <div
+          className={
+            "h-8 w-8 rounded-lg flex items-center justify-center shrink-0 " +
+            (accent ? "bg-accent text-white" : "bg-accent-bg text-accent")
+          }
+        >
+          <Icon className="h-4 w-4" strokeWidth={2} />
+        </div>
+        <div>
+          <div className="text-2xs font-semibold uppercase tracking-wide text-ink-faint">
+            {kicker}
+          </div>
+          <h3 className="text-sm font-semibold text-ink leading-tight">{title}</h3>
+        </div>
       </div>
       <p className="text-xs text-ink-soft leading-relaxed">{body}</p>
     </div>
@@ -255,8 +364,8 @@ function TeammateStep({
   body: React.ReactNode;
 }) {
   return (
-    <div className="flex items-start gap-4 border border-paper-line rounded p-4 bg-paper-raised">
-      <div className="h-6 w-6 shrink-0 rounded bg-accent-bg flex items-center justify-center font-mono text-2xs font-semibold text-accent">
+    <div className="flex items-start gap-4 border border-paper-line rounded-xl p-4 bg-paper-raised">
+      <div className="h-7 w-7 shrink-0 rounded-lg bg-accent flex items-center justify-center font-mono text-xs font-semibold text-white">
         {n}
       </div>
       <div className="flex-1 min-w-0">
@@ -267,10 +376,18 @@ function TeammateStep({
   );
 }
 
+function Code({ children }: { children: React.ReactNode }) {
+  return (
+    <code className="font-mono text-2xs bg-paper-sunken px-1.5 py-0.5 rounded text-ink-soft">
+      {children}
+    </code>
+  );
+}
+
 function StackBlock({ label, items }: { label: string; items: string[] }) {
   return (
-    <div className="border border-paper-line rounded p-4 bg-paper-raised">
-      <div className="text-2xs font-semibold uppercase tracking-wide text-ink-muted mb-2.5">
+    <div className="border border-paper-line rounded-xl p-4 bg-paper-raised">
+      <div className="text-2xs font-semibold uppercase tracking-wide text-accent mb-2.5">
         {label}
       </div>
       <ul className="space-y-1">

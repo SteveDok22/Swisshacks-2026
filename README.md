@@ -1,326 +1,214 @@
-# Sentinel — Risk Intelligence Platform
+# Sentinel · Drift Engine
 
-> Explainable AI for compliance officers in FINMA-regulated banks.
+**Early detection of KYC drift for FINMA-regulated banks.** Built with Python, FastAPI, and Next.js for **SwissHacks 2026 · AMINA Challenge 4 (Dynamic Risk Profiling)**.
 
-Built for **SwissHacks 2026** as a universal risk-scoring backbone that adapts
-to multiple challenges — AMINA (social engineering defense), Julius Baer
-(explainable investment recommendations), Ripple (XRPL transaction AML).
-
----
-
-## What it does
-
-A compliance officer reviews flagged cases — voice transfer requests,
-suspicious trades, on-chain transactions. For each case, Sentinel provides:
-
-1. **A risk score** (0-100) from an XGBoost model trained on behavioral signals
-2. **A natural-language assessment** streaming from Claude, in plain English
-3. **SHAP feature contributions** — which signals drove the score, with magnitudes
-4. **Counterfactual scenarios** — what minimal changes would flip the decision
-5. **Jurisdiction-aware action** — same case, different rules under FINMA / MiCA / SFC / FSRA
-6. **A privacy-by-design audit trail** — exactly what data left the bank vs stayed local
-7. **An immutable decision log** with override rationale
-
-The officer either accepts the AI's recommendation or overrides with documented
-reasoning. Every step is logged.
-
----
-
-## Why this is different from a typical hackathon dashboard
-
-Most teams will build SHAP + Claude + dashboard. Four things separate this:
-
-| | Most teams | Sentinel |
-|---|---|---|
-| Explainability | SHAP | SHAP + **DiCE counterfactuals** |
-| LLM input | Raw client data | **Anonymized pseudonyms + bucketed amounts** |
-| Jurisdictions | Hardcoded | **YAML rule packs** (CH/EU/HK/AE) with live toggle |
-| UX | Request → wait → response | **Server-Sent Events** streaming, live typing effect |
-
-These aren't features bolted on — they're architectural decisions made because
-AMINA operates under four regulators and ships AI that compliance officers
-actually trust.
-
----
-
-## Drift Engine — AMINA Challenge 4
+<div align="center">
+<img src="docs/screenshots/drift-overview.png" alt="Drift Engine workspace" width="820">
+</div>
 
 > *"Sanctions lists tell you who became toxic yesterday. Drift velocity tells you who is becoming toxic right now."*
 
-The Drift Engine extends Sentinel with early detection of **KYC drift** — slow structural
-changes that quietly invalidate a customer's original risk profile (the explicit core of
-AMINA's Challenge 4 brief).
+---
 
-### The reframe
+## Table of Contents
 
-A KYC profile is not a document. It is a **snapshot of the parameters of a stochastic
-process** taken at onboarding. The customer is the process; the profile is a frozen
-estimate. Drift is the divergence between the frozen declared model and the evolving
-observed trajectory. The question changes from *"did something bad happen?"* to
-*"has the generative process behind this customer's behavior changed?"* — a well-posed
-statistical question with 50 years of theory behind it.
+1. [Project Overview](#project-overview)
+2. [Business Requirements](#business-requirements)
+3. [Hypotheses and Validation](#hypotheses-and-validation)
+4. [How It Works](#how-it-works)
+5. [Key Differentiators](#key-differentiators)
+6. [Architecture](#architecture)
+7. [Dashboard](#dashboard)
+8. [Technologies Used](#technologies-used)
+9. [Running Locally](#running-locally)
+10. [Testing](#testing)
+11. [Credits](#credits)
 
-### Signal layers
+---
 
-| Layer | Signal | Method | Tier / Cost |
+## Project Overview
+
+A customer is onboarded as a low-risk retail trader. Two years later their company has taken investment from a sanctioned entity, their counterparties have shifted toward high-risk corridors, and their volume has tripled — gradually. No single event tripped an alert. The original KYC profile is now structurally invalid, and nobody noticed.
+
+This is **KYC drift**, the core of AMINA Challenge 4. Sentinel's Drift Engine detects the precursor, not the consequence — combining **real-time public signals** (news, sanctions, adverse media, ownership changes, funding events) with **internal bank data** (KYC, transactions, AML flags), wrapped in explainable AI, human-in-the-loop validation, and immutable audit logs.
+
+**Target users:** compliance and financial-crime teams who must decide *which* customers need re-KYC or enhanced due diligence — and *when*.
+
+---
+
+## Business Requirements
+
+Derived from the AMINA Challenge 4 brief:
+
+- **BR1 — Public intelligence layer:** combine real-time public signals into the risk picture.
+- **BR2 — Internal data layer:** integrate simulated KYC, transaction history, and AML flags.
+- **BR3 — KYC drift detection:** catch slow structural changes invalidating the original profile.
+- **BR4 — Explainable AI:** every score decomposes into named, human-readable contributions.
+- **BR5 — Human-in-the-loop:** an officer confirms or overrides every consequential action.
+- **BR6 — Audit logs:** immutable, replayable history of every signal, score, and decision.
+- **BR7 — Cost awareness:** cheap models filter first; heavy reasoning only for high-risk cases.
+
+---
+
+## Hypotheses and Validation
+
+| # | Hypothesis | Validation method | Result |
 |---|---|---|---|
-| 1 · Deterministic | Sanctions / PEP / watchlist | Exact + fuzzy matching | T0 · free |
-| 2 · Adverse media | News mention severity | Embedding classifier | T1 · cents |
-| 3 · Ownership topology | UBO changes, shell chains | Graph diff + personalized PageRank | T1 · cents |
-| 4 · Behavioral drift | Transaction process vs baseline | **BOCPD** + drift velocity | T0 · free |
-| 5 · Declared consistency | Stated profile vs observed flows | Statistical tests | T0 · free |
-| 6 · Peer divergence | Distance from segment cohort | Embedding distance | T1 · cents |
-| 7 · Active intelligence | VoI-ranked RFI + adversarial self-test | Claude reasoning | T2 · rare |
-
-Cheap tiers run on 100% of the book daily; expensive reasoning fires only on the
-uncertain/high band — AMINA's cost-awareness criterion as an architectural principle,
-not a bolt-on.
-
-### Mathematical core
-
-**BOCPD** (Adams & MacKay, 2007) maintains a posterior over the run length r_t — the
-number of observations since the last changepoint in the customer's transaction stream.
-A collapse in the MAP run length means the generative process just changed. Threshold
-rules catch *outliers*; BOCPD catches *regime change* — a customer who slowly raised
-average volume from 5K to 9K never crosses a 10K threshold, but the distribution shift
-is plainly visible to the run-length posterior.
-
-**Drift velocity** — our signature metric:
-
-```
-Drift(t) = KL( P_baseline || P_current(t) )    accumulated divergence, bits
-DV(t)    = d/dt Drift(t)                       drift velocity, bits per month
-```
-
-Rising velocity is the earliest precursor — it fires before the absolute divergence
-crosses any sane alert threshold.
-
-**Risk contagion** — personalized PageRank from newly flagged entities over the ownership
-graph surfaces at-risk customers who carry **no direct flag of their own**.
-
-### Validation results (synthetic scenario suite, ground truth known)
-
-| Metric | Result | Target |
-|---|---|---|
-| Classification | 10/10 customers | — |
-| Lead time before simulated sanctions hit | 2–7 months (median 5.5) | ≥ 3 months |
-| False positives on stable customers | 0 of 6 | < 5% |
-
-Scenarios: stable (control), volume creep, counterparty migration, corridor shift,
-combined. Module: `backend/app/drift/` (`bocpd.py`, `velocity.py`, `simulator.py`).
-
-### Drift Engine references
-
-* Adams & MacKay (2007). *Bayesian Online Changepoint Detection.* arXiv:0710.3742.
-* Page (1954). *Continuous Inspection Schemes.* Biometrika 41 — CUSUM.
-* Kullback & Leibler (1951). *On Information and Sufficiency.* Ann. Math. Stat. 22.
-* Page, Brin, Motwani & Winograd (1999). *The PageRank Citation Ranking.* Stanford.
-* Howard (1966). *Information Value Theory.* IEEE Trans. SSC — VoI for RFI ranking.
-* FATF (2023). *Guidance on Beneficial Ownership of Legal Persons.*
-* FINMA Circular 2024/3. *Operational risks and resilience — banks.*
+| **H1** | Changepoint detection flags regime change months before the resulting sanctions event | Synthetic scenario suite, lead-time measurement | Validated — 2-7 month lead (median 5.5), 0 false positives on stable customers |
+| **H2** | Drift *velocity* is a leading indicator; drift *level* is lagging | Velocity vs absolute-threshold alerting | Validated — velocity alerts fire earlier at equal false-positive rate |
+| **H3** | Risk propagates through ownership topology ahead of public disclosure | Personalized PageRank from a sanctioned seed | Validated — 2-hop customers elevated; distant customers unaffected |
+| **H4** | A cost-aware cascade preserves recall at a fraction of the cost | Cascade vs LLM-on-everything on 1,000 customers | Validated — 96% cost reduction at equal high-risk recall |
 
 ---
 
-## Architecture overview
+## How It Works
 
-```
-┌─────────────── Frontend (Next.js 15) ────────────────┐
-│  Sidebar  │  Case Queue  │  Detail Panel              │
-│           │              │  ├─ Streaming AI (SSE)     │
-│           │              │  ├─ SHAP viewer            │
-│           │              │  ├─ Counterfactuals        │
-│           │              │  ├─ Jurisdiction toggle    │
-│           │              │  ├─ Privacy split-view     │
-│           │              │  └─ Decision bar (sticky)  │
-└──────────────────────────┬───────────────────────────┘
-                           │ /api/v1/*  (REST + SSE)
-┌──────────────────────────┴───────────────────────────┐
-│              Backend (FastAPI 0.115)                  │
-│                                                        │
-│  Risk Engine     →  XGBoost + SHAP                    │
-│  Counterfactuals →  DiCE (Microsoft Research)         │
-│  Jurisdictions   →  YAML rule packs (4 regulators)    │
-│  Anonymizer      →  Pseudonyms + bucketed amounts     │
-│  Claude Wrapper  →  Streaming + caching + mock mode   │
-│  Audit Log       →  Append-only, immutable            │
-└──────────────────────────┬───────────────────────────┘
-                           │
-                  SQLite (async, SQLModel)
-              clients · cases · decisions · audit_log
-```
+For each customer, the Drift Engine produces a fused **drift score (0-100)**, a recommended action, and a full per-layer breakdown:
 
-**19 API endpoints**, **4 jurisdiction rule packs**, **persistent DB**,
-**full mock-mode fallback** when no Anthropic API key is set.
+1. **Behavioral drift** — Bayesian Online Changepoint Detection over the transaction stream catches regime change that thresholds miss.
+2. **Drift velocity** — the smoothed time-derivative of KL divergence from the onboarding profile; rising velocity is the earliest precursor.
+3. **Ownership contagion** — personalized PageRank propagates risk from sanctioned entities to connected customers on no watchlist.
+4. **Public intelligence** — external signals classified by severity and fused with internal drift via a **Confirmation Lift** when they coincide in time.
+5. **Causal drift** — a likelihood ratio between two generative hypotheses separates *risk-shaped* change from *legitimate business growth*.
+6. **Suspicious stability** — flags the *slow-walker*: a customer anomalously smooth while their environment moves.
+7. **Cost cascade** — routes customers through cheap rules to ML to LLM reasoning, escalating only where economically justified.
+
+A **Time-Travel Audit** can replay any customer as-of any past month, using only data available then — proving the system would have flagged them early, with no look-ahead bias (a regulatory-grade property).
 
 ---
 
-## Quick start
+## Key Differentiators
 
-You need: **Python 3.11+**, **Node.js 20+**, two terminals.
+Most teams will build "news API + LLM + dashboard". Three things go deeper:
 
-### Terminal 1 — Backend
-
-```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt  # or: uv pip install -r pyproject.toml
-python -m app.ml.training train-social-engineering
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-The first run trains the XGBoost model (5000 synthetic samples, ~15 seconds)
-and seeds SQLite with 10 clients + 18 realistic cases.
-
-### Terminal 2 — Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-Open **http://localhost:3000**. A welcome modal walks you through the demo flow.
-
-### Optional — Real Claude responses
-
-The system runs in mock mode by default (deterministic placeholder responses).
-For real Claude responses, create `backend/.env`:
-
-```
-ANTHROPIC_API_KEY=sk-ant-...
-```
-
----
-
-## Demo flow (3 minutes)
-
-1. **Open** the Marc Weber case (top of the queue, score 99/100)
-2. **Watch** the AI assessment stream in word-by-word
-3. **Scan** the SHAP factors — red bars push risk up, green bars pull it down
-4. **Read** the alternative scenarios: "If destination weren't Russia..."
-5. **Toggle** the jurisdiction selector — try AE (FSRA, strictest framework)
-6. **Expand** the Data Handling panel — see exactly what gets sent to AI
-7. **Decide**: Block (agree with AI) or Allow (override with rationale)
-
-Decision is logged immutably to the audit trail at
-`GET /api/v1/audit?event_type=decision_recorded`.
-
----
-
-## Project structure
-
-```
-swisshacks-2026/
-├── backend/                      # FastAPI + ML + DB
-│   ├── app/
-│   │   ├── api/v1/              # routers + endpoints
-│   │   ├── core/                # config, logging
-│   │   ├── db/                  # SQLModel + async session
-│   │   ├── drift/               # Drift Engine: BOCPD, velocity, simulator
-│   │   ├── jurisdictions/       # YAML rule packs (CH/EU/HK/AE)
-│   │   ├── ml/                  # XGBoost + SHAP + feature extractors
-│   │   ├── schemas/             # Pydantic API schemas
-│   │   ├── services/            # Business logic orchestrators
-│   │   └── utils/               # Anonymizer
-│   ├── tests/                   # Pytest
-│   └── data/models/             # Trained .joblib artifacts
-├── frontend/                     # Next.js 15 + Tailwind + TanStack
-│   ├── src/
-│   │   ├── app/                 # App Router pages
-│   │   ├── components/          # Cases, UI, layout
-│   │   ├── lib/                 # API client, hooks, utils
-│   │   └── types/               # TypeScript mirrors of backend schemas
-│   └── tailwind.config.ts       # Swiss institutional design tokens
-├── pitch/                        # Deck, demo script, onboarding, walkthrough
-├── README.md                     # This file — single source of truth
-├── BUILD_JOURNAL.md              # Day-by-day build log (all days + hotfix)
-└── WRAP_UP.md                    # Pre-announcement checklist
-```
-
----
-
-## Tech stack
-
-**Backend** — FastAPI · Pydantic v2 · SQLModel · aiosqlite · XGBoost · SHAP ·
-DiCE · sentence-transformers · Anthropic SDK · sse-starlette · structlog · uv
-
-**Frontend** — Next.js 15 · React 19 · TypeScript (strict) · Tailwind v3 ·
-TanStack Query · Radix UI · Motion · Lucide icons · Geist + IBM Plex Mono
-
----
-
-## Pitch materials
-
-All presentation materials live in `pitch/`:
-
-| File | Purpose | Audience |
-|---|---|---|
-| `deck.md` | 10-slide pitch deck (Marp) | Judges |
-| `demo-script.md` | Second-by-second 3-minute demo flow | Presenter |
-| `team-onboarding.md` | New team member first 30 minutes | Team |
-| `code-walkthrough.md` | Architecture tour | Team / judges / interviewers |
-| `announcement.md` | Team announcement templates | Team channels |
-
-Convert the deck: install **Marp for VS Code** extension and export from the editor, or:
-
-```bash
-npm install -g @marp-team/marp-cli
-marp pitch/deck.md --pdf --allow-local-files -o pitch/deck.pdf
-```
-
----
-
-## Team & credits
-
-Built by **Stiven Ntoktorov** as the project backbone, with team contributions
-incoming. Designed for the SwissHacks 2026 hackathon (Tenity, Zurich).
-
-Architecture conversations and code review by Claude (Anthropic).
-
----
-
-## Project stats
-
-| | |
+| Differentiator | The question it answers |
 |---|---|
-| **Backend** | 50 Python files · ~5,000 LOC |
-| **Frontend** | 23 TS/TSX files · ~3,000 LOC |
-| **API endpoints** | 19 |
-| **Jurisdiction rule packs** | 4 (CH/EU/HK/AE, YAML-edited) |
-| **Mock cases** | 18 (across 3 case types, 4 jurisdictions) |
-| **Pitch documents** | 5 (deck, demo script, onboarding, walkthrough, index) |
-| **Daily build journals** | 12 |
-| **First Load JS** | 138 KB (Next.js bundle) |
+| **Causal Drift** | *Is this change risk, or just normal business life?* |
+| **Suspicious Stability** | *What if the launderer knows we monitor drift and stays still?* |
+| **Time-Travel Audit** | *Prove to the regulator you'd have caught it — without hindsight.* |
 
 ---
 
-## Roadmap
+## Architecture
 
-**Ready for hackathon day** (pre-built):
-- ✅ Core risk scoring with XGBoost + SHAP
-- ✅ DiCE counterfactuals
-- ✅ Streaming Claude explanations (SSE)
-- ✅ FINMA-compliant anonymization
-- ✅ Four-jurisdiction rule engine
-- ✅ Immutable audit trail
-- ✅ Production-grade UI with error boundaries, retry logic, skeleton loaders
-- ✅ Mock-mode fallback (works without API key)
-- ✅ 18 demo-ready cases
+A module on top of the existing Sentinel platform — roughly 15% new code, 85% reuse.
 
-**Hackathon weekend additions** (planned with team):
-- 🔨 Voice biometric layer (if AMINA challenge is selected)
-- 🔨 Julius Baer skin with PRIIP/MiFID compliance walkthrough
-- 🔨 Ripple skin with RLUSD escrow integration
-- 🔨 Real-time alert WebSocket subscriber
-- 🔨 Audit Log UI page
+```
+backend/app/
+├── drift/              # The Drift Engine (10 modules)
+│   ├── bocpd.py            Bayesian Online Changepoint Detection
+│   ├── velocity.py         KL drift + drift velocity
+│   ├── contagion.py        Ownership graph + personalized PageRank
+│   ├── public_intel.py     Public signals + Confirmation Lift
+│   ├── causal.py           Causal hypothesis competition
+│   ├── stability.py        Suspicious-stability detector
+│   ├── cascade.py          Cost-aware tier router
+│   ├── timetravel.py       As-of replay (no look-ahead)
+│   ├── simulator.py        Synthetic customers with ground truth
+│   └── service.py          Orchestrator
+├── api/v1/             # 33 endpoints incl. /drift/*
+├── ml/                 # XGBoost + SHAP + DiCE (existing platform)
+├── services/           # Risk engine, anonymizer, audit log
+└── jurisdictions/      # CH / EU / HK / AE rule packs
 
-The backend already supports all three case types via the same engine.
-Adding new ones is hours, not days.
+frontend/src/
+├── app/drift/          # Drift Engine workspace
+└── components/drift/   # 7 visualizations (radar, timeline, contagion, ...)
+```
+
+For a deeper technical treatment of the Drift Engine math, see **[DRIFT_ENGINE_README.md](DRIFT_ENGINE_README.md)**.
 
 ---
 
-## License
+## Dashboard
 
-Educational / hackathon use. Not for production deployment without further
-review of dependencies, security model, and regulatory mapping.
+The Drift Engine workspace presents a verdict-first view: a recommended action up top, then the evidence.
+
+<div align="center">
+<img src="docs/screenshots/causal-panel.png" alt="Causal analysis panel" width="700">
+</div>
+
+| View | Purpose |
+|---|---|
+| **Drift Radar** | Score x velocity scatter; upper-right is the priority quadrant |
+| **Verdict Bar** | One-line recommended action derived from the full picture |
+| **Causal Panel** | Benign-vs-risk hypothesis competition with per-metric evidence |
+| **Drift Timeline** | Velocity over time, with lead-time markers |
+| **Time-Travel Audit** | As-of score replay proving early detection |
+| **Two-Layer Panel** | Public Intelligence vs Internal Bank Data + Confirmation Lift |
+| **Contagion Graph** | Ownership risk propagation from a sanctioned entity |
+| **Cost Cascade** | Live cost meter vs LLM-on-everything |
+
+---
+
+## Technologies Used
+
+| Layer | Stack |
+|---|---|
+| **Backend** | Python 3.11, FastAPI, Pydantic v2, SQLModel + SQLite |
+| **Science** | NumPy, SciPy (BOCPD, KL, statistics), NetworkX (PageRank) |
+| **ML** | XGBoost, SHAP, DiCE (counterfactuals) |
+| **LLM** | Anthropic Claude (assessment, RFI generation) |
+| **Frontend** | Next.js 15, React 19, TypeScript, Tailwind, TanStack Query |
+| **Tooling** | Git, GitHub, structlog, Server-Sent Events |
+
+---
+
+## Running Locally
+
+Two terminals. Full copy-paste setup in **[QUICKSTART.md](QUICKSTART.md)**.
+
+```bash
+# Backend
+cd backend
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+
+# Frontend (new terminal)
+cd frontend
+npm install && npm run dev
+```
+
+Open <http://localhost:3000/drift> for the Drift Engine, or <http://localhost:8000/docs> for the API.
+
+---
+
+## Testing
+
+- **Unit:** BOCPD against reference behavior (changepoint on step data, none on stationary).
+- **Scenario suite:** stable / volume-creep / counterparty-migration / corridor-shift / combined / benign-expansion / suspicious-stability, each with ground truth.
+- **Hypothesis validation:** H1-H4 measured on the suite (see table above); causal classification 11/11 with 8/8 seed robustness; stability 13/13 with 8/8 seed robustness.
+- **Honesty tests:** Time-Travel replay verified to leak no future data (public signals dated <= T, contagion only after listing month).
+
+---
+
+## Credits
+
+**Author and architect:** Stiven Ntoktorov — Full-Stack Developer (FinTech/ML), Zürich.
+
+Developed with AI pair-programming assistance (Anthropic Claude) for implementation and review; all architectural decisions, algorithm selection, and validation were directed by the author. For line-level attribution see **[CODE_ATTRIBUTION.md](docs/CODE_ATTRIBUTION.md)**.
+
+### Ideas and approaches
+
+The Drift Engine stands on established science. Each core technique traces to its source:
+
+| Technique | Source |
+|---|---|
+| Bayesian Online Changepoint Detection | Adams & MacKay (2007), *Bayesian Online Changepoint Detection*, arXiv:0710.3742 |
+| CUSUM / sequential change detection | Page (1954), *Continuous Inspection Schemes*, Biometrika |
+| KL divergence (drift velocity) | Kullback & Leibler (1951), *On Information and Sufficiency* |
+| Personalized PageRank (contagion) | Page, Brin, Motwani & Winograd (1999), *The PageRank Citation Ranking* |
+| Likelihood-ratio testing (causal drift) | Classical Neyman-Pearson framework |
+| Value of Information (RFI ranking) | Howard (1966), *Information Value Theory*, IEEE |
+| Conformal prediction (planned extension) | Shafer & Vovk (2008), *A Tutorial on Conformal Prediction*, JMLR |
+| Beneficial-ownership risk rationale | FATF (2023), *Guidance on Beneficial Ownership* |
+| Human-in-the-loop & audit requirements | FINMA Circular 2024/3, *Operational risks and resilience* |
+
+### Documentation referenced
+
+FastAPI · Pydantic · NumPy · SciPy · NetworkX · XGBoost · SHAP · DiCE · Next.js · TanStack Query · Tailwind CSS official docs.
+
+### Challenge
+
+AMINA Bank · SwissHacks 2026 · Challenge 4 (Dynamic Risk Profiling) · hosted by Tenity, Zürich.

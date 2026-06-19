@@ -158,11 +158,157 @@ The architecture and interfaces are correct — plugging in real feeds is a slot
 
 ---
 
+## Tests
+
+**Stack:** plain `pytest` for unit tests + `pytest-bdd` for scenario/integration tests.  
+`pytest` and `pytest-asyncio` are already in dev deps (`pyproject.toml`). Add `pytest-bdd` for Gherkin feature files.
+
+BDD is a natural fit here: the 7 synthetic scenarios and H1–H4 hypotheses are already written in plain English, domain language is rich (KYC drift, suspicious stability), and judges / compliance officers can read Gherkin feature files directly.
+
+### Why two layers
+
+| Layer | Tool | What it covers |
+|---|---|---|
+| Unit | `pytest` | Pure functions — math, helpers, converters — no I/O |
+| Scenario / integration | `pytest-bdd` | End-to-end engine behavior, API contracts, compliance rules expressed as readable Gherkin |
+
+---
+
+### 🟠 P1 — Unit tests (pure functions, no I/O)
+
+- [ ] **`test_bocpd.py`** — assert changepoint fires on a step-function series; does not fire on stationary noise; BOCPD is online (no future data used)
+- [ ] **`test_velocity.py`** — KL divergence is zero for identical distributions; increases monotonically as mean shifts; velocity is positive after a step change
+- [ ] **`test_causal.py`** — risk-shaped signature (volume up + margin collapses + dirty counterparties) produces `label="risk"`; benign signature (volume up + margin preserved + clean counterparties) produces `label="benign"`
+- [ ] **`test_stability.py`** — flat customer in volatile cohort is flagged `is_suspicious=True`; genuinely volatile customer is not
+- [ ] **`test_cascade.py`** — score < 40 routes to T0; 40 ≤ score < 70 routes to T1; score ≥ 70 routes to T2; cumulative cost accounting is correct
+- [ ] **`test_score_to_level.py`** — `_score_to_level` thresholds match `RiskLevel` enum exactly (boundary values: 0, 30, 31, 60, 61, 85, 86, 100)
+
+---
+
+### 🟠 P1 — BDD scenario tests (Gherkin feature files)
+
+Add `pytest-bdd` to dev deps: `"pytest-bdd>=7.0.0"` in `pyproject.toml`.  
+Feature files live in `backend/tests/features/`; step definitions in `backend/tests/steps/`.
+
+- [ ] **`drift_detection.feature`** — the 7 synthetic scenarios with ground truth labels:
+
+  ```gherkin
+  Feature: KYC Drift Detection
+
+    Scenario: Volume creep raises drift score above review threshold
+      Given a customer with monthly volume growing 8% per month for 18 months
+      When the drift engine analyses the customer
+      Then the drift score exceeds 40
+      And the velocity band is "notable" or higher
+      And the causal label is "risk"
+
+    Scenario: Benign expansion is not escalated
+      Given a customer with a clean funding round and stable margins
+      When the drift engine analyses the customer
+      Then the causal label is "benign"
+      And the drift score is below 40
+
+    Scenario: Slow-walker is flagged despite low absolute drift
+      Given a customer with near-zero volume variance for 24 months
+      And the customer's cohort has high volatility
+      When the drift engine analyses the customer
+      Then is_suspicious is true
+      And the drift score is elevated above 50
+  ```
+
+- [ ] **`contagion.feature`** — ownership risk propagation:
+
+  ```gherkin
+  Feature: Ownership Contagion
+
+    Scenario: Direct owner of sanctioned entity is elevated
+      Given a sanctioned seed entity
+      And a customer who directly owns the sanctioned entity
+      When contagion is propagated
+      Then the customer's propagated_risk exceeds 0.1
+
+    Scenario: Third-degree connection is not elevated
+      Given a sanctioned seed entity
+      And a customer three ownership hops away
+      When contagion is propagated
+      Then the customer's propagated_risk is below 0.05
+  ```
+
+- [ ] **`time_travel.feature`** — no look-ahead bias:
+
+  ```gherkin
+  Feature: Time-Travel Audit
+
+    Scenario: Replay uses only data available at the as-of date
+      Given a customer whose sanctions event occurs at month 18
+      When the engine replays the customer as-of month 12
+      Then no public signals after month 12 are included
+      And no contagion edges listed after month 12 are included
+      And the as-of score is lower than the current score
+
+    Scenario: Early detection lead time is positive
+      Given a customer flagged at month 14 with sanctions at month 18
+      When lead_time_months is computed
+      Then lead_time_months equals 4
+  ```
+
+- [ ] **`audit_compliance.feature`** — compliance backbone:
+
+  ```gherkin
+  Feature: Audit Log Compliance
+
+    Scenario: Drift analysis always produces an audit entry
+      Given the drift engine is running
+      When an officer requests the full analysis for any customer
+      Then an audit entry with event_type "drift_customer_analyzed" exists
+      And the entry contains the customer's drift_score
+      And the entry contains the risk_level
+
+    Scenario: Audit log is append-only
+      Given an existing audit entry
+      When the audit service is called
+      Then no update or delete method exists on AuditService
+  ```
+
+- [ ] **`api_contract.feature`** — API smoke tests using `httpx.AsyncClient`:
+
+  ```gherkin
+  Feature: API Contract
+
+    Scenario: Customer list is sorted by drift score descending
+      When I call GET /api/v1/drift/customers
+      Then the response is 200
+      And each customer's drift_score is >= the next customer's drift_score
+
+    Scenario: Unknown customer returns 404
+      When I call GET /api/v1/drift/customers/nonexistent-id
+      Then the response status is 404
+
+    Scenario: Cascade scan returns cost report
+      When I call POST /api/v1/drift/scan
+      Then the response is 200
+      And savings_pct is between 0 and 100
+      And total_customers equals 10
+  ```
+
+---
+
+### 🟢 P3 — Hypothesis validation tests
+
+These are the H1–H4 claims from the README — make them machine-verifiable:
+
+- [ ] **`test_hypothesis_h1.py`** — run full engine on all 7 scenarios; assert BOCPD lead time ≥ 2 months on drifting scenarios; assert 0 false positives on `stable` scenario
+- [ ] **`test_hypothesis_h2.py`** — assert velocity alert fires earlier than absolute-threshold alert at equal false-positive rate
+- [ ] **`test_hypothesis_h3.py`** — assert 2-hop contagion customers are elevated; assert 3+ hop customers are not
+- [ ] **`test_hypothesis_h4.py`** — assert cascade cost < 10% of LLM-on-everything cost; assert high-risk recall is unchanged
+
+---
+
 ## Post-Hackathon
 
 - [ ] Alembic database migrations — critical before any schema change in production
 - [ ] PostgreSQL migration — one env var change + swap `aiosqlite` → `asyncpg`
-- [ ] GitHub Actions CI — lint (`ruff`), type check (`mypy`), test (`pytest`) on PRs
+- [ ] GitHub Actions CI — lint (`ruff`), type check (`mypy`), test (`pytest --bdd`) on PRs
 - [ ] Audit log frontend page — backend `GET /api/v1/audit` exists; no `/audit` frontend route
 - [ ] Live alerts WebSocket — `ws/alerts` not implemented on either side
 - [ ] Julius Baer model — `# TODO` in `ml/registry.py`

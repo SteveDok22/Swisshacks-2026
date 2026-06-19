@@ -8,7 +8,10 @@ import { Check, ChevronUp, AlertOctagon, ShieldAlert, X } from "lucide-react";
 import type { DecisionAction } from "@/types/api";
 
 interface DecisionBarProps {
-  caseId: string;
+  /** Case-review workflow — provide exactly one of caseId or customerId. */
+  caseId?: string;
+  /** Drift-engine workflow — provide exactly one of caseId or customerId. */
+  customerId?: string;
   aiRecommendedAction: DecisionAction | null;
 }
 
@@ -49,12 +52,16 @@ const VARIANT_STYLES: Record<string, { base: string; hover: string; ring: string
 /**
  * Decision bar — sticky bottom action surface.
  *
- * Officer picks one of four actions. If choice differs from AI's
- * recommendation, an inline rationale field appears (required by backend).
+ * Supports two workflows:
+ * - Case review: pass `caseId`; decision is recorded against a case.
+ * - Drift engine: pass `customerId`; decision is recorded against a drift customer.
  *
- * Decision is logged immutably via /decisions endpoint with full audit trail.
+ * In both cases the AI's recommended action is highlighted with a ring so
+ * officers can see when they're overriding it.  Override requires a rationale.
+ *
+ * Decision is logged immutably via /decisions with a full audit trail.
  */
-export function DecisionBar({ caseId, aiRecommendedAction }: DecisionBarProps) {
+export function DecisionBar({ caseId, customerId, aiRecommendedAction }: DecisionBarProps) {
   const [pendingAction, setPendingAction] = useState<DecisionAction | null>(
     null,
   );
@@ -62,24 +69,41 @@ export function DecisionBar({ caseId, aiRecommendedAction }: DecisionBarProps) {
   const [submitted, setSubmitted] = useState(false);
   const queryClient = useQueryClient();
 
+  const isDrift = !!customerId;
+
   const mutation = useMutation({
     mutationFn: (payload: {
       action: DecisionAction;
       rationale?: string;
     }) =>
-      decisionsApi.record({
-        case_id: caseId,
-        action: payload.action,
-        officer_id: "anna.mueller@amina.ch",
-        rationale: payload.rationale,
-      }),
+      decisionsApi.record(
+        isDrift
+          ? {
+              customer_id: customerId,
+              action: payload.action,
+              officer_id: "anna.mueller@amina.ch",
+              rationale: payload.rationale,
+              ai_hint: aiRecommendedAction ?? undefined,
+            }
+          : {
+              case_id: caseId,
+              action: payload.action,
+              officer_id: "anna.mueller@amina.ch",
+              rationale: payload.rationale,
+            },
+      ),
     onSuccess: () => {
       setSubmitted(true);
       setPendingAction(null);
       setRationale("");
-      queryClient.invalidateQueries({ queryKey: ["cases"] });
-      queryClient.invalidateQueries({ queryKey: ["case", caseId] });
-      queryClient.invalidateQueries({ queryKey: ["case-history", caseId] });
+      if (isDrift) {
+        queryClient.invalidateQueries({ queryKey: ["drift-customers"] });
+        queryClient.invalidateQueries({ queryKey: ["drift-customer", customerId] });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["cases"] });
+        queryClient.invalidateQueries({ queryKey: ["case", caseId] });
+        queryClient.invalidateQueries({ queryKey: ["case-history", caseId] });
+      }
     },
   });
 
@@ -87,10 +111,8 @@ export function DecisionBar({ caseId, aiRecommendedAction }: DecisionBarProps) {
     const isOverride =
       aiRecommendedAction !== null && action !== aiRecommendedAction;
     if (isOverride) {
-      // Need rationale first
       setPendingAction(action);
     } else {
-      // Submit immediately
       mutation.mutate({ action });
     }
   };
@@ -124,7 +146,6 @@ export function DecisionBar({ caseId, aiRecommendedAction }: DecisionBarProps) {
     );
   }
 
-  // Override mode: show rationale input
   if (pendingAction) {
     const variant = ACTIONS.find((a) => a.action === pendingAction)!.variant;
     return (
@@ -139,7 +160,7 @@ export function DecisionBar({ caseId, aiRecommendedAction }: DecisionBarProps) {
               <span className="font-semibold">
                 {ACTION_LABELS[aiRecommendedAction!]}
               </span>
-              , you're recording{" "}
+              , you&apos;re recording{" "}
               <span
                 className={cn("font-semibold", VARIANT_STYLES[variant].base)}
               >

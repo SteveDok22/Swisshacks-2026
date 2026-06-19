@@ -187,10 +187,12 @@ export const clientsApi = {
 // === Decisions ===
 export const decisionsApi = {
   record: (payload: {
-    case_id: string;
+    case_id?: string;
+    customer_id?: string;
     action: DecisionAction;
     officer_id: string;
     rationale?: string;
+    ai_hint?: DecisionAction;
   }) =>
     apiFetch<DecisionRead>("/decisions", {
       method: "POST",
@@ -199,6 +201,9 @@ export const decisionsApi = {
 
   forCase: (caseId: string) =>
     apiFetch<DecisionRead[]>(`/decisions/case/${caseId}`),
+
+  forCustomer: (customerId: string) =>
+    apiFetch<DecisionRead[]>(`/decisions/customer/${customerId}`),
 };
 
 // === Audit ===

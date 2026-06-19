@@ -126,7 +126,8 @@ class DecisionDB(SQLModel, table=True):
     __tablename__ = "decisions"
     
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    case_id: UUID = Field(foreign_key="cases.id", index=True)
+    case_id: UUID | None = Field(default=None, foreign_key="cases.id", index=True)
+    customer_id: str | None = Field(default=None, index=True)  # drift-engine customer
     
     action: DecisionAction
     

@@ -180,7 +180,8 @@ export interface AuditEntry {
 // === Decisions ===
 export interface DecisionRead {
   id: string;
-  case_id: string;
+  case_id: string | null;
+  customer_id: string | null;
   action: DecisionAction;
   officer_id: string;
   rationale: string | null;

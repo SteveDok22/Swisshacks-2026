@@ -3,7 +3,9 @@
 Two terminals: one for the backend (API + ML), one for the frontend (dashboard).
 
 **Prerequisites**: Python 3.11+, Node.js 20+.
-Check: `python3 --version` and `node --version`.
+
+- **macOS / Linux**: `python3 --version` and `node --version`
+- **Windows**: `python --version` and `node --version`
 
 > **No API key needed.** Sentinel runs fully in **mock mode** without an
 > Anthropic API key and without internet — the AI explanations use a built-in
@@ -24,10 +26,21 @@ cd swisshacks-2026
 
 ## 2. Backend — Terminal 1
 
+**macOS / Linux**
 ```bash
 cd backend
 python3 -m venv .venv
-source .venv/bin/activate            # Windows: .venv\Scripts\activate
+source .venv/bin/activate
+pip install -r requirements.txt      # ~2 min (ML libraries)
+python -m app.ml.training train-social-engineering   # ~15s, trains the model
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+```
+
+**Windows (PowerShell)**
+```powershell
+cd backend
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt      # ~2 min (ML libraries)
 python -m app.ml.training train-social-engineering   # ~15s, trains the model
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
@@ -67,6 +80,7 @@ Local: http://localhost:3000
 
 ## 4. Quick smoke test (Terminal 3, optional)
 
+**macOS / Linux**
 ```bash
 # Health
 curl http://localhost:8000/health
@@ -76,6 +90,18 @@ curl -s -X POST http://localhost:8000/api/v1/drift/scan | python3 -m json.tool
 
 # Risk-sorted drift customers
 curl -s http://localhost:8000/api/v1/drift/customers | python3 -m json.tool | head -20
+```
+
+**Windows (PowerShell)**
+```powershell
+# Health
+curl http://localhost:8000/health
+
+# Drift Engine — the AMINA Challenge 4 core
+curl -s -X POST http://localhost:8000/api/v1/drift/scan | python -m json.tool
+
+# Risk-sorted drift customers
+curl -s http://localhost:8000/api/v1/drift/customers | python -m json.tool | Select-Object -First 20
 ```
 
 ---
@@ -95,7 +121,7 @@ curl -s http://localhost:8000/api/v1/drift/customers | python3 -m json.tool | he
 | `Failed to load cases` in UI | Backend not running — start Terminal 1 first |
 | `ModuleNotFoundError` | `pip install -r requirements.txt` again inside the venv |
 | `next: not found` | `npm install` again in `frontend/` |
-| Stale / weird data | `rm backend/data/risk_platform.db` then restart backend |
+| Stale / weird data | macOS/Linux: `rm backend/data/risk_platform.db` · Windows: `del backend\data\risk_platform.db` — then restart backend |
 | Port 8000 busy | `uvicorn ... --port 8001` and set the same in `frontend/next.config.mjs` |
 
 Stuck after that? Message me with the exact error + last 10 lines of the terminal.

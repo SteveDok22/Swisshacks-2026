@@ -125,10 +125,10 @@ flowchart LR
     end
 
     subgraph BE["FastAPI Backend"]
-        API[REST API\n27 endpoints]
+        API["REST API\n27 endpoints"]
         DE["Drift Engine\n7 layers"]
-        ML[ML Layer\nXGBoost · SHAP · DiCE]
-        Svcs[Services\nAnonymizer · Audit · Jurisdiction]
+        ML["ML Layer\nXGBoost · SHAP · DiCE"]
+        Svcs["Services\nAnonymizer · Audit · Jurisdiction"]
     end
 
     Claude["Anthropic Claude\nSonnet / Haiku"]

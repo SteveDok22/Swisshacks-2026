@@ -78,7 +78,7 @@ erDiagram
 ## Enumerations
 
 ```mermaid
-graph LR
+flowchart LR
     subgraph RiskLevel["RiskLevel"]
         RL1["low\n0–30"]
         RL2["medium\n31–60"]

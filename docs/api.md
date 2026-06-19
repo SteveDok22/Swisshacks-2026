@@ -7,7 +7,7 @@ Total endpoints: 27
 ## Endpoint Map
 
 ```mermaid
-graph TB
+flowchart TB
     subgraph Drift["Drift Engine  — /drift"]
         D1["GET /customers\nScan full customer book\nReturns risk-ranked list"]
         D2["GET /customers/{customer_id}\nFull per-customer analysis\nAll 7 layers + causal evidence"]
@@ -56,7 +56,7 @@ graph TB
 ## Response Shape Reference
 
 ```mermaid
-graph LR
+flowchart LR
     subgraph DriftSchemas["Drift Schemas"]
         DS1["DriftCustomerSummary\ncustomer_id · name · score · velocity\naction · risk_level"]
         DS2["DriftCustomerDetail\n+ LayerContribution[]\n+ CausalVerdictOut\n+ StabilityOut\n+ contagion_score"]

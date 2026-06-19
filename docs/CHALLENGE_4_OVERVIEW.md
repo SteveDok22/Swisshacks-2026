@@ -1,298 +1,243 @@
-# CHALLENGE 4: AMINA — Dynamic Risk Profiling System
+# AMINA Bank · Challenge 4 — Dynamic Risk Profiling System
 
-## Overview
-
-**Challenge 4** asks teams to build an AI system that spots financial risk early by combining real-time public signals (news, sanctions lists, adverse media, ownership changes, funding events) with internal KYC and AML data.
-
-The core innovation is **KYC drift detection**: catching the slow structural changes that quietly invalidate a customer's original risk profile — often **months before a sanctions listing** and years before a regulator notices.
+> Source: [SwissHacks-2026/Amina-BANK](https://github.com/SwissHacks-2026/Amina-BANK/blob/main/README.md) · hosted by Tenity, Zürich · 19–21 June 2026
 
 ---
 
-## The Problem Statement
+## Problem Statement
 
-### Why This Matters
+Banks struggle with early detection of unusual financial behavior and risk signals. While internal KYC and AML data exists, critical signals emerge first in public domains — news, registries, funding announcements. The challenge seeks a **predictive AI system merging real-time public intelligence with internal bank data** for early risk detection in a secure, compliant manner.
 
-Banks onboard customers with a KYC profile: employment, ultimate beneficial owners (UBOs), residence, business type, expected transaction patterns. This snapshot represents the bank's understanding of who the customer is and what "normal" looks like.
+The system should detect **both**:
+- **Immediate fraud signals** — sudden spikes, sanctions hits, adverse media
+- **Slow structural drift** — changes that gradually invalidate the original KYC profile, often months before a regulatory action
 
-In reality, customers change:
-- **Legitimate drift**: a salesperson opens a manufacturing side business, turnover spikes, ownership shifts to a family trust.
-- **Dangerous drift**: a compliant customer's beneficial owner is sanctioned; funding shifts to high-risk jurisdictions; the UBO's connections surface in adverse media.
+**Potential users:** Compliance, AML, and KYC teams in regulated banking; risk officers managing customer due diligence and transaction monitoring.
 
-The challenge: **distinguish between the two**, and catch risk drift **before** regulatory action makes it obvious.
+---
 
-### The Twist: KYC Drift
+## Judging Criteria
 
-Traditional AML systems ask: *"Is this customer currently high-risk?"* They rely on:
-- Static thresholds (volume > $X, jurisdictions in a blocklist)
-- Periodic re-screening against sanctions lists
-- Manual officer review, triggered by rule breaks
+| Criterion | Description | Weight |
+|---|---|---|
+| **AI Intelligence Quality** | Accurate flags, strong reasoning, useful insights | **25%** |
+| **Cost Efficiency** | Smart model usage, efficient pipelines, cost per 1,000 analyses | **20%** |
+| **UX & Explainability** | Clear alerts, intuitive UI, human-readable reasoning | **20%** |
+| **Compliance & Safety** | Guardrails, explainability, auditability | **20%** |
+| **Engineering & Architecture** | Scalable design, modular pipelines, robustness | **15%** |
 
-All of these are **lagging indicators**. A sanctioned customer's connection to your UBO might take weeks to surface in public lists.
+> Cost tracking requirement: teams must **track token usage per workflow**, estimate cost per 1,000 analyses, and demonstrate lightweight vs heavy model usage explicitly.
 
-**KYC drift reframes the question**: *"Has the underlying stochastic process changed?"*
+---
 
-If a customer's UBO was in London, self-employed in tech, and sent €2K/month to friends in Switzerland, and six months later the UBO has moved to Moscow, the business is now import-export, and the cash flow pattern shows €50K/month to Russian oligarchs' supply chains — the *process changed*. That's the signal. It doesn't require a sanctions hit.
+## Use Cases
+
+Specific signal scenarios from the challenge brief — each must be detected, flagged, and produce a recommended action:
+
+| Signal | Expected Flag | Recommended Action |
+|---|---|---|
+| Sudden spike in negative news about corporate client | High Reputational Risk | Trigger enhanced due diligence; escalate to compliance |
+| High-value cross-border transfers inconsistent with history | Behavioural Anomaly – Potential Money Mule | Monitor transactions; flag for AML review |
+| Multiple linked entities, low activity, sudden large flows | Structuring / Layering Risk | Trigger AML investigation |
+| Legal entity name change | Entity Identity Change – Re-KYC Required | Trigger KYC refresh; re-evaluate risk category |
+| Domain switch or significant website content change | Business Activity Change Signal | Re-analyse website content; compare vs onboarding data |
+| Public pivot (e.g., SaaS startup → crypto trading) | Material Business Model Change | Update risk classification; escalate for compliance |
+| Jurisdiction move or legal form change (GmbH → offshore) | Structural Risk Change | Trigger enhanced due diligence; re-check ownership |
+| New shareholders or beneficial owners appear | Ownership Change – KYC Drift | Full ownership verification; re-screen against sanctions / PEP |
+| Large funding round or rapid geographic expansion | Scale Risk Change | Reassess transaction thresholds; update activity profile |
+| Previously dormant company begins high transaction volume | Dormancy Break – Suspicious Activation | Trigger AML review; validate business legitimacy |
+
+**Coverage in Sentinel Drift Engine:**
+- ✅ Covered: reputational news spike, behavioural anomaly, structuring/layering, jurisdiction move, new beneficial owners, funding round / scale change
+- ⚠️ Partial: dormancy break (stability detector catches it, no explicit dormancy signal)
+- ❌ Missing: legal entity name change signal, domain switch / website content monitoring, public business model pivot detection
+
+---
+
+## Expected Outcome
+
+A working AI system using a **two-layer approach**:
+
+### Layer A — Public Real-Time Intelligence
+Capture signals from:
+- News and adverse media
+- Domain changes and website content shifts
+- Funding announcements (Crunchbase, PitchBook)
+- Company websites and business model changes
+- Government registries and legal updates
+- Sanctions lists
+
+### Layer B — Simulated Internal Bank Intelligence
+Define a baseline KYC profile (expected business model, activity volumes, risk rating) to **contextualize** public signals. Internal drift detection runs independently and fuses with public signals via Confirmation Lift when they co-occur.
+
+---
+
+## Three-Layer Security & Governance Framework
+
+The challenge explicitly requires all three layers:
+
+### Layer 1 — Data Security
+- Separation between public and internal data
+- Encryption at rest and in transit
+- Secure API calls with key rotation
+- Role-based access control (RBAC)
+- Data masking before LLM calls
+- Immutable audit logs
+
+### Layer 2 — Model Guardrails
+- Human-in-the-loop validation for all consequential decisions
+- Explainable AI — every score decomposed into named contributions
+- Confidence scores on all outputs
+- **Source citations** — which news article, sanctions entry, or registry record drove the signal
+- Output restrictions (no free-form LLM output without review)
+- Bias and hallucination checks
+
+### Layer 3 — Decision Governance
+- Risk approval workflows
+- Compliance review checkpoints
+- Manual validation capability
+- Escalation processes with approval checkpoints
+
+---
+
+## Cost-Aware Pipeline (Challenge Requirement)
+
+The challenge specifies a **staged pipeline** — teams must demonstrate and quantify the cost difference:
+
+| Stage | Method | Scope |
+|---|---|---|
+| Stage 1 | Rules + embeddings + small models | All customers — cheap filter |
+| Stage 2 | LLM reasoning | High-risk borderline cases only |
+| Stage 3 | Deep analysis | Escalated alerts only |
+
+**Required deliverables:** token usage per workflow, cost per 1,000 analyses, clear demonstration of Stage 1 vs Stage 2 vs Stage 3 routing.
+
+---
+
+## Available Technology Sources
+
+The challenge explicitly provides these integration points. Teams are expected to use them.
+
+### News & Adverse Media
+| Tool | Notes |
+|---|---|
+| Google News RSS | Free, no API key |
+| [GDELT Project](https://www.gdeltproject.org/) | Free, near-real-time global news events |
+| NewsAPI | Freemium |
+| Mediastack API | Freemium |
+
+### Sanctions & Watchlists
+| Tool | Notes |
+|---|---|
+| OFAC SDN List Service | Free REST API |
+| EU Financial Sanctions Database | Free XML |
+| UN Security Council Sanctions Lists | Free |
+| **OpenSanctions** (recommended) | Aggregated free tier — covers OFAC + EU + UN + more |
+
+### Corporate Registry & Ownership Data
+| Tool | Notes |
+|---|---|
+| **GLEIF LEI Database** | Free, global legal entity identifiers |
+| UK Companies House API | Free |
+| OpenCorporates | Freemium |
+| **Swiss ZEFIX Registry** | Free, official Swiss commercial register |
+
+### Funding & Startup Intelligence
+| Tool | Notes |
+|---|---|
+| **Crunchbase** (primary) | Freemium API — funding rounds, investors, pivots |
+| Wellfound | Startup-focused |
+| PitchBook | Commercial |
+| Tracxn | Commercial |
+
+### Website & Domain Monitoring
+| Tool | Notes |
+|---|---|
+| WHOIS Lookup (ICANN) | Free |
+| SecurityTrails | Freemium |
+| Wayback Machine | Free, historical snapshots |
+| Diffbot | Freemium, structured web extraction |
+| Firecrawl | OSS, website-to-markdown scraping |
 
 ---
 
 ## Key Terminology
 
 ### KYC (Know Your Customer)
+The regulatory process of verifying a customer's identity and assessing their risk at onboarding. The bank captures: legal identity, residence and nationality, economic activity and expected transaction patterns, ultimate beneficial ownership (UBO) structure, PEP status, adverse media screening, and source of wealth/funds.
 
-The foundational compliance control: at onboarding, a bank collects and verifies:
-
-- **Identity**: legal name, date of birth, passport/ID
-- **Residence**: address, tax residency
-- **Economic activity**: employment, business, source of funds
-- **Ultimate Beneficial Owner (UBO)**: the natural person(s) who ultimately own / control the customer entity
-- **Politically Exposed Person (PEP) status**: public office, family ties to public office
-- **Adverse media**: news, sanctions, criminal records
-- **Expected activity**: anticipated transaction volumes, corridors, counterparty types
-
-This is the **baseline profile**. Once created, it is rarely updated unless the customer requests a change or a routine periodic review triggers a refresh.
+This collected data becomes the **baseline profile** — a frozen snapshot of the parameters of the customer at a point in time. All future drift is measured *relative to this baseline*, not against absolute thresholds. A customer doing €50K/month is unremarkable; the *same customer* doing €50K/month when their profile declared €5–10K is a drift event.
 
 ### AML (Anti-Money Laundering)
+The set of controls banks use to detect and prevent money laundering and terrorist financing. In practice: transaction monitoring (rules + ML), sanctions screening, Suspicious Activity Reports (SARs), customer due diligence (CDD), and enhanced due diligence (EDD) for high-risk customers.
 
-The ongoing monitoring system that looks for signs of illicit activity:
-
-- **Transaction monitoring**: ongoing surveillance of customer activity against their KYC profile and risk tier
-- **Sanctions screening**: matching customers and counterparties against OFAC, EU, UN, and local blocklists
-- **Suspicious activity reporting (SAR)**: filing with regulators when activity is suspicious
-- **Due diligence (DD)**: deeper investigation before onboarding high-risk customers
-- **Enhanced due diligence (EDD)**: ongoing review of high-risk customers with special scrutiny
-
-AML traditionally runs in **alert mode**: trigger rules (large payment, PEP match, known bad actor), then escalate to an officer for review.
+Traditional AML is **reactive** — it fires alerts when a threshold is crossed. KYC drift makes it **proactive** by detecting the structural change in a customer's profile weeks or months before any threshold is crossed or list is updated.
 
 ### KYC Drift
+The divergence between the frozen KYC profile and the actual evolving customer. A KYC profile is not a document — it is a snapshot of the parameters of a stochastic process taken at onboarding. The customer *is* the process; the profile is a frozen estimate. Drift is the growing gap between the two.
 
-The divergence between the frozen KYC profile and the actual evolving customer behavior.
+The key distinction: drift is **relative to the original profile**, not to a population average. A legitimate business growing from €5M to €50M AUM is unremarkable in aggregate; if that same customer's profile declared €500K–1M, the scale change is a KYC event requiring re-verification.
 
-**Examples:**
+### BOCPD (Bayesian Online Changepoint Detection)
+A statistical method (Adams & MacKay, 2007) that maintains a posterior over the **run length** r_t — the number of observations since the last regime change. When the posterior mass shifts sharply toward short run lengths, a regime change has been detected.
 
-| Profile | Reality | Drift Signal |
-|---------|---------|--------------|
-| "Self-employed consultant, London, €5–10K/month to EU clients" | Now Moscow-based, €50K/month to Russian entities, UBO sanctioned | High risk |
-| "Import-export SME, stable 2 years, €20K/month turnover" | Volume doubled, now receiving from 10 new counterparties in Türkiye, corporate ownership changed | Medium risk (could be legitimate growth) |
-| "Charity, fundraising 2–5K/month, UK-based" | Still 2–3K/month, donors unchanged, UBO unchanged, steady 10 years | Low risk (no drift) |
-
-**Key insight**: Drift is *relative to the original profile*, not absolute thresholds. A consultant doing €50K/month is normal; the *same customer* doing €50K/month when the profile said €5–10K is a drift event.
-
-### Bayesian Online Changepoint Detection (BOCPD)
-
-A statistical method that continuously updates the probability that a customer's behavior has shifted into a new regime.
-
-- **Run length**: the number of observations (e.g., transaction months) since the last regime change
-- **Posterior over run length**: at each timepoint, the system maintains a belief distribution over "how long have we been in the current regime?"
-- **Changepoint detected**: when the posterior mass **shifts to short run lengths**, indicating the old regime has likely ended
-
-**Why it works**: It catches *gradual drift* that simple threshold rules miss. A customer who drifts from €5K to €9K over six months never crosses a €10K alert threshold, but the distribution shift is visible to the run-length posterior.
+The key property: BOCPD catches **gradual drift** that threshold rules structurally miss. A customer raising average monthly volume from €5K to €9K over six months never crosses a €10K alert threshold, but the underlying distribution shift is visible to the run-length posterior. BOCPD is also **online** (processes data left-to-right, never looks ahead), which makes it honest for the Time-Travel Audit.
 
 ### Drift Velocity
+The time-derivative of KL divergence from the onboarding profile, measured in bits/month.
 
-The rate of change of KYC divergence over time.
+- **KL Divergence** (accumulated drift) measures *how far* the current profile has moved from the baseline — a lagging indicator.
+- **Drift Velocity** measures *how fast* it is moving — a leading indicator.
 
-- **Accumulated drift**: total KL divergence between the original profile and today's observed distribution
-- **Drift velocity**: how fast that divergence is growing (bits per month)
+A customer can show meaningful velocity months before absolute divergence crosses any alert threshold. The combined reading matters: high drift + high velocity = urgent; high drift + flat velocity = investigate but less acute; low drift + rising velocity = early warning.
 
-A customer with high drift velocity is **accelerating away** from their profile. A customer with high drift but low velocity has settled into a new stable state (possibly due to legitimate business change).
+### Ownership Contagion
+Risk that propagates through an ownership graph when an entity in the network is sanctioned or flagged. Implemented via **Personalized PageRank** — the teleport vector is concentrated on the flagged seed entities, so risk flows to nodes close in the ownership topology.
 
-**Use case**: Combine drift magnitude + velocity to prioritize investigation. High drift + high velocity = urgent. High drift + flat velocity = investigate, but less acute.
-
-### Ultimate Beneficial Owner (UBO)
-
-The natural person (or persons) who ultimately own or control a customer entity, directly or indirectly.
-
-**Why it matters for drift detection**: A company's ownership structure can change — shares transferred to a family trust, new partners brought in, a parent company acquired. If a UBO is later sanctioned or surfaces in adverse media, the entire customer entity becomes higher risk retroactively.
-
-**Example**: A consulting firm is 100% owned by Alice. Alice's profile is clean. One year later, Alice transfers her shares to a trust for her benefit; the trust is also controlled by her brother Bob. Later, Bob is sanctioned. Now the company is at risk through its UBO chain, even if the company itself never did anything wrong.
-
-### Ownership Contagion (PageRank)
-
-A graph-based method to propagate risk through ownership structures.
-
-- **Nodes**: individuals, companies, trusts
-- **Edges**: ownership (Alice owns 60% of Co A), control (Alice controls Trust T), beneficial interest
-- **Risk score for a node**: weighted combination of its direct risk + risk propagated from connected nodes
-
-**Use case**: If a sanctioned oligarch is discovered to own 5% of a company, that company's risk score increases. If that company owns another company, that company's risk also increases. The system can trace the propagation path and explain why customer X became higher-risk due to an indirect connection.
+The key compliance insight: a customer two ownership hops from a newly sanctioned entity receives elevated risk *before* any watchlist contains their name. Contagion surfaces this exposure proactively, giving the bank time to act before the regulatory action arrives.
 
 ### Confirmation Lift
+The amplification applied when a public signal (Layer A) and an internal drift signal (Layer B) independently co-occur within the same time window (~30 days).
 
-When public signals (news, sanctions, adverse media) **confirm** an internal drift signal.
+Two weak signals that point to the same event from different data sources provide stronger joint evidence than the sum of their parts. The lift factor is gated — it only activates when both signals clear a minimum floor, because two near-zero signals coinciding is the absence of evidence, not its presence.
 
-**Example**:
-1. Internal data: customer's UBO moved from London to Moscow, funding from Russian sources rose 5x.
-2. Public signal: news article reveals the UBO is under investigation for sanctions evasion.
-3. **Confirmation lift**: the internal drift signal is elevated because external data independently flagged the same entity.
+### Causal Drift vs Benign Drift
+Both legitimate business growth and money-laundering activity produce the same statistical signature: rising volume, changing counterparties, shifting corridors. Pure drift detection cannot tell them apart.
 
-This multiplies the signal strength and increases confidence that the drift is genuinely risk-related (not a data artifact or normal business variation).
+The causal layer separates them by comparing **correlation signatures**, not magnitudes:
+- **Benign growth:** volume up, margin preserved, counterparties stay clean.
+- **Risk transit:** volume up, margin collapses (money flows straight through), counterparties concentrate on high-risk corridors.
 
-### Causal Drift vs. Benign Drift
-
-**Causal drift**: changes in customer behavior that are caused by or correlate with risk events (sanctioning, adverse media, FX conversion changes, illicit funding).
-
-**Benign drift**: changes in customer behavior that are explained by normal business growth, legitimate jurisdiction changes, or market conditions.
-
-**The challenge**: Both look like statistical drift. The Drift Engine uses causal analysis to separate them:
-
-- **Causal hypothesis**: "The drift is due to a sanctioning event" — testable by cross-referencing public data and ownership records.
-- **Benign hypothesis**: "The drift is due to the customer winning new legitimate contracts" — testable by transaction analysis, counterparty reputation, corridor risk.
-
-Each hypothesis accumulates evidence (SHAP-style per-variable breakdown). The system recommends the hypothesis with the highest posterior probability and explains why.
+A likelihood ratio test (Neyman-Pearson) competes two generative hypotheses — risk-shaped vs benign-shaped — and the verdict modulates the final score. Clearly-benign drift is demoted out of the alert queue; risk-shaped drift is confirmed.
 
 ### Suspicious Stability
+Every other layer hunts for movement. A sophisticated launderer who knows drift is monitored does the opposite: keeps their profile artificially smooth. But real customers have natural jitter; an anomalously smooth trajectory **while the customer's environment is moving** is itself a signal.
 
-The inverse problem: a customer in a high-risk environment who *never drifts* — their behavior is unnaturally smooth.
-
-**Example**: A customer living in a jurisdiction known for financial crime, with a business model that historically shows 20% monthly volatility, but their transactions are exactly ±2% month-on-month for 2 years.
-
-This could indicate:
-- Deliberate smoothing to avoid detection (layering in AML terms)
-- Outsourced operations (funding flows are routed through intermediaries)
-- Or, it could be legitimate (boring business, small customer, high discipline)
-
-The detector flags it for investigation; context determines if it's a red flag.
+Measured as: `suspicion = stability_anomaly × environmental_movement` — a product, so both factors must be present. A genuinely quiet environment produces neither factor. Only a customer who is too smooth while things around them shift gets flagged.
 
 ### Time-Travel Audit
+The ability to replay any customer's risk analysis **as-of a past date**, using only data that was available at that time — no information from after the selected date is used.
 
-A retrospective analysis that proves when the system *would have* flagged a customer, given only data available at that time.
+This is a **regulatory-grade property**: it proves the system would have flagged a customer months before the eventual sanctions listing or regulatory event, without any hindsight bias. BOCPD is online by construction (processes the data stream left-to-right), so truncating to a past date is honest — the algorithm genuinely could not have seen the future data. Regulators (and judges) can verify the lead time is real.
 
-**Use case**: A customer is sanctioned on June 1. The compliance officer needs to demonstrate to the regulator that:
-- "Our Drift Engine would have flagged this customer on March 15 — two and a half months before the sanctions hit."
-- "Here's the drift score, velocity, and evidence on March 15, using only data we had by March 15 (no hindsight)."
+### PEP (Politically Exposed Person)
+An individual who holds or has held a prominent public function — heads of state, senior politicians, senior executives of state-owned enterprises, senior military or judicial officials. PEPs are subject to enhanced due diligence because their position creates higher exposure to bribery and corruption risk. Changes to PEP status in a customer's network (e.g., a UBO becomes a government minister) are a primary KYC drift trigger.
 
-This proves the system is a **leading indicator**, not a trailing one. It's essential for regulatory defense.
+### UBO (Ultimate Beneficial Owner)
+The natural person who ultimately owns or controls a customer entity — typically defined as owning ≥25% of shares or voting rights, or exercising control by other means. Identifying UBOs is a core KYC requirement under FATF guidance and FINMA rules.
 
----
+Changes in UBO structure are a primary drift signal. If a UBO is later sanctioned, the entire customer entity becomes retrospectively higher-risk. Ownership contagion (PageRank from the sanctioned UBO) is the mechanism that surfaces this before the bank receives a formal notification.
 
-## The Two-Layer Architecture
+### SAR (Suspicious Activity Report)
+A mandatory filing made by a bank to a financial intelligence unit (in Switzerland: MROS — Money Reporting Office Switzerland) when there is suspicion of money laundering or terrorist financing. Filing a SAR is an internal compliance action; the bank cannot disclose it to the customer ("tipping-off" prohibition). KYC drift scoring helps prioritise which customers warrant SAR consideration before a threshold event occurs.
 
-### Layer A: Public Intelligence
+### EDD (Enhanced Due Diligence)
+A deeper level of customer scrutiny applied to high-risk relationships — PEPs, customers from high-risk jurisdictions, complex ownership structures, unusual transaction patterns. EDD requires more frequent reviews, senior management sign-off, and documented source-of-wealth verification. The Drift Engine's "escalate" action triggers an EDD workflow.
 
-**Inputs:**
-- Sanctions lists (OFAC, EU, UN, local blocklists)
-- News and adverse media (PEP connections, criminal investigations, regime changes)
-- Funding events (capital raises, M&A, major contracts)
-- Ownership changes (share transfers, board changes, corporate restructuring)
+### Cost-Aware Cascade
+The three-tier routing architecture that controls LLM usage cost:
+- **Tier 0** — deterministic rules + BOCPD (near-free, covers ~95% of customers)
+- **Tier 1** — ML scoring via XGBoost (~$0.0002 per customer)
+- **Tier 2** — LLM reasoning via Claude (~$0.05 per customer, borderline high-risk only)
 
-**Output:**
-- Risk signals: customer or UBO has a sanctions hit, adverse media, risky funding source, sudden ownership change
-- **Confirmation Lift**: when public signals align with internal drift
-
-**Why it's separate**: Public data is slower, coarser, and requires human judgment to interpret. It's a **filter**, not a full picture. It catches the obvious cases and boosts confidence in internal drift signals.
-
-### Layer B: Internal Bank Data
-
-**Inputs:**
-- KYC profile (original onboarding data)
-- Transaction history (cash flows, corridors, counterparties)
-- AML alerts (past rule triggers, officer decisions)
-- Periodic reviews (refreshed KYC data from compliance checks)
-
-**Output:**
-- Drift signals: BOCPD, velocity, causal/benign hypothesis competition
-- Cost-aware scoring: cheap rules first, ML next, expensive reasoning (LLM causal analysis) only for borderline cases
-- **Verdict**: recommended action (green, yellow, red) + explanation + override capability
-
-**Why it's separate**: Bank data is rich, precise, and owned. It enables continuous, quantitative drift detection. Public data can't do this at scale.
-
----
-
-## Cost Awareness
-
-The system is built for regulatory compliance in a bank, where running expensive models on every customer is not practical.
-
-**Cascade approach:**
-
-1. **Tier 0 — Rules** (free): Velocity > threshold? Drift > threshold? Very high-risk jurisdiction? Flag it. ~95% of customers pass.
-2. **Tier 1 — ML** (cheap): For borderline cases, run XGBoost risk model (trained on historical alerts + outcomes). ~5% of customers reach here.
-3. **Tier 2 — LLM reasoning** (expensive): Only for high-stakes borderline cases, use Claude to debate causal vs. benign hypothesis, generate rationale for officer review. ~0.5% of customers reach here.
-
-**Result**: 96% cheaper than running the LLM on everyone, at equal high-risk recall (H4, validated on 1,000-customer synthetic book).
-
----
-
-## Guardrails: Explainability, Human-in-the-Loop, Audit
-
-### Explainability
-
-Every score is broken down by component:
-- **Per-layer breakdown**: how much does BOCPD contribute vs. public intel vs. velocity?
-- **Per-variable SHAP values**: which KYC fields or transaction corridors most influenced the score?
-- **Causal evidence cards**: what specific news articles, sanctions entries, or transaction anomalies were factored in?
-
-### Human-in-the-Loop (HITL)
-
-- **Verdict bar**: the system recommends an action (investigate, enhance DD, escalate) with confidence.
-- **Officer override**: a compliance officer can accept, challenge, or override the verdict with a written rationale.
-- **Time-bound review**: the system may suggest a re-scan in 30 days, or mark the case as "decision pending" until more data arrives.
-
-### Audit Log
-
-Every decision is logged immutably:
-- Timestamp
-- Input data version
-- Model version
-- Score, components, explanation
-- Officer action + rationale
-- Outcome (if later labeled as false positive / positive)
-
-This supports:
-- **Regulatory defense**: "Here's what we knew on March 15 and what we decided."
-- **Model improvement**: feedback loop to retrain and validate future versions.
-- **Liability protection**: clear record of due diligence.
-
----
-
-## Success Criteria (from AMINA Challenge 4)
-
-1. **Detect drift early**: Flag a customer before public sanctions/regulatory action.
-2. **Separate causal from benign**: Don't waste officer time on legitimate growth; focus on risk.
-3. **Explain decisions**: Per-layer, per-variable breakdown so an officer (and regulator) can understand why.
-4. **Cost-efficient**: Cheap rules + ML tiering so the system scales to thousands of customers.
-5. **Audit-ready**: Time-travel proof that the system would have caught it.
-
----
-
-## How This System Works (High-Level Flow)
-
-1. **Onboarding**: Customer's KYC profile is captured; profile distribution (P_0) is initialized.
-2. **Monthly monitoring**:
-   - Collect transaction data, refresh public signals
-   - Run BOCPD on behavioral time series (volume, geography, counterparty risk)
-   - Calculate accumulated drift (KL divergence) and velocity
-   - Query contagion graph (any UBO in adverse media? ownership changed?)
-3. **Scoring**:
-   - Rules layer: velocity / drift high? → immediate escalation
-   - ML layer: XGBoost risk model on borderline cases
-   - LLM layer: causal vs. benign debate, explanation generation
-4. **Verdict**:
-   - Risk score (0–100) with recommended action
-   - Per-component breakdown (BOCPD score, velocity score, public signal score, causal score)
-   - SHAP explanation + optional officer notes
-5. **Outcome**:
-   - Officer reviews, decides action (investigate, enhanced DD, or accept risk)
-   - Decision is logged with rationale
-   - System re-scores after 30 days or upon request
-
----
-
-## Next Steps for the Team
-
-1. **Read** `DRIFT_ENGINE_README.md` for the full technical specification, math, and academic references.
-2. **Run** the system locally per `QUICKSTART.md` — see it in action.
-3. **Explore** the demo cases (Viktor, Maria, Pavel) to see how causal analysis separates risk from growth.
-4. **Extend**: Real public-signal feeds, deeper ownership graphs, more drift scenarios.
-
----
-
-## References & Regulations
-
-- **FINMA (Swiss)**: AML enforcement, KYC drift expectations
-- **EU AML Directive 5**: beneficial ownership, risk-based approach, drift detection
-- **OFAC**: Sanctions list methodology and compliance requirements
-- **Bayesian Online Changepoint Detection**: Adams & MacKay (2007)
-- **KL Divergence & Drift Velocity**: Information theory foundations for drift measurement
-- **SHAP & Counterfactual Fairness**: Explainability standards for regulatory use
-
-For mathematical depth, see `DRIFT_ENGINE_README.md`.
+A customer escalates to the next tier only when the expected information gain justifies the cost. On 1,000 customers this yields ~96% cost reduction versus running every customer through the LLM, at equal high-risk recall.

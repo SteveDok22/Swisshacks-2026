@@ -41,7 +41,7 @@ flowchart TB
     end
 
     subgraph Ext["External"]
-        Claude["Anthropic Claude\nSonnet / Haiku"]
+        Claude["Anthropic Claude\nSonnet 4.5 / Haiku 4.5"]
         DB[(SQLite)]
     end
 
@@ -98,6 +98,7 @@ graph TD
         R6[decisions.py]
         R7[audit.py]
         R8[jurisdictions.py]
+        R9[clients.py\n2 endpoints]
     end
 
     subgraph Core["drift/"]
@@ -178,6 +179,7 @@ graph TD
     subgraph Lib["lib/"]
         APIClient[api.ts\nTyped fetch wrapper]
         SSEHook[useStreamingText\nSSE hook]
+        Utils[utils.ts\nShared utilities]
     end
 
     P1 --> CaseQueue & CaseDetail

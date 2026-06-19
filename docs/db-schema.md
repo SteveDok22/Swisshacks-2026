@@ -10,7 +10,7 @@ erDiagram
         string email
         string nationality
         string residence_country
-        string primary_jurisdiction
+        Jurisdiction primary_jurisdiction
         string risk_tolerance
         float aum_chf
         bool esg_focus
@@ -69,8 +69,8 @@ erDiagram
 
     CLIENT ||--o{ CASE : "has"
     CASE ||--o{ DECISION : "receives"
-    CASE ||--o{ AUDIT_LOG : "logged in"
-    CLIENT ||--o{ AUDIT_LOG : "logged in"
+    CASE |o--o{ AUDIT_LOG : "soft ref"
+    CLIENT |o--o{ AUDIT_LOG : "soft ref"
 ```
 
 ---
@@ -128,7 +128,7 @@ stateDiagram-v2
     [*] --> pending: Case created\n(ingest or manual)
     pending --> in_review: Officer opens case
     pending --> expired: Timeout — no action taken
-    in_review --> resolved: Officer logs decision\n(allow / step_up / escalate / block)
+    in_review --> resolved: Officer logs decision\n(allow / step_up_verification / escalate / block)
     in_review --> expired: Timeout — abandoned
     resolved --> [*]: Audit record written\n(immutable)
     expired --> [*]: Audit record written\n(immutable)

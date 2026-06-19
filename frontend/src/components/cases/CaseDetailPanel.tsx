@@ -16,6 +16,13 @@ import { CounterfactualsViewer } from "@/components/cases/CounterfactualsViewer"
 import { PrivacyPanel } from "@/components/cases/PrivacyPanel";
 import { JurisdictionSelector } from "@/components/cases/JurisdictionSelector";
 import { DecisionBar } from "@/components/cases/DecisionBar";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
+import {
+  SHAPSkeleton,
+  CounterfactualsSkeleton,
+  JurisdictionSkeleton,
+  StreamingSkeleton,
+} from "@/components/ui/Skeleton";
 import { MousePointerClick, Activity } from "lucide-react";
 import type { Jurisdiction, ScoringResponse } from "@/types/api";
 
@@ -85,10 +92,15 @@ export function CaseDetailPanel({ caseId }: CaseDetailPanelProps) {
 
   if (isLoading || !caseDetail) {
     return (
-      <div className="p-6 space-y-4">
-        <div className="h-8 w-3/4 bg-paper-sunken rounded animate-pulse" />
-        <div className="h-24 w-full bg-paper-sunken rounded animate-pulse" />
-        <div className="h-40 w-full bg-paper-sunken rounded animate-pulse" />
+      <div className="p-6 space-y-6">
+        <div className="space-y-3">
+          <div className="h-5 w-24 bg-paper-sunken rounded animate-pulse" />
+          <div className="h-4 w-3/4 bg-paper-sunken rounded animate-pulse" />
+          <div className="h-3 w-1/2 bg-paper-sunken rounded animate-pulse" />
+        </div>
+        <StreamingSkeleton />
+        <SHAPSkeleton />
+        <JurisdictionSkeleton />
       </div>
     );
   }
@@ -144,43 +156,53 @@ export function CaseDetailPanel({ caseId }: CaseDetailPanelProps) {
       {/* === Body — scrollable === */}
       <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
         {/* AI Assessment (streaming) */}
-        <StreamingExplanation caseId={caseId} />
+        <ErrorBoundary section="AI Assessment">
+          <StreamingExplanation caseId={caseId} />
+        </ErrorBoundary>
 
         {/* SHAP */}
-        <section className="space-y-3">
-          <div className="flex items-center gap-2">
-            <Activity
-              className="h-3.5 w-3.5 text-ink-muted"
-              strokeWidth={2}
-            />
-            <h3 className="text-2xs font-semibold uppercase tracking-wide text-ink-muted">
-              Risk Factors
-            </h3>
-            <span className="text-2xs text-ink-faint">
-              · top 5 SHAP contributions
-            </span>
-          </div>
-          {topFeatures.length > 0 ? (
-            <SHAPViewer features={topFeatures} />
-          ) : (
-            <div className="text-xs text-ink-muted">Computing factors…</div>
-          )}
-        </section>
+        <ErrorBoundary section="Risk Factors">
+          <section className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Activity
+                className="h-3.5 w-3.5 text-ink-muted"
+                strokeWidth={2}
+              />
+              <h3 className="text-2xs font-semibold uppercase tracking-wide text-ink-muted">
+                Risk Factors
+              </h3>
+              <span className="text-2xs text-ink-faint">
+                · top 5 SHAP contributions
+              </span>
+            </div>
+            {topFeatures.length > 0 ? (
+              <SHAPViewer features={topFeatures} />
+            ) : (
+              <SHAPSkeleton />
+            )}
+          </section>
+        </ErrorBoundary>
 
         {/* Counterfactuals (high/critical only) */}
         {(effectiveLevel === "high" || effectiveLevel === "critical") && (
-          <CounterfactualsViewer caseId={caseId} />
+          <ErrorBoundary section="Alternative Scenarios">
+            <CounterfactualsViewer caseId={caseId} />
+          </ErrorBoundary>
         )}
 
         {/* Jurisdiction comparison */}
-        <JurisdictionSelector
-          caseId={caseId}
-          current={activeJurisdiction}
-          onSelect={setActiveJurisdiction}
-        />
+        <ErrorBoundary section="Jurisdiction Comparison">
+          <JurisdictionSelector
+            caseId={caseId}
+            current={activeJurisdiction}
+            onSelect={setActiveJurisdiction}
+          />
+        </ErrorBoundary>
 
         {/* Privacy */}
-        <PrivacyPanel caseId={caseId} />
+        <ErrorBoundary section="Data Handling">
+          <PrivacyPanel caseId={caseId} />
+        </ErrorBoundary>
 
         {/* Case raw data — at the bottom, collapsed by default */}
         <details className="border border-paper-line rounded">

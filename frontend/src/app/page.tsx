@@ -5,6 +5,8 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { CaseQueue } from "@/components/cases/CaseQueue";
 import { CaseDetailPanel } from "@/components/cases/CaseDetailPanel";
 import { WelcomeModal } from "@/components/WelcomeModal";
+import { DemoModeBadge } from "@/components/DemoModeBadge";
+import { ErrorBoundary } from "@/components/ui/ErrorBoundary";
 
 /**
  * Main workspace — three-pane layout:
@@ -18,6 +20,7 @@ export default function Home() {
   return (
     <div className="flex h-screen overflow-hidden relative z-10">
       <WelcomeModal />
+      <DemoModeBadge />
       <Sidebar />
 
       {/* Case queue — fixed width middle column */}
@@ -30,7 +33,9 @@ export default function Home() {
 
       {/* Detail panel — flexible remaining space */}
       <main className="flex-1 min-w-0 bg-paper">
-        <CaseDetailPanel caseId={selectedCaseId} />
+        <ErrorBoundary section="Case detail">
+          <CaseDetailPanel caseId={selectedCaseId} />
+        </ErrorBoundary>
       </main>
     </div>
   );

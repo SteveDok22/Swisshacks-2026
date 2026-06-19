@@ -32,12 +32,20 @@ async def generate_counterfactuals(
     try:
         return await service.generate(case_id, n_scenarios=n_scenarios)
     except ValueError as e:
+        # Genuine "case not found" or similar — surface as 404
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
         ) from e
     except Exception as e:
+        # DiCE can fail for various reasons (small training set, infeasible
+        # constraints, numerical issues). Counterfactuals are nice-to-have —
+        # the rest of the case review still works without them. Return an
+        # empty result with a note rather than crashing the whole panel.
         logger.exception("counterfactuals_failed", case_id=str(case_id))
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Counterfactual generation failed: {e}",
-        ) from e
+        return CounterfactualResponse(
+            case_id=case_id,
+            original_score=0.0,
+            original_outcome="unknown",
+            counterfactuals=[],
+            notes=f"Counterfactual generation unavailable for this case: {type(e).__name__}",
+        )

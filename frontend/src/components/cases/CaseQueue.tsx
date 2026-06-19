@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { casesApi } from "@/lib/api";
+import { casesApi, ApiError } from "@/lib/api";
 import {
   cn,
   timeAgo,
@@ -11,7 +11,7 @@ import {
 import { RiskBadge } from "@/components/ui/RiskBadge";
 import { RiskScore } from "@/components/ui/RiskScore";
 import type { CaseListItem } from "@/types/api";
-import { ChevronRight, Inbox } from "lucide-react";
+import { ChevronRight, Inbox, AlertCircle, RefreshCw } from "lucide-react";
 
 interface CaseQueueProps {
   selectedCaseId: string | null;
@@ -25,7 +25,7 @@ interface CaseQueueProps {
  * Each row is a button (full-row click target) with a hover affordance.
  */
 export function CaseQueue({ selectedCaseId, onSelectCase }: CaseQueueProps) {
-  const { data, isLoading, error } = useQuery({
+  const { data, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ["cases"],
     queryFn: () => casesApi.list({ page_size: 50 }),
   });
@@ -35,9 +35,47 @@ export function CaseQueue({ selectedCaseId, onSelectCase }: CaseQueueProps) {
   }
 
   if (error) {
+    const isNetwork =
+      !(error instanceof ApiError) ||
+      error.message.includes("timed out") ||
+      error.message.includes("Failed to fetch");
     return (
-      <div className="p-6 text-sm text-risk-critical">
-        Failed to load cases. Is the backend running on :8000?
+      <div className="flex flex-col h-full">
+        <div className="h-16 shrink-0 border-b border-paper-line px-6 flex items-center">
+          <h1 className="font-semibold text-ink">Case Queue</h1>
+        </div>
+        <div className="flex-1 flex items-center justify-center p-6">
+          <div className="max-w-sm text-center">
+            <div className="inline-flex items-center justify-center h-10 w-10 rounded-full bg-risk-medium-bg mb-3">
+              <AlertCircle
+                className="h-5 w-5 text-risk-medium"
+                strokeWidth={2}
+              />
+            </div>
+            <h3 className="text-sm font-semibold text-ink mb-1.5">
+              {isNetwork ? "Can't reach the backend" : "Failed to load cases"}
+            </h3>
+            <p className="text-xs text-ink-muted leading-relaxed mb-4">
+              {isNetwork
+                ? "Make sure the backend is running on http://localhost:8000"
+                : `Error: ${error.message}`}
+            </p>
+            <button
+              onClick={() => refetch()}
+              disabled={isRefetching}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-accent text-paper-raised text-xs font-medium hover:bg-accent-soft transition-colors disabled:opacity-60"
+            >
+              <RefreshCw
+                className={cn(
+                  "h-3 w-3",
+                  isRefetching && "animate-spin",
+                )}
+                strokeWidth={2.5}
+              />
+              {isRefetching ? "Retrying…" : "Try again"}
+            </button>
+          </div>
+        </div>
       </div>
     );
   }

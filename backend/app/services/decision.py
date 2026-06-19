@@ -13,7 +13,7 @@ is exactly what regulators (FINMA, MiCA) want to see.
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -76,20 +76,20 @@ class DecisionService:
             ai_recommended_action=ai_recommended,
             ai_risk_score=case.risk_score,
             ai_risk_level=case.risk_level,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(UTC),
         )
         self.session.add(decision)
 
         if payload.action in (DecisionAction.ALLOW, DecisionAction.BLOCK):
             case.status = CaseStatus.RESOLVED
-            case.resolved_at = datetime.utcnow()
+            case.resolved_at = datetime.now(UTC)
         elif payload.action in (
             DecisionAction.STEP_UP_VERIFICATION,
             DecisionAction.ESCALATE,
         ):
             case.status = CaseStatus.IN_REVIEW
 
-        case.updated_at = datetime.utcnow()
+        case.updated_at = datetime.now(UTC)
         self.session.add(case)
 
         await self.session.flush()
@@ -155,7 +155,7 @@ class DecisionService:
             rationale=payload.rationale,
             overrode_ai=overrode_ai,
             ai_recommended_action=ai_recommended,
-            created_at=datetime.utcnow(),
+            created_at=datetime.now(UTC),
         )
         self.session.add(decision)
 
@@ -187,15 +187,15 @@ class DecisionService:
 
         return DecisionRead(
             id=decision.id,
-            case_id=None,
+            case_id=decision.case_id,
             customer_id=decision.customer_id,
             action=decision.action,
             officer_id=decision.officer_id,
             rationale=decision.rationale,
             overrode_ai=decision.overrode_ai,
             ai_recommended_action=decision.ai_recommended_action,
-            ai_risk_score=None,
-            ai_risk_level=None,
+            ai_risk_score=decision.ai_risk_score,
+            ai_risk_level=decision.ai_risk_level,
             created_at=decision.created_at,
         )
     

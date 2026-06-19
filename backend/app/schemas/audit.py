@@ -1,9 +1,10 @@
 """
 Audit log schemas.
 
-Two key shapes:
+Three key shapes:
 - AuditEntry — full record returned from queries
-- DecisionCreate — what compliance officer submits when acting on a case
+- DecisionCreate — what a compliance officer submits when acting on a case
+  (case-review workflow) or a drift customer (drift-engine workflow)
 - DecisionRead — what we return after recording
 """
 
@@ -65,7 +66,7 @@ class DecisionCreate(BaseModel):
     """
 
     case_id: UUID | None = None
-    customer_id: str | None = None
+    customer_id: str | None = Field(None, min_length=1, max_length=255)
     action: DecisionAction
     officer_id: str = Field(..., description="Identifier of the deciding officer")
     rationale: str | None = Field(
@@ -74,7 +75,11 @@ class DecisionCreate(BaseModel):
     )
     ai_hint: DecisionAction | None = Field(
         None,
-        description="Caller-supplied AI recommendation; used when customer_id is set and no case record exists",
+        description=(
+            "Caller-supplied AI recommendation for the drift-engine workflow. "
+            "Ignored (and rejected) when case_id is provided — the case path "
+            "derives its own recommendation from the case risk score."
+        ),
     )
 
     @model_validator(mode="after")
@@ -85,6 +90,11 @@ class DecisionCreate(BaseModel):
             raise ValueError("Provide either case_id or customer_id")
         if has_case and has_customer:
             raise ValueError("Provide either case_id or customer_id, not both")
+        if has_case and self.ai_hint is not None:
+            raise ValueError(
+                "ai_hint is only valid for the drift (customer_id) workflow; "
+                "the case path derives its own AI recommendation"
+            )
         return self
 
 

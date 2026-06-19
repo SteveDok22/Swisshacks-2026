@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import get_logger
+from app.db.models import DecisionDB
 from app.db.session import get_session
 from app.schemas.audit import DecisionCreate, DecisionRead
 from app.services.decision import DecisionService
@@ -20,7 +21,7 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/decisions", tags=["decisions"])
 
 
-def _to_read(d) -> DecisionRead:
+def _to_read(d: DecisionDB) -> DecisionRead:
     return DecisionRead(
         id=d.id,
         case_id=d.case_id,
@@ -64,7 +65,11 @@ async def list_case_decisions(
     case_id: UUID,
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> list[DecisionRead]:
-    """Get all decisions ever made on a case."""
+    """Get all decisions ever made on a case (chronological).
+
+    Returns an empty list when the case exists but has no decisions, or when
+    the case_id is unknown — callers should not infer case existence from this.
+    """
     service = DecisionService(session)
     decisions = await service.list_decisions_for_case(case_id)
     return [_to_read(d) for d in decisions]
@@ -75,7 +80,12 @@ async def list_customer_decisions(
     customer_id: str,
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> list[DecisionRead]:
-    """Get all drift-engine decisions ever made on a customer."""
+    """Get all drift-engine decisions ever made on a customer (chronological).
+
+    Returns an empty list when the customer exists but has no decisions, or
+    when the customer_id is unknown — callers should not infer customer
+    existence from this.
+    """
     service = DecisionService(session)
     decisions = await service.list_decisions_for_customer(customer_id)
     return [_to_read(d) for d in decisions]

@@ -1,13 +1,15 @@
 """
 Drift Engine API endpoints.
-
-Six endpoints under /api/v1/drift/ — see DRIFT_ENGINE_README §10.
 """
 
 from __future__ import annotations
 
-from fastapi import APIRouter, HTTPException, status
+from typing import Annotated
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.session import get_session
 from app.drift.service import get_drift_engine
 from app.schemas.drift import (
     CascadeCostReport,
@@ -18,8 +20,19 @@ from app.schemas.drift import (
     ReplayResult,
     RFIResponse,
 )
+from app.services.audit import AuditService
 
 router = APIRouter(prefix="/drift", tags=["drift"])
+
+
+def _score_to_level(score: float) -> str:
+    if score >= 86:
+        return "critical"
+    if score >= 61:
+        return "high"
+    if score >= 31:
+        return "medium"
+    return "low"
 
 
 @router.get("/customers", response_model=list[DriftCustomerSummary])
@@ -29,7 +42,10 @@ async def list_drift_customers() -> list[DriftCustomerSummary]:
 
 
 @router.get("/customers/{customer_id}", response_model=DriftCustomerDetail)
-async def get_drift_customer(customer_id: str) -> DriftCustomerDetail:
+async def get_drift_customer(
+    customer_id: str,
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> DriftCustomerDetail:
     """Full layer breakdown + timeline for one customer."""
     detail = get_drift_engine().get_customer(customer_id)
     if detail is None:
@@ -37,6 +53,23 @@ async def get_drift_customer(customer_id: str) -> DriftCustomerDetail:
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No drift customer {customer_id!r}",
         )
+
+    await AuditService(session).log(
+        event_type="drift_customer_analyzed",
+        risk_score=detail.drift_score,
+        risk_level=_score_to_level(detail.drift_score),
+        payload={
+            "customer_id": customer_id,
+            "drift_velocity": detail.drift_velocity,
+            "velocity_band": detail.velocity_band,
+            "reached_tier": detail.reached_tier,
+            "causal_label": detail.causal.label if detail.causal else None,
+            "causal_p_risk": detail.causal.p_risk if detail.causal else None,
+            "is_suspicious": detail.stability.is_suspicious if detail.stability else None,
+            "confirmation_lift": detail.confirmation_lift,
+        },
+    )
+
     return detail
 
 
@@ -56,9 +89,23 @@ async def get_drift_timeline(customer_id: str) -> DriftCustomerDetail:
 
 
 @router.post("/scan", response_model=CascadeCostReport)
-async def run_cascade_scan() -> CascadeCostReport:
+async def run_cascade_scan(
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> CascadeCostReport:
     """Run a full cascade pass over the book; return the cost report."""
-    return get_drift_engine().scan()
+    report = get_drift_engine().scan()
+
+    await AuditService(session).log(
+        event_type="drift_scan_completed",
+        payload={
+            "total_customers": report.total_customers,
+            "tier_counts": report.tier_counts,
+            "total_cost": report.total_cost,
+            "savings_pct": report.savings_pct,
+        },
+    )
+
+    return report
 
 
 @router.get("/contagion", response_model=ContagionGraph)
@@ -96,11 +143,10 @@ async def inject_scenario(req: InjectScenarioRequest) -> DriftCustomerDetail:
 @router.post("/rfi/{customer_id}", response_model=RFIResponse)
 async def generate_rfi(customer_id: str) -> RFIResponse:
     """
-    Generate a Value-of-Information ranked request-for-information (Layer 7).
+    Generate a Value-of-Information ranked request-for-information.
 
-    MVP: returns rule-based RFI questions tuned to the customer's dominant
-    drift signal. A future version routes this through Claude for natural
-    phrasing (the AnthropicClient is already available).
+    Returns rule-based RFI questions tuned to the customer's dominant
+    drift signal, ordered by expected information gain.
     """
     engine = get_drift_engine()
     detail = engine.get_customer(customer_id)
@@ -110,11 +156,7 @@ async def generate_rfi(customer_id: str) -> RFIResponse:
             detail=f"No drift customer {customer_id!r}",
         )
 
-    # VoI heuristic: ask about whichever layer contributed most uncertainty
     questions: list[str] = []
-    if detail.propagated_risk if hasattr(detail, "propagated_risk") else 0:
-        pass
-    # Pick questions by scenario signal
     scenario = detail.scenario or ""
     if "volume" in scenario or detail.drift_velocity > 3:
         questions.append(

@@ -183,21 +183,16 @@ The Drift Engine workspace presents a verdict-first view: a recommended action u
 
 ## Running Locally
 
-Two terminals. Full copy-paste setup in **[QUICKSTART.md](QUICKSTART.md)**.
+One command with Docker. Full setup in **[QUICKSTART.md](QUICKSTART.md)**.
 
 ```bash
-# Backend
-cd backend
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
-
-# Frontend (new terminal)
-cd frontend
-npm install && npm run dev
+docker compose up --build
 ```
 
-Open <http://localhost:3000/drift> for the Drift Engine, or <http://localhost:8000/docs> for the API.
+Builds and starts both containers (frontend + backend) with hot reload; the
+database is SQLite, auto-seeded on first start. Open
+<http://localhost:3000/drift> for the Drift Engine, or
+<http://localhost:8000/docs> for the API.
 
 ---
 

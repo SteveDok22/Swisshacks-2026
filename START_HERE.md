@@ -40,24 +40,13 @@ profile, often months before a sanctions listing.
 
 ## Fastest way to see it work
 
-Open `QUICKSTART.md` and follow the two-terminal setup. In short:
+One command (full details in `QUICKSTART.md`):
 
-```
-# Terminal 1 — backend
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate            # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-python -m app.ml.training train-social-engineering
-uvicorn app.main:app --host 0.0.0.0 --port 8000
-
-# Terminal 2 — frontend
-cd frontend
-npm install
-npm run dev
+```bash
+docker compose up --build
 ```
 
-Then open **http://localhost:3000**.
+Then open **http://localhost:3000** (API docs at **http://localhost:8000/docs**).
 
 > **Runs offline, no API key required.** The AI explanations fall back to a
 > built-in mock so the whole system is evaluable without internet or a key.
@@ -100,10 +89,9 @@ docs/                    <- supporting docs
 - No `.env` file is included (no secrets shipped). The app runs in mock mode
   without one. To enable live Claude, copy `backend/.env.example` to
   `backend/.env` and add a key — optional.
-- `node_modules/` and Python `.venv/` are not included — they are created by
-  `npm install` and `pip install` so the project stays portable across
-  machines.
-- Built and tested on macOS (Apple Silicon). Linux and Windows work; on
-  Windows use `.venv\Scripts\activate` to activate the virtualenv.
+- Dependencies aren't vendored — Docker installs them inside the images at
+  build time (`docker compose up --build`), so the project stays portable.
+- Built and tested on macOS (Apple Silicon); Linux and Windows work the same
+  via Docker Desktop.
 
 Thank you for reviewing Sentinel.

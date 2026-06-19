@@ -48,7 +48,7 @@ async def list_cases(
     """List cases with optional filtering."""
     store = DbStore(session)
     offset = (page - 1) * page_size
-    
+
     cases, total = await store.list_cases(
         case_type=case_type.value if case_type else None,
         status=status_filter.value if status_filter else None,
@@ -56,7 +56,7 @@ async def list_cases(
         limit=page_size,
         offset=offset,
     )
-    
+
     items = [
         CaseListItem(
             id=c.id,
@@ -70,7 +70,7 @@ async def list_cases(
         )
         for c in cases
     ]
-    
+
     return PaginatedResponse(
         items=items,
         total=total,
@@ -87,13 +87,13 @@ async def get_case(
     """Get a single case by ID with full context."""
     store = DbStore(session)
     case = await store.get_case(case_id)
-    
+
     if case is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Case {case_id} not found",
         )
-    
+
     return _case_to_read(case)
 
 
@@ -101,18 +101,19 @@ async def get_case(
 async def create_case(
     payload: CaseCreate,
     session: Annotated[AsyncSession, Depends(get_session)],
+    actor_id: str | None = Query(None, description="ID of the officer creating the case"),
 ) -> CaseRead:
     """Create a new case."""
     store = DbStore(session)
     audit = AuditService(session)
-    
+
     # Validate client exists
     if await store.get_client(payload.client_id) is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Client {payload.client_id} does not exist",
         )
-    
+
     case = Case(
         client_id=payload.client_id,
         case_type=payload.case_type,
@@ -120,21 +121,22 @@ async def create_case(
         context=payload.context,
         status=CaseStatus.PENDING,
     )
-    
+
     await store.add_case(case)
-    
-    # Audit log
+
     await audit.log(
         event_type="case_created",
         case_id=case.id,
         client_id=case.client_id,
+        actor_id=actor_id,
+        actor_type="compliance_officer" if actor_id else "system",
         payload={
             "case_type": case.case_type.value,
             "jurisdiction": case.jurisdiction.value,
             "summary": case.context.summary,
         },
     )
-    
+
     return _case_to_read(case)
 
 
@@ -143,24 +145,34 @@ async def update_case_status(
     case_id: UUID,
     new_status: CaseStatus,
     session: Annotated[AsyncSession, Depends(get_session)],
+    actor_id: str | None = Query(None, description="ID of the officer updating the status"),
 ) -> CaseRead:
     """Update a case's workflow status."""
     store = DbStore(session)
     audit = AuditService(session)
-    
-    updated = await store.update_case(case_id, status=new_status)
-    if updated is None:
+
+    # Read current status before overwriting so we can log the transition
+    existing = await store.get_case(case_id)
+    if existing is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Case {case_id} not found",
         )
-    
+    old_status = existing.status.value
+
+    updated = await store.update_case(case_id, status=new_status)
+
     await audit.log(
         event_type="case_status_updated",
         case_id=case_id,
-        payload={"new_status": new_status.value},
+        actor_id=actor_id,
+        actor_type="compliance_officer" if actor_id else "system",
+        payload={
+            "old_status": old_status,
+            "new_status": new_status.value,
+        },
     )
-    
+
     return _case_to_read(updated)
 
 
@@ -171,16 +183,29 @@ async def update_case_status(
 async def get_case_history(
     case_id: UUID,
     session: Annotated[AsyncSession, Depends(get_session)],
+    actor_id: str | None = Query(None, description="ID of the officer exporting the trail"),
 ) -> list[AuditEntryRead]:
     """
     Get the complete audit trail for a case.
-    
+
     Returns all events (scoring, explanations, decisions) in chronological order.
-    Used by UI "History" panel.
+    Used by UI "History" panel and regulatory export.
     """
     audit = AuditService(session)
     entries = await audit.export_case_trail(case_id)
-    
+
+    # Log that this trail was accessed / exported
+    await audit.log(
+        event_type="data_exported",
+        case_id=case_id,
+        actor_id=actor_id,
+        actor_type="compliance_officer" if actor_id else "system",
+        payload={
+            "export_type": "case_audit_trail",
+            "entries_exported": len(entries),
+        },
+    )
+
     return [
         AuditEntryRead(
             id=e.id,

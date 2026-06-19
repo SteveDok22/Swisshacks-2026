@@ -7,7 +7,7 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import get_logger
@@ -25,12 +25,13 @@ router = APIRouter(prefix="/scoring", tags=["scoring"])
 async def score_case(
     case_id: UUID,
     session: Annotated[AsyncSession, Depends(get_session)],
+    actor_id: str | None = Query(None, description="ID of the officer triggering scoring"),
 ) -> ScoringResponse:
     """Run ML scoring on a case."""
     engine = RiskEngine(session)
-    
+
     try:
-        result = await engine.score_case(case_id)
+        result = await engine.score_case(case_id, actor_id=actor_id)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(e)

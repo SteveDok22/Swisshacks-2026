@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
@@ -36,6 +36,7 @@ async def list_drift_customers() -> list[DriftCustomerSummary]:
 async def get_drift_customer(
     customer_id: str,
     session: Annotated[AsyncSession, Depends(get_session)],
+    actor_id: str | None = Query(None, description="ID of the officer viewing the customer"),
 ) -> DriftCustomerDetail:
     """Full layer breakdown + timeline for one customer."""
     detail = get_drift_engine().get_customer(customer_id)
@@ -47,6 +48,8 @@ async def get_drift_customer(
 
     await AuditService(session).log(
         event_type="drift_customer_analyzed",
+        actor_id=actor_id,
+        actor_type="compliance_officer" if actor_id else "system",
         risk_score=detail.drift_score,
         risk_level=score_to_level(detail.drift_score),
         payload={
@@ -82,12 +85,15 @@ async def get_drift_timeline(customer_id: str) -> DriftCustomerDetail:
 @router.post("/scan", response_model=CascadeCostReport)
 async def run_cascade_scan(
     session: Annotated[AsyncSession, Depends(get_session)],
+    actor_id: str | None = Query(None, description="ID of the officer triggering the scan"),
 ) -> CascadeCostReport:
     """Run a full cascade pass over the book; return the cost report."""
     report = get_drift_engine().scan()
 
     await AuditService(session).log(
         event_type="drift_scan_completed",
+        actor_id=actor_id,
+        actor_type="compliance_officer" if actor_id else "system",
         payload={
             "total_customers": report.total_customers,
             "tier_counts": report.tier_counts,
@@ -109,6 +115,7 @@ async def get_contagion_graph() -> ContagionGraph:
 async def get_replay(
     customer_id: str,
     session: Annotated[AsyncSession, Depends(get_session)],
+    actor_id: str | None = Query(None, description="ID of the officer running the replay"),
 ) -> ReplayResult:
     """
     Time-Travel Audit: as-of replay proving the system would have flagged this
@@ -123,6 +130,8 @@ async def get_replay(
 
     await AuditService(session).log(
         event_type="drift_replay_executed",
+        actor_id=actor_id,
+        actor_type="compliance_officer" if actor_id else "system",
         payload={
             "customer_id": customer_id,
             "alert_month": result.alert_month,
@@ -139,6 +148,7 @@ async def get_replay(
 async def inject_scenario(
     req: InjectScenarioRequest,
     session: Annotated[AsyncSession, Depends(get_session)],
+    actor_id: str | None = Query(None, description="ID of the officer injecting the scenario"),
 ) -> DriftCustomerDetail:
     """Red-team: inject a synthetic drift scenario and return its analysis."""
     try:
@@ -150,6 +160,8 @@ async def inject_scenario(
 
     await AuditService(session).log(
         event_type="drift_scenario_injected",
+        actor_id=actor_id,
+        actor_type="compliance_officer" if actor_id else "system",
         risk_score=detail.drift_score,
         risk_level=score_to_level(detail.drift_score),
         payload={
@@ -166,6 +178,7 @@ async def inject_scenario(
 async def generate_rfi(
     customer_id: str,
     session: Annotated[AsyncSession, Depends(get_session)],
+    actor_id: str | None = Query(None, description="ID of the officer generating the RFI"),
 ) -> RFIResponse:
     """
     Generate a Value-of-Information ranked request-for-information.
@@ -216,11 +229,14 @@ async def generate_rfi(
 
     await AuditService(session).log(
         event_type="drift_rfi_generated",
+        actor_id=actor_id,
+        actor_type="compliance_officer" if actor_id else "system",
         risk_score=detail.drift_score,
         risk_level=score_to_level(detail.drift_score),
         payload={
             "customer_id": customer_id,
             "question_count": len(questions),
+            "questions": questions,
             "estimated_info_gain_bits": rfi.estimated_info_gain_bits,
         },
     )

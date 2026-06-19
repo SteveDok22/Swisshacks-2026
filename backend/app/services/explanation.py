@@ -54,7 +54,7 @@ class ExplanationService:
         self.anonymizer = anonymizer or get_anonymizer()
         self.llm = llm_client or get_anthropic_client()
     
-    async def generate(self, case_id: UUID) -> CaseExplanation:
+    async def generate(self, case_id: UUID, actor_id: str | None = None) -> CaseExplanation:
         """Generate complete natural language explanation."""
         case = await self.store.get_case(case_id)
         if case is None:
@@ -64,7 +64,7 @@ class ExplanationService:
         client_name = client.profile.full_name if client else None
         
         # Score
-        ml_result = await self.risk_engine.score_case(case_id)
+        ml_result = await self.risk_engine.score_case(case_id, actor_id=actor_id)
         
         # Anonymize BEFORE any LLM call
         raw_data = dict(case.context.data)
@@ -152,6 +152,8 @@ class ExplanationService:
             event_type="explanation_generated",
             case_id=case_id,
             client_id=case.client_id,
+            actor_id=actor_id,
+            actor_type="compliance_officer" if actor_id else "system",
             risk_score=ml_result.score,
             risk_level=ml_result.level.value,
             payload={

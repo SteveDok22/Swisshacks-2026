@@ -92,6 +92,10 @@ class TestAuditDriftEndpoints:
         assert "question_count" in entry.payload
         assert entry.payload["question_count"] >= 1
         assert "estimated_info_gain_bits" in entry.payload
+        # Questions text must be present — not just the count
+        assert "questions" in entry.payload
+        assert isinstance(entry.payload["questions"], list)
+        assert len(entry.payload["questions"]) == entry.payload["question_count"]
 
     async def test_replay_writes_audit_entry(self, client, audit_query):
         customer_id = await _first_customer_id(client)
@@ -126,6 +130,73 @@ class TestAuditDriftEndpoints:
         assert entry.payload["scenario"] == "volume_creep"
         assert entry.payload["name"] == "Audit Test Customer"
         assert "reached_tier" in entry.payload
+
+
+# ---------------------------------------------------------------------------
+# actor_id capture
+# ---------------------------------------------------------------------------
+
+class TestDriftActorCapture:
+
+    async def test_actor_id_captured_on_customer_detail(self, client, audit_query):
+        customer_id = await _first_customer_id(client)
+
+        await client.get(
+            f"/api/v1/drift/customers/{customer_id}",
+            params={"actor_id": "anna.mueller"},
+        )
+
+        entries = await audit_query("drift_customer_analyzed")
+        assert entries[0].actor_id == "anna.mueller"
+        assert entries[0].actor_type == "compliance_officer"
+
+    async def test_no_actor_id_defaults_to_system(self, client, audit_query):
+        customer_id = await _first_customer_id(client)
+
+        await client.get(f"/api/v1/drift/customers/{customer_id}")
+
+        entries = await audit_query("drift_customer_analyzed")
+        assert entries[0].actor_id is None
+        assert entries[0].actor_type == "system"
+
+    async def test_actor_id_captured_on_scan(self, client, audit_query):
+        await client.post("/api/v1/drift/scan", params={"actor_id": "anna.mueller"})
+
+        entries = await audit_query("drift_scan_completed")
+        assert entries[0].actor_id == "anna.mueller"
+        assert entries[0].actor_type == "compliance_officer"
+
+    async def test_actor_id_captured_on_replay(self, client, audit_query):
+        customer_id = await _first_customer_id(client)
+
+        await client.get(
+            f"/api/v1/drift/replay/{customer_id}",
+            params={"actor_id": "anna.mueller"},
+        )
+
+        entries = await audit_query("drift_replay_executed")
+        assert entries[0].actor_id == "anna.mueller"
+
+    async def test_actor_id_captured_on_rfi(self, client, audit_query):
+        customer_id = await _first_customer_id(client)
+
+        await client.post(
+            f"/api/v1/drift/rfi/{customer_id}",
+            params={"actor_id": "anna.mueller"},
+        )
+
+        entries = await audit_query("drift_rfi_generated")
+        assert entries[0].actor_id == "anna.mueller"
+
+    async def test_actor_id_captured_on_inject(self, client, audit_query):
+        await client.post(
+            "/api/v1/drift/inject",
+            json={"scenario": "volume_creep", "name": "Actor Test Customer"},
+            params={"actor_id": "anna.mueller"},
+        )
+
+        entries = await audit_query("drift_scenario_injected")
+        assert entries[0].actor_id == "anna.mueller"
 
 
 # ---------------------------------------------------------------------------

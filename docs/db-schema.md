@@ -43,7 +43,8 @@ erDiagram
 
     DECISION {
         uuid id PK
-        uuid case_id FK
+        uuid case_id FK "nullable — null for drift decisions"
+        string customer_id "nullable — set for drift-engine decisions"
         string action
         string officer_id
         string rationale
@@ -68,7 +69,7 @@ erDiagram
     }
 
     CLIENT ||--o{ CASE : "has"
-    CASE ||--o{ DECISION : "receives"
+    CASE |o--o{ DECISION : "receives (nullable — drift decisions have no case)"
     CASE |o--o{ AUDIT_LOG : "soft ref"
     CLIENT |o--o{ AUDIT_LOG : "soft ref"
 ```
@@ -118,6 +119,22 @@ flowchart LR
 ```
 
 > Jurisdiction is stored as bare code: `"CH"`, `"EU"`, `"HK"`, `"AE"`.
+
+---
+
+## Decision Workflows
+
+Two distinct decision paths share the same `decisions` table:
+
+| Field | Case-review workflow | Drift-engine workflow |
+|---|---|---|
+| `case_id` | Set (UUID FK → cases) | `NULL` |
+| `customer_id` | `NULL` | Set (drift customer string ID) |
+| `ai_recommended_action` | Derived from `case.risk_score` thresholds | Passed as `ai_hint` by the caller (VerdictBar logic) |
+| Audit event type | `decision_recorded` | `drift_decision_recorded` |
+| Case status updated | Yes (`resolved` / `in_review`) | No (no linked case record) |
+
+Both paths enforce the same override rule: if `action ≠ ai_recommended_action`, a `rationale` of ≥ 10 characters is required.
 
 ---
 

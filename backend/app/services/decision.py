@@ -166,11 +166,11 @@ class DecisionService:
         if case.risk_score is None:
             return None
         
-        if case.risk_score <= 30:
+        if case.risk_score < 31:
             return DecisionAction.ALLOW
-        elif case.risk_score <= 60:
+        elif case.risk_score < 61:
             return DecisionAction.STEP_UP_VERIFICATION
-        elif case.risk_score <= 85:
+        elif case.risk_score < 86:
             # ESCALATE if confidence low, BLOCK if high
             if case.confidence and case.confidence >= 0.85:
                 return DecisionAction.BLOCK

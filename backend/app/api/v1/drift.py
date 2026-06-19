@@ -155,7 +155,6 @@ async def inject_scenario(
         payload={
             "scenario": req.scenario,
             "name": req.name,
-            "drift_score": detail.drift_score,
             "reached_tier": detail.reached_tier,
         },
     )

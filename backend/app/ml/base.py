@@ -55,10 +55,10 @@ def score_to_action(score: float, confidence: float) -> DecisionAction:
     - High score with high confidence → block
     - High score with low confidence → escalate (human review)
     """
-    if score <= 30:
+    if score < 31:
         return DecisionAction.ALLOW
-    
-    if score <= 60:
+
+    if score < 61:
         return DecisionAction.STEP_UP_VERIFICATION
     
     # High or critical scores

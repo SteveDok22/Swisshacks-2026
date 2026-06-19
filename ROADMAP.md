@@ -1,6 +1,6 @@
 # Sentinel · Drift Engine — Roadmap
 
-Current status: **core statistical engine is complete and production-quality; compliance loop, LLM integration, and 3 of 10 challenge use cases have critical gaps.**
+Current status: **core statistical engine complete; compliance loop, LLM integration, and 3 of 10 challenge use cases have gaps.**
 
 Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/SwissHacks-2026/Amina-BANK/blob/main/README.md)
 
@@ -10,17 +10,17 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 | Criterion | Weight | Status | Notes |
 |---|---|---|---|
-| **AI Intelligence Quality** | 25% | ✅ Strong | 7 real algorithms, genuine causal separation, suspicious stability — differentiators most teams won't have |
-| **Cost Efficiency** | 20% | ⚠️ Gap | 3-tier cascade is well-designed but T2 LLM calls are counted and never executed; token tracking exists in cost report but not per-workflow |
-| **UX & Explainability** | 20% | ⚠️ Gap | 7 visualizations are solid; SHAP disconnected from drift pipeline; source citations missing from signal cards |
-| **Compliance & Safety** | 20% | ⚠️ Gap | Anonymizer works; audit log never written from drift pipeline; HITL has no decision UI on drift page |
+| **AI Intelligence Quality** | 25% | ✅ Strong | 7 real algorithms, genuine causal separation, suspicious stability |
+| **Cost Efficiency** | 20% | ⚠️ Gap | Cascade well-designed; T2 LLM calls counted but never executed; no per-workflow token count |
+| **UX & Explainability** | 20% | ⚠️ Gap | 7 visualisations solid; SHAP disconnected from drift; source citations missing |
+| **Compliance & Safety** | 20% | ⚠️ Gap | Anonymizer works; ~~audit log not written from drift~~ fixed; HITL missing on drift page |
 | **Engineering & Architecture** | 15% | ✅ Good | Modular 10-file engine, clean API, async throughout; no tests, no CI/CD |
 
 ---
 
 ## What Is Complete
 
-### Statistical Core (all genuinely implemented)
+### Statistical Core
 
 | Component | File | Algorithm |
 |---|---|---|
@@ -40,12 +40,12 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 |---|---|
 | REST API | 27 endpoints, all functional |
 | Frontend — 7 drift visualizations | All render real API data |
-| XGBoost + SHAP | Real — but wired to case management only, not drift |
+| XGBoost + SHAP | Real — wired to case management only, not drift |
 | Audit service | Append-only, SQLite-persisted |
 | Privacy / anonymizer | PII pseudonymized before Claude |
 | Claude AI integration | Works for case explanations; not connected to drift |
 | Jurisdiction rule packs | CH / EU / HK / AE all loaded |
-| Docker | Backend Dockerfile is production-quality (multi-stage, non-root, healthcheck) |
+| Docker | Backend Dockerfile production-quality (multi-stage, non-root, healthcheck) |
 
 ### Challenge Use Case Coverage
 
@@ -57,188 +57,263 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 | Jurisdiction / legal form change | Structural risk | ✅ causal + contagion |
 | New shareholders / UBOs | Ownership KYC drift | ✅ contagion (PageRank) |
 | Large funding round / expansion | Scale risk | ✅ velocity + causal (benign vs risk) |
-| Dormant company activates | Suspicious activation | ⚠️ stability detector flags anomalous smoothness; no explicit dormancy signal |
+| Dormant company activates | Suspicious activation | ⚠️ stability flags anomalous smoothness; no explicit dormancy signal |
 | Legal entity name change | Re-KYC required | ❌ not implemented |
 | Domain switch / website change | Business activity change | ❌ not implemented |
 | Public business model pivot | Material business change | ❌ not implemented |
 
 ---
 
-## Critical Gaps — Fix Before Demo / Submission
+## Task List
 
-### P0 — Audit log never written from Drift Engine
+Ordered by judging weight × demo impact. Check off as work is completed.
 
-**Problem:** `AuditService.log()` is never called from `drift/service.py`. Every drift score produces zero audit entries. This directly contradicts BR6, the time-travel story, and the Compliance & Safety judging criterion (20%).
+### 🔴 P0 — Compliance & Safety (20%)
 
-**Fix:** Call `audit.log(event_type="drift_scored", client_id=..., payload={score, layers, action})` at the end of `service.py:_analyze_customer()`. The service and DB table already exist — three-line change.
+- [x] **Wire audit log into drift pipeline** — 5 compliance-relevant endpoints now audited in `api/v1/drift.py`: `drift_customer_analyzed` · `drift_scan_completed` · `drift_replay_executed` · `drift_scenario_injected` · `drift_rfi_generated` · `_score_to_level()` maps score to risk_level · list/timeline/contagion intentionally unaudited (read-only browsing)
+- [ ] **Decision bar on drift page** — add `DecisionBar.tsx` to `frontend/src/app/drift/page.tsx`; extend `api/v1/decisions.py` to accept `customer_id: str` in addition to `case_id: UUID`
 
-**Files:** `backend/app/drift/service.py`, `backend/app/services/audit.py`
+### 🔴 P0 — Cost Efficiency (20%)
 
----
+- [ ] **At least one real T2 LLM call** — for T2 customers in `drift/service.py:scan()`, call `AnthropicClient` to adjudicate the causal vs benign hypothesis; without this the "96% savings" comparison is circular (the baseline LLM calls are also never made)
 
-### P0 — No human-in-the-loop on the Drift workspace
+### 🟠 P1 — AI Quality (25%)
 
-**Problem:** The drift page shows a verdict bar but has no decision-recording UI. The `/decisions` endpoint expects a `case_id` UUID; drift customers have string IDs. BR5 is unmet for the Drift Engine's entire workflow. Affects Compliance & Safety (20%) and UX (20%).
+- [ ] **Fix BOCPD changepoint visual marker** — `bocpd_changepoint=False` is hardcoded at `service.py:296`; map `bocpd_changepoint_day` to the correct timeline index; add vertical dashed-line marker in `DriftTimeline.tsx`
 
-**Fix:**
-- Add a decision bar to `frontend/src/app/drift/page.tsx` (mirrors existing `DecisionBar.tsx`)
-- Extend the decisions endpoint to accept an optional `customer_id` string, or map drift customers to real `CaseDB` rows on first analysis
+### 🟠 P1 — Compliance & Safety (20%)
 
-**Files:** `frontend/src/app/drift/page.tsx`, `backend/app/api/v1/decisions.py`
+- [ ] **Add source citations to signal cards** — add `source_url` / `source_reference` field to `PublicSignalOut` in `drift/public_intel.py`; display in `TwoLayerPanel.tsx`; even a mock citation ("Reuters, 15 Jun 2026") satisfies the challenge requirement
 
----
+### 🟠 P1 — Cost Efficiency (20%)
 
-### P0 — T2 LLM reasoning counted but never executed
+- [ ] **Track token usage per workflow** — add `tokens_used: int` and `model: str` to `CascadeCostReport` in `schemas/drift.py`; populate from `anthropic_client.py` response metadata when T2 calls are made
 
-**Problem:** The cascade router identifies T2 customers and the cost report charges $0.05 per customer, but `DriftEngine.scan()` never calls Claude. The "96% savings vs LLM-on-everything" is accurate but the denominator LLM calls were also never made — the comparison is circular. Directly affects Cost Efficiency (20%).
+### 🟠 P1 — UX & Explainability (20%)
 
-**Fix:** For T2 customers in `service.py:scan()`, call `AnthropicClient` to adjudicate the causal vs benign hypothesis. One real LLM call per T2 customer makes the metric honest.
+- [ ] **Resolve SHAP / per-layer claim** — option A (fast): reword README/docs to "per-layer contribution breakdown" and remove per-variable SHAP claim; option B (correct): route T1 drift customers through `RiskEngine.score_case`, attach SHAP values to `DriftCustomerDetail`
 
-**Files:** `backend/app/drift/service.py`, `backend/app/services/anthropic_client.py`
+### 🟡 P2 — Engineering (15%)
 
----
+- [ ] **Remove dead `if/pass` block** in `drift.py` (now gone from rfi handler — already fixed in this session)
+- [ ] **Remove duplicate timeline endpoint** — `GET /drift/customers/{id}/timeline` returns identical payload to `GET /drift/customers/{id}`; differentiate or remove
+- [ ] **Move 6 magic-number weights** from `service.py:104–163` to named constants in `core/config.py`
+- [ ] **Add single-worker note** to `service.py:426` global singleton — unsafe under multi-process deployment
+- [ ] **Frontend Dockerfile + compose** — backend Docker is production-quality; frontend has no Dockerfile; wire into `docker-compose.yml`
 
-### P1 — BOCPD changepoint never shown on timeline
+### 🟢 P3 — Engineering / Credibility
 
-**Problem:** `bocpd_changepoint=False` is hardcoded on every timeline point in `service.py:296`. The BOCPD runs, detects changepoints, stores the day — but the result is dropped before reaching the UI. No visual marker appears. This weakens the AI Intelligence Quality story (25%).
-
-**Fix:**
-- Map `bocpd_changepoint_day` to the correct timeline index, set `bocpd_changepoint=True` there
-- Add a vertical dashed-line marker in `DriftTimeline.tsx`
-
-**Files:** `backend/app/drift/service.py:296`, `frontend/src/components/drift/DriftTimeline.tsx`
-
----
-
-### P1 — Source citations missing from signal cards
-
-**Problem:** The challenge explicitly requires **source citations** as a model guardrail ("which news article, sanctions entry, or registry record drove the signal"). The Two-Layer Panel shows signal headlines but no links to sources. Affects Compliance & Safety (20%) and UX/Explainability (20%).
-
-**Fix:** Add a `source_url` or `source_reference` field to the public signal schema. Even a mock citation ("Reuters, 15 Jun 2026") is better than nothing. Production slot: OpenSanctions IDs, GDELT event URLs.
-
-**Files:** `backend/app/drift/public_intel.py`, `frontend/src/components/drift/TwoLayerPanel.tsx`
-
----
-
-### P1 — Token usage not tracked per workflow
-
-**Problem:** The cascade cost report tracks estimated dollar cost but not actual token counts per workflow. The challenge explicitly requires teams to "track token usage per workflow" and "estimate cost per 1,000 analyses."
-
-**Fix:** Add `tokens_used: int` and `model: str` fields to `CascadeCostReport`. Populate from `anthropic_client.py` response metadata when T2 calls are made.
-
-**Files:** `backend/app/drift/cascade.py`, `backend/app/schemas/drift.py`
-
----
-
-### P1 — SHAP disconnected from Drift Engine
-
-**Problem:** The drift score is a hand-coded weighted sum. SHAP only exists in the case management pipeline. No per-variable breakdown exists in the drift workspace.
-
-**Options:**
-- **A (fast, honest):** Rename the README/docs claim to "per-layer contribution breakdown" — which is real — and remove the per-variable SHAP claim
-- **B (correct):** Route each T1 drift customer through `RiskEngine.score_case` and attach SHAP values to `DriftCustomerDetail`
-
-**Files:** `backend/app/drift/service.py`, `README.md`, `docs/drift-engine.md`
-
----
-
-## Code Quality — Should Fix
-
-| Issue | Location | Fix |
-|---|---|---|
-| Dead `if/pass` block | `drift.py:115–116` | Delete it |
-| Duplicate timeline endpoint | `drift.py:43–55` | Remove or differentiate |
-| 6 magic-number weights | `service.py:104–163` | Move to `core/config.py` as named constants |
-| Global mutable `_engine` singleton | `service.py:426` | Add comment noting multi-worker limitation |
-| `list_customers()` recomputes on every request | `service.py` | Add short-lived TTL cache |
-| Audit count uses `len(list(...all()))` | `audit.py:138` | Replace with `COUNT(*)` query |
-
----
-
-## Public Intelligence — Fundamental Limitation
-
-Every public signal is synthesized by `public_intel.py:generate_signals_for_customer()` using headline templates. No external API is called. The severity classifier is a 20-keyword lexicon.
-
-The architecture and interfaces are correct — plugging in real feeds is a slot-swap. For the submission narrative, "real-time public signals" should be qualified as "simulated for the hackathon MVP."
-
-### Challenge-specified integrations to implement (slot-swap ready):
-
-| Category | Recommended tool | Why |
-|---|---|---|
-| Sanctions | **OpenSanctions** | Aggregated OFAC + EU + UN in one API; recommended by challenge |
-| News | **GDELT Project** | Free, near-real-time, global coverage |
-| Corporate registry | **Swiss ZEFIX** | Official Swiss register — directly relevant for FINMA context |
-| Corporate registry | **GLEIF LEI Database** | Global legal entity identifiers — ownership chain lookups |
-| Ownership | **OpenCorporates** | Beneficial ownership graph data |
-| Funding | **Crunchbase** | Challenge's primary recommendation for funding intelligence |
-| Domain monitoring | **Firecrawl** | OSS, website-to-markdown; enables S5 and S6 use cases |
-| Domain history | **Wayback Machine** | Free, historical website snapshots for baseline |
+- [ ] **Add BOCPD unit test** — assert changepoint fires on a step-function series, does not fire on stationary noise
+- [ ] **Qualify "real-time signals" language** in README and pitch — signals are simulated for MVP; architecture slots are ready for real feeds
+- [ ] **Implement OpenSanctions slot-swap** — replace `generate_signals_for_customer()` headline templates with a real OpenSanctions API call; makes BR1 genuinely true
 
 ---
 
 ## Missing Use Cases — New Features Required
 
-These three challenge use cases (S4, S5, S6) require new modules entirely:
+These three (S4, S5, S6) require new modules entirely:
 
-### S4 — Legal Entity Name Change Detection
-- **Signal source:** Corporate registries (ZEFIX, Companies House, GLEIF)
-- **Detection:** Compare current registry name against KYC-captured name
-- **Action:** Trigger KYC refresh; re-evaluate risk category
-- **Implementation:** New signal type in `public_intel.py`; registry API client
+- [ ] **S4 — Legal Entity Name Change Detection**
+  - Signal source: corporate registries (ZEFIX, GLEIF, Companies House)
+  - Detection: compare current registry name against KYC-captured name
+  - Implementation: new signal type in `public_intel.py` + registry API client
 
-### S5 — Domain Switch / Website Content Monitoring
-- **Signal source:** WHOIS (ICANN), SecurityTrails, Wayback Machine, Firecrawl
-- **Detection:** Domain registrar change, significant diff between current and onboarding-era website content
-- **Action:** Re-analyse website; compare vs onboarding data
-- **Implementation:** New module `drift/domain_monitor.py`; Firecrawl or Diffbot integration
+- [ ] **S5 — Domain Switch / Website Content Monitoring**
+  - Signal source: WHOIS, SecurityTrails, Wayback Machine, Firecrawl
+  - Detection: domain registrar change; significant diff vs onboarding-era website
+  - Implementation: new module `drift/domain_monitor.py` + Firecrawl integration
 
-### S6 — Business Model Pivot Detection
-- **Signal source:** Crunchbase (category changes), news (keyword: "pivot", "new direction"), website content diff
-- **Detection:** Company category change in Crunchbase; NLP classifier on website content diff
-- **Action:** Update risk classification; escalate for compliance
-- **Implementation:** Crunchbase API client; extend causal hypothesis with "business model change" evidence type
+- [ ] **S6 — Business Model Pivot Detection**
+  - Signal source: Crunchbase category changes, news ("pivot", "new direction"), website content diff
+  - Detection: NLP classifier on website content diff vs onboarding description
+  - Implementation: Crunchbase API client; extend causal hypothesis with business-model evidence type
 
 ---
 
-## Not Started — Post-Hackathon
+## Public Intelligence — Fundamental Limitation
 
-| Feature | Notes |
-|---|---|
-| Real API integrations | OpenSanctions, GDELT, GLEIF, ZEFIX, OpenCorporates, Crunchbase, Firecrawl |
-| Domain monitoring module | `drift/domain_monitor.py` — enables S5 + S6 use cases |
-| Alembic database migrations | Critical before any schema change in production |
-| PostgreSQL migration | One env var change + swap `aiosqlite` → `asyncpg` |
-| Frontend Dockerfile + compose | Backend Docker is complete; frontend has no Dockerfile |
-| Tests | `backend/tests/` is empty; pytest infrastructure is already in dev deps |
-| GitHub Actions CI | Lint (`ruff`), type check (`mypy`), test (`pytest`) on PRs |
-| Audit log frontend page | Backend `GET /api/v1/audit` exists; no `/audit` frontend route |
-| Live alerts WebSocket | `ws/alerts` — not implemented on either side |
-| Julius Baer model | `# TODO` in `ml/registry.py` |
-| Ripple XRPL model | `# TODO` in `ml/registry.py` |
-| Dark mode | Design tokens in `tailwind.config.ts`; not implemented |
-| Mobile-responsive layout | Desktop-only currently |
-| Production Docker profile | Current `docker-compose.yml` uses `--reload`; no prod profile |
-| uv lockfile | `requirements.txt` uses `>=` ranges; generate `uv.lock` for reproducibility |
+Every public signal is synthesized using headline templates in `public_intel.py`. No external API is called. The severity classifier is a 20-keyword lexicon.
+
+The architecture and interfaces are correct — plugging in real feeds is a slot-swap. For the submission narrative, "real-time public signals" should be qualified as "simulated for the hackathon MVP."
+
+### Challenge-specified integrations (slot-swap ready):
+
+- [ ] **OpenSanctions** — aggregated OFAC + EU + UN; free tier available
+- [ ] **GDELT Project** — free, near-real-time global news events
+- [ ] **Swiss ZEFIX** — official Swiss commercial register; enables S4
+- [ ] **GLEIF LEI Database** — global legal entity identifiers; ownership chain lookups
+- [ ] **OpenCorporates** — beneficial ownership graph data
+- [ ] **Crunchbase** — funding rounds, investors, company pivots; enables S6
+- [ ] **Firecrawl** — OSS website-to-markdown scraping; enables S5 and S6
+- [ ] **Wayback Machine** — free historical website snapshots; baseline for domain monitoring
 
 ---
 
-## Priority Order for Remaining Hackathon Time
+## Code Quality — Should Fix
 
-Ordered by judging weight and demo impact.
+- [ ] **`service.py:104–163`** — 6 magic-number layer weights; move to named constants in `core/config.py`
+- [ ] **`service.py:426`** — global mutable `_engine` singleton; add comment warning about multi-worker deployments
+- [ ] **`service.py`** — `list_customers()` recomputes all 10 customers on every request; add short-lived TTL cache
+- [ ] **`audit.py:138`** — `len(list(...all()))` loads entire table to count; replace with `COUNT(*)` query
 
-| Priority | Item | Effort | Judging criterion |
-|---|---|---|---|
-| 🔴 P0 | Wire audit log into drift pipeline | 30 min | Compliance & Safety (20%) |
-| 🔴 P0 | Decision bar on drift page | 2–3 h | Compliance & Safety (20%) + UX (20%) |
-| 🔴 P0 | At least one real T2 LLM call | 1–2 h | Cost Efficiency (20%) |
-| 🟠 P1 | Fix BOCPD changepoint visual marker | 1 h | AI Quality (25%) |
-| 🟠 P1 | Add source citations to signal cards | 1 h | Compliance & Safety (20%) |
-| 🟠 P1 | Add token count to cost report | 30 min | Cost Efficiency (20%) |
-| 🟠 P1 | Resolve SHAP claim (fix or reword docs) | 30 min | UX & Explainability (20%) |
-| 🟡 P2 | Move magic weights to config | 1 h | Engineering (15%) |
-| 🟡 P2 | Remove dead `if/pass` block in RFI | 15 min | Engineering (15%) |
-| 🟡 P2 | Remove duplicate timeline endpoint | 15 min | Engineering (15%) |
-| 🟡 P2 | Frontend Dockerfile + docker-compose wire-up | 1 h | Engineering (15%) |
-| 🟢 P3 | Add BOCPD unit test | 1 h | Engineering (15%) |
-| 🟢 P3 | Qualify "real-time signals" language in docs | 15 min | Credibility in Q&A |
-| 🟢 P3 | Implement OpenSanctions slot-swap | 2 h | AI Quality (25%) — makes BR1 real |
+---
+
+## Tests
+
+**Stack:** plain `pytest` for unit tests + `pytest-bdd` for scenario/integration tests.  
+`pytest` and `pytest-asyncio` are already in dev deps (`pyproject.toml`). Add `pytest-bdd` for Gherkin feature files.
+
+BDD is a natural fit here: the 7 synthetic scenarios and H1–H4 hypotheses are already written in plain English, domain language is rich (KYC drift, suspicious stability), and judges / compliance officers can read Gherkin feature files directly.
+
+### Why two layers
+
+| Layer | Tool | What it covers |
+|---|---|---|
+| Unit | `pytest` | Pure functions — math, helpers, converters — no I/O |
+| Scenario / integration | `pytest-bdd` | End-to-end engine behavior, API contracts, compliance rules expressed as readable Gherkin |
+
+---
+
+### 🟠 P1 — Unit tests (pure functions, no I/O)
+
+- [ ] **`test_bocpd.py`** — assert changepoint fires on a step-function series; does not fire on stationary noise; BOCPD is online (no future data used)
+- [ ] **`test_velocity.py`** — KL divergence is zero for identical distributions; increases monotonically as mean shifts; velocity is positive after a step change
+- [ ] **`test_causal.py`** — risk-shaped signature (volume up + margin collapses + dirty counterparties) produces `label="risk"`; benign signature (volume up + margin preserved + clean counterparties) produces `label="benign"`
+- [ ] **`test_stability.py`** — flat customer in volatile cohort is flagged `is_suspicious=True`; genuinely volatile customer is not
+- [ ] **`test_cascade.py`** — score < 40 routes to T0; 40 ≤ score < 70 routes to T1; score ≥ 70 routes to T2; cumulative cost accounting is correct
+- [ ] **`test_score_to_level.py`** — `_score_to_level` thresholds match `RiskLevel` enum exactly (boundary values: 0, 30, 31, 60, 61, 85, 86, 100)
+
+---
+
+### 🟠 P1 — BDD scenario tests (Gherkin feature files)
+
+Add `pytest-bdd` to dev deps: `"pytest-bdd>=7.0.0"` in `pyproject.toml`.  
+Feature files live in `backend/tests/features/`; step definitions in `backend/tests/steps/`.
+
+- [ ] **`drift_detection.feature`** — the 7 synthetic scenarios with ground truth labels:
+
+  ```gherkin
+  Feature: KYC Drift Detection
+
+    Scenario: Volume creep raises drift score above review threshold
+      Given a customer with monthly volume growing 8% per month for 18 months
+      When the drift engine analyses the customer
+      Then the drift score exceeds 40
+      And the velocity band is "notable" or higher
+      And the causal label is "risk"
+
+    Scenario: Benign expansion is not escalated
+      Given a customer with a clean funding round and stable margins
+      When the drift engine analyses the customer
+      Then the causal label is "benign"
+      And the drift score is below 40
+
+    Scenario: Slow-walker is flagged despite low absolute drift
+      Given a customer with near-zero volume variance for 24 months
+      And the customer's cohort has high volatility
+      When the drift engine analyses the customer
+      Then is_suspicious is true
+      And the drift score is elevated above 50
+  ```
+
+- [ ] **`contagion.feature`** — ownership risk propagation:
+
+  ```gherkin
+  Feature: Ownership Contagion
+
+    Scenario: Direct owner of sanctioned entity is elevated
+      Given a sanctioned seed entity
+      And a customer who directly owns the sanctioned entity
+      When contagion is propagated
+      Then the customer's propagated_risk exceeds 0.1
+
+    Scenario: Third-degree connection is not elevated
+      Given a sanctioned seed entity
+      And a customer three ownership hops away
+      When contagion is propagated
+      Then the customer's propagated_risk is below 0.05
+  ```
+
+- [ ] **`time_travel.feature`** — no look-ahead bias:
+
+  ```gherkin
+  Feature: Time-Travel Audit
+
+    Scenario: Replay uses only data available at the as-of date
+      Given a customer whose sanctions event occurs at month 18
+      When the engine replays the customer as-of month 12
+      Then no public signals after month 12 are included
+      And no contagion edges listed after month 12 are included
+      And the as-of score is lower than the current score
+
+    Scenario: Early detection lead time is positive
+      Given a customer flagged at month 14 with sanctions at month 18
+      When lead_time_months is computed
+      Then lead_time_months equals 4
+  ```
+
+- [ ] **`audit_compliance.feature`** — compliance backbone:
+
+  ```gherkin
+  Feature: Audit Log Compliance
+
+    Scenario: Drift analysis always produces an audit entry
+      Given the drift engine is running
+      When an officer requests the full analysis for any customer
+      Then an audit entry with event_type "drift_customer_analyzed" exists
+      And the entry contains the customer's drift_score
+      And the entry contains the risk_level
+
+    Scenario: Audit log is append-only
+      Given an existing audit entry
+      When the audit service is called
+      Then no update or delete method exists on AuditService
+  ```
+
+- [ ] **`api_contract.feature`** — API smoke tests using `httpx.AsyncClient`:
+
+  ```gherkin
+  Feature: API Contract
+
+    Scenario: Customer list is sorted by drift score descending
+      When I call GET /api/v1/drift/customers
+      Then the response is 200
+      And each customer's drift_score is >= the next customer's drift_score
+
+    Scenario: Unknown customer returns 404
+      When I call GET /api/v1/drift/customers/nonexistent-id
+      Then the response status is 404
+
+    Scenario: Cascade scan returns cost report
+      When I call POST /api/v1/drift/scan
+      Then the response is 200
+      And savings_pct is between 0 and 100
+      And total_customers equals 10
+  ```
+
+---
+
+### 🟢 P3 — Hypothesis validation tests
+
+These are the H1–H4 claims from the README — make them machine-verifiable:
+
+- [ ] **`test_hypothesis_h1.py`** — run full engine on all 7 scenarios; assert BOCPD lead time ≥ 2 months on drifting scenarios; assert 0 false positives on `stable` scenario
+- [ ] **`test_hypothesis_h2.py`** — assert velocity alert fires earlier than absolute-threshold alert at equal false-positive rate
+- [ ] **`test_hypothesis_h3.py`** — assert 2-hop contagion customers are elevated; assert 3+ hop customers are not
+- [ ] **`test_hypothesis_h4.py`** — assert cascade cost < 10% of LLM-on-everything cost; assert high-risk recall is unchanged
+
+---
+
+## Post-Hackathon
+
+- [ ] Alembic database migrations — critical before any schema change in production
+- [ ] PostgreSQL migration — one env var change + swap `aiosqlite` → `asyncpg`
+- [ ] GitHub Actions CI — lint (`ruff`), type check (`mypy`), test (`pytest --bdd`) on PRs
+- [ ] Audit log frontend page — backend `GET /api/v1/audit` exists; no `/audit` frontend route
+- [ ] Live alerts WebSocket — `ws/alerts` not implemented on either side
+- [ ] Julius Baer model — `# TODO` in `ml/registry.py`
+- [ ] Ripple XRPL model — `# TODO` in `ml/registry.py`
+- [ ] Dark mode — design tokens exist in `tailwind.config.ts`; not implemented
+- [ ] Mobile-responsive layout — desktop-only currently
+- [ ] Production Docker profile — `docker-compose.yml` uses `--reload`; needs prod profile
+- [ ] uv lockfile — `requirements.txt` uses `>=` ranges; generate `uv.lock` for reproducibility

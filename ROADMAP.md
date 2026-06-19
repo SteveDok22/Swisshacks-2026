@@ -70,7 +70,7 @@ Ordered by judging weight × demo impact. Check off as work is completed.
 
 ### 🔴 P0 — Compliance & Safety (20%)
 
-- [x] **Wire audit log into drift pipeline** — `drift_customer_analyzed` and `drift_scan_completed` events now written via `AuditService` in `api/v1/drift.py` · `_score_to_level()` maps score to risk_level · payload includes velocity, tier, causal label, is_suspicious
+- [x] **Wire audit log into drift pipeline** — 5 compliance-relevant endpoints now audited in `api/v1/drift.py`: `drift_customer_analyzed` · `drift_scan_completed` · `drift_replay_executed` · `drift_scenario_injected` · `drift_rfi_generated` · `_score_to_level()` maps score to risk_level · list/timeline/contagion intentionally unaudited (read-only browsing)
 - [ ] **Decision bar on drift page** — add `DecisionBar.tsx` to `frontend/src/app/drift/page.tsx`; extend `api/v1/decisions.py` to accept `customer_id: str` in addition to `case_id: UUID`
 
 ### 🔴 P0 — Cost Efficiency (20%)

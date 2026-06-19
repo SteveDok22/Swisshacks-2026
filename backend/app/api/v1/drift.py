@@ -115,7 +115,10 @@ async def get_contagion_graph() -> ContagionGraph:
 
 
 @router.get("/replay/{customer_id}", response_model=ReplayResult)
-async def get_replay(customer_id: str) -> ReplayResult:
+async def get_replay(
+    customer_id: str,
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> ReplayResult:
     """
     Time-Travel Audit: as-of replay proving the system would have flagged this
     customer using ONLY past data — no look-ahead bias. The regulatory proof.
@@ -126,22 +129,54 @@ async def get_replay(customer_id: str) -> ReplayResult:
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"No drift customer {customer_id!r}",
         )
+
+    await AuditService(session).log(
+        event_type="drift_replay_executed",
+        payload={
+            "customer_id": customer_id,
+            "alert_month": result.alert_month,
+            "sanctions_month": result.sanctions_month,
+            "lead_time_months": result.lead_time_months,
+            "alert_threshold": result.alert_threshold,
+        },
+    )
+
     return result
 
 
 @router.post("/inject", response_model=DriftCustomerDetail)
-async def inject_scenario(req: InjectScenarioRequest) -> DriftCustomerDetail:
+async def inject_scenario(
+    req: InjectScenarioRequest,
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> DriftCustomerDetail:
     """Red-team: inject a synthetic drift scenario and return its analysis."""
     try:
-        return get_drift_engine().inject_scenario(req.scenario, req.name)
+        detail = get_drift_engine().inject_scenario(req.scenario, req.name)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         ) from e
 
+    await AuditService(session).log(
+        event_type="drift_scenario_injected",
+        risk_score=detail.drift_score,
+        risk_level=_score_to_level(detail.drift_score),
+        payload={
+            "scenario": req.scenario,
+            "name": req.name or detail.customer_id,
+            "drift_score": detail.drift_score,
+            "reached_tier": detail.reached_tier,
+        },
+    )
+
+    return detail
+
 
 @router.post("/rfi/{customer_id}", response_model=RFIResponse)
-async def generate_rfi(customer_id: str) -> RFIResponse:
+async def generate_rfi(
+    customer_id: str,
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> RFIResponse:
     """
     Generate a Value-of-Information ranked request-for-information.
 
@@ -178,7 +213,7 @@ async def generate_rfi(customer_id: str) -> RFIResponse:
             "remain consistent with your original onboarding declaration."
         )
 
-    return RFIResponse(
+    rfi = RFIResponse(
         customer_id=customer_id,
         questions=questions,
         rationale=(
@@ -188,3 +223,16 @@ async def generate_rfi(customer_id: str) -> RFIResponse:
         ),
         estimated_info_gain_bits=round(min(detail.drift_velocity, 5.0), 2),
     )
+
+    await AuditService(session).log(
+        event_type="drift_rfi_generated",
+        risk_score=detail.drift_score,
+        risk_level=_score_to_level(detail.drift_score),
+        payload={
+            "customer_id": customer_id,
+            "question_count": len(questions),
+            "estimated_info_gain_bits": rfi.estimated_info_gain_bits,
+        },
+    )
+
+    return rfi

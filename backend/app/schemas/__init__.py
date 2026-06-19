@@ -5,6 +5,12 @@ Import from here in your code:
     from app.schemas import Case, CaseRead, Client, RiskLevel
 """
 
+from app.schemas.audit import (
+    AuditEntryRead,
+    AuditQueryParams,
+    DecisionCreate,
+    DecisionRead,
+)
 from app.schemas.case import (
     Case,
     CaseBase,

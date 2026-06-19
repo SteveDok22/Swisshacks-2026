@@ -1,5 +1,5 @@
 """
-Decisions API — compliance officer actions on cases.
+Decisions API — compliance officer actions on cases and drift customers.
 """
 
 from __future__ import annotations
@@ -20,18 +20,37 @@ logger = get_logger(__name__)
 router = APIRouter(prefix="/decisions", tags=["decisions"])
 
 
+def _to_read(d) -> DecisionRead:
+    return DecisionRead(
+        id=d.id,
+        case_id=d.case_id,
+        customer_id=d.customer_id,
+        action=d.action,
+        officer_id=d.officer_id,
+        rationale=d.rationale,
+        overrode_ai=d.overrode_ai,
+        ai_recommended_action=d.ai_recommended_action,
+        ai_risk_score=d.ai_risk_score,
+        ai_risk_level=d.ai_risk_level,
+        created_at=d.created_at,
+    )
+
+
 @router.post("", response_model=DecisionRead, status_code=status.HTTP_201_CREATED)
 async def record_decision(
     payload: DecisionCreate,
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> DecisionRead:
     """
-    Record a compliance officer's decision on a case.
-    
-    If the decision overrides the AI's recommendation, `rationale` is REQUIRED.
+    Record a compliance officer's decision.
+
+    Accepts either ``case_id`` (case-review workflow) or ``customer_id``
+    (drift-engine workflow) — not both, and at least one is required.
+
+    If the decision overrides the AI's recommendation, ``rationale`` is REQUIRED.
     """
     service = DecisionService(session)
-    
+
     try:
         return await service.record_decision(payload)
     except ValueError as e:
@@ -48,19 +67,15 @@ async def list_case_decisions(
     """Get all decisions ever made on a case."""
     service = DecisionService(session)
     decisions = await service.list_decisions_for_case(case_id)
-    
-    return [
-        DecisionRead(
-            id=d.id,
-            case_id=d.case_id,
-            action=d.action,
-            officer_id=d.officer_id,
-            rationale=d.rationale,
-            overrode_ai=d.overrode_ai,
-            ai_recommended_action=d.ai_recommended_action,
-            ai_risk_score=d.ai_risk_score,
-            ai_risk_level=d.ai_risk_level,
-            created_at=d.created_at,
-        )
-        for d in decisions
-    ]
+    return [_to_read(d) for d in decisions]
+
+
+@router.get("/customer/{customer_id}", response_model=list[DecisionRead])
+async def list_customer_decisions(
+    customer_id: str,
+    session: Annotated[AsyncSession, Depends(get_session)],
+) -> list[DecisionRead]:
+    """Get all drift-engine decisions ever made on a customer."""
+    service = DecisionService(session)
+    decisions = await service.list_decisions_for_customer(customer_id)
+    return [_to_read(d) for d in decisions]

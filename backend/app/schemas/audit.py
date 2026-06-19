@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from app.schemas.enums import DecisionAction
 
@@ -54,29 +54,53 @@ class AuditQueryParams(BaseModel):
 # === Decision ===
 
 class DecisionCreate(BaseModel):
-    """Schema for compliance officer recording a decision."""
-    
-    case_id: UUID
+    """Schema for compliance officer recording a decision.
+
+    Exactly one of ``case_id`` or ``customer_id`` must be provided:
+    - ``case_id`` — traditional case-review workflow
+    - ``customer_id`` — drift-engine workflow (no linked case record)
+
+    For drift decisions, pass ``ai_hint`` to carry the VerdictBar's
+    recommended action so override detection still works correctly.
+    """
+
+    case_id: UUID | None = None
+    customer_id: str | None = None
     action: DecisionAction
     officer_id: str = Field(..., description="Identifier of the deciding officer")
     rationale: str | None = Field(
         None,
         description="Required if overriding AI recommendation",
     )
+    ai_hint: DecisionAction | None = Field(
+        None,
+        description="Caller-supplied AI recommendation; used when customer_id is set and no case record exists",
+    )
+
+    @model_validator(mode="after")
+    def _exactly_one_id(self) -> "DecisionCreate":
+        has_case = self.case_id is not None
+        has_customer = self.customer_id is not None
+        if not has_case and not has_customer:
+            raise ValueError("Provide either case_id or customer_id")
+        if has_case and has_customer:
+            raise ValueError("Provide either case_id or customer_id, not both")
+        return self
 
 
 class DecisionRead(BaseModel):
     """Schema for returning a recorded decision."""
-    
+
     id: UUID
-    case_id: UUID
+    case_id: UUID | None = None
+    customer_id: str | None = None
     action: DecisionAction
     officer_id: str
     rationale: str | None = None
-    
+
     overrode_ai: bool
     ai_recommended_action: DecisionAction | None = None
     ai_risk_score: float | None = None
     ai_risk_level: str | None = None
-    
+
     created_at: datetime

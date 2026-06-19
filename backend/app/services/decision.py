@@ -37,38 +37,36 @@ class DecisionService:
     
     async def record_decision(self, payload: DecisionCreate) -> DecisionRead:
         """
-        Record a compliance officer's decision on a case.
-        
-        Steps:
-        1. Look up the case to capture AI state
-        2. Detect override (if officer action != AI recommendation)
-        3. Validate rationale provided if override
-        4. Create immutable Decision record
-        5. Update case status
-        6. Log to audit
+        Record a compliance officer's decision.
+
+        Two workflows are supported:
+        - Case workflow (case_id set): looks up the case, captures AI state.
+        - Drift workflow (customer_id set): uses caller-supplied ai_hint as
+          the AI recommendation; no case record is required or modified.
         """
-        # Look up case
+        if payload.case_id is not None:
+            return await self._record_case_decision(payload)
+        return await self._record_drift_decision(payload)
+
+    async def _record_case_decision(self, payload: DecisionCreate) -> DecisionRead:
+        """Case-review path — requires an existing case record."""
         case_stmt = select(CaseDB).where(CaseDB.id == payload.case_id)
         result = await self.session.execute(case_stmt)
         case = result.scalar_one_or_none()
-        
+
         if case is None:
             raise ValueError(f"Case {payload.case_id} not found")
-        
-        # Derive AI recommendation from case state
+
         ai_recommended = self._derive_ai_action(case)
         overrode_ai = (
-            ai_recommended is not None
-            and ai_recommended != payload.action
+            ai_recommended is not None and ai_recommended != payload.action
         )
-        
-        # Validate: rationale required when overriding AI
+
         if overrode_ai and not payload.rationale:
             raise ValueError(
                 "Rationale is required when overriding AI recommendation"
             )
-        
-        # Create decision record
+
         decision = DecisionDB(
             case_id=payload.case_id,
             action=payload.action,
@@ -81,26 +79,21 @@ class DecisionService:
             created_at=datetime.utcnow(),
         )
         self.session.add(decision)
-        
-        # Update case status — RESOLVED if final decision
-        if payload.action in (
-            DecisionAction.ALLOW,
-            DecisionAction.BLOCK,
-        ):
+
+        if payload.action in (DecisionAction.ALLOW, DecisionAction.BLOCK):
             case.status = CaseStatus.RESOLVED
             case.resolved_at = datetime.utcnow()
-        elif payload.action == DecisionAction.STEP_UP_VERIFICATION:
-            # Still in progress
+        elif payload.action in (
+            DecisionAction.STEP_UP_VERIFICATION,
+            DecisionAction.ESCALATE,
+        ):
             case.status = CaseStatus.IN_REVIEW
-        elif payload.action == DecisionAction.ESCALATE:
-            case.status = CaseStatus.IN_REVIEW
-        
+
         case.updated_at = datetime.utcnow()
         self.session.add(case)
-        
-        await self.session.flush()  # Get IDs without committing
-        
-        # Audit log
+
+        await self.session.flush()
+
         await self.audit.log(
             event_type="decision_recorded",
             case_id=payload.case_id,
@@ -120,7 +113,7 @@ class DecisionService:
                 "jurisdiction": str(case.jurisdiction),
             },
         )
-        
+
         logger.info(
             "decision_recorded",
             case_id=str(payload.case_id),
@@ -128,10 +121,11 @@ class DecisionService:
             overrode_ai=overrode_ai,
             officer_id=payload.officer_id,
         )
-        
+
         return DecisionRead(
             id=decision.id,
             case_id=decision.case_id,
+            customer_id=decision.customer_id,
             action=decision.action,
             officer_id=decision.officer_id,
             rationale=decision.rationale,
@@ -141,7 +135,82 @@ class DecisionService:
             ai_risk_level=decision.ai_risk_level,
             created_at=decision.created_at,
         )
+
+    async def _record_drift_decision(self, payload: DecisionCreate) -> DecisionRead:
+        """Drift-engine path — no case record; uses ai_hint for override detection."""
+        ai_recommended = payload.ai_hint
+        overrode_ai = (
+            ai_recommended is not None and ai_recommended != payload.action
+        )
+
+        if overrode_ai and not payload.rationale:
+            raise ValueError(
+                "Rationale is required when overriding AI recommendation"
+            )
+
+        decision = DecisionDB(
+            customer_id=payload.customer_id,
+            action=payload.action,
+            officer_id=payload.officer_id,
+            rationale=payload.rationale,
+            overrode_ai=overrode_ai,
+            ai_recommended_action=ai_recommended,
+            created_at=datetime.utcnow(),
+        )
+        self.session.add(decision)
+
+        await self.session.flush()
+
+        await self.audit.log(
+            event_type="drift_decision_recorded",
+            actor_id=payload.officer_id,
+            actor_type="compliance_officer",
+            payload={
+                "customer_id": payload.customer_id,
+                "action": payload.action.value,
+                "overrode_ai": overrode_ai,
+                "ai_recommended_action": (
+                    ai_recommended.value if ai_recommended else None
+                ),
+                "rationale": payload.rationale,
+                "decision_id": str(decision.id),
+            },
+        )
+
+        logger.info(
+            "drift_decision_recorded",
+            customer_id=payload.customer_id,
+            action=payload.action.value,
+            overrode_ai=overrode_ai,
+            officer_id=payload.officer_id,
+        )
+
+        return DecisionRead(
+            id=decision.id,
+            case_id=None,
+            customer_id=decision.customer_id,
+            action=decision.action,
+            officer_id=decision.officer_id,
+            rationale=decision.rationale,
+            overrode_ai=decision.overrode_ai,
+            ai_recommended_action=decision.ai_recommended_action,
+            ai_risk_score=None,
+            ai_risk_level=None,
+            created_at=decision.created_at,
+        )
     
+    async def list_decisions_for_customer(
+        self, customer_id: str
+    ) -> list[DecisionDB]:
+        """Get all drift-engine decisions for a customer (chronological)."""
+        statement = (
+            select(DecisionDB)
+            .where(DecisionDB.customer_id == customer_id)
+            .order_by(DecisionDB.created_at)
+        )
+        result = await self.session.execute(statement)
+        return list(result.scalars().all())
+
     async def list_decisions_for_case(
         self, case_id: UUID
     ) -> list[DecisionDB]:

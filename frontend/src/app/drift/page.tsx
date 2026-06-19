@@ -12,7 +12,8 @@ import { TwoLayerPanel } from "@/components/drift/TwoLayerPanel";
 import { CausalPanel } from "@/components/drift/CausalPanel";
 import { StabilityPanel } from "@/components/drift/StabilityPanel";
 import { TimeTravelPanel } from "@/components/drift/TimeTravelPanel";
-import type { DriftCustomerDetail } from "@/types/api";
+import { DecisionBar } from "@/components/cases/DecisionBar";
+import type { DecisionAction, DriftCustomerDetail } from "@/types/api";
 import { Activity, Zap, DollarSign, FlaskConical, Loader2, ArrowRight, ShieldCheck, ShieldAlert } from "lucide-react";
 
 /**
@@ -201,6 +202,12 @@ export default function DriftPage() {
             {/* === VERDICT BAR — the one-line "what to do" summary === */}
             <VerdictBar detail={detail} />
 
+            {/* === DECISION BAR — officer records their compliance action === */}
+            <DecisionBar
+              customerId={detail.customer_id}
+              aiRecommendedAction={driftToDecisionAction(detail)}
+            />
+
             {/* === Two-column analysis grid (was a long vertical scroll) === */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 items-start">
               {/* Left column: what is happening */}
@@ -252,6 +259,20 @@ export default function DriftPage() {
       </main>
     </div>
   );
+}
+
+/**
+ * Maps drift signals to a DecisionAction for the DecisionBar's AI highlight.
+ * Mirrors the VerdictBar logic so the ring matches the displayed recommendation.
+ */
+function driftToDecisionAction(detail: DriftCustomerDetail): DecisionAction {
+  const score = detail.drift_score;
+  const causal = detail.causal?.label ?? "ambiguous";
+  const suspicious = detail.stability?.is_suspicious ?? false;
+
+  if (suspicious || score >= 70 || causal === "risk") return "escalate";
+  if (score >= 40 || causal === "ambiguous") return "step_up_verification";
+  return "allow";
 }
 
 function VerdictBar({ detail }: { detail: DriftCustomerDetail }) {

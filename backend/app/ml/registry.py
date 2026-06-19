@@ -44,15 +44,43 @@ class ModelRegistry:
         return self._models.get(case_type)
     
     def get_or_raise(self, case_type: CaseType) -> RiskModel:
-        """Look up a model, raising if not found."""
+        """
+        Look up a model, with graceful fallback.
+        
+        If no model is registered for the requested case_type, we fall back to
+        the social_engineering model as a behavioral baseline. The features
+        partially generalize (amount-vs-typical, time anomalies, country risk),
+        so we still get a meaningful score — just less specific than a
+        purpose-trained model would give.
+        
+        This is intentional for the hackathon MVP: it lets us demo across
+        multiple case types (investment recommendation, XRPL transactions)
+        without training a separate model for each.
+        
+        Raises only if no models at all are loaded.
+        """
         model = self._models.get(case_type)
-        if model is None:
-            available = list(self._models.keys())
-            raise ValueError(
-                f"No model registered for case_type={case_type}. "
-                f"Available: {available}"
+        if model is not None:
+            return model
+        
+        # Fallback: use social_engineering as baseline
+        fallback = self._models.get(CaseType.SOCIAL_ENGINEERING)
+        if fallback is not None:
+            logger.info(
+                "model_fallback_to_baseline",
+                requested=case_type.value,
+                fallback=fallback.case_type.value,
+                reason="no_specific_model_trained",
             )
-        return model
+            return fallback
+        
+        # Nothing loaded — genuine error
+        available = list(self._models.keys())
+        raise ValueError(
+            f"No model registered for case_type={case_type} and no fallback "
+            f"available. Available: {available}. "
+            f"Run: python -m app.ml.training train-social-engineering"
+        )
     
     @property
     def loaded_case_types(self) -> list[CaseType]:

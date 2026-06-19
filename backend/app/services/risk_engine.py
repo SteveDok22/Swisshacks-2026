@@ -49,11 +49,18 @@ class RiskEngine:
         client = await self.store.get_client(case.client_id)
         client_context = self._build_client_context(client)
         
-        # Get model
+        # Get model (with fallback for unsupported case types)
         model = self.registry.get_or_raise(case.case_type)
         
         # Score
         result = model.score(case, client_context)
+        
+        # === Rule-based amplification for known critical flags ===
+        # When the ML model is a fallback baseline (e.g., social_engineering
+        # model scoring an XRPL transaction), it may miss case-specific red
+        # flags. We apply deterministic rule overrides here so well-known
+        # critical signals are never silently dismissed.
+        result = self._apply_critical_overrides(case, result)
         
         # Update case in DB
         await self.store.update_case(
@@ -109,3 +116,83 @@ class RiskEngine:
             "risk_tolerance": profile.risk_tolerance,
             "days_since_review": days_since_review,
         }
+    
+    def _apply_critical_overrides(self, case, result: RiskScoreResult) -> RiskScoreResult:
+        """
+        Apply deterministic rule overrides for known critical signals.
+        
+        The ML model may not catch every red flag (especially when used as a
+        fallback baseline for case types it wasn't trained on). These rules
+        guarantee specific high-severity signals always trigger appropriate
+        scores, regardless of model output.
+        
+        Order: rules MAY raise the score, never lower it.
+        """
+        from app.schemas.enums import DecisionAction, RiskLevel
+        
+        data = case.context.data
+        score = result.score
+        
+        # === Sanctions match: always critical ===
+        if data.get("sanctions_match") is True:
+            score = max(score, 95.0)
+        
+        # === Mixer proximity 1-2 hops: high-risk ===
+        mixer_hops = data.get("mixer_proximity_hops")
+        if isinstance(mixer_hops, int) and 1 <= mixer_hops <= 2:
+            score = max(score, 75.0)
+        elif isinstance(mixer_hops, int) and mixer_hops == 3:
+            score = max(score, 55.0)
+        
+        # === PEP + new counterparty + large amount: amplify ===
+        client_is_pep = (
+            result.top_features
+            and any(
+                f.name == "is_pep" and f.value
+                for f in result.top_features
+            )
+        )
+        if client_is_pep and not data.get("counterparty_whitelisted", False):
+            amount = float(
+                data.get("requested_amount_chf")
+                or data.get("amount")
+                or 0
+            )
+            if amount > 1_000_000:
+                score = max(score, 80.0)
+        
+        # No change? Return original
+        if score == result.score:
+            return result
+        
+        # Derive new level + action from boosted score
+        if score >= 86:
+            level = RiskLevel.CRITICAL
+            action = DecisionAction.BLOCK
+        elif score >= 61:
+            level = RiskLevel.HIGH
+            action = DecisionAction.ESCALATE
+        elif score >= 31:
+            level = RiskLevel.MEDIUM
+            action = DecisionAction.STEP_UP_VERIFICATION
+        else:
+            level = RiskLevel.LOW
+            action = DecisionAction.ALLOW
+        
+        logger.info(
+            "rule_override_applied",
+            original_score=result.score,
+            new_score=score,
+            case_id=str(case.id),
+        )
+        
+        return RiskScoreResult(
+            score=score,
+            level=level,
+            confidence=result.confidence,
+            recommended_action=action,
+            top_features=result.top_features,
+            model_name=result.model_name,
+            model_version=result.model_version,
+            scored_at=result.scored_at,
+        )

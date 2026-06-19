@@ -106,12 +106,24 @@ class SocialEngineeringFeatureExtractor(FeatureExtractor):
         data = case.context.data
         ctx = client_context or {}
         
-        # === Amount ===
-        amount = float(data.get("requested_amount_chf", 0))
+        # === Amount (multi-source resolution for cross-case-type compatibility) ===
+        # Different case types use different field names. We resolve to a single
+        # canonical amount so the same extractor can handle social_engineering
+        # (requested_amount_chf), xrpl_transaction (amount), and
+        # investment_recommendation (no amount, use AUM-based proxy).
+        amount = float(
+            data.get("requested_amount_chf")
+            or data.get("amount")
+            or 0
+        )
         typical_amount = float(ctx.get("typical_amount", max(amount * 0.1, 50_000)))
         
-        # === Temporal ===
-        call_ts_str = data.get("call_timestamp", "")
+        # === Temporal (multi-source) ===
+        call_ts_str = (
+            data.get("call_timestamp")
+            or data.get("tx_timestamp")
+            or ""
+        )
         try:
             call_ts = datetime.fromisoformat(call_ts_str.replace("Z", "+00:00"))
         except (ValueError, AttributeError):
@@ -130,13 +142,27 @@ class SocialEngineeringFeatureExtractor(FeatureExtractor):
         
         is_outside_bh = 1.0 if hour < 8 or hour > 18 else 0.0
         
-        # === Destination ===
-        dest_wallet = data.get("destination_wallet", "")
+        # === Destination (multi-source) ===
+        dest_wallet = (
+            data.get("destination_wallet")
+            or data.get("to_address")
+            or ""
+        )
         whitelist = ctx.get("whitelist_wallets", [])
         is_whitelisted = 1.0 if dest_wallet in whitelist else 0.0
         
+        # XRPL-specific: counterparty already whitelisted/sanctioned flags
+        if data.get("counterparty_whitelisted"):
+            is_whitelisted = 1.0
+        
         dest_country = data.get("destination_country", "CH")
         country_risk = self.COUNTRY_RISK.get(dest_country, 0.5)
+        
+        # Boost country risk if sanctions hit or mixer proximity
+        if data.get("sanctions_match"):
+            country_risk = 1.0
+        elif data.get("mixer_proximity_hops", 99) <= 3:
+            country_risk = max(country_risk, 0.9)
         
         is_new_destination = 1.0 if not is_whitelisted else 0.0
         

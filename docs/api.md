@@ -15,7 +15,7 @@ graph TB
         D4["POST /scan\nRun cost cascade scan\nReturns CascadeCostReport"]
         D5["GET /contagion\nOwnership graph + PageRank scores"]
         D6["GET /replay/{customer_id}\nTime-travel as-of replay"]
-        D7["POST /inject\nInject public signal\nBody: customer_id, signal"]
+        D7["POST /inject\nInject public signal\nBody: scenario, name"]
         D8["POST /rfi/{customer_id}\nGenerate RFI\nValue-of-Information ordering"]
     end
 

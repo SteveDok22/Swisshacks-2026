@@ -22,7 +22,7 @@ profile, often months before a sanctions listing.
 | Step | File | What you get |
 |---|---|---|
 | 1 | **`QUICKSTART.md`** | Run it locally in ~10 minutes (no API key needed) |
-| 2 | **`DRIFT_ENGINE_README.md`** | The AMINA Challenge 4 approach, math, and references |
+| 2 | **[`docs/drift-engine.md`](docs/drift-engine.md)** | The AMINA Challenge 4 approach, math, diagrams, and references |
 | 3 | **`pitch/deck.md`** | The pitch deck (open with Marp or read the PDF) |
 | 4 | **`pitch/demo-script.md`** | The 3-minute demo walkthrough |
 
@@ -87,8 +87,7 @@ Then open **http://localhost:3000**.
 START_HERE.md            <- you are here
 QUICKSTART.md            <- run instructions
 README.md                <- product overview
-DRIFT_ENGINE_README.md   <- AMINA Challenge 4 technical spec
-backend/                 <- FastAPI + ML (33 endpoints)
+backend/                 <- FastAPI + ML (27 endpoints)
 frontend/                <- Next.js dashboard
 pitch/                   <- deck, demo script, onboarding
 docs/                    <- supporting docs

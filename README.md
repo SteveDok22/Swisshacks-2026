@@ -30,11 +30,10 @@
 | Page | Contents |
 |---|---|
 | **[Architecture](docs/architecture.md)** | System diagram, deployment topology, backend & frontend module maps |
-| **[Drift Engine](docs/drift-engine.md)** | 7-layer pipeline, cost cascade decision tree, two-layer fusion, time-travel audit |
 | **[User Flows](docs/flows.md)** | Use cases, officer investigation sequence, contagion discovery flow |
 | **[Database Schema](docs/db-schema.md)** | ER diagram, enumerations, case lifecycle state machine |
 | **[API Reference](docs/api.md)** | Endpoint map, response shapes, anonymization flow |
-| **[Drift Engine Spec](DRIFT_ENGINE_README.md)** | Full mathematical treatment — algorithms, proofs, validation details |
+| **[Drift Engine](docs/drift-engine.md)** | 7-layer pipeline, cost cascade, two-layer fusion, math, validation, references |
 | **[Challenge Overview](docs/CHALLENGE_4_OVERVIEW.md)** | AMINA Challenge 4 brief, key terminology |
 
 ---
@@ -43,7 +42,7 @@
 
 A customer is onboarded as a low-risk retail trader. Two years later their company has taken investment from a sanctioned entity, their counterparties have shifted toward high-risk corridors, and their volume has tripled — gradually. No single event tripped an alert. The original KYC profile is now structurally invalid, and nobody noticed.
 
-This is **KYC drift**, the core of AMINA Challenge 4. Sentinel's Drift Engine detects the precursor, not the consequence — combining **real-time public signals** (news, sanctions, adverse media, ownership changes, funding events) with **internal bank data** (KYC, transactions, AML flags), wrapped in explainable AI, human-in-the-loop validation, and immutable audit logs.
+This is **KYC drift**, the core of AMINA Challenge 4. Sentinel's Drift Engine detects the precursor, not the consequence — combining **public signals** (news, sanctions, adverse media, ownership changes, funding events — simulated for MVP; real API slots ready) with **internal bank data** (KYC, transactions, AML flags), wrapped in explainable AI, human-in-the-loop validation, and immutable audit logs.
 
 **Target users:** compliance and financial-crime teams who must decide *which* customers need re-KYC or enhanced due diligence — and *when*.
 
@@ -51,15 +50,25 @@ This is **KYC drift**, the core of AMINA Challenge 4. Sentinel's Drift Engine de
 
 ## Business Requirements
 
-Derived from the AMINA Challenge 4 brief:
+Derived from the [AMINA Challenge 4 brief](https://github.com/SwissHacks-2026/Amina-BANK/blob/main/README.md):
 
-- **BR1 — Public intelligence layer:** combine real-time public signals into the risk picture.
+- **BR1 — Public intelligence layer:** combine real-time public signals (news, sanctions, registries, funding, domain monitoring) into the risk picture.
 - **BR2 — Internal data layer:** integrate simulated KYC, transaction history, and AML flags.
-- **BR3 — KYC drift detection:** catch slow structural changes invalidating the original profile.
-- **BR4 — Explainable AI:** every score decomposes into named, human-readable contributions.
-- **BR5 — Human-in-the-loop:** an officer confirms or overrides every consequential action.
+- **BR3 — KYC drift detection:** catch slow structural changes invalidating the original profile months before regulatory action.
+- **BR4 — Explainable AI:** every score decomposes into named contributions with source citations.
+- **BR5 — Human-in-the-loop:** an officer confirms or overrides every consequential action with a written rationale.
 - **BR6 — Audit logs:** immutable, replayable history of every signal, score, and decision.
-- **BR7 — Cost awareness:** cheap models filter first; heavy reasoning only for high-risk cases.
+- **BR7 — Cost awareness:** staged pipeline — rules first, ML second, LLM only for high-risk cases; token usage tracked per workflow.
+
+### Judging Criteria Coverage
+
+| Criterion | Weight | Our approach |
+|---|---|---|
+| **AI Intelligence Quality** | 25% | 7-layer drift engine: BOCPD, KL velocity, PageRank contagion, causal LLR, suspicious stability |
+| **Cost Efficiency** | 20% | 3-tier cascade (rules → ML → LLM); 96% cost reduction vs LLM-on-everything |
+| **UX & Explainability** | 20% | 7 interactive visualizations; per-layer breakdown; causal evidence cards |
+| **Compliance & Safety** | 20% | Anonymizer, append-only audit log, HITL decision bar, jurisdiction rules |
+| **Engineering & Architecture** | 15% | Modular 10-file drift engine; clean API; SQLModel + FastAPI |
 
 ---
 
@@ -116,10 +125,10 @@ flowchart LR
     end
 
     subgraph BE["FastAPI Backend"]
-        API[REST API\n27 endpoints]
+        API["REST API\n27 endpoints"]
         DE["Drift Engine\n7 layers"]
-        ML[ML Layer\nXGBoost · SHAP · DiCE]
-        Svcs[Services\nAnonymizer · Audit · Jurisdiction]
+        ML["ML Layer\nXGBoost · SHAP · DiCE"]
+        Svcs["Services\nAnonymizer · Audit · Jurisdiction"]
     end
 
     Claude["Anthropic Claude\nSonnet / Haiku"]
@@ -133,7 +142,7 @@ flowchart LR
     API & ML & Svcs --> DB
 ```
 
-Full diagrams: **[Architecture](docs/architecture.md)** · **[Drift Engine](docs/drift-engine.md)** · **[Drift Engine Spec (math)](DRIFT_ENGINE_README.md)**
+Full diagrams and math: **[Architecture](docs/architecture.md)** · **[Drift Engine](docs/drift-engine.md)**
 
 ---
 
@@ -165,9 +174,10 @@ The Drift Engine workspace presents a verdict-first view: a recommended action u
 | **Backend** | Python 3.11, FastAPI, Pydantic v2, SQLModel + SQLite |
 | **Science** | NumPy, SciPy (BOCPD, KL, statistics), NetworkX (PageRank) |
 | **ML** | XGBoost, SHAP, DiCE (counterfactuals) |
-| **LLM** | Anthropic Claude (assessment, RFI generation) |
-| **Frontend** | Next.js 15, React 19, TypeScript, Tailwind, TanStack Query |
-| **Tooling** | Git, GitHub, structlog, Server-Sent Events |
+| **LLM** | Anthropic Claude Sonnet 4.5 / Haiku 4.5 |
+| **Frontend** | Next.js 15, React 19, TypeScript, Tailwind CSS, TanStack Query |
+| **Tooling** | Git, GitHub, structlog, Server-Sent Events, uv |
+| **Public signals (MVP — simulated)** | Architecture slots for: OpenSanctions, GDELT, GLEIF, Swiss ZEFIX, OpenCorporates, Crunchbase |
 
 ---
 

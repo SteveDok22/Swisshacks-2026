@@ -1,9 +1,52 @@
 # User Flows & Use Cases
 
-## Use Cases
+## Challenge Use Cases (from AMINA brief)
+
+Ten specific signal scenarios the system must detect and action. See [CHALLENGE_4_OVERVIEW.md](CHALLENGE_4_OVERVIEW.md) for the full table.
 
 ```mermaid
-graph LR
+flowchart TD
+    subgraph Signals["Incoming Signals"]
+        S1["Negative news spike\n→ High Reputational Risk"]
+        S2["Cross-border transfers\ninconsistent with history\n→ Behavioural Anomaly"]
+        S3["Multiple linked entities\n+ sudden large flows\n→ Structuring / Layering"]
+        S4["Legal entity name change\n→ Re-KYC Required"]
+        S5["Domain switch or\nwebsite content change\n→ Business Activity Change"]
+        S6["Public pivot\n(SaaS → crypto)\n→ Business Model Change"]
+        S7["Jurisdiction move\nor legal form change\n→ Structural Risk Change"]
+        S8["New shareholders\nor beneficial owners\n→ Ownership KYC Drift"]
+        S9["Large funding round\nor rapid expansion\n→ Scale Risk Change"]
+        S10["Dormant company\nresumes high volume\n→ Suspicious Activation"]
+    end
+
+    Engine["Drift Engine\n7-layer analysis"]
+    Officer(["Compliance Officer"])
+
+    S1 & S2 & S3 & S4 & S5 & S6 & S7 & S8 & S9 & S10 --> Engine
+    Engine --> Officer
+
+    subgraph Actions["Recommended Actions"]
+        A1["Enhanced Due Diligence"]
+        A2["AML Review"]
+        A3["KYC Refresh"]
+        A4["Risk Reclassification"]
+        A5["Escalate to Compliance"]
+    end
+
+    Officer --> A1 & A2 & A3 & A4 & A5
+```
+
+**Coverage status:**
+- ✅ S1 S2 S3 S7 S8 S9 — fully covered by drift engine layers
+- ⚠️ S10 — partially (stability detector flags anomalous smoothness; no explicit dormancy signal)
+- ❌ S4 S5 S6 — entity name change, domain monitoring, and business model pivot not yet implemented
+
+---
+
+## System Use Cases (officer perspective)
+
+```mermaid
+flowchart LR
     Officer(["Compliance Officer"])
 
     subgraph Sentinel["Sentinel · Drift Engine"]
@@ -16,7 +59,7 @@ graph LR
         UC6[Generate Request for Information]
         UC7[Log decision & rationale]
         UC8[Export immutable audit log]
-        UC9[Switch jurisdiction rules\nCH / EU / HK / AE]
+        UC9["Switch jurisdiction rules\nCH / EU / HK / AE"]
         UC10[Explore contagion graph]
         UC11[View counterfactual scenarios]
     end
@@ -83,7 +126,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    Trigger([Scheduled Scan\nor Manual Trigger])
+    Trigger(["Scheduled Scan\nor Manual Trigger"])
 
     subgraph Scan["Customer Book Scan"]
         All["Load all customers\nsimulator.get_book()"]
@@ -103,9 +146,9 @@ flowchart TD
 
     Action{Recommended Action?}
 
-    Clear[No action\nLow risk]
-    Review[Schedule re-KYC\nMedium risk]
-    Escalate[Enhanced Due Diligence\nHigh risk → Officer queue]
+    Clear["No action\nLow risk"]
+    Review["Schedule re-KYC\nMedium risk"]
+    Escalate["Enhanced Due Diligence\nHigh risk → Officer queue"]
 
     Trigger --> All
     All --> Para

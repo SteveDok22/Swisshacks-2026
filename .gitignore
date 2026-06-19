@@ -1,0 +1,64 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+.env
+.env.local
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# uv
+.uv/
+
+# Node
+node_modules/
+.next/
+out/
+build/
+dist/
+.turbo/
+*.log
+.pnpm-debug.log*
+.npm/
+.pnpm-store/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ML artifacts (большие файлы)
+backend/data/models/*.pkl
+backend/data/models/*.onnx
+backend/data/models/*.h5
+backend/data/audio_samples/*.wav
+backend/data/audio_samples/*.mp3
+*.joblib
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Docker
+.docker/
+
+# OS
+.DS_Store
+*.pem
+
+# Secrets
+secrets/
+*.key

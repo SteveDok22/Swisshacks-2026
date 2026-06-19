@@ -29,7 +29,7 @@ from datetime import date, datetime
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import JSON, Column
+from sqlalchemy import JSON, CheckConstraint, Column
 from sqlmodel import Field, SQLModel
 
 from app.schemas.enums import (
@@ -117,14 +117,30 @@ class CaseDB(SQLModel, table=True):
 
 class DecisionDB(SQLModel, table=True):
     """
-    A compliance officer's decision on a case.
-    
+    A compliance officer's decision — on a case or a drift customer.
+
+    Exactly one of case_id / customer_id is set (enforced by DB CHECK constraint
+    and Pydantic validator on DecisionCreate).
+
     Append-only: once recorded, never updated.
-    If officer changes their mind — new decision record.
+    If the officer changes their mind — a new decision record is created.
+
+    NOTE: case_id is nullable as of the drift-engine workflow addition.
+    Existing SQLite databases created before this change must be recreated
+    (drop the file and let create_all rebuild) or migrated with:
+        ALTER TABLE decisions ADD COLUMN customer_id TEXT;
+        -- case_id NOT NULL constraint cannot be relaxed in SQLite without
+        -- recreating the table; use a migration tool (Alembic) for production.
     """
-    
+
     __tablename__ = "decisions"
-    
+    __table_args__ = (
+        CheckConstraint(
+            "(case_id IS NULL) != (customer_id IS NULL)",
+            name="ck_decision_exactly_one_id",
+        ),
+    )
+
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     case_id: UUID | None = Field(default=None, foreign_key="cases.id", index=True)
     customer_id: str | None = Field(default=None, index=True)  # drift-engine customer

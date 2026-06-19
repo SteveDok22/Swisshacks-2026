@@ -201,6 +201,15 @@ export interface PaginatedResponse<T> {
 
 // === Drift Engine (AMINA Challenge 4) ===
 
+
+export interface PublicSignal {
+  month: number;
+  signal_type: string;
+  headline: string;
+  severity: number;
+  source: string;
+}
+
 export interface LayerContribution {
   layer: number;
   name: string;
@@ -218,6 +227,8 @@ export interface DriftCustomerSummary {
   reached_tier: string;
   sanctions_hit: boolean;
   propagated_risk: number;
+  public_risk: number;
+  confirmation_lift: number;
   scenario: string | null;
 }
 
@@ -243,6 +254,10 @@ export interface DriftCustomerDetail {
   drift_start_month: number | null;
   sanctions_month: number | null;
   bocpd_changepoint_day: number | null;
+  public_risk: number;
+  internal_risk: number;
+  confirmation_lift: number;
+  public_signals: PublicSignal[];
 }
 
 export interface CascadeCostReport {

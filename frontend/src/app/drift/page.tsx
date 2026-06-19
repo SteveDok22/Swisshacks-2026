@@ -8,6 +8,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { DriftRadar } from "@/components/drift/DriftRadar";
 import { DriftTimeline } from "@/components/drift/DriftTimeline";
 import { ContagionGraph } from "@/components/drift/ContagionGraph";
+import { TwoLayerPanel } from "@/components/drift/TwoLayerPanel";
 import { Activity, Zap, DollarSign, FlaskConical, Loader2 } from "lucide-react";
 
 /**
@@ -178,6 +179,9 @@ export default function DriftPage() {
 
             {/* Timeline */}
             <DriftTimeline detail={detail} />
+
+            {/* Two-layer intelligence (public + internal + confirmation lift) */}
+            <TwoLayerPanel detail={detail} />
 
             {/* Layers */}
             <div className="border border-paper-line rounded bg-paper-raised p-4">

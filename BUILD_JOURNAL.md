@@ -21,6 +21,7 @@
 | [12](#день-12) | Drift Engine — ядро (BOCPD + Drift Velocity + Симулятор) |
 | [13](#день-13) | Risk Contagion + Cost Cascade + интеграция в API |
 | [14](#день-14) | Визуальное сердце demo — Drift Radar + Timeline + Contagion |
+| [15](#день-15) | Public Intelligence Layer (Layer 2) + Confirmation Lift |
 | [Hotfix 9.1](#hotfix-91) | Backend fallback + Sidebar disabled items |
 
 ---
@@ -3639,6 +3640,108 @@ Sidebar раньше хардкодил active=queue. Теперь usePathname()
 ## Дальше
 
 Осталось 5 дней до хакатона. Drift Engine полнофункционален: backend (BOCPD, velocity, contagion, cascade) + frontend (radar, timeline, contagion). Возможные направления: drift demo script, интеграция drift в pitch deck, или подготовка под Deep-Dive Friday.
+
+---
+
+<!-- ================== DAY 15 ================== -->
+
+# День 15: Public Intelligence Layer (Layer 2) + Confirmation Lift
+
+Закрыли критичный пробел по критериям AMINA: **публичные сигналы** (BR1) и **явная two-layer архитектура** (public → internal). Плюс научный дифференциатор — **Confirmation Lift**.
+
+## Зачем (разбор критерия)
+
+AMINA дословно: *"combining real time public signals (news, sanctions lists, adverse media, ownership changes, funding events) with internal KYC and AML data... two layers, public intelligence first, then internal bank data"*.
+
+До сегодня у нас были смешаны public и internal слои без явной границы. Не хватало целого первого слоя их архитектуры.
+
+## Что построили
+
+1. **`app/drift/public_intel.py`** — симулятор 5 типов публичных сигналов + lexicon severity-классификатор + **Confirmation Lift**
+2. **Two-layer fusion в `service.py`** — явное разделение Public Intelligence vs Internal Bank Data, отдельный вклад каждого
+3. **Layer 2** в explainability breakdown
+4. **`TwoLayerPanel.tsx`** — frontend: public/internal split-карточки + confirmation lift connector + лента External Signals
+
+## Confirmation Lift — дифференциатор
+
+Не просто "у клиента есть public-сигнал И internal-drift". А математически: насколько внешний сигнал и внутренний дрифт **совпадают по времени** и во сколько раз это поднимает уверенность.
+
+```
+Lift = P(risk | public AND internal) / [P(risk | public) * P(risk | internal)]
+```
+
+Когда adverse media про клиента появляется в том же месяце, что BOCPD changepoint в его транзакциях — Lift высокий (внешний мир подтверждает внутренний). Gated: lift осмыслен только когда оба сигнала > 0.15 (иначе нейтральный 1.0 — нет смысла "подтверждать" два нуля).
+
+## Результаты
+
+| Клиент | Score | Public | Lift | Сценарий |
+|---|---|---|---|---|
+| Sergei | 100 | 0.58 | 1.79 | combined |
+| Helena | 83 | 0.75 | 3.52 | counterparty (поднята public-подтверждением!) |
+| Viktor | 89 | 0.83 | 1.38 | volume_creep |
+| Tomas | 72 | 0.63 | 5.85 | corridor_shift |
+| Stable (все) | <14 | <0.15 | 1.00 | нечего подтверждать |
+
+Helena — ключевой кейс: internal drift средний (0.31), но adverse media **подтверждает** → score прыгает с 65 до 83. Это и есть "early intelligence" из брифа AMINA.
+
+## Шаг 1: Распакуй архив
+
+```bash
+cd ~/Documents/Projects/swisshacks-2026
+cp backend/.env backend/.env.backup 2>/dev/null || true
+unzip -qo ~/Downloads/swisshacks-2026-day15.zip -d /tmp/swisshacks-update
+cp -a /tmp/swisshacks-update/swisshacks-2026/. .
+mv backend/.env.backup backend/.env 2>/dev/null || true
+rm -rf /tmp/swisshacks-update
+```
+
+## Шаг 2: Запусти и проверь
+
+Backend без новых зависимостей, frontend hot-reload подхватит.
+
+```bash
+cd backend && source .venv/bin/activate && uvicorn app.main:app --reload --port 8000
+# другой терминал
+cd frontend && npm run dev
+```
+
+Открой http://localhost:3000/drift → кликни **Helena Krause**. Увидишь:
+- Two-Layer Intelligence: Public 75 / Internal 31
+- Confirmation Lift 3.5x (подсвечен) "external intelligence confirms internal drift"
+- Лента External Signals: funding event (m9) → ownership change (m11) → adverse media (m13)
+
+## Шаг 3: Git commit
+
+```bash
+git add -A
+git commit -m "Day 15: Public Intelligence Layer + Confirmation Lift
+
+- public_intel.py: 5 signal types, severity classifier, confirmation lift
+- Two-layer fusion: explicit Public Intelligence vs Internal Bank Data
+- Layer 2 in explainability breakdown
+- TwoLayerPanel frontend: split cards + lift connector + signals feed
+- Closes BR1 (public signals) and the explicit two-layer requirement
+"
+git push origin main
+```
+
+## Что узнал (теория)
+
+### Lift divide-by-near-zero artifact
+
+Формула Lift = joint/(p*q) взрывается когда p,q → 0 (stable клиенты давали lift 1000+). Это математически корректно но бессмысленно: совпадение двух нулевых рисков — не доказательство, а его отсутствие. Решение: gate — lift считается только когда оба сигнала clear floor 0.15, иначе нейтральный 1.0. Урок: формула верна не значит интерпретация осмысленна.
+
+### Temporal co-occurrence как сигнал
+
+Два слабых независимых свидетельства, совпавших во времени, дают сильное (Bayesian). Coincidence factor [1,2] по близости peak public к peak internal. Это превращает "два списка рядом" в "система понимает что они об одном событии".
+
+### Lexicon classifier vs embedding
+
+Для severity взят прозрачный keyword map (не embedding модель). Плюсы: zero dependency, объяснимо (matched term = объяснение), детерминированно для demo. В проде слот заменяется на embedding/LLM на tier T1/T2.
+
+## Дальше
+
+BR1 закрыт, two-layer явная. Остаётся: drift demo script, drift в pitch deck, или resilience polish новых компонентов.
 
 ---
 

@@ -15,6 +15,16 @@ class LayerContribution(BaseModel):
     detail: str | None = Field(default=None, description="Human-readable explanation")
 
 
+class PublicSignalOut(BaseModel):
+    """One external public-intelligence signal."""
+
+    month: int
+    signal_type: str = Field(description="news | sanctions | adverse_media | ownership_change | funding_event")
+    headline: str
+    severity: float = Field(description="0-1 classifier severity")
+    source: str
+
+
 class DriftCustomerSummary(BaseModel):
     """Book-overview row: one customer's drift snapshot."""
 
@@ -26,6 +36,8 @@ class DriftCustomerSummary(BaseModel):
     reached_tier: str = Field(description="Cascade tier reached")
     sanctions_hit: bool = False
     propagated_risk: float = Field(default=0.0, description="Layer 3 contagion risk")
+    public_risk: float = Field(default=0.0, description="Layer 2 public intelligence risk")
+    confirmation_lift: float = Field(default=1.0, description="Public-internal co-occurrence lift")
     scenario: str | None = Field(default=None, description="Ground-truth scenario (demo)")
 
 
@@ -56,6 +68,12 @@ class DriftCustomerDetail(BaseModel):
     drift_start_month: int | None = None
     sanctions_month: int | None = None
     bocpd_changepoint_day: int | None = None
+
+    # Two-layer breakdown (AMINA Challenge 4 architecture)
+    public_risk: float = Field(default=0.0, description="Public intelligence layer risk 0-1")
+    internal_risk: float = Field(default=0.0, description="Internal bank data layer risk 0-1")
+    confirmation_lift: float = Field(default=1.0, description="Temporal co-occurrence amplification")
+    public_signals: list[PublicSignalOut] = Field(default_factory=list)
 
 
 class CascadeCostReport(BaseModel):

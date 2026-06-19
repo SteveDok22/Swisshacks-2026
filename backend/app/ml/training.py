@@ -100,7 +100,8 @@ def generate_synthetic_social_engineering_data(
             secrecy=secrecy,
             pressure=pressure,
             transcript_length=rng.integers(20, 200),
-            client_aum=rng.lognormal(15, 1),
+            # Wider AUM range to cover HNW clients (up to CHF 100M+)
+            client_aum=rng.lognormal(15.5, 1.5),
             is_pep=1.0 if rng.random() < 0.05 else 0.0,
             days_since_review=rng.integers(7, 180),
             label=0,
@@ -142,7 +143,8 @@ def generate_synthetic_social_engineering_data(
             secrecy=secrecy,
             pressure=pressure,
             transcript_length=rng.integers(50, 500),
-            client_aum=rng.lognormal(15.5, 1),  # Often higher-value targets
+            # Wider AUM range for fraud targets
+            client_aum=rng.lognormal(16.0, 1.5),
             is_pep=1.0 if rng.random() < 0.15 else 0.0,
             days_since_review=rng.integers(30, 365),
             label=1,

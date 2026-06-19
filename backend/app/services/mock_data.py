@@ -302,6 +302,47 @@ def generate_mock_cases(clients: list[Client]) -> list[Case]:
         )
     )
     
+    # === AMINA: EXTREME social engineering case (for counterfactual demo) ===
+    # Marc Weber — large AUM, attacker mimics his style; multiple red flags
+    cases.append(
+        Case(
+            id=UUID("22222222-2222-2222-2222-222222222204"),
+            client_id=clients[2].id,
+            case_type=CaseType.SOCIAL_ENGINEERING,
+            jurisdiction=Jurisdiction.CH,
+            status=CaseStatus.PENDING,
+            context=CaseContext(
+                summary=(
+                    "Voice call requesting CHF 8.7M to unknown wallet — "
+                    "Sunday 3am, urgency + secrecy markers in transcript"
+                ),
+                data={
+                    "channel": "phone_call",
+                    "requested_amount_chf": 8_700_000.0,
+                    "destination_wallet": "0xUNKW3a1b2c3d4e5f67890a1b2c3d4e5f6789012",
+                    "destination_country": "RU",
+                    "call_timestamp": "2026-05-10T03:14:00Z",
+                    "call_duration_seconds": 412,
+                    "voice_sample_id": "vs_004_marc_2026_05_10",
+                    "transcript_excerpt": (
+                        "I need this done immediately, urgent, my partner is waiting, "
+                        "don't tell anyone, this is between us, the opportunity will be lost. "
+                        "Now or never, the deal closes in 30 minutes. Don't mention to anyone, "
+                        "this is confidential personal matter. We need to move quickly, "
+                        "urgent urgent urgent."
+                    ),
+                    "rm_name": "Thomas Iten",
+                },
+            ),
+            risk_score=None,  # Not yet scored — will be on first scoring call
+            risk_level=None,
+            confidence=None,
+            scored_at=None,
+            created_at=now - timedelta(minutes=2),
+            updated_at=now - timedelta(minutes=2),
+        )
+    )
+    
     # === AMINA: Resolved case for history view ===
     cases.append(
         Case(

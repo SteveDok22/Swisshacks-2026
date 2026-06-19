@@ -1,0 +1,44 @@
+# United Arab Emirates — ADGM / FSRA
+# Reference: FSRA AML/CFT Rules, VARA rules
+
+code: AE
+name: United Arab Emirates (ADGM)
+regulator: FSRA / VARA
+description: Financial Services Regulatory Authority (Abu Dhabi Global Market)
+
+# Travel Rule — ADGM has no de minimis threshold
+travel_rule:
+  threshold_chf: 0  # Full Travel Rule for ALL transfers
+  required_fields:
+    - originator_name
+    - originator_address
+    - originator_account
+    - originator_id
+    - beneficiary_name
+    - beneficiary_account
+    - transfer_purpose
+
+cdd:
+  enhanced_due_diligence_threshold_chf: 100000
+  ongoing_review_max_days: 365
+  pep_review_max_days: 180
+
+score_modifiers:
+  client_is_pep: 1.25  # Strictest
+  destination_is_new: 1.15
+  amount_above_eddrequires_threshold: 1.30
+  high_risk_jurisdiction: 1.40  # FATF grey/blacklist
+
+action_thresholds:
+  allow_max: 22  # Strictest thresholds
+  step_up_max: 52
+  escalate_max: 78
+
+reporting:
+  fiu_threshold_chf: 50000  # Lower threshold for STRs
+  suspicious_activity_24h: true
+
+officer_notes: >
+  ADGM/FSRA has the strictest AML framework among AMINA jurisdictions.
+  NO de minimis threshold for Travel Rule data.
+  PEP transactions trigger automatic EDD regardless of amount.

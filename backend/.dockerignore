@@ -1,0 +1,42 @@
+# Python caches
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test & type-checker caches (not needed at runtime)
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+tests/
+
+# uv (image installs from pyproject.toml, no lock needed)
+uv.lock
+.uv/
+
+# Local SQLite databases — never bake these into the image
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets / local env
+.env
+.env.*
+
+# Dev tooling / VCS / docker meta
+Makefile
+.git/
+.gitignore
+.dockerignore
+Dockerfile
+
+# OS cruft
+.DS_Store

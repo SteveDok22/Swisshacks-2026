@@ -1,0 +1,38 @@
+# Sentinel backend dependencies
+# For pip users: python -m venv .venv && source .venv/bin/activate && pip install -r requirements.txt
+# (uv users can instead run: uv pip install -e .)
+
+# Web framework
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+pydantic>=2.9.0
+pydantic-settings>=2.5.0
+sse-starlette>=2.1.0
+email-validator>=2.0.0
+
+# Database
+sqlmodel>=0.0.22
+aiosqlite>=0.20.0
+greenlet>=3.0
+
+# ML core
+xgboost>=2.1.0
+scikit-learn>=1.5.0
+shap>=0.46.0
+numpy>=1.26.0
+pandas>=2.2.0
+joblib>=1.4.0
+
+# Drift Engine (AMINA Challenge 4)
+scipy>=1.13.0
+networkx>=3.3
+
+# Counterfactuals
+dice-ml>=0.11
+
+# LLM
+anthropic>=0.39.0
+
+# Config / logging
+structlog>=24.4.0
+pyyaml>=6.0

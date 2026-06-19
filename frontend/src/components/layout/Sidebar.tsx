@@ -8,8 +8,10 @@ import {
   Scale,
   Settings,
   Info,
+  Activity,
 } from "lucide-react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface NavItem {
   id: string;
@@ -25,9 +27,17 @@ const NAV_ITEMS: NavItem[] = [
     id: "queue",
     label: "Case Queue",
     icon: LayoutGrid,
-    active: true,
+    active: false,
     enabled: true,
     href: "/",
+  },
+  {
+    id: "drift",
+    label: "Drift Engine",
+    icon: Activity,
+    active: false,
+    enabled: true,
+    href: "/drift",
   },
   {
     id: "alerts",
@@ -62,6 +72,7 @@ const NAV_ITEMS: NavItem[] = [
  * Each disabled item has a tooltip on hover explaining what it will be.
  */
 export function Sidebar() {
+  const pathname = usePathname();
   return (
     <aside className="w-60 shrink-0 border-r border-paper-line bg-paper-raised flex flex-col">
       {/* Wordmark */}
@@ -84,6 +95,7 @@ export function Sidebar() {
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
+          const isActive = item.href === pathname;
 
           if (!item.enabled) {
             return (
@@ -104,7 +116,7 @@ export function Sidebar() {
             );
           }
 
-          if (item.active) {
+          if (isActive) {
             return (
               <Link
                 key={item.id}

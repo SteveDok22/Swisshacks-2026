@@ -121,7 +121,7 @@ export default function AboutPage() {
             <TeammateStep
               n="1"
               title="Read the day-by-day guides"
-              body="DAY_1_GUIDE.md through DAY_8_GUIDE.md walk through every architectural decision. Skim them in order to understand why things are built this way."
+              body="BUILD_JOURNAL.md walks through every architectural decision, day by day. Skim it in order to understand why things are built this way."
             />
             <TeammateStep
               n="2"

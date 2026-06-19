@@ -31,6 +31,8 @@ SCENARIOS = (
     "counterparty_migration",
     "corridor_shift",
     "combined",
+    "benign_expansion",
+    "suspicious_stability",
 )
 
 # Country risk weights reused conceptually from the social-engineering extractor
@@ -49,16 +51,36 @@ class SyntheticCustomer:
     monthly_volume: list[np.ndarray] = field(default_factory=list)
     counterparty_risk: list[np.ndarray] = field(default_factory=list)
     corridor_risk: list[np.ndarray] = field(default_factory=list)
+    # margin_ratio: profitability proxy = (inflow - outflow) / inflow per day.
+    # The CAUSAL discriminator. Benign business growth preserves margin (money
+    # comes in and stays / is reinvested); transit laundering collapses margin
+    # (money flows straight through — high volume, near-zero retention).
+    margin_ratio: list[np.ndarray] = field(default_factory=list)
     # Ground truth: month index where drift injection began (None for stable)
     drift_start_month: int | None = None
     # The simulated sanctions listing always lands on the last month
     sanctions_month: int | None = None
+    # Ground-truth causal label for validation: "benign" | "risk" | None
+    causal_truth: str | None = None
 
     def metric_windows(self) -> dict[str, list[np.ndarray]]:
+        """Behavioral metrics for velocity/BOCPD (magnitude of drift)."""
         return {
             "monthly_volume": self.monthly_volume,
             "counterparty_risk": self.counterparty_risk,
             "corridor_risk": self.corridor_risk,
+        }
+
+    def causal_windows(self) -> dict[str, list[np.ndarray]]:
+        """All metrics including margin — for causal signature (direction of
+        drift). Margin is the causal discriminator and is kept OUT of the
+        velocity computation so the two measures stay orthogonal: velocity
+        asks 'how much changed', causal asks 'in which direction'."""
+        return {
+            "monthly_volume": self.monthly_volume,
+            "counterparty_risk": self.counterparty_risk,
+            "corridor_risk": self.corridor_risk,
+            "margin_ratio": self.margin_ratio,
         }
 
     def daily_volume_series(self) -> np.ndarray:
@@ -89,13 +111,26 @@ def generate_customer(
         raise ValueError(f"unknown scenario {scenario!r}; choose from {SCENARIOS}")
 
     rng = np.random.default_rng(seed)
+    # Causal ground-truth label: benign_expansion is the only benign drift;
+    # suspicious_stability is its own category (the slow-walker / sleeper);
+    # all other non-stable scenarios are risk.
+    if scenario == "stable":
+        causal_truth = None
+    elif scenario == "benign_expansion":
+        causal_truth = "benign"
+    elif scenario == "suspicious_stability":
+        causal_truth = "suspicious"
+    else:
+        causal_truth = "risk"
+
     cust = SyntheticCustomer(
         customer_id=customer_id,
         name=name,
         scenario=scenario,
         months=months,
         drift_start_month=None if scenario == "stable" else drift_start_month,
-        sanctions_month=None if scenario == "stable" else months - 1,
+        sanctions_month=None if scenario in ("stable", "benign_expansion") else months - 1,
+        causal_truth=causal_truth,
     )
 
     for month in range(months):
@@ -107,10 +142,17 @@ def generate_customer(
             intensity = (month - drift_start_month) / span
 
         # --- Volume ---
+        # Both volume_creep (risk) AND benign_expansion move volume up by the
+        # SAME magnitude — so velocity alone cannot tell them apart. The causal
+        # layer must distinguish them by OTHER metrics (margin, counterparties).
         vol_mult = 1.0
-        if scenario in ("volume_creep", "combined"):
+        if scenario in ("volume_creep", "combined", "benign_expansion"):
             vol_mult = 1.0 + 1.2 * intensity  # up to +120% by the end
-        volumes = rng.normal(base_volume * vol_mult, base_volume * 0.15, days_per_month)
+        # suspicious_stability: anomalously LOW noise — the slow-walker keeps an
+        # unnaturally smooth profile. Real customers jitter (~15% daily noise);
+        # a 2% profile is robotic and is itself the signal.
+        vol_noise = 0.02 if scenario == "suspicious_stability" else 0.15
+        volumes = rng.normal(base_volume * vol_mult, base_volume * vol_noise, days_per_month)
         volumes = np.maximum(volumes, 100.0)
 
         # --- Counterparty risk (share of tx with risky counterparties) ---
@@ -118,12 +160,22 @@ def generate_customer(
         risky_share = base_risky_share
         if scenario in ("counterparty_migration", "combined"):
             risky_share = base_risky_share + 0.45 * intensity  # up to 50%
+        # suspicious_stability: the ENVIRONMENT moves (counterparties drift
+        # risky, as if the customer is being pulled into a network) even though
+        # the customer's OWN volume stays robotically smooth. That mismatch is
+        # the whole signal.
+        if scenario == "suspicious_stability":
+            risky_share = base_risky_share + 0.35 * intensity
+        # Benign expansion DIVERSIFIES (slightly more counterparties) but they
+        # stay low-risk — share barely moves.
         cp_risk = rng.binomial(1, min(risky_share, 0.95), days_per_month).astype(float)
         cp_risk = cp_risk * rng.uniform(0.6, 1.0, days_per_month) + (1 - cp_risk) * rng.uniform(0.0, 0.15, days_per_month)
 
         # --- Corridor risk ---
         if scenario in ("corridor_shift", "combined"):
             p_high = 0.03 + 0.5 * intensity
+        elif scenario == "suspicious_stability":
+            p_high = 0.03 + 0.35 * intensity  # corridors shift while client calm
         else:
             p_high = 0.03
         corridors = [
@@ -132,9 +184,27 @@ def generate_customer(
         ]
         corridor_risk = np.array([CORRIDOR_RISK[c] for c in corridors])
 
+        # --- Margin ratio (THE causal discriminator) ---
+        # Baseline healthy business retains ~25% margin with natural noise.
+        # Benign expansion PRESERVES margin (inflow and outflow grow together,
+        # profit is reinvested). Transit/laundering scenarios COLLAPSE margin:
+        # money flows straight through, retention approaches zero.
+        base_margin = 0.25
+        if scenario in ("volume_creep", "counterparty_migration", "corridor_shift", "combined"):
+            # Risk: margin collapses toward 0 as intensity rises
+            margin_mean = base_margin * (1.0 - 0.9 * intensity)
+        elif scenario == "benign_expansion":
+            # Benign: margin holds (tiny dip from growth costs, then recovers)
+            margin_mean = base_margin * (1.0 - 0.1 * intensity)
+        else:
+            margin_mean = base_margin
+        margin = rng.normal(margin_mean, 0.05, days_per_month)
+        margin = np.clip(margin, -0.2, 0.6)
+
         cust.monthly_volume.append(volumes)
         cust.counterparty_risk.append(cp_risk)
         cust.corridor_risk.append(corridor_risk)
+        cust.margin_ratio.append(margin)
 
     return cust
 
@@ -152,6 +222,8 @@ def generate_book(
         "counterparty_migration": "Helena Krause",
         "corridor_shift": "Tomas Lindqvist",
         "combined": "Sergei Mikhailov",
+        "benign_expansion": "Maria Steiner",
+        "suspicious_stability": "Pavel Novak",
     }
     stable_names = [
         "Anna Keller", "Luca Moretti", "Sophie Brunner",
@@ -170,6 +242,18 @@ def generate_book(
             )
         )
         idx += 1
+    # A second suspicious_stability customer (the "sleeper") — public signals
+    # appear about him, but his transactions stay unnaturally calm. Shows a
+    # different face of the same idea: reaction that doesn't match the world.
+    book.append(
+        generate_customer(
+            customer_id=f"drift-{idx:03d}",
+            name="Irina Volkova",
+            scenario="suspicious_stability",
+            seed=seed + 200,
+        )
+    )
+    idx += 1
     for i in range(n_stable):
         book.append(
             generate_customer(

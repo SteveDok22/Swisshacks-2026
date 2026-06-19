@@ -19,6 +19,7 @@ import numpy as np
 
 from app.drift.bocpd import BOCPD, standardize
 from app.drift.cascade import CascadeRouter, CustomerSignal
+from app.drift.causal import causal_assessment
 from app.drift.contagion import build_demo_graph, OwnershipGraph
 from app.drift.public_intel import (
     assess_public_risk,
@@ -26,15 +27,18 @@ from app.drift.public_intel import (
     generate_signals_for_customer,
 )
 from app.drift.simulator import SyntheticCustomer, generate_book, generate_customer
+from app.drift.stability import assess_stability, cohort_volatility
 from app.drift.velocity import compute_drift_series, velocity_band
 from app.schemas.drift import (
     CascadeCostReport,
+    CausalVerdictOut,
     ContagionGraph,
     DriftCustomerDetail,
     DriftCustomerSummary,
     DriftTimelinePoint,
     LayerContribution,
     PublicSignalOut,
+    StabilityOut,
 )
 
 # Sanctioned seed entity for the contagion demo
@@ -54,6 +58,9 @@ class DriftEngine:
         )
         # Contagion is computed once (sanctions already hit in demo state)
         self._contagion = self._graph.propagate(seeds=[SANCTIONED_SEED])
+        # Cohort volatility reference for Suspicious Stability (computed once
+        # over the whole book — the norm against which smoothness is judged).
+        self._cohort_cv = cohort_volatility([c.monthly_volume for c in self._book])
 
     # ------------------------------------------------------------------ #
     # Core per-customer analysis
@@ -116,6 +123,42 @@ class DriftEngine:
         amplification = 1.0 + min((lift - 1.0) / 3.0, 1.0) * 0.35
         score = min(base * amplification * 100.0, 100.0)
 
+        # --- CAUSAL: is this drift risk-shaped or life-shaped? ---
+        # Uses causal_windows (includes margin_ratio, the discriminator) which
+        # is deliberately kept OUT of velocity so the two measures stay
+        # orthogonal: velocity = how much changed, causal = in which direction.
+        causal = causal_assessment(cust.causal_windows())
+
+        # --- SUSPICIOUS STABILITY: is the customer anomalously smooth while
+        # the environment moves? (the slow-walker / sleeper) ---
+        stability = assess_stability(
+            cust.monthly_volume,
+            self._cohort_cv,
+            counterparty_monthly=cust.counterparty_risk,
+            corridor_monthly=cust.corridor_risk,
+            public_risk=pi.public_risk,
+        )
+
+        # Causal modulation — the whole point of the causal layer is to act on
+        # the verdict, not just display it. A high-magnitude drift that is
+        # clearly LIFE-SHAPED (benign) should NOT sit at the top of the
+        # officer's queue; a risk-shaped drift is confirmed. We modulate the
+        # score by a factor derived from p_risk:
+        #   p_risk ~1.0 (risk)   -> factor ~1.0  (score stands)
+        #   p_risk ~0.5 (unsure) -> factor ~0.85 (mild discount)
+        #   p_risk ~0.0 (benign) -> factor ~0.45 (strong discount)
+        # Benign business growth is demoted, not erased — an officer can still
+        # see it, but it stops generating false-positive alerts.
+        causal_factor = 0.45 + 0.55 * causal.p_risk
+        score = min(score * causal_factor, 100.0)
+
+        # Suspicious-stability ELEVATION — the slow-walker keeps drift low ON
+        # PURPOSE, so it would otherwise slip through with a near-zero score.
+        # When suspicion is high we floor the score upward: a flagged
+        # slow-walker cannot hide below the radar.
+        if stability.is_suspicious:
+            score = max(score, 50.0 + stability.suspicion * 40.0)
+
         return {
             "drift_series": ds,
             "latest_velocity": latest_velocity,
@@ -129,6 +172,8 @@ class DriftEngine:
             "public_risk": pi.public_risk,
             "public_peak_month": pi.peak_signal_month,
             "confirmation_lift": lift,
+            "causal": causal,
+            "stability": stability,
             "drift_score": score,
         }
 
@@ -215,6 +260,10 @@ class DriftEngine:
                     propagated_risk=round(a["propagated_risk"], 3),
                     public_risk=round(a["public_risk"], 3),
                     confirmation_lift=round(a["confirmation_lift"], 2),
+                    causal_label=a["causal"].label,
+                    causal_p_risk=round(a["causal"].p_risk, 3),
+                    suspicion=round(a["stability"].suspicion, 3),
+                    is_suspicious=a["stability"].is_suspicious,
                     scenario=cust.scenario,
                 )
             )
@@ -266,6 +315,25 @@ class DriftEngine:
             public_signals=[
                 PublicSignalOut(**s.to_dict()) for s in a["public_signals"]
             ],
+            causal=CausalVerdictOut(
+                causal_llr=round(a["causal"].causal_llr, 2),
+                p_risk=round(a["causal"].p_risk, 3),
+                label=a["causal"].label,
+                volume_change=round(a["causal"].signature.volume_change, 3),
+                margin_change=round(a["causal"].signature.margin_change, 3),
+                counterparty_change=round(a["causal"].signature.counterparty_change, 3),
+                corridor_change=round(a["causal"].signature.corridor_change, 3),
+                contributions={k: round(v, 2) for k, v in a["causal"].contributions.items()},
+            ),
+            stability=StabilityOut(
+                suspicion=round(a["stability"].suspicion, 3),
+                stability_anomaly=round(a["stability"].stability_anomaly, 3),
+                environmental_movement=round(a["stability"].environmental_movement, 3),
+                own_volatility=round(a["stability"].own_volatility, 4),
+                cohort_volatility=round(a["stability"].cohort_volatility, 4),
+                is_suspicious=a["stability"].is_suspicious,
+                detail=a["stability"].detail,
+            ),
         )
 
     def scan(self) -> CascadeCostReport:

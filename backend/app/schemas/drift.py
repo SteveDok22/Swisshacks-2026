@@ -25,6 +25,33 @@ class PublicSignalOut(BaseModel):
     source: str
 
 
+class CausalVerdictOut(BaseModel):
+    """Causal hypothesis competition: is the drift risk-shaped or life-shaped?"""
+
+    causal_llr: float = Field(description="log P(O|risk)/P(O|benign); >0 = risk-shaped")
+    p_risk: float = Field(description="Posterior P(risk | signature), 0-1")
+    label: str = Field(description="risk | benign | ambiguous")
+    # Signature: how each metric moved
+    volume_change: float
+    margin_change: float
+    counterparty_change: float
+    corridor_change: float
+    # Per-metric LLR contributions (which metric drove the verdict)
+    contributions: dict[str, float] = Field(default_factory=dict)
+
+
+class StabilityOut(BaseModel):
+    """Suspicious-stability assessment: the slow-walker / sleeper detector."""
+
+    suspicion: float = Field(description="0-1 product of the two factors")
+    stability_anomaly: float = Field(description="0-1 how unnaturally smooth")
+    environmental_movement: float = Field(description="0-1 how much surroundings move")
+    own_volatility: float = Field(description="customer coefficient of variation")
+    cohort_volatility: float = Field(description="cohort median CV (reference)")
+    is_suspicious: bool
+    detail: str
+
+
 class DriftCustomerSummary(BaseModel):
     """Book-overview row: one customer's drift snapshot."""
 
@@ -38,6 +65,10 @@ class DriftCustomerSummary(BaseModel):
     propagated_risk: float = Field(default=0.0, description="Layer 3 contagion risk")
     public_risk: float = Field(default=0.0, description="Layer 2 public intelligence risk")
     confirmation_lift: float = Field(default=1.0, description="Public-internal co-occurrence lift")
+    causal_label: str = Field(default="ambiguous", description="risk | benign | ambiguous")
+    causal_p_risk: float = Field(default=0.5, description="Posterior P(risk)")
+    suspicion: float = Field(default=0.0, description="Suspicious-stability score 0-1")
+    is_suspicious: bool = Field(default=False, description="Slow-walker flag")
     scenario: str | None = Field(default=None, description="Ground-truth scenario (demo)")
 
 
@@ -74,6 +105,12 @@ class DriftCustomerDetail(BaseModel):
     internal_risk: float = Field(default=0.0, description="Internal bank data layer risk 0-1")
     confirmation_lift: float = Field(default=1.0, description="Temporal co-occurrence amplification")
     public_signals: list[PublicSignalOut] = Field(default_factory=list)
+
+    # Causal drift: risk-shaped vs life-shaped change
+    causal: CausalVerdictOut | None = None
+
+    # Suspicious stability: the slow-walker / sleeper detector
+    stability: StabilityOut | None = None
 
 
 class CascadeCostReport(BaseModel):

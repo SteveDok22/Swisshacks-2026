@@ -140,6 +140,49 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
           );
         })}
       </svg>
+
+      {/* Customer list — click to select (easier than hunting for dots) */}
+      <div className="mt-3 border-t border-paper-line pt-2 space-y-0.5 max-h-56 overflow-y-auto">
+        {customers.map((c) => {
+          const selected = c.customer_id === selectedId;
+          return (
+            <button
+              key={c.customer_id}
+              onClick={() => onSelect(c.customer_id)}
+              className={cn(
+                "w-full flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors",
+                selected ? "bg-accent-bg" : "hover:bg-paper-sunken",
+              )}
+            >
+              <span
+                className="h-2.5 w-2.5 rounded-full shrink-0"
+                style={{ background: dotColor(c.velocity_band) }}
+              />
+              <span className={cn("text-xs flex-1 min-w-0 truncate", selected ? "text-accent font-medium" : "text-ink")}>
+                {c.name}
+              </span>
+              {c.causal_label === "benign" && (
+                <span className="text-2xs px-1.5 py-0.5 rounded bg-risk-low-bg text-risk-low shrink-0">
+                  ✓ benign
+                </span>
+              )}
+              {c.causal_label === "risk" && (
+                <span className="text-2xs px-1.5 py-0.5 rounded bg-risk-critical-bg text-risk-critical shrink-0">
+                  risk
+                </span>
+              )}
+              {c.is_suspicious && (
+                <span className="text-2xs px-1.5 py-0.5 rounded bg-risk-high text-white shrink-0">
+                  slow
+                </span>
+              )}
+              <span className="font-mono text-2xs tabular text-ink-soft w-8 text-right shrink-0">
+                {c.drift_score.toFixed(0)}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

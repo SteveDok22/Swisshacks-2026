@@ -4,41 +4,56 @@ services:
       context: ./backend
       dockerfile: Dockerfile
     container_name: swisshacks-backend
+    restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
       - ENVIRONMENT=development
       - DEBUG=true
-      - DATABASE_URL=sqlite+aiosqlite:///./data/risk_platform.db
+      # SQLite lives in a dedicated subdir backed by a named volume
+      - DATABASE_URL=sqlite+aiosqlite:///./data/db/risk_platform.db
+      # Optional: pass your Claude key through from the host (or backend/.env)
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
     env_file:
-      - ./backend/.env
+      # Optional — container runs fine without it (sensible defaults apply)
+      - path: ./backend/.env
+        required: false
     volumes:
-      # Live code reload (dev only)
-      - ./backend/app:/home/app/app:ro
-      - ./backend/data:/home/app/data
-    command: >
-      uvicorn app.main:app
-      --host 0.0.0.0
-      --port 8000
-      --reload
-      --reload-dir /home/app/app
+      # Persist only the SQLite DB. ML models stay baked into the image
+      # at /home/app/data/models, so they are not shadowed by this volume.
+      - backend_data:/home/app/data/db
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 20s
     networks:
       - swisshacks
 
-  # === Frontend будет добавлен на День 15 ===
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - backend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: swisshacks-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      # Next.js rewrites proxy /api/backend/* to the backend service
+      - BACKEND_INTERNAL_URL=http://backend:8000
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - swisshacks
 
 networks:
   swisshacks:

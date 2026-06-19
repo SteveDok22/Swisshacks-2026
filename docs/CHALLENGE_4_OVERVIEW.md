@@ -167,7 +167,7 @@ This proves the system is a **leading indicator**, not a trailing one. It's esse
 
 ## The Two-Layer Architecture
 
-### Layer 1: Public Intelligence
+### Layer A: Public Intelligence
 
 **Inputs:**
 - Sanctions lists (OFAC, EU, UN, local blocklists)
@@ -181,7 +181,7 @@ This proves the system is a **leading indicator**, not a trailing one. It's esse
 
 **Why it's separate**: Public data is slower, coarser, and requires human judgment to interpret. It's a **filter**, not a full picture. It catches the obvious cases and boosts confidence in internal drift signals.
 
-### Layer 2: Internal Bank Data
+### Layer B: Internal Bank Data
 
 **Inputs:**
 - KYC profile (original onboarding data)
@@ -208,7 +208,7 @@ The system is built for regulatory compliance in a bank, where running expensive
 2. **Tier 1 — ML** (cheap): For borderline cases, run XGBoost risk model (trained on historical alerts + outcomes). ~5% of customers reach here.
 3. **Tier 2 — LLM reasoning** (expensive): Only for high-stakes borderline cases, use Claude to debate causal vs. benign hypothesis, generate rationale for officer review. ~0.5% of customers reach here.
 
-**Result**: 96% cheaper than running the LLM on everyone, with better decisions at each layer.
+**Result**: 96% cheaper than running the LLM on everyone, at equal high-risk recall (H4, validated on 1,000-customer synthetic book).
 
 ---
 

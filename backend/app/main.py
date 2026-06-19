@@ -18,6 +18,7 @@ from app.api.v1 import api_router
 from app.core.config import settings
 from app.core.logging import get_logger, setup_logging
 from app.ml.registry import get_registry
+from app.services.jurisdiction import get_jurisdiction_service
 from app.services.store import get_store
 
 # Initialize logging FIRST, before anything else
@@ -57,6 +58,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         "ml_models_loaded",
         loaded_count=len(registry.loaded_case_types),
         case_types=[ct.value for ct in registry.loaded_case_types],
+    )
+    
+    # Load jurisdiction rules
+    jurisdictions = get_jurisdiction_service()
+    logger.info(
+        "jurisdictions_loaded",
+        count=len(jurisdictions.loaded_jurisdictions),
+        codes=[j.value for j in jurisdictions.loaded_jurisdictions],
     )
     
     # TODO День 6: Initialize database here

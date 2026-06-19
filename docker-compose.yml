@@ -1,44 +1,105 @@
+# One file runs the whole stack with hot reload:
+#
+#   docker compose up --build
+#
+#   frontend (Next.js dev server, HMR) -> http://localhost:3000
+#   backend  (uvicorn --reload)        -> http://localhost:8000/docs
+#   database -> SQLite, persisted in the backend_data volume (no DB container)
+#
+# Docker Compose has no built-in --dev/--prod switch and volume mounts can't be
+# toggled by env vars, so this single file is tuned for local development.
+# The Dockerfiles still keep production stages (frontend `runner`, backend's
+# default CMD) for real deployment via `docker build`.
 services:
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
     container_name: swisshacks-backend
+    restart: unless-stopped
     ports:
       - "8000:8000"
     environment:
       - ENVIRONMENT=development
       - DEBUG=true
-      - DATABASE_URL=sqlite+aiosqlite:///./data/risk_platform.db
+      # SQLite lives in a dedicated subdir backed by a named volume
+      - DATABASE_URL=sqlite+aiosqlite:///./data/db/risk_platform.db
+      # Optional: pass your Claude key through from the host (or backend/.env)
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      # macOS bind mounts don't deliver inotify events — poll so --reload works
+      - WATCHFILES_FORCE_POLLING=true
     env_file:
-      - ./backend/.env
+      # Optional — container runs fine without it (sensible defaults apply)
+      - path: ./backend/.env
+        required: false
+    # Hot reload: uvicorn watches the bind-mounted app source
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /home/app/app
     volumes:
-      # Live code reload (dev only)
-      - ./backend/app:/home/app/app:ro
-      - ./backend/data:/home/app/data
-    command: >
-      uvicorn app.main:app
-      --host 0.0.0.0
-      --port 8000
-      --reload
-      --reload-dir /home/app/app
+      # Live backend code (overlays the copy baked into the image)
+      - ./backend/app:/home/app/app
+      # Persist only the SQLite DB. ML models stay baked into the image
+      # at /home/app/data/models, so they are not shadowed by this volume.
+      - backend_data:/home/app/data/db
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
       timeout: 10s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 20s
     networks:
       - swisshacks
 
-  # === Frontend будет добавлен на День 15 ===
-  # frontend:
-  #   build:
-  #     context: ./frontend
-  #   ports:
-  #     - "3000:3000"
-  #   depends_on:
-  #     - backend
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      # next dev (hot reload). Production stage is `runner`.
+      target: dev
+    container_name: swisshacks-frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=development
+      # Next.js rewrites proxy /api/backend/* to the backend service
+      - BACKEND_INTERNAL_URL=http://backend:8000
+      # macOS bind mounts: force polling so Next.js HMR sees changes
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      # Live frontend source...
+      - ./frontend:/app
+      # ...but keep the image's installed deps and build cache
+      - /app/node_modules
+      - /app/.next
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+    networks:
+      - swisshacks
+
+  # Backend test suite (pytest) in a container — no local Python needed:
+  #   docker compose run --rm backend-tests
+  # Profiled, so it never starts on `docker compose up`.
+  backend-tests:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: test
+    profiles: ["test"]
+    environment:
+      - ENVIRONMENT=development
+      # Tests use their own in-memory DB; keep the module engine off disk too.
+      - "DATABASE_URL=sqlite+aiosqlite:///:memory:"
+    volumes:
+      # Live source + tests, so edits run without rebuilding the image.
+      - ./backend:/app
 
 networks:
   swisshacks:

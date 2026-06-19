@@ -7,8 +7,8 @@
 
 ## Pre-demo checklist (за 5 минут до выступления)
 
-- [ ] Backend запущен и отвечает: `curl http://localhost:8000/health`
-- [ ] Frontend запущен на localhost:3000
+- [ ] Стек поднят: `docker compose up -d --build` (оба контейнера healthy)
+- [ ] Backend отвечает `curl http://localhost:8000/health`, frontend на localhost:3000
 - [ ] БД свежая: scoring работает для всех 18 кейсов (тестовый клик на 3 разных типа)
 - [ ] Welcome modal **dismissed** (нет всплывашки при показе)
 - [ ] Browser zoom: 100% (Cmd+0)

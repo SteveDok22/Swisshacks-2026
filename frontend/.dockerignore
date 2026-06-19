@@ -1,0 +1,22 @@
+# Dependencies & build output (rebuilt inside the image)
+node_modules
+.next
+out
+build
+dist
+
+# VCS / docker meta
+.git
+.gitignore
+.dockerignore
+Dockerfile
+
+# Logs & local env
+npm-debug.log*
+yarn-error.log*
+.env
+.env.*
+
+# OS / docs
+.DS_Store
+README.md

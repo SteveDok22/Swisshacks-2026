@@ -65,7 +65,7 @@ flowchart TB
 flowchart LR
     Browser[Browser]
 
-    subgraph Local["Local Dev"]
+    subgraph Local["docker compose (local)"]
         NextJS["Next.js\n:3000"]
         FastAPI["FastAPI\n:8000"]
         SQLite[("SQLite\nsentinel.db")]

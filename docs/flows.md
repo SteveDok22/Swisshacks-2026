@@ -1,0 +1,170 @@
+# User Flows & Use Cases
+
+## Use Cases
+
+```mermaid
+graph LR
+    Officer(["Compliance Officer"])
+
+    subgraph Sentinel["Sentinel · Drift Engine"]
+        direction TB
+        UC1[Monitor drift dashboard]
+        UC2[Scan customer book]
+        UC3[Investigate flagged customer]
+        UC4[Review causal evidence]
+        UC5[Time-travel audit replay]
+        UC6[Generate Request for Information]
+        UC7[Log decision & rationale]
+        UC8[Export immutable audit log]
+        UC9[Switch jurisdiction rules\nCH / EU / HK / AE]
+        UC10[Explore contagion graph]
+        UC11[View counterfactual scenarios]
+    end
+
+    Officer --> UC1
+    Officer --> UC2
+    Officer --> UC3
+    Officer --> UC7
+    Officer --> UC8
+    Officer --> UC9
+    UC3 --> UC4
+    UC3 --> UC5
+    UC3 --> UC6
+    UC3 --> UC10
+    UC3 --> UC11
+```
+
+---
+
+## Officer Investigation Flow
+
+```mermaid
+sequenceDiagram
+    participant O as Compliance Officer
+    participant FE as Next.js Frontend
+    participant API as FastAPI Backend
+    participant DE as Drift Engine
+    participant LLM as Claude AI
+    participant DB as Database
+
+    O->>FE: Open Drift Dashboard
+    FE->>API: GET /api/v1/drift/customers
+    API->>DE: scan_all_customers()
+    DE-->>API: DriftCustomerSummary[] sorted by score
+    API-->>FE: Risk-ranked list
+    FE-->>O: Radar + priority queue
+
+    O->>FE: Click high-risk customer
+    FE->>API: GET /api/v1/drift/customers/{id}
+    API->>DE: full_analysis(customer_id)
+    DE-->>API: DriftCustomerDetail + all 7 layers
+    API-->>FE: Full breakdown + causal evidence
+    FE-->>O: Verdict bar · Evidence panels · Score timeline
+
+    O->>FE: Request AI explanation (SSE)
+    FE->>API: GET /api/v1/explanations/{case_id}/stream
+    API->>API: anonymizer.pseudonymize()
+    API->>LLM: Anonymized case + drift context
+    LLM-->>API: Streaming explanation tokens
+    API-->>FE: Server-Sent Events
+    FE-->>O: Typing animation
+
+    O->>FE: Log decision
+    FE->>API: POST /api/v1/decisions
+    API->>DB: INSERT (action, rationale, officer_id, timestamp)
+    DB-->>API: 201 Created
+    API-->>FE: Confirmed
+    FE-->>O: Decision recorded in audit log
+```
+
+---
+
+## Drift Detection Flow
+
+```mermaid
+flowchart TD
+    Trigger([Scheduled Scan\nor Manual Trigger])
+
+    subgraph Scan["Customer Book Scan"]
+        All["Load all customers\nsimulator.get_book()"]
+        Para["Process in parallel\n(stateless per customer)"]
+    end
+
+    subgraph Analyze["Per-Customer Analysis — service.py"]
+        Layers["Run 7 layers\nbocpd · velocity · contagion\npublic_intel · causal · stability"]
+        Fuse["Fuse scores\nConfirmation Lift applied"]
+        Route["Cost Cascade\nTier 0 → 1 → 2"]
+    end
+
+    subgraph Output["Output"]
+        Summary["DriftCustomerSummary\nscore · velocity · action"]
+        Detail["DriftCustomerDetail\nper-layer breakdown\ncausal evidence"]
+    end
+
+    Action{Recommended Action?}
+
+    Clear[No action\nLow risk]
+    Review[Schedule re-KYC\nMedium risk]
+    Escalate[Enhanced Due Diligence\nHigh risk → Officer queue]
+
+    Trigger --> All
+    All --> Para
+    Para --> Layers
+    Layers --> Fuse
+    Fuse --> Route
+    Route --> Summary & Detail
+    Summary & Detail --> Action
+    Action -->|Clear| Clear
+    Action -->|Review| Review
+    Action -->|EDD| Escalate
+
+    style Clear fill:#16a34a,color:#fff
+    style Review fill:#d97706,color:#fff
+    style Escalate fill:#dc2626,color:#fff
+```
+
+---
+
+## Time-Travel Audit Flow
+
+```mermaid
+flowchart LR
+    Officer([Officer])
+
+    SelectDate["Select as-of date\ne.g. 6 months ago"]
+    Truncate["Truncate all data\nto that snapshot\n(no future data leaks)"]
+    Replay["Re-run full\nDrift Engine analysis"]
+    Compare["Compare:\n— Historical score\n— Current score\n— Lead time estimate"]
+    Proof["Audit proof:\nSystem would have flagged\nN months before event"]
+
+    Officer --> SelectDate
+    SelectDate --> Truncate
+    Truncate --> Replay
+    Replay --> Compare
+    Compare --> Proof
+```
+
+---
+
+## Ownership Contagion Discovery
+
+```mermaid
+flowchart TD
+    Seed["Sanctioned Entity\n(watchlist hit)"]
+
+    Hop1A["Direct shareholder A\n+PageRank weight"]
+    Hop1B["Direct shareholder B\n+PageRank weight"]
+
+    Hop2A["2nd-degree owner\nSmaller weight"]
+    Hop2B["2nd-degree owner\nSmaller weight"]
+
+    Beyond["3rd degree+\nweight decays to noise"]
+
+    Result["Risk scores updated\nfor connected customers\nnot yet on any watchlist"]
+
+    Seed --> Hop1A & Hop1B
+    Hop1A --> Hop2A
+    Hop1B --> Hop2B
+    Hop2A & Hop2B --> Beyond
+    Hop1A & Hop1B & Hop2A & Hop2B --> Result
+```

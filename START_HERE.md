@@ -23,8 +23,18 @@ profile, often months before a sanctions listing.
 |---|---|---|
 | 1 | **`QUICKSTART.md`** | Run it locally in ~10 minutes (no API key needed) |
 | 2 | **`DRIFT_ENGINE_README.md`** | The AMINA Challenge 4 approach, math, and references |
-| 3 | **`pitch/deck.md`** | The pitch deck |
+| 3 | **`pitch/deck.md`** | The pitch deck (open with Marp or read the PDF) |
 | 4 | **`pitch/demo-script.md`** | The 3-minute demo walkthrough |
+
+## Technical documentation (docs/)
+
+| Doc | Contents |
+|---|---|
+| **[docs/architecture.md](docs/architecture.md)** | System diagram, deployment topology, backend & frontend module maps |
+| **[docs/drift-engine.md](docs/drift-engine.md)** | 7-layer pipeline, cost cascade decision tree, two-layer fusion |
+| **[docs/flows.md](docs/flows.md)** | Use cases, officer investigation sequence, contagion discovery flow |
+| **[docs/db-schema.md](docs/db-schema.md)** | ER diagram, enumerations, case lifecycle state machine |
+| **[docs/api.md](docs/api.md)** | All 27 endpoints — methods, paths, response shapes |
 
 ---
 

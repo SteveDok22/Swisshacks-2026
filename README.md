@@ -198,6 +198,14 @@ database is SQLite, auto-seeded on first start. Open
 
 ## Testing
 
+Run the suite in Docker (no local Python needed):
+
+```bash
+docker compose run --rm backend-tests
+```
+
+What's covered:
+
 - **Unit:** BOCPD against reference behavior (changepoint on step data, none on stationary).
 - **Scenario suite:** stable / volume-creep / counterparty-migration / corridor-shift / combined / benign-expansion / suspicious-stability, each with ground truth.
 - **Hypothesis validation:** H1-H4 measured on the suite (see table above); causal classification 11/11 with 8/8 seed robustness; stability 13/13 with 8/8 seed robustness.

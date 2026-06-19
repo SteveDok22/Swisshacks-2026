@@ -242,6 +242,9 @@ export const driftApi = {
   contagion: () =>
     apiFetch<ContagionGraphData>("/drift/contagion"),
 
+  replay: (id: string) =>
+    apiFetch<import("@/types/api").ReplayResult>(`/drift/replay/${id}`),
+
   inject: (scenario: string, name: string) =>
     apiFetch<DriftCustomerDetail>("/drift/inject", {
       method: "POST",

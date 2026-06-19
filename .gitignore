@@ -62,3 +62,9 @@ backend/data/audio_samples/*.mp3
 # Secrets
 secrets/
 *.key
+
+# Internal working notes — kept locally, not in the repo
+BUILD_JOURNAL.md
+WRAP_UP.md
+docs/Kak-*.pdf
+_private_materials/

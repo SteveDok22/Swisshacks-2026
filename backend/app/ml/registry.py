@@ -111,8 +111,8 @@ class ModelRegistry:
                 ),
             )
         
-        # TODO День 14: Add Julius Baer model loading here
-        # TODO День 14: Add Ripple model loading here
+        # TODO: Add Julius Baer model loading here
+        # TODO: Add Ripple model loading here
         
         logger.info(
             "registry_loaded",

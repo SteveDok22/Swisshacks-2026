@@ -15,6 +15,7 @@ from app.schemas.drift import (
     DriftCustomerDetail,
     DriftCustomerSummary,
     InjectScenarioRequest,
+    ReplayResult,
     RFIResponse,
 )
 
@@ -64,6 +65,21 @@ async def run_cascade_scan() -> CascadeCostReport:
 async def get_contagion_graph() -> ContagionGraph:
     """Ownership graph with propagated risk for visualization."""
     return get_drift_engine().contagion_graph()
+
+
+@router.get("/replay/{customer_id}", response_model=ReplayResult)
+async def get_replay(customer_id: str) -> ReplayResult:
+    """
+    Time-Travel Audit: as-of replay proving the system would have flagged this
+    customer using ONLY past data — no look-ahead bias. The regulatory proof.
+    """
+    result = get_drift_engine().replay(customer_id)
+    if result is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No drift customer {customer_id!r}",
+        )
+    return result
 
 
 @router.post("/inject", response_model=DriftCustomerDetail)

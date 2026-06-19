@@ -225,6 +225,26 @@ export interface StabilityVerdict {
   detail: string;
 }
 
+
+export interface AsOfPoint {
+  month: number;
+  as_of_score: number;
+  velocity: number;
+  public_risk: number;
+  contagion_active: boolean;
+  causal_p_risk: number;
+}
+
+export interface ReplayResult {
+  customer_id: string;
+  name: string;
+  points: AsOfPoint[];
+  alert_month: number | null;
+  sanctions_month: number | null;
+  lead_time_months: number | null;
+  alert_threshold: number;
+}
+
 export interface PublicSignal {
   month: number;
   signal_type: string;

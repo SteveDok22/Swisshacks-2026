@@ -155,7 +155,7 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
         )}
 
         {/* Velocity curve */}
-        <path d={path} fill="none" stroke="var(--accent, #1e3a5f)" strokeWidth={2} />
+        <path d={path} fill="none" stroke="var(--accent, #003d4c)" strokeWidth={2} />
 
         {/* Cursor */}
         <line
@@ -171,7 +171,7 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
           cx={mx(current.month)}
           cy={vy(current.velocity)}
           r={5}
-          fill="var(--accent, #1e3a5f)"
+          fill="var(--accent, #003d4c)"
           stroke="white"
           strokeWidth={2}
         />

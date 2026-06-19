@@ -28,6 +28,7 @@ from app.drift.public_intel import (
 )
 from app.drift.simulator import SyntheticCustomer, generate_book, generate_customer
 from app.drift.stability import assess_stability, cohort_volatility
+from app.drift.timetravel import replay_trajectory
 from app.drift.velocity import compute_drift_series, velocity_band
 from app.schemas.drift import (
     CascadeCostReport,
@@ -39,6 +40,8 @@ from app.schemas.drift import (
     LayerContribution,
     PublicSignalOut,
     StabilityOut,
+    AsOfPointOut,
+    ReplayResult,
 )
 
 # Sanctioned seed entity for the contagion demo
@@ -367,6 +370,43 @@ class DriftEngine:
             nodes=data["nodes"],
             edges=data["edges"],
             seeds=self._contagion.seeds,
+        )
+
+    def replay(self, customer_id: str) -> ReplayResult | None:
+        """Time-Travel Audit: as-of replay proving no look-ahead bias."""
+        cust = next((c for c in self._book if c.customer_id == customer_id), None)
+        if cust is None:
+            return None
+
+        prop = self._contagion.propagated_risk.get(customer_id, 0.0)
+        # The seed entity is sanctioned at the customer's sanctions_month;
+        # before that, contagion risk does not exist (no look-ahead).
+        listing_month = cust.sanctions_month
+
+        traj = replay_trajectory(
+            cust,
+            propagated_risk_final=prop,
+            contagion_listing_month=listing_month,
+        )
+
+        return ReplayResult(
+            customer_id=cust.customer_id,
+            name=cust.name,
+            points=[
+                AsOfPointOut(
+                    month=p.month,
+                    as_of_score=p.as_of_score,
+                    velocity=p.velocity,
+                    public_risk=p.public_risk,
+                    contagion_active=p.contagion_active,
+                    causal_p_risk=p.causal_p_risk,
+                )
+                for p in traj["points"]
+            ],
+            alert_month=traj["alert_month"],
+            sanctions_month=traj["sanctions_month"],
+            lead_time_months=traj["lead_time_months"],
+            alert_threshold=traj["alert_threshold"],
         )
 
     def inject_scenario(self, scenario: str, name: str) -> DriftCustomerDetail:

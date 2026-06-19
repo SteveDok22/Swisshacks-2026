@@ -1,11 +1,24 @@
-# Next.js 15 production image using standalone output.
-# Multi-stage: install deps -> build -> minimal runtime.
+# Next.js 15 image. Default build = production (standalone output).
+# A separate `dev` stage provides hot reload for docker-compose.override.yml.
+# Multi-stage: install deps -> (dev | build) -> minimal runtime.
 
 # === STAGE 1: deps ===
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
+
+# === STAGE: dev (hot reload via `next dev`) ===
+# Used by docker-compose.override.yml. The host source is bind-mounted over
+# /app at runtime, so edits hot-reload in the browser. node_modules stays in
+# an anonymous volume (see the override) so the image's deps are not shadowed.
+FROM deps AS dev
+ENV NODE_ENV=development \
+    NEXT_TELEMETRY_DISABLED=1 \
+    WATCHPACK_POLLING=true
+COPY . .
+EXPOSE 3000
+CMD ["npm", "run", "dev", "--", "-H", "0.0.0.0", "-p", "3000"]
 
 # === STAGE 2: builder ===
 FROM node:20-alpine AS builder

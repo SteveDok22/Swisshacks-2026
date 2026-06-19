@@ -22,6 +22,18 @@ RUN uv venv /opt/venv && \
     . /opt/venv/bin/activate && \
     uv pip install --no-cache -r pyproject.toml
 
+# === STAGE: Test ===
+# Runs the pytest suite (unit + ASGI integration). Reuses the full app venv and
+# adds pytest/pytest-asyncio. Code + tests are bind-mounted at runtime by the
+# `backend-tests` compose service, so edits run without rebuilding.
+FROM builder AS test
+ENV VIRTUAL_ENV=/opt/venv \
+    PATH="/opt/venv/bin:$PATH" \
+    PYTHONPATH=/app
+RUN . /opt/venv/bin/activate && \
+    uv pip install --no-cache pytest pytest-asyncio
+CMD ["pytest", "-v"]
+
 # === STAGE 2: Runtime ===
 FROM python:3.12-slim AS runtime
 

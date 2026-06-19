@@ -84,6 +84,23 @@ services:
     networks:
       - swisshacks
 
+  # Backend test suite (pytest) in a container — no local Python needed:
+  #   docker compose run --rm backend-tests
+  # Profiled, so it never starts on `docker compose up`.
+  backend-tests:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: test
+    profiles: ["test"]
+    environment:
+      - ENVIRONMENT=development
+      # Tests use their own in-memory DB; keep the module engine off disk too.
+      - "DATABASE_URL=sqlite+aiosqlite:///:memory:"
+    volumes:
+      # Live source + tests, so edits run without rebuilding the image.
+      - ./backend:/app
+
 networks:
   swisshacks:
     driver: bridge

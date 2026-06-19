@@ -57,6 +57,14 @@ Click **Marc Weber** (top of queue, score 100). The AI assessment should stream 
 
 If anything failed — ping in Slack with the exact error.
 
+### Run the tests
+
+```bash
+docker compose run --rm backend-tests
+```
+
+Runs the backend pytest suite in a container — no local Python needed.
+
 ---
 
 ## Next — read these 3 things (10 minutes)

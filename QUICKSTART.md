@@ -40,6 +40,23 @@ docker compose down
 
 ---
 
+## Run the tests
+
+```bash
+docker compose run --rm backend-tests
+```
+
+Runs the backend suite (pytest) in a throwaway container — no local Python
+needed. The source is mounted, so test edits run without rebuilding.
+
+Pass pytest arguments after the service name — e.g. a single file:
+
+```bash
+docker compose run --rm backend-tests pytest tests/test_score_boundaries.py -v
+```
+
+---
+
 ## What to look at first
 
 1. **Dashboard** (localhost:3000) — click "Marc Weber" case, watch the AI explanation stream in, scroll through SHAP / counterfactuals / jurisdiction toggle.

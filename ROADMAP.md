@@ -1,6 +1,8 @@
 # Sentinel · Drift Engine — Roadmap
 
-Current status: **core statistical engine complete; compliance loop, LLM integration, and 3 of 10 challenge use cases have gaps.**
+Current status: **core statistical engine complete; 1 use case genuinely works on synthetic data, 5 are partial/indirect, 3 are missing entirely.**
+
+> Audit verified 2026-06-20 against actual code (Sentinel_UseCase_Audit.pdf). Three groups: A — Works (case 2), B — Partial/Indirect (cases 1, 3, 4, 5, 6, 7), C — Missing (cases 8, 9, 10).
 
 Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/SwissHacks-2026/Amina-BANK/blob/main/README.md)
 
@@ -49,18 +51,20 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 ### Challenge Use Case Coverage
 
-| Use Case | Signal | Status |
-|---|---|---|
-| Negative news spike | Reputational risk | ✅ public_intel.py severity + Confirmation Lift |
-| Cross-border transfer anomaly | Behavioural anomaly | ✅ BOCPD + velocity |
-| Multiple entities + sudden flows | Structuring / layering | ✅ contagion + causal |
-| Jurisdiction / legal form change | Structural risk | ✅ causal + contagion |
-| New shareholders / UBOs | Ownership KYC drift | ✅ contagion (PageRank) |
-| Large funding round / expansion | Scale risk | ✅ velocity + causal (benign vs risk) |
-| Dormant company activates | Suspicious activation | ⚠️ stability flags anomalous smoothness; no explicit dormancy signal |
-| Legal entity name change | Re-KYC required | ❌ not implemented |
-| Domain switch / website change | Business activity change | ❌ not implemented |
-| Public business model pivot | Material business change | ❌ not implemented |
+Statuses from code-verified audit (2026-06-20). Legend: ✅ WORKS · ⚠️ PARTIAL · 🔶 INDIRECT · ❌ MISSING
+
+| # | Use Case | Signal | Status | What exists | Real sources needed |
+|---|---|---|---|---|---|
+| 1 | Negative news spike | Reputational risk | ⚠️ PARTIAL | Lexicon classifier + confirmation lift; no live feed, no spike detection | EventRegistry / NewsAPI.ai, GDELT, Google News RSS |
+| 2 | Cross-border transfer anomaly | Behavioural anomaly | ✅ WORKS | BOCPD + velocity on synthetic data | Internal transactions, OpenSanctions (geography) |
+| 3 | Multiple entities + sudden flows | Structuring / layering | ⚠️ PARTIAL | Contagion + causal; no named layering detector | GLEIF, OpenCorporates, Companies House, internal tx graph |
+| 4 | Jurisdiction / legal form change | Structural risk | 🔶 INDIRECT | `jurisdiction.py` is rule-pack selector, not a change detector | ZEFIX, GLEIF, OpenCorporates, Companies House |
+| 5 | New shareholders / UBOs | Ownership KYC drift | ⚠️ PARTIAL | PageRank over synthetic graph; no real UBO lookup | Companies House PSC, OpenCorporates, GLEIF, OpenSanctions |
+| 6 | Large funding round / expansion | Scale risk | ⚠️ PARTIAL | `funding_event` template + causal; no live feed | EventRegistry / NewsAPI.ai, GDELT, Crunchbase, company website |
+| 7 | Dormant company activates | Suspicious activation | ⚠️ PARTIAL | Stability flags smoothness; no explicit zero→volume-jump detector | Internal transactions, ZEFIX, OpenCorporates, Companies House |
+| 8 | Legal entity name change | Re-KYC required | ❌ MISSING | Not implemented; no registry integration | ZEFIX, GLEIF, RDAP/WHOIS, EventRegistry/GDELT |
+| 9 | Domain switch / website change | Business activity change | ❌ MISSING | Not implemented; no WHOIS/Wayback/Firecrawl | RDAP/WHOIS, Wayback Machine, Firecrawl, EventRegistry |
+| 10 | Public business model pivot | Material business change | ❌ MISSING | Not implemented; no business model comparison | EventRegistry/GDELT, ZEFIX, GLEIF, Wayback Machine, Firecrawl |
 
 ---
 
@@ -79,6 +83,7 @@ Ordered by judging weight × demo impact. Check off as work is completed.
 
 ### 🟠 P1 — AI Quality (25%)
 
+- [ ] **Case 7: Dormancy-break detector** — highest value-for-effort quick win (no external API needed). The stability engine + volume time-series already exist. Add explicit `near-zero baseline → volume jump` detector (~30 lines + 1 test) in `drift/stability.py` or new `drift/dormancy.py`; wire signal into `drift/service.py`. Moves Case 7 from PARTIAL → WORKS; yields a genuine new flag worth 25% of score.
 - [ ] **Fix BOCPD changepoint visual marker** — `bocpd_changepoint=False` is hardcoded at `service.py:296`; map `bocpd_changepoint_day` to the correct timeline index; add vertical dashed-line marker in `DriftTimeline.tsx`
 
 ### 🟠 P1 — Compliance & Safety (20%)
@@ -109,24 +114,98 @@ Ordered by judging weight × demo impact. Check off as work is completed.
 
 ---
 
-## Missing Use Cases — New Features Required
+## Real Source Integration — Pipeline Architecture
 
-These three (S4, S5, S6) require new modules entirely:
+All real-source use cases follow the same pattern:
 
-- [ ] **S4 — Legal Entity Name Change Detection**
-  - Signal source: corporate registries (ZEFIX, GLEIF, Companies House)
-  - Detection: compare current registry name against KYC-captured name
-  - Implementation: new signal type in `public_intel.py` + registry API client
+```
+Source A ──→ fetch + parse ──→ signal_A (severity 0–1) ──┐
+Source B ──→ fetch + parse ──→ signal_B (severity 0–1) ──┤──→ XGBoost fusion ──→ risk level
+Source C ──→ fetch + parse ──→ signal_C (severity 0–1) ──┘         ↓
+                                                              SHAP explains
+                                                          which source drove it
+```
 
-- [ ] **S5 — Domain Switch / Website Content Monitoring**
-  - Signal source: WHOIS, SecurityTrails, Wayback Machine, Firecrawl
-  - Detection: domain registrar change; significant diff vs onboarding-era website
-  - Implementation: new module `drift/domain_monitor.py` + Firecrawl integration
+Each source gets its own adapter in `sources/`. Signal fusion runs through the existing `RiskEngine`. BOCPD wraps time-series sources for drift vs. one-off detection.
 
-- [ ] **S6 — Business Model Pivot Detection**
-  - Signal source: Crunchbase category changes, news ("pivot", "new direction"), website content diff
-  - Detection: NLP classifier on website content diff vs onboarding description
-  - Implementation: Crunchbase API client; extend causal hypothesis with business-model evidence type
+**EventRegistry / NewsAPI.ai note**: EventRegistry groups 20–50 articles from different media into a single `Event` object. This means spike detection works on event-level aggregation, not raw article count — much more robust signal for use cases 1, 6, 10.
+
+---
+
+## Missing & Partial Use Cases — Implementation Plan
+
+### Sprint 0 — Zero dependencies (~1–2 hours)
+
+- [ ] **Case 7: Dormancy-break detector** (see P1 task above) — closes without any external API
+
+---
+
+### Sprint 1 — Registry sources: Cases 4, 5, 8 (ZEFIX / GLEIF / OpenCorporates)
+
+Cases 4, 5, 8 share the same fetch-diff-score pattern. Build one generic `RegistryAdapter` base class, then plug in per-source implementations.
+
+- [ ] **Case 8 — Legal entity name change**
+  - Sources: ZEFIX (Swiss), GLEIF (global LEI), RDAP/WHOIS (domain), EventRegistry/GDELT (public news about rename)
+  - Detection: fetch current legal name → diff vs. KYC baseline → `name_changed` signal
+  - Implementation: `sources/zefix.py`, `sources/gleif.py`; new signal type in `public_intel.py`
+
+- [ ] **Case 5 — New shareholders / UBOs** (upgrade from PARTIAL)
+  - Sources: Companies House PSC (UK persons of significant control), OpenCorporates (directors/officers), GLEIF (parent-child), OpenSanctions (screen new owners)
+  - Detection: pull current UBO list → diff vs. stored baseline → screen each new owner → `owner_on_watchlist` signal
+  - Implementation: `sources/companies_house.py`, `sources/opensanctions.py`; replace synthetic PageRank seed with real data
+
+- [ ] **Case 4 — Jurisdiction / legal form change** (upgrade from INDIRECT)
+  - Sources: ZEFIX, GLEIF, OpenCorporates, Companies House
+  - Detection: compare current legal form + jurisdiction vs. onboarding baseline → `jurisdiction_risk_delta` signal
+  - Implementation: extend `jurisdiction.py` from rule-pack selector to change detector
+
+---
+
+### Sprint 2 — News & media sources: Cases 1, 6, 10 (EventRegistry / GDELT)
+
+- [ ] **Case 1 — Negative news spike** (upgrade from PARTIAL)
+  - Sources: EventRegistry / NewsAPI.ai (primary — event-level aggregation), GDELT (open global events), Google News RSS (simple fallback)
+  - Detection: rolling window event count per entity → spike = count > baseline + 2σ over 7 days
+  - Implementation: `sources/event_registry.py`; replace `public_intel.py` headline templates with real event fetch; add `spike_score` time-series to BOCPD
+
+- [ ] **Case 6 — Large funding round / expansion** (upgrade from PARTIAL)
+  - Sources: EventRegistry / NewsAPI.ai (funding news events), GDELT, Crunchbase (funding rounds + investors), company website (official announcements)
+  - Detection: funding event detected → cross-reference amount vs. typical AUM → `scale_jump_ratio` signal
+  - Implementation: `sources/crunchbase.py`; extend `funding_event` template to real Crunchbase API call
+
+- [ ] **Case 10 — Public business model pivot**
+  - Sources: EventRegistry / GDELT (pivot/direction news), ZEFIX / GLEIF (category change), Wayback Machine (historical website), Firecrawl (current website content)
+  - Detection: embed onboarding business description vs. current website/news → cosine drift score via sentence-transformers
+  - Implementation: `sources/firecrawl.py`, `sources/wayback.py`; new `drift/business_model.py` embedding comparator
+
+---
+
+### Sprint 3 — Web monitoring: Case 9 (WHOIS / Wayback / Firecrawl)
+
+- [ ] **Case 9 — Domain switch / website change**
+  - Sources: RDAP/WHOIS (domain registrar + age), Wayback Machine (historical snapshots), Firecrawl (current content scrape), EventRegistry/GDELT (news about domain change)
+  - Detection: domain registrar diff + sentence-transformer similarity (onboarding snapshot vs. current) → `content_drift_score`
+  - Implementation: `sources/whois.py`, `sources/wayback.py`, `sources/firecrawl.py`; new module `drift/domain_monitor.py`
+
+---
+
+### Source → Use Case matrix
+
+| Source | Cases |
+|---|---|
+| EventRegistry / NewsAPI.ai | 1, 6, 8, 10 |
+| GDELT | 1, 6, 8, 10 |
+| Google News RSS | 1 (fallback) |
+| ZEFIX | 4, 7, 8, 10 |
+| GLEIF | 3, 4, 5, 8, 10 |
+| OpenCorporates | 3, 4, 5, 7 |
+| Companies House PSC | 3, 5, 7 |
+| OpenSanctions | 2, 5 |
+| Crunchbase | 6 |
+| RDAP/WHOIS | 8, 9 |
+| Wayback Machine | 9, 10 |
+| Firecrawl | 9, 10 |
+| Internal transactions | 2, 3, 7 |
 
 ---
 
@@ -138,14 +217,18 @@ The architecture and interfaces are correct — plugging in real feeds is a slot
 
 ### Challenge-specified integrations (slot-swap ready):
 
-- [ ] **OpenSanctions** — aggregated OFAC + EU + UN; free tier available
-- [ ] **GDELT Project** — free, near-real-time global news events
-- [ ] **Swiss ZEFIX** — official Swiss commercial register; enables S4
-- [ ] **GLEIF LEI Database** — global legal entity identifiers; ownership chain lookups
-- [ ] **OpenCorporates** — beneficial ownership graph data
-- [ ] **Crunchbase** — funding rounds, investors, company pivots; enables S6
-- [ ] **Firecrawl** — OSS website-to-markdown scraping; enables S5 and S6
-- [ ] **Wayback Machine** — free historical website snapshots; baseline for domain monitoring
+- [ ] **EventRegistry / NewsAPI.ai** — event-level news aggregation (20–50 articles per story); primary for cases 1, 6, 8, 10
+- [ ] **GDELT Project** — free, near-real-time global news events; fallback for cases 1, 6, 10
+- [ ] **Google News RSS** — simple per-entity news feed; lightweight fallback for case 1
+- [ ] **OpenSanctions** — aggregated OFAC + EU + UN; free tier; primary for case 5 UBO screening
+- [ ] **Swiss ZEFIX** — official Swiss commercial register; cases 4, 7, 8, 10
+- [ ] **GLEIF LEI Database** — global legal entity identifiers; ownership chain lookups; cases 3, 4, 5, 8, 10
+- [ ] **OpenCorporates** — international registry aggregator; directors/officers/relationships; cases 3, 4, 5, 7
+- [ ] **Companies House PSC** — UK persons of significant control; cases 3, 5, 7
+- [ ] **Crunchbase** — funding rounds, investors, company pivots; case 6
+- [ ] **RDAP/WHOIS** — domain registrar and registration age; cases 8, 9
+- [ ] **Firecrawl** — OSS website-to-markdown scraping; cases 9, 10
+- [ ] **Wayback Machine** — free historical website snapshots; baseline for domain/content monitoring; cases 9, 10
 
 ---
 

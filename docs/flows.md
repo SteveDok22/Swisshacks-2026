@@ -46,7 +46,7 @@ flowchart TD
 ## System Use Cases (officer perspective)
 
 ```mermaid
-graph LR
+flowchart LR
     Officer(["Compliance Officer"])
 
     subgraph Sentinel["Sentinel · Drift Engine"]
@@ -59,7 +59,7 @@ graph LR
         UC6[Generate Request for Information]
         UC7[Log decision & rationale]
         UC8[Export immutable audit log]
-        UC9[Switch jurisdiction rules\nCH / EU / HK / AE]
+        UC9["Switch jurisdiction rules\nCH / EU / HK / AE"]
         UC10[Explore contagion graph]
         UC11[View counterfactual scenarios]
     end
@@ -126,7 +126,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    Trigger([Scheduled Scan\nor Manual Trigger])
+    Trigger(["Scheduled Scan\nor Manual Trigger"])
 
     subgraph Scan["Customer Book Scan"]
         All["Load all customers\nsimulator.get_book()"]
@@ -146,9 +146,9 @@ flowchart TD
 
     Action{Recommended Action?}
 
-    Clear[No action\nLow risk]
-    Review[Schedule re-KYC\nMedium risk]
-    Escalate[Enhanced Due Diligence\nHigh risk → Officer queue]
+    Clear["No action\nLow risk"]
+    Review["Schedule re-KYC\nMedium risk"]
+    Escalate["Enhanced Due Diligence\nHigh risk → Officer queue"]
 
     Trigger --> All
     All --> Para

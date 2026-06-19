@@ -44,8 +44,10 @@ WORKDIR /home/app
 # Copy app code
 COPY --chown=app:app . .
 
-# Make sure data dirs exist
-RUN mkdir -p data/models data/mock data/audio_samples
+# Make sure data dirs exist.
+# data/db is owned by `app` so the named volume mounted there inherits
+# writable ownership (SQLite needs to create the .db file at runtime).
+RUN mkdir -p data/models data/mock data/audio_samples data/db
 
 EXPOSE 8000
 

@@ -11,6 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
 from app.drift.service import get_drift_engine
+from app.ml.base import score_to_level
 from app.schemas.drift import (
     CascadeCostReport,
     ContagionGraph,
@@ -23,16 +24,6 @@ from app.schemas.drift import (
 from app.services.audit import AuditService
 
 router = APIRouter(prefix="/drift", tags=["drift"])
-
-
-def _score_to_level(score: float) -> str:
-    if score >= 86:
-        return "critical"
-    if score >= 61:
-        return "high"
-    if score >= 31:
-        return "medium"
-    return "low"
 
 
 @router.get("/customers", response_model=list[DriftCustomerSummary])
@@ -57,7 +48,7 @@ async def get_drift_customer(
     await AuditService(session).log(
         event_type="drift_customer_analyzed",
         risk_score=detail.drift_score,
-        risk_level=_score_to_level(detail.drift_score),
+        risk_level=score_to_level(detail.drift_score),
         payload={
             "customer_id": customer_id,
             "drift_velocity": detail.drift_velocity,
@@ -160,10 +151,10 @@ async def inject_scenario(
     await AuditService(session).log(
         event_type="drift_scenario_injected",
         risk_score=detail.drift_score,
-        risk_level=_score_to_level(detail.drift_score),
+        risk_level=score_to_level(detail.drift_score),
         payload={
             "scenario": req.scenario,
-            "name": req.name or detail.customer_id,
+            "name": req.name,
             "drift_score": detail.drift_score,
             "reached_tier": detail.reached_tier,
         },
@@ -227,7 +218,7 @@ async def generate_rfi(
     await AuditService(session).log(
         event_type="drift_rfi_generated",
         risk_score=detail.drift_score,
-        risk_level=_score_to_level(detail.drift_score),
+        risk_level=score_to_level(detail.drift_score),
         payload={
             "customer_id": customer_id,
             "question_count": len(questions),

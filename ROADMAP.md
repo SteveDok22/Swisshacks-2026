@@ -53,8 +53,8 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 Statuses from code-verified audit (2026-06-20). Legend: ✅ WORKS · ⚠️ PARTIAL · 🔶 INDIRECT · ❌ MISSING
 
-| # | Use Case | Signal | Status | What exists | Real sources needed |
-|---|---|---|---|---|---|
+| # | Use Case | Signal | Status | What exists | Real sources needed | Demo data |
+|---|---|---|---|---|---|---|
 | 1 | Negative news spike | Reputational risk | ⚠️ PARTIAL | Lexicon classifier + confirmation lift; no live feed, no spike detection | EventRegistry / NewsAPI.ai, GDELT, Google News RSS |
 | 2 | Cross-border transfer anomaly | Behavioural anomaly | ✅ WORKS | BOCPD + velocity on synthetic data | Internal transactions, OpenSanctions (geography) |
 | 3 | Multiple entities + sudden flows | Structuring / layering | ⚠️ PARTIAL | Contagion + causal; no named layering detector | GLEIF, OpenCorporates, Companies House, internal tx graph |

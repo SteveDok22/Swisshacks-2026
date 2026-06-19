@@ -22,7 +22,20 @@
 8. [Technologies Used](#technologies-used)
 9. [Running Locally](#running-locally)
 10. [Testing](#testing)
-11. [Credits](#credits)
+11. [Documentation](#documentation)
+12. [Credits](#credits)
+
+## Documentation
+
+| Page | Contents |
+|---|---|
+| **[Architecture](docs/architecture.md)** | System diagram, deployment topology, backend & frontend module maps |
+| **[Drift Engine](docs/drift-engine.md)** | 7-layer pipeline, cost cascade decision tree, two-layer fusion, time-travel audit |
+| **[User Flows](docs/flows.md)** | Use cases, officer investigation sequence, contagion discovery flow |
+| **[Database Schema](docs/db-schema.md)** | ER diagram, enumerations, case lifecycle state machine |
+| **[API Reference](docs/api.md)** | Endpoint map, response shapes, anonymization flow |
+| **[Drift Engine Spec](DRIFT_ENGINE_README.md)** | Full mathematical treatment — algorithms, proofs, validation details |
+| **[Challenge Overview](docs/CHALLENGE_4_OVERVIEW.md)** | AMINA Challenge 4 brief, key terminology |
 
 ---
 
@@ -93,30 +106,34 @@ Most teams will build "news API + LLM + dashboard". Three things go deeper:
 
 A module on top of the existing Sentinel platform — roughly 15% new code, 85% reuse.
 
-```
-backend/app/
-├── drift/              # The Drift Engine (10 modules)
-│   ├── bocpd.py            Bayesian Online Changepoint Detection
-│   ├── velocity.py         KL drift + drift velocity
-│   ├── contagion.py        Ownership graph + personalized PageRank
-│   ├── public_intel.py     Public signals + Confirmation Lift
-│   ├── causal.py           Causal hypothesis competition
-│   ├── stability.py        Suspicious-stability detector
-│   ├── cascade.py          Cost-aware tier router
-│   ├── timetravel.py       As-of replay (no look-ahead)
-│   ├── simulator.py        Synthetic customers with ground truth
-│   └── service.py          Orchestrator
-├── api/v1/             # 33 endpoints incl. /drift/*
-├── ml/                 # XGBoost + SHAP + DiCE (existing platform)
-├── services/           # Risk engine, anonymizer, audit log
-└── jurisdictions/      # CH / EU / HK / AE rule packs
+```mermaid
+flowchart LR
+    Officer(["Compliance Officer\nBrowser"])
 
-frontend/src/
-├── app/drift/          # Drift Engine workspace
-└── components/drift/   # 7 visualizations (radar, timeline, contagion, ...)
+    subgraph FE["Next.js 15 Frontend"]
+        DW[Drift Workspace]
+        CQ[Case Queue]
+    end
+
+    subgraph BE["FastAPI Backend"]
+        API[REST API\n27 endpoints]
+        DE["Drift Engine\n7 layers"]
+        ML[ML Layer\nXGBoost · SHAP · DiCE]
+        Svcs[Services\nAnonymizer · Audit · Jurisdiction]
+    end
+
+    Claude["Anthropic Claude\nSonnet / Haiku"]
+    DB[("SQLite")]
+
+    Officer --> FE
+    FE -->|HTTP + SSE| API
+    API --> DE & ML & Svcs
+    DE --> ML
+    Svcs -->|Pseudonymized| Claude
+    API & ML & Svcs --> DB
 ```
 
-For a deeper technical treatment of the Drift Engine math, see **[DRIFT_ENGINE_README.md](DRIFT_ENGINE_README.md)**.
+Full diagrams: **[Architecture](docs/architecture.md)** · **[Drift Engine](docs/drift-engine.md)** · **[Drift Engine Spec (math)](DRIFT_ENGINE_README.md)**
 
 ---
 

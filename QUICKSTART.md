@@ -41,7 +41,7 @@ Uvicorn running on http://0.0.0.0:8000
 
 Leave this terminal running.
 
-**Verify**: open http://localhost:8000/docs — interactive API docs (26 endpoints).
+**Verify**: open http://localhost:8000/docs — interactive API docs (27 endpoints).
 
 ---
 

@@ -14,7 +14,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 | **Cost Efficiency** | 20% | ⚠️ Gap | Cascade well-designed; T2 LLM calls counted but never executed; no per-workflow token count |
 | **UX & Explainability** | 20% | ⚠️ Gap | 7 visualisations solid; SHAP disconnected from drift; source citations missing |
 | **Compliance & Safety** | 20% | ⚠️ Gap | Anonymizer works; ~~audit log not written from drift~~ fixed; HITL missing on drift page |
-| **Engineering & Architecture** | 15% | ✅ Good | Modular 10-file engine, clean API, async throughout; no tests, no CI/CD |
+| **Engineering & Architecture** | 15% | ✅ Good | Modular 10-file engine, clean API, async throughout; unit + BDD tests added; no CI/CD |
 
 ---
 
@@ -103,7 +103,7 @@ Ordered by judging weight × demo impact. Check off as work is completed.
 
 ### 🟢 P3 — Engineering / Credibility
 
-- [ ] **Add BOCPD unit test** — assert changepoint fires on a step-function series, does not fire on stationary noise
+- [x] **Add BOCPD unit test** — assert changepoint fires on a step-function series, does not fire on stationary noise (covered by `test_bocpd.py`)
 - [ ] **Qualify "real-time signals" language** in README and pitch — signals are simulated for MVP; architecture slots are ready for real feeds
 - [ ] **Implement OpenSanctions slot-swap** — replace `generate_signals_for_customer()` headline templates with a real OpenSanctions API call; makes BR1 genuinely true
 
@@ -176,21 +176,22 @@ BDD is a natural fit here: the 7 synthetic scenarios and H1–H4 hypotheses are 
 
 ### 🟠 P1 — Unit tests (pure functions, no I/O)
 
-- [ ] **`test_bocpd.py`** — assert changepoint fires on a step-function series; does not fire on stationary noise; BOCPD is online (no future data used)
-- [ ] **`test_velocity.py`** — KL divergence is zero for identical distributions; increases monotonically as mean shifts; velocity is positive after a step change
-- [ ] **`test_causal.py`** — risk-shaped signature (volume up + margin collapses + dirty counterparties) produces `label="risk"`; benign signature (volume up + margin preserved + clean counterparties) produces `label="benign"`
-- [ ] **`test_stability.py`** — flat customer in volatile cohort is flagged `is_suspicious=True`; genuinely volatile customer is not
-- [ ] **`test_cascade.py`** — score < 40 routes to T0; 40 ≤ score < 70 routes to T1; score ≥ 70 routes to T2; cumulative cost accounting is correct
-- [ ] **`test_score_to_level.py`** — `_score_to_level` thresholds match `RiskLevel` enum exactly (boundary values: 0, 30, 31, 60, 61, 85, 86, 100)
+- [x] **`test_bocpd.py`** — changepoint fires on step series; silent on stationary noise; online property; `standardize` behavior — 6 tests
+- [x] **`test_velocity.py`** — KL divergence zero for identical distributions; monotonically increasing with mean shift; velocity positive after step; `velocity_band` bands; mismatched metric lengths raises — 10 tests
+- [x] **`test_causal.py`** — risk signature → `label="risk"`; benign signature → `label="benign"`; p_risk in [0,1]; contributions cover all dimensions; end-to-end with simulator — 8 tests
+- [x] **`test_stability.py`** — flat customer in volatile cohort → `is_suspicious=True`; volatile customer → not suspicious; quiet environment does not flag; `cohort_volatility` behavior — 11 tests
+- [x] **`test_cascade.py`** — score < 30 → T0; 30–55 → T1; ≥55 + value → T2; sanctions + value → T2; cumulative cost ordering — 11 tests (actual thresholds: t1=30, t2=55)
+- [x] **`test_contagion.py`** — direct neighbor elevated > 0.1; near > far; hop counts; cytoscape shape; empty seeds — 11 tests
+- [x] **`test_score_boundaries.py`** — `score_to_level` / `score_to_action` full boundary coverage incl. float regression — 15 tests (previously `test_score_to_level`)
 
 ---
 
 ### 🟠 P1 — BDD scenario tests (Gherkin feature files)
 
-Add `pytest-bdd` to dev deps: `"pytest-bdd>=7.0.0"` in `pyproject.toml`.  
-Feature files live in `backend/tests/features/`; step definitions in `backend/tests/steps/`.
+Add `pytest-bdd` to dev deps: `"pytest-bdd>=7.0.0"` in `pyproject.toml`. ✅ Added.
+Feature files live in `backend/tests/features/`; step definitions in `backend/tests/test_*_bdd.py`.
 
-- [ ] **`drift_detection.feature`** — the 7 synthetic scenarios with ground truth labels:
+- [x] **`drift_detection.feature`** — 3 scenarios with ground truth labels (benign_expansion, combined/risk, suspicious_stability slow-walker):
 
   ```gherkin
   Feature: KYC Drift Detection
@@ -216,7 +217,7 @@ Feature files live in `backend/tests/features/`; step definitions in `backend/te
       And the drift score is elevated above 50
   ```
 
-- [ ] **`contagion.feature`** — ownership risk propagation:
+- [x] **`contagion.feature`** — ownership risk propagation:
 
   ```gherkin
   Feature: Ownership Contagion
@@ -234,7 +235,7 @@ Feature files live in `backend/tests/features/`; step definitions in `backend/te
       Then the customer's propagated_risk is below 0.05
   ```
 
-- [ ] **`time_travel.feature`** — no look-ahead bias:
+- [ ] **`time_travel.feature`** — no look-ahead bias (not yet implemented — requires more complex fixture setup):
 
   ```gherkin
   Feature: Time-Travel Audit
@@ -252,7 +253,7 @@ Feature files live in `backend/tests/features/`; step definitions in `backend/te
       Then lead_time_months equals 4
   ```
 
-- [ ] **`audit_compliance.feature`** — compliance backbone:
+- [x] **`audit_compliance.feature`** — compliance backbone:
 
   ```gherkin
   Feature: Audit Log Compliance
@@ -270,7 +271,7 @@ Feature files live in `backend/tests/features/`; step definitions in `backend/te
       Then no update or delete method exists on AuditService
   ```
 
-- [ ] **`api_contract.feature`** — API smoke tests using `httpx.AsyncClient`:
+- [x] **`api_contract.feature`** — API smoke tests using `httpx.AsyncClient`:
 
   ```gherkin
   Feature: API Contract

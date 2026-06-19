@@ -117,6 +117,7 @@ class DecisionService:
                 ),
                 "rationale": payload.rationale,
                 "decision_id": str(decision.id),
+                "jurisdiction": str(case.jurisdiction),
             },
         )
         

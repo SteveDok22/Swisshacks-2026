@@ -39,7 +39,7 @@ class RiskEngine:
         self.audit = AuditService(session)
         self.registry = registry or get_registry()
     
-    async def score_case(self, case_id: UUID) -> RiskScoreResult:
+    async def score_case(self, case_id: UUID, actor_id: str | None = None) -> RiskScoreResult:
         """Run scoring for a case."""
         case = await self.store.get_case(case_id)
         if case is None:
@@ -76,6 +76,8 @@ class RiskEngine:
             event_type="case_scored",
             case_id=case_id,
             client_id=case.client_id,
+            actor_id=actor_id,
+            actor_type="compliance_officer" if actor_id else "system",
             risk_score=result.score,
             risk_level=result.level.value,
             payload={

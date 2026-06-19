@@ -35,11 +35,11 @@ logger = get_logger(__name__)
 # Single source of truth, used everywhere.
 def score_to_level(score: float) -> RiskLevel:
     """Map numeric score (0-100) to categorical risk level."""
-    if score <= 30:
+    if score < 31:
         return RiskLevel.LOW
-    elif score <= 60:
+    elif score < 61:
         return RiskLevel.MEDIUM
-    elif score <= 85:
+    elif score < 86:
         return RiskLevel.HIGH
     else:
         return RiskLevel.CRITICAL

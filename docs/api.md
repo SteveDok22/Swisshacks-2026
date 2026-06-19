@@ -2,7 +2,7 @@
 
 Base URL: `http://localhost:8000/api/v1`  
 Interactive docs: `http://localhost:8000/docs`  
-Total endpoints: 27
+Total endpoints: 28
 
 ## Endpoint Map
 
@@ -37,8 +37,9 @@ flowchart TB
     end
 
     subgraph Governance["Governance"]
-        G1["POST /decisions\nLog officer decision\nBody: case_id, action, rationale, overrode_ai"]
+        G1["POST /decisions\nLog officer decision\nBody: case_id OR customer_id, action, officer_id\nOptional: rationale, ai_hint"]
         G2["GET /decisions/case/{case_id}\nList all decisions for a case"]
+        G7["GET /decisions/customer/{customer_id}\nList all drift-engine decisions for a customer"]
         G3["GET /audit\nAudit log — paginated"]
         G4["GET /jurisdictions\nList all loaded rule packs"]
         G5["GET /jurisdictions/{code}\nGet rules for CH / EU / HK / AE"]

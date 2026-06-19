@@ -7,13 +7,14 @@ from __future__ import annotations
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.logging import get_logger
 from app.db.session import get_session
 from app.schemas.enums import Jurisdiction
 from app.schemas.jurisdiction import JurisdictionAdjustedScore, JurisdictionRules
+from app.services.audit import AuditService
 from app.services.jurisdiction import JurisdictionService
 from app.services.risk_engine import RiskEngine
 
@@ -48,18 +49,37 @@ async def get_jurisdiction(code: Jurisdiction) -> JurisdictionRules:
 async def compare_jurisdictions(
     case_id: UUID,
     session: Annotated[AsyncSession, Depends(get_session)],
+    actor_id: str | None = Query(None, description="ID of the officer running the comparison"),
 ) -> dict[str, JurisdictionAdjustedScore]:
     """Show how a case would be scored under EACH jurisdiction."""
     jurisdiction_service = JurisdictionService(session)
     risk_engine = RiskEngine(session)
-    
+
     try:
-        ml_result = await risk_engine.score_case(case_id)
+        ml_result = await risk_engine.score_case(case_id, actor_id=actor_id)
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail=str(e)
         ) from e
-    
-    return await jurisdiction_service.compare_jurisdictions(
+
+    results = await jurisdiction_service.compare_jurisdictions(
         case_id, ml_result.score
     )
+
+    await AuditService(session).log(
+        event_type="jurisdiction_compared",
+        case_id=case_id,
+        actor_id=actor_id,
+        actor_type="compliance_officer" if actor_id else "system",
+        risk_score=ml_result.score,
+        risk_level=ml_result.level.value,
+        payload={
+            "jurisdictions_compared": list(results.keys()),
+            "base_score": ml_result.score,
+            "adjusted_scores": {
+                j: r.adjusted_score for j, r in results.items()
+            },
+        },
+    )
+
+    return results

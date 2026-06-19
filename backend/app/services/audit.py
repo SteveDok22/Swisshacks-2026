@@ -27,6 +27,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
+from sqlalchemy import func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import desc, select
 
@@ -87,69 +88,42 @@ class AuditService:
         return entry
     
     # === Querying ===
-    
+
+    @staticmethod
+    def _apply_filters(stmt, params: AuditQueryParams):
+        """Apply all search filters to a statement. Single source of truth."""
+        if params.event_type:
+            stmt = stmt.where(AuditEntryDB.event_type == params.event_type)
+        if params.case_id:
+            stmt = stmt.where(AuditEntryDB.case_id == params.case_id)
+        if params.client_id:
+            stmt = stmt.where(AuditEntryDB.client_id == params.client_id)
+        if params.actor_id:
+            stmt = stmt.where(AuditEntryDB.actor_id == params.actor_id)
+        if params.risk_level:
+            stmt = stmt.where(AuditEntryDB.risk_level == params.risk_level)
+        if params.from_date:
+            stmt = stmt.where(AuditEntryDB.occurred_at >= params.from_date)
+        if params.to_date:
+            stmt = stmt.where(AuditEntryDB.occurred_at <= params.to_date)
+        return stmt
+
     async def query(self, params: AuditQueryParams) -> tuple[list[AuditEntryDB], int]:
         """
         Search audit log with filters.
-        
+
         Returns (entries, total_count).
         """
-        # Base query
-        statement = select(AuditEntryDB)
-        
-        # Apply filters
-        if params.event_type:
-            statement = statement.where(
-                AuditEntryDB.event_type == params.event_type
-            )
-        if params.case_id:
-            statement = statement.where(
-                AuditEntryDB.case_id == params.case_id
-            )
-        if params.client_id:
-            statement = statement.where(
-                AuditEntryDB.client_id == params.client_id
-            )
-        if params.actor_id:
-            statement = statement.where(
-                AuditEntryDB.actor_id == params.actor_id
-            )
-        if params.risk_level:
-            statement = statement.where(
-                AuditEntryDB.risk_level == params.risk_level
-            )
-        if params.from_date:
-            statement = statement.where(
-                AuditEntryDB.occurred_at >= params.from_date
-            )
-        if params.to_date:
-            statement = statement.where(
-                AuditEntryDB.occurred_at <= params.to_date
-            )
-        
-        # Most recent first
-        statement = statement.order_by(desc(AuditEntryDB.occurred_at))
-        
-        # Apply pagination
-        statement = statement.offset(params.offset).limit(params.limit)
-        
+        base = self._apply_filters(select(AuditEntryDB), params)
+        statement = base.order_by(desc(AuditEntryDB.occurred_at)).offset(params.offset).limit(params.limit)
+
         result = await self.session.execute(statement)
         entries = list(result.scalars().all())
-        
-        # Get total count (separate query for accuracy)
-        # For MVP we approximate — production would use COUNT(*)
-        count_stmt = select(AuditEntryDB.id)
-        if params.event_type:
-            count_stmt = count_stmt.where(
-                AuditEntryDB.event_type == params.event_type
-            )
-        if params.case_id:
-            count_stmt = count_stmt.where(
-                AuditEntryDB.case_id == params.case_id
-            )
+
+        count_stmt = self._apply_filters(select(func.count()).select_from(AuditEntryDB), params)
         count_result = await self.session.execute(count_stmt)
-        total = len(list(count_result.scalars().all()))
-        
+        total = count_result.scalar_one()
+
         return entries, total
     
     # === Export ===

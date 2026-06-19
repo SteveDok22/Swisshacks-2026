@@ -122,7 +122,7 @@ score_modifiers:
 action_thresholds:
   block: 86
   escalate: 61
-  step_up: 31
+  step_up_verification: 31
 applicable_rules:
   - FINMA Circular 2024/3 — AI in financial services
   - GwG Art. 6 — enhanced due diligence

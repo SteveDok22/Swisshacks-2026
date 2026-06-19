@@ -1,3 +1,15 @@
+# One file runs the whole stack with hot reload:
+#
+#   docker compose up --build
+#
+#   frontend (Next.js dev server, HMR) -> http://localhost:3000
+#   backend  (uvicorn --reload)        -> http://localhost:8000/docs
+#   database -> SQLite, persisted in the backend_data volume (no DB container)
+#
+# Docker Compose has no built-in --dev/--prod switch and volume mounts can't be
+# toggled by env vars, so this single file is tuned for local development.
+# The Dockerfiles still keep production stages (frontend `runner`, backend's
+# default CMD) for real deployment via `docker build`.
 services:
   backend:
     build:
@@ -14,11 +26,17 @@ services:
       - DATABASE_URL=sqlite+aiosqlite:///./data/db/risk_platform.db
       # Optional: pass your Claude key through from the host (or backend/.env)
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      # macOS bind mounts don't deliver inotify events — poll so --reload works
+      - WATCHFILES_FORCE_POLLING=true
     env_file:
       # Optional — container runs fine without it (sensible defaults apply)
       - path: ./backend/.env
         required: false
+    # Hot reload: uvicorn watches the bind-mounted app source
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --reload-dir /home/app/app
     volumes:
+      # Live backend code (overlays the copy baked into the image)
+      - ./backend/app:/home/app/app
       # Persist only the SQLite DB. ML models stay baked into the image
       # at /home/app/data/models, so they are not shadowed by this volume.
       - backend_data:/home/app/data/db
@@ -35,14 +53,25 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      # next dev (hot reload). Production stage is `runner`.
+      target: dev
     container_name: swisshacks-frontend
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      - NODE_ENV=production
+      - NODE_ENV=development
       # Next.js rewrites proxy /api/backend/* to the backend service
       - BACKEND_INTERNAL_URL=http://backend:8000
+      # macOS bind mounts: force polling so Next.js HMR sees changes
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+    volumes:
+      # Live frontend source...
+      - ./frontend:/app
+      # ...but keep the image's installed deps and build cache
+      - /app/node_modules
+      - /app/.next
     depends_on:
       backend:
         condition: service_healthy
@@ -51,7 +80,7 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
-      start_period: 30s
+      start_period: 40s
     networks:
       - swisshacks
 

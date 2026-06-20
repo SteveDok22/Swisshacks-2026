@@ -168,6 +168,7 @@ class LLMAdjudicationOut(BaseModel):
     drift_name: str
     llm_mode: str = Field(description="real | mock")
     was_cached: bool = False
+    tokens_used: int = Field(default=0, description="Input+output tokens consumed; 0 for mock or cached calls")
     response: dict[str, Any] = Field(default_factory=dict)
 
 
@@ -185,6 +186,9 @@ class CascadeCostReport(BaseModel):
     actual_t2_llm_calls: int = 0
     real_t2_llm_calls: int = 0
     mock_t2_llm_calls: int = 0
+    # Token usage tracking (populated from real API calls; 0 in mock/cached mode)
+    tokens_used: int = Field(default=0, description="Total input+output tokens consumed across all T2 LLM calls in this scan")
+    model: str | None = Field(default=None, description="Model used for T2 adjudication; None when all calls were mock or cached")
     llm_adjudications: list[LLMAdjudicationOut] = Field(default_factory=list)
 
 

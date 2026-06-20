@@ -354,3 +354,53 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | Internal transactions | 2, 3, 7 | — | ✅ Built |
 
 ¹ ZEFIX: free, but the REST API needs a free registered Basic-auth account (verified live — `401` without credentials). All cost tiers above were verified live against each API in June 2026.
+
+---
+
+## Demo Data Refresh & Two-Mode (synthetic / real) — PLAN
+
+> Added after a full project review. Goal: one cohesive, demo-ready KYC-drift
+> book that fires **all 10 AMINA use cases offline**, plus a clean
+> `EXTERNAL_APIS_ENABLED` flip to a **genuinely live** demo. Dev/tests stay
+> offline by default. Status below = **planned** unless checked.
+
+### Decisions (locked)
+- **All-in on drift.** Retire the old social-engineering / XRPL case-review dataset (`services/mock_data.py`); drift is the whole demo. Keep the code dormant (don't delete) to avoid breaking imports/tests.
+- **Fictional-but-evocative names**, each with a one-line backstory + real-world analogue cited in docs (not as the entity name).
+- **Real mode = every source except ZEFIX** (no account). Keys present in `.env.shared` / `.env`: OpenSanctions, Event Registry, Firecrawl, WHOISJSON, Anthropic. Keyless: GLEIF, GDELT, Wayback, WHOIS/RDAP.
+- **Provenance is first-class:** every signal carries a *real, clickable* source link in both modes (synthetic → source's search page for the entity; live → the actual matched record).
+
+### The new cast — 15 entities (12 flagged + 3 stable controls)
+
+| # | Entity (fictional) | UC(s) | Scenario | Backstory / analogue |
+|---|---|---|---|---|
+| 1 | Helvetia Pharma Holding AG (Zug) | UC1 | `news_spike` | Adverse media accrues for months pre-collapse (Wirecard) |
+| 2 | Léman FX Trading SA (Geneva) | UC2 | `corridor_shift` + new corridor signal | Corridors drift CH/DE→RU/AE; money-mule (DB mirror trades) |
+| 3 | Alpine Logistics Group AG + 2 shell owners | UC3 | `combined` + contagion | Linked shells, sudden layering flows (Danske Estonia) |
+| 4 | Glarnisch Holding AG (ex–Pilatus Commodity Reg.) | UC4 | `name_cycling` | Renamed to reset KYC clock (Mossack shelf-cycling) |
+| 5 | HelvetiaX (ex–Helvetia Advisory AG) | UC5 | `domain_pivot` | Website flips advisory→crypto exchange |
+| 6 | Lattice Labs AG (Zurich) | UC6 | `pivot` *(instantiate unused scenario)* | SaaS→ICO in 90 days (Centra Tech) |
+| 7 | Rhône Capital GmbH → Ltd (BVI) | UC7 | `jurisdiction_shift` *(NEW scenario)* | GmbH→offshore legal-form/jurisdiction move |
+| 8 | Bernina Wealth Partners AG | UC8 | `ownership_shift` *(new UBO)* | New beneficial owner who hits a watchlist (1MDB) |
+| 9 | Nimbus Mobility AG | UC9 | `benign_expansion` vs scale flag | Large funding round / geo expansion (FTX scale-vs-revenue) |
+| 10 | Säntis Import-Export AG (ex–Dormant Holdings) | UC10 | `dormancy_break` | Dormant shell reactivates (Azerbaijani Laundromat) |
+| 11 | Castor Trade Finance AG ⭐ | UC3+UC8+UC1 | `combined` + UBO hit + adverse media | **Flagship combo** — structuring + sanctioned new UBO + news; contagion centerpiece, routes to T2 Claude |
+| 12 | Engadin Capital SA | behavioral combo | `suspicious_stability` | Slow-walker: too smooth while environment moves |
+| 13 | Zürisee Renewables AG | control | `benign_expansion` | Legit growth despite adverse news — causal layer demotes it |
+| 14 | Toggenburg Family Office | control | `stable` | Clean baseline |
+| 15 | Vaud AgriTech SA | control | `stable` | Clean baseline |
+
+### Phases
+
+- [ ] **A — Retire old dataset.** Stop seeding `mock_data.py` clients/cases; remove `/` case-review workspace from nav; make drift the home page. Keep code dormant.
+- [ ] **B — Rebuild the drift book** (`drift/simulator.py`, `db/seed.py`): 15-entity cast w/ backstories; **instantiate `pivot`** (UC6); **add `jurisdiction_shift` scenario** (UC7, emits `jurisdiction_change`+`legal_form_change`, exercises the existing re-KYC floor=50); **add UBO scenario** (UC8, ownership_change with a name that hits OpenSanctions live + deterministic synthetic hit); wire flagship combo (#11) into the contagion graph.
+- [ ] **C — Close detector/signal gaps.** New `corridor_alert` public signal so UC2 is self-contained; tune dormancy baseline to a realistic non-zero floor; keep H1–H4 hypothesis tests green after re-seed.
+- [ ] **D — Real provenance links (both modes).** Replace `example.com/demo-sources/...` with per-source deep-link builders (OpenSanctions `search?q=`, GLEIF LEI page, GDELT/Event Registry query/article, Wayback snapshot, RDAP domain). Universal clickable source chips on every signal card + UBO hit.
+- [ ] **E — Two-mode UX.** Header indicator SYNTHETIC vs LIVE (driven by `external_apis_enabled`), replacing the static "Live" dot; per-signal real-source badge in live mode; confirm `.env` keeps dev offline.
+- [ ] **F — Real-mode demo anchors (all sources except ZEFIX).** Curate real LEIs (GLEIF), real domains (Wayback/Firecrawl/WHOIS), and ≥1 real sanctioned name as a UBO so the live demo returns a genuine OpenSanctions hit w/ real deep-link. Map each UC → live source; document UC4/UC7 demoed via GLEIF legalName/jurisdiction/legalForm diff + rename news (no ZEFIX).
+- [ ] **G — Frontend demo polish.** Wayback↔Firecrawl side-by-side text diff for UC5/6; scenario label on the timeline; source-link chips on signal cards.
+- [ ] **H — Docs + tests.** Update this UC table, `sources.md`, README; refresh seed; run `uv run pytest` + ruff/mypy via Docker.
+
+### Open confirmations
+- Entity **names** above are a proposal — adjust freely.
+- For the live OpenSanctions hit: use a well-known OFAC-listed name as a fictional customer's **UBO** purely so the live screen returns a real match (confirm).

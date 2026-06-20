@@ -66,6 +66,8 @@ def _absolute_alert_month(cust, threshold: float) -> int | None:
 
 @pytest.fixture(scope="module")
 def stable_cohort():
+    """Module-scoped stable control group used to calibrate both detectors.
+    Tests must treat it as read-only."""
     return [c for c in generate_book(seed=42) if c.scenario == "stable"]
 
 

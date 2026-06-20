@@ -46,8 +46,9 @@ def make_wired_customer(scenario: str, context: dict) -> None:
 def replay_before_listing(context: dict) -> None:
     cust = context["customer"]
     # Several months before the listing — early enough that later public
-    # signals still exist and must be truncated away (guarded against a
-    # hypothetical very-early listing).
+    # signals still exist and must be truncated away. With months=18 the
+    # listing is month 17, so this is month 12; the max(0, ...) only matters
+    # for hypothetical short-horizon scenarios.
     month_t = max(0, context["listing_month"] - 5)
     context["month_t"] = month_t
     context["point"] = replay_as_of(

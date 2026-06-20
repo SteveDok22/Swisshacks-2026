@@ -8,8 +8,11 @@ inject a regime change (a step in transaction volume) at a known month and
 place the simulated sanctions listing several months later. BOCPD must:
 
   1. detect the regime change,
-  2. detect it AT or AFTER the true change (it is an online/causal algorithm
-     and cannot react before the change has happened),
+  2. attribute it to the true step, not to a random earlier point (the
+     detection EVENT is necessarily later — it needs a burn-in plus a
+     confirmation window of post-step observations before it fires — so the
+     attributed changepoint is the system's best estimate of WHERE the step
+     happened, never a forecast of a step that has not yet occurred),
   3. produce a lead time of at least two months before the listing,
 
 and on the stable control group it must raise ZERO false positives.
@@ -36,11 +39,12 @@ MAX_LEAD_MONTHS = 7
 # One regime change per ~2 business years of daily data — the value the live
 # engine uses in service.py.
 HAZARD = 1.0 / 500.0
-# BOCPD back-dates a confirmed changepoint to the observation where the run
-# reset; on a sharp step this lands within a day or two of the true change.
-# The detection EVENT itself happens much later (after burn-in + confirmation),
-# so this is an attribution offset, not look-ahead. We bound it tightly.
-CAUSAL_TOLERANCE_DAYS = 2
+# BOCPD attributes a confirmed changepoint to the observation where the run
+# reset; on a sharp step this lands within a day or two of the true step. This
+# is an ATTRIBUTION offset, not look-ahead: the detection event itself fires
+# later, after burn-in plus a confirmation window of post-step observations. We
+# bound the back-dating tightly so the attributed point reflects the real step.
+ATTRIBUTION_TOLERANCE_DAYS = 2
 ACCURACY_TOLERANCE_DAYS = 10
 
 
@@ -92,12 +96,12 @@ class TestH1LeadTime:
         change_day = change_month * DAYS_PER_MONTH
 
         assert detected_day is not None, f"BOCPD missed the regime change at month {change_month}"
-        # Causal: the attributed changepoint may sit at most a day or two before
-        # the true step (back-dating), never earlier — the detector has no
-        # access to the future.
-        assert detected_day >= change_day - CAUSAL_TOLERANCE_DAYS, (
+        # Attribution is causal: the changepoint is attributed at most a day or
+        # two before the true step (back-dating to the run reset), never a
+        # forecast of a step that has not happened yet.
+        assert detected_day >= change_day - ATTRIBUTION_TOLERANCE_DAYS, (
             f"detected day {detected_day} precedes true change day {change_day} "
-            "by more than the back-dating tolerance — would imply look-ahead"
+            "by more than the back-dating tolerance — would imply a forecast"
         )
         # Accuracy: the changepoint lands on the true step, not somewhere random.
         assert abs(detected_day - change_day) <= ACCURACY_TOLERANCE_DAYS, (

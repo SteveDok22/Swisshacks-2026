@@ -391,12 +391,19 @@ def compare_business_model(
 
     wb_vec = np.asarray(wb_emb.vector, dtype=np.float64)
     cur_vec = np.asarray(cur_emb.vector, dtype=np.float64)
-    # A model emitting NaN/inf (corrupt weights, tokenizer overflow) would make
-    # cosine_distance fall back to its 1.0 sentinel — which is ≥ threshold and
-    # would fire a MAX-severity false positive. Degrade to a skip instead, and do
-    # NOT return the embeddings (so the bad vectors are never cached and the next
-    # scan re-embeds), honouring the "never emit a signal from noise" contract.
-    if not (np.isfinite(wb_vec).all() and np.isfinite(cur_vec).all()):
+    # A model emitting NaN/inf (corrupt weights, tokenizer overflow) — or an
+    # all-zero vector (empty/OOV text) — would make cosine_distance fall back to
+    # its 1.0 sentinel, which is ≥ threshold and would fire a MAX-severity false
+    # positive. Degrade to a skip instead, and do NOT return the embeddings (so the
+    # bad vectors are never cached and the next scan re-embeds), honouring the
+    # "never emit a signal from noise" contract.
+    degenerate = (
+        not np.isfinite(wb_vec).all()
+        or not np.isfinite(cur_vec).all()
+        or float(np.linalg.norm(wb_vec)) == 0.0
+        or float(np.linalg.norm(cur_vec)) == 0.0
+    )
+    if degenerate:
         logger.warning("business_model_degenerate_embedding", drift_id=drift_id)
         return BusinessModelComparison(
             drift_id=drift_id,

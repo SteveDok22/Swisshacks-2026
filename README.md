@@ -181,7 +181,7 @@ The Drift Engine workspace presents a verdict-first view: a recommended action u
 | **LLM** | Anthropic Claude Sonnet 4.5 / Haiku 4.5 |
 | **Frontend** | Next.js 15, React 19, TypeScript, Tailwind CSS, TanStack Query |
 | **Tooling** | Git, GitHub, structlog, Server-Sent Events, uv |
-| **Public signals (MVP — simulated)** | Source-adapter layer in `backend/app/sources/`: GLEIF, ZEFIX, Event Registry, and WHOIS/RDAP are implemented; OpenSanctions, GDELT, Firecrawl, and Wayback remain planned; OpenCorporates and Crunchbase are skipped as paid sources. See [docs/sources.md](docs/sources.md) |
+| **Public signals (MVP — simulated)** | Source-adapter layer in `backend/app/sources/`: all eight free/freemium adapters are implemented — GLEIF, ZEFIX, Event Registry, WHOIS/RDAP, OpenSanctions, GDELT, Firecrawl, and Wayback; OpenCorporates and Crunchbase are skipped as paid sources. Live calls are gated behind `EXTERNAL_APIS_ENABLED` (default off → synthetic signals). See [docs/sources.md](docs/sources.md) |
 
 ---
 

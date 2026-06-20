@@ -74,7 +74,7 @@ See [`docs/sources.md`](docs/sources.md) for full cost/access breakdown.
 - [x] **`sources/opensanctions.py`** — OFAC / EU / UN sanctions + PEP screening (Cases 2, 5) · FREEMIUM
 - [ ] **`sources/gdelt.py`** — GDELT 2.0 free news feed (Cases 1, 6, 8, 10) · FREE — **fallback** when Event Registry key absent
 - [ ] **`sources/firecrawl.py`** — website-to-markdown scraping, current content (Cases 9, 10) · FREEMIUM
-- [ ] **`sources/wayback.py`** — Internet Archive historical snapshot at onboarding date (Cases 9, 10) · FREE
+- [x] **`sources/wayback.py`** — Internet Archive historical snapshot at onboarding date (Cases 9, 10) · FREE
 - [ ] **`sources/whois.py`** — RDAP domain age + registrant change (Cases 8, 9) · FREE
 
 *Paid — skipped (carcasses exist and document the decision):*
@@ -250,7 +250,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 - [ ] Add `name` badge in `DriftRadar.tsx` (amber, mirrors `dormant` badge) when `is_name_changed` is true on the subject summary
 
 > **UC 9 — Domain switch / website change** (❌ MISSING → ✅)
-- [ ] Implement `WaybackAdapter.fetch` (historical snapshot path — see spec above)
+- [x] Implement `WaybackAdapter.fetch` (historical snapshot path — see spec above)
 - [ ] Implement `FirecrawlAdapter.fetch` (current content path — see spec above)
 - [ ] Implement `WhoisAdapter.fetch_signals` domain registrant diff path
 - [ ] Implement `drift/business_model.py` cosine comparator (Wayback text vs Firecrawl text via `all-MiniLM-L6-v2`)
@@ -323,7 +323,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | Event Registry / NewsAPI.ai | 1, 6, 8, 10 | FREEMIUM (hackathon key) | ✅ IMPLEMENTED — **primary news source** |
 | GDELT | 1, 6, 8, 10 | FREE | 🔲 PLANNED — fallback when ER key absent |
 | RDAP/WHOIS | 8, 9 | FREE | 🔲 PLANNED |
-| Wayback Machine | 9, 10 | FREE | 🔲 PLANNED |
+| Wayback Machine | 9, 10 | FREE | ✅ IMPLEMENTED — `fetch()` live; `fetch_signals()` returns `[]` by design |
 | Firecrawl | 9, 10 | FREEMIUM | 🔲 PLANNED |
 | OpenCorporates | 3, 4, 5, 7 | PAID | ⛔ SKIPPED |
 | Crunchbase | 6 | PAID | ⛔ SKIPPED |

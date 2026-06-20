@@ -81,6 +81,13 @@ class Settings(BaseSettings):
     # adapter degrades to tighter rate limits, not to silence.
     opensanctions_api_key: str = ""
 
+    # === Website content scraping ===
+    # Firecrawl (live website → markdown) — cloud free tier ~1,000 pages/month,
+    # no card required. Left blank by default → FirecrawlAdapter degrades to a
+    # zero-cost plain-HTTP + HTML-strip fallback, so the engine still produces a
+    # current-website snapshot without a key.
+    firecrawl_api_key: str = ""
+
     # === ML ===
     model_dir: str = "./data/models"
     enable_dice_counterfactuals: bool = True

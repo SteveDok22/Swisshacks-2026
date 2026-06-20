@@ -141,6 +141,10 @@ class CascadeRouter:
             escalation_reasons=reasons,
         )
 
+    def would_reach_t2(self, signal: CustomerSignal) -> bool:
+        """Return True if route_one would escalate this signal to T2_LLM."""
+        return self.route_one(signal).reached_tier == Tier.T2_LLM
+
     def route_book(self, signals: list[CustomerSignal]) -> CascadeReport:
         """Run the full cascade over a book and produce a cost report."""
         decisions = [self.route_one(s) for s in signals]

@@ -283,15 +283,18 @@ singleton to make this deployment constraint visible in application logs.
 
 ## Validation Results
 
-| Hypothesis | Scenario | Result |
-|---|---|---|
-| H1 — Lead time | Changepoint on step data, none on stationary | 2–7 months lead (median 5.5), 0 false positives |
-| H2 — Velocity leads level | Velocity vs absolute-threshold alerting | Velocity fires earlier at equal FP rate |
-| H3 — Contagion propagates | Personalized PageRank from sanctioned seed | 2-hop customers elevated; distant unaffected |
-| H4 — Cascade cost reduction | Cascade vs LLM-on-everything, 1,000 customers | 96% cost reduction at equal recall |
-| Causal classification | 11 scenarios with ground truth | 11/11 correct, 8/8 seed robustness |
-| Stability classification | 13 scenarios with ground truth | 13/13 correct, 8/8 seed robustness |
-| Time-Travel honesty | 3 leak-detection tests | No future data reaches the score |
+Each hypothesis is pinned by an executable test in `backend/tests/`; run the
+suite with `cd backend && uv run pytest`.
+
+| Hypothesis | Scenario | Result | Test |
+|---|---|---|---|
+| H1 — Lead time | Changepoint on step data, none on stationary | 2–7 months lead, 0 false positives | `test_hypothesis_h1.py` |
+| H2 — Velocity leads level | Velocity vs absolute-threshold alerting | Velocity fires earlier at equal FP rate | `test_hypothesis_h2.py` |
+| H3 — Contagion propagates | Personalized PageRank from sanctioned seed | 2-hop customers elevated; distant unaffected | `test_hypothesis_h3.py` |
+| H4 — Cascade cost reduction | Cascade vs LLM-on-everything, 1,000 customers | 96% cost reduction at equal recall | `test_hypothesis_h4.py` |
+| Causal classification | 11 scenarios with ground truth | 11/11 correct, 8/8 seed robustness | `test_causal.py` |
+| Stability classification | 13 scenarios with ground truth | 13/13 correct, 8/8 seed robustness | `test_stability.py` |
+| Time-Travel honesty | 3 leak-detection scenarios | No future data reaches the score | `features/time_travel.feature` |
 
 ---
 

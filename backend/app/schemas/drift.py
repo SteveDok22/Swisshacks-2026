@@ -83,7 +83,7 @@ class AsOfPointOut(BaseModel):
 class ReplayResult(BaseModel):
     """Time-Travel Audit: full as-of replay proving no look-ahead bias."""
 
-    customer_id: str
+    drift_id: str
     name: str
     points: list[AsOfPointOut]
     alert_month: int | None
@@ -95,7 +95,7 @@ class ReplayResult(BaseModel):
 class DriftCustomerSummary(BaseModel):
     """Book-overview row: one customer's drift snapshot."""
 
-    customer_id: str
+    drift_id: str
     name: str
     drift_score: float = Field(description="0-100 fused drift score")
     drift_velocity: float = Field(description="bits/month, latest")
@@ -127,7 +127,7 @@ class DriftTimelinePoint(BaseModel):
 class DriftCustomerDetail(BaseModel):
     """Full drift analysis for one customer."""
 
-    customer_id: str
+    drift_id: str
     name: str
     drift_score: float
     drift_velocity: float
@@ -163,8 +163,8 @@ class DriftCustomerDetail(BaseModel):
 class LLMAdjudicationOut(BaseModel):
     """One T2 LLM adjudication executed during a drift scan."""
 
-    customer_id: str
-    customer_name: str
+    drift_id: str
+    drift_name: str
     llm_mode: str = Field(description="real | mock")
     was_cached: bool = False
     response: dict[str, Any] = Field(default_factory=dict)
@@ -227,7 +227,7 @@ class InjectScenarioRequest(BaseModel):
 class RFIResponse(BaseModel):
     """Value-of-Information ranked request-for-information (Layer 7)."""
 
-    customer_id: str
+    drift_id: str
     questions: list[str]
     rationale: str
     estimated_info_gain_bits: float

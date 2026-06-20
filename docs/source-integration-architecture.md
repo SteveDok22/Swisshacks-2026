@@ -528,7 +528,7 @@ and SHAP makes each weight explainable — the officer sees "score driven 40% by
 sequenceDiagram
     participant XGB as XGBoost Model
     participant SHAP as SHAP TreeExplainer
-    participant API as GET /drift/customers/{id}
+    participant API as GET /drift/subjects/{id}
     participant UI as TwoLayerPanel.tsx
 
     XGB->>SHAP: shap_values(drift_feature_vector)
@@ -608,7 +608,7 @@ sequenceDiagram
     LLM-->>ENG: verdict=risk, confidence=0.91, recommended_action=Trigger KYC refresh
     Note over LLM,ENG: rationale: Legal entity rename without disclosed business reason<br/>internal drift elevated — re-KYC required
 
-    ENG->>AUD: log(drift_customer_analyzed, customer_id, score=81.4, name_changed=True)
+    ENG->>AUD: log(drift_customer_analyzed, drift_id, score=81.4, name_changed=True)
     UI->>UI: render DecisionBar with AI recommendation=ESCALATE
     UI->>AUD: officer submits ESCALATE + rationale
     AUD->>AUD: append-only: drift_decision_recorded

@@ -90,15 +90,15 @@ sequenceDiagram
     participant DB as Database
 
     O->>FE: Open Drift Dashboard
-    FE->>API: GET /api/v1/drift/customers
+    FE->>API: GET /api/v1/drift/subjects
     API->>DE: scan_all_customers()
     DE-->>API: DriftCustomerSummary[] sorted by score
     API-->>FE: Risk-ranked list
     FE-->>O: Radar + priority queue
 
     O->>FE: Click high-risk customer
-    FE->>API: GET /api/v1/drift/customers/{id}
-    API->>DE: full_analysis(customer_id)
+    FE->>API: GET /api/v1/drift/subjects/{id}
+    API->>DE: full_analysis(drift_id)
     DE-->>API: DriftCustomerDetail + all 7 layers
     API-->>FE: Full breakdown + causal evidence
     FE-->>O: Verdict bar · DecisionBar · Evidence panels · Score timeline
@@ -112,7 +112,7 @@ sequenceDiagram
     FE-->>O: Typing animation
 
     O->>FE: Log decision (drift workspace — no linked case)
-    FE->>API: POST /api/v1/decisions\n{customer_id, action, officer_id, rationale?}
+    FE->>API: POST /api/v1/decisions\n{drift_id, action, officer_id, rationale?}
     API->>DE: Validate customer + derive recommendation
     API->>DB: INSERT decision + immutable analysis snapshot
     DB-->>API: 201 Created

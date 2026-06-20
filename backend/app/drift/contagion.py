@@ -179,7 +179,7 @@ class OwnershipGraph:
         return {"nodes": nodes, "edges": edges}
 
 
-def build_demo_graph(customer_ids: list[str]) -> OwnershipGraph:
+def build_demo_graph(drift_ids: list[str]) -> OwnershipGraph:
     """
     Construct a demo ownership graph that connects some bank customers to a
     shell-company structure, which in turn connects to an entity that will
@@ -209,7 +209,7 @@ def build_demo_graph(customer_ids: list[str]) -> OwnershipGraph:
     g.add_entity("CleanHolding", name="Helvetia Trust AG", entity_type="company")
 
     # Customers (link a few of our synthetic drift customers)
-    for cid in customer_ids:
+    for cid in drift_ids:
         g.add_entity(cid, name=cid, is_customer=True, entity_type="individual")
 
     # Ownership edges (owner -> target, stake)
@@ -217,12 +217,12 @@ def build_demo_graph(customer_ids: list[str]) -> OwnershipGraph:
     g.add_ownership("SANCTIONED_ENTITY", "ShellCo_Beta", 0.4)
 
     # Connect the high-drift customers through the shells
-    if "drift-004" in customer_ids:
+    if "drift-004" in drift_ids:
         g.add_ownership("ShellCo_Alpha", "drift-004", 0.3)
-    if "drift-002" in customer_ids:
+    if "drift-002" in drift_ids:
         g.add_ownership("ShellCo_Beta", "drift-002", 0.25)
 
     # A clean holding owning a stable customer (control)
-    g.add_ownership("CleanHolding", "drift-005", 0.5) if "drift-005" in customer_ids else None
+    g.add_ownership("CleanHolding", "drift-005", 0.5) if "drift-005" in drift_ids else None
 
     return g

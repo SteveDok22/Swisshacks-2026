@@ -21,7 +21,7 @@ def context() -> dict:
 @given(parsers.parse('the "{scenario}" synthetic customer with seed {seed:d}'))
 def make_synthetic_customer(scenario: str, seed: int, context: dict) -> None:
     context["customer"] = generate_customer(
-        customer_id="bdd-test",
+        drift_id="bdd-test",
         name="BDD Test Customer",
         scenario=scenario,
         seed=seed,
@@ -52,12 +52,12 @@ def compute_book_cohort_cv(context: dict) -> None:
 def run_stability_assessment(context: dict) -> None:
     cust = context["customer"]
     signals = generate_signals_for_customer(
-        cust.customer_id,
+        cust.drift_id,
         cust.name,
         cust.scenario,
         months=cust.months,
         drift_start_month=cust.drift_start_month,
-        seed=hash(cust.customer_id) % 9999,
+        seed=hash(cust.drift_id) % 9999,
     )
     public_risk = assess_public_risk(signals, months=cust.months).public_risk
     context["stability"] = assess_stability(

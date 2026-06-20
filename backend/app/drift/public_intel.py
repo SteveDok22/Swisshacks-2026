@@ -118,7 +118,7 @@ _HEADLINES = {
 
 
 def generate_signals_for_customer(
-    customer_id: str,
+    drift_id: str,
     name: str,
     scenario: str,
     months: int = 18,

@@ -97,9 +97,9 @@ def replay_as_of(
 
     # --- Public signals: only those dated <= T ---
     all_signals = generate_signals_for_customer(
-        cust.customer_id, cust.name, cust.scenario, months=cust.months,
+        cust.drift_id, cust.name, cust.scenario, months=cust.months,
         drift_start_month=cust.drift_start_month,
-        seed=hash(cust.customer_id) % 9999,
+        seed=hash(cust.drift_id) % 9999,
     )
     past_signals = [s for s in all_signals if s.month <= month_T]
     pi = assess_public_risk(past_signals, months=cust.months)

@@ -31,12 +31,12 @@ from httpx import AsyncClient
 # Helpers
 # ---------------------------------------------------------------------------
 
-async def _first_customer_id(client: AsyncClient) -> str:
-    resp = await client.get("/api/v1/drift/customers")
+async def _first_drift_id(client: AsyncClient) -> str:
+    resp = await client.get("/api/v1/drift/subjects")
     assert resp.status_code == 200
     customers = resp.json()
     assert customers, "Drift engine returned an empty book"
-    return customers[0]["customer_id"]
+    return customers[0]["drift_id"]
 
 
 # ---------------------------------------------------------------------------
@@ -259,10 +259,10 @@ class TestPayloadCompleteness:
         assert entries[0].payload["jurisdiction"] == "CH"
 
     async def test_rfi_payload_includes_question_text(self, client, audit_query):
-        customers = (await client.get("/api/v1/drift/customers")).json()
-        customer_id = customers[0]["customer_id"]
+        customers = (await client.get("/api/v1/drift/subjects")).json()
+        drift_id = customers[0]["drift_id"]
 
-        await client.post(f"/api/v1/drift/rfi/{customer_id}")
+        await client.post(f"/api/v1/drift/rfi/{drift_id}")
 
         entries = await audit_query("drift_rfi_generated")
         assert len(entries) == 1
@@ -313,14 +313,14 @@ class TestAuditCountQueryCorrectness:
         The count returned by GET /audit must match the number of items
         when filtering by actor_id — not the unfiltered total.
         """
-        customer_id = await _first_customer_id(client)
+        drift_id = await _first_drift_id(client)
 
         # Two requests: one with actor, one without
         await client.get(
-            f"/api/v1/drift/customers/{customer_id}",
+            f"/api/v1/drift/subjects/{drift_id}",
             params={"actor_id": "anna.mueller"},
         )
-        await client.get(f"/api/v1/drift/customers/{customer_id}")
+        await client.get(f"/api/v1/drift/subjects/{drift_id}")
 
         # Query the audit API with actor filter
         resp = await client.get(
@@ -340,8 +340,8 @@ class TestAuditCountQueryCorrectness:
 
     async def test_count_reflects_risk_level_filter(self, client):
         # Generate a scan (no specific risk level on scan event — use customer)
-        customer_id = await _first_customer_id(client)
-        await client.get(f"/api/v1/drift/customers/{customer_id}")
+        drift_id = await _first_drift_id(client)
+        await client.get(f"/api/v1/drift/subjects/{drift_id}")
 
         # Query for a risk level that may or may not have entries
         resp = await client.get(
@@ -354,8 +354,8 @@ class TestAuditCountQueryCorrectness:
         assert data["total"] == len(data["items"])
 
     async def test_unfiltered_count_includes_all_events(self, client):
-        customer_id = await _first_customer_id(client)
-        await client.get(f"/api/v1/drift/customers/{customer_id}")
+        drift_id = await _first_drift_id(client)
+        await client.get(f"/api/v1/drift/subjects/{drift_id}")
         await client.post("/api/v1/drift/scan")
 
         resp = await client.get("/api/v1/audit")

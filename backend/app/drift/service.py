@@ -98,7 +98,7 @@ class DriftEngine:
         self._book: list[SyntheticCustomer] = generate_book()
         self._router = CascadeRouter()
         self._graph: OwnershipGraph = build_demo_graph(
-            [c.customer_id for c in self._book]
+            [c.drift_id for c in self._book]
         )
         # Contagion is computed once (sanctions already hit in demo state)
         self._contagion = self._graph.propagate(seeds=[SANCTIONED_SEED])
@@ -142,7 +142,7 @@ class DriftEngine:
         else:
             internal_peak_month = None
 
-        prop_risk = self._contagion.propagated_risk.get(cust.customer_id, 0.0)
+        prop_risk = self._contagion.propagated_risk.get(cust.drift_id, 0.0)
 
         # Internal risk 0..1: velocity (leading) + accumulated drift + contagion
         vel_norm = min(max_velocity / 3.0, 1.0)
@@ -151,9 +151,9 @@ class DriftEngine:
 
         # --- PUBLIC: external signals ---
         signals = generate_signals_for_customer(
-            cust.customer_id, cust.name, cust.scenario, months=cust.months,
+            cust.drift_id, cust.name, cust.scenario, months=cust.months,
             drift_start_month=cust.drift_start_month,
-            seed=hash(cust.customer_id) % 9999,
+            seed=hash(cust.drift_id) % 9999,
         )
         pi = assess_public_risk(signals, months=cust.months)
 
@@ -276,7 +276,7 @@ class DriftEngine:
                 status="deviation" if prop > 0.1 else "ok",
                 detail=(
                     f"Propagated risk {prop:.2f} from sanctioned entity "
-                    f"({self._contagion.hops_from_seed.get(cust.customer_id, '-')} hops)"
+                    f"({self._contagion.hops_from_seed.get(cust.drift_id, '-')} hops)"
                     if prop > 0.01 else "No ownership path to flagged entities"
                 ),
             ),
@@ -310,7 +310,7 @@ class DriftEngine:
         signature = causal.signature
         context: dict[str, Any] = {
             "customer": {
-                "id": cust.customer_id,
+                "id": cust.drift_id,
                 "name": cust.name,
                 "scenario": cust.scenario,
             },
@@ -438,8 +438,8 @@ class DriftEngine:
         )
 
         return {
-            "customer_id": cust.customer_id,
-            "customer_name": cust.name,
+            "drift_id": cust.drift_id,
+            "drift_name": cust.name,
             "llm_mode": llm_mode,
             "was_cached": was_cached,
             "response": self._parse_llm_json(text),
@@ -453,14 +453,14 @@ class DriftEngine:
         for cust in self._book:
             a = self._analyze_customer(cust)
             signal = CustomerSignal(
-                customer_id=cust.customer_id,
+                drift_id=cust.drift_id,
                 drift_score=a["drift_score"],
                 propagated_risk=a["propagated_risk"],
             )
             decision = self._router.route_one(signal)
             out.append(
                 DriftCustomerSummary(
-                    customer_id=cust.customer_id,
+                    drift_id=cust.drift_id,
                     name=cust.name,
                     drift_score=round(a["drift_score"], 1),
                     drift_velocity=round(a["max_velocity"], 3),
@@ -482,15 +482,15 @@ class DriftEngine:
         out.sort(key=lambda c: c.drift_score, reverse=True)
         return out
 
-    def get_customer(self, customer_id: str) -> DriftCustomerDetail | None:
-        cust = next((c for c in self._book if c.customer_id == customer_id), None)
+    def get_customer(self, drift_id: str) -> DriftCustomerDetail | None:
+        cust = next((c for c in self._book if c.drift_id == drift_id), None)
         if cust is None:
             return None
         a = self._analyze_customer(cust)
         ds = a["drift_series"]
 
         signal = CustomerSignal(
-            customer_id=cust.customer_id,
+            drift_id=cust.drift_id,
             drift_score=a["drift_score"],
             propagated_risk=a["propagated_risk"],
         )
@@ -519,7 +519,7 @@ class DriftEngine:
         ]
 
         return DriftCustomerDetail(
-            customer_id=cust.customer_id,
+            drift_id=cust.drift_id,
             name=cust.name,
             drift_score=round(a["drift_score"], 1),
             drift_velocity=round(a["max_velocity"], 3),
@@ -576,10 +576,10 @@ class DriftEngine:
         analyses: dict[str, tuple[SyntheticCustomer, dict]] = {}
         for cust in self._book:
             a = self._analyze_customer(cust)
-            analyses[cust.customer_id] = (cust, a)
+            analyses[cust.drift_id] = (cust, a)
             signals.append(
                 CustomerSignal(
-                    customer_id=cust.customer_id,
+                    drift_id=cust.drift_id,
                     drift_score=a["drift_score"],
                     propagated_risk=a["propagated_risk"],
                 )
@@ -589,7 +589,7 @@ class DriftEngine:
         for decision in report.decisions:
             if decision.reached_tier != Tier.T2_LLM:
                 continue
-            cust, analysis = analyses[decision.customer_id]
+            cust, analysis = analyses[decision.drift_id]
             llm_adjudications.append(
                 self._run_t2_llm_adjudication(cust, analysis)
             )
@@ -630,13 +630,13 @@ class DriftEngine:
             seeds=self._contagion.seeds,
         )
 
-    def replay(self, customer_id: str) -> ReplayResult | None:
+    def replay(self, drift_id: str) -> ReplayResult | None:
         """Time-Travel Audit: as-of replay proving no look-ahead bias."""
-        cust = next((c for c in self._book if c.customer_id == customer_id), None)
+        cust = next((c for c in self._book if c.drift_id == drift_id), None)
         if cust is None:
             return None
 
-        prop = self._contagion.propagated_risk.get(customer_id, 0.0)
+        prop = self._contagion.propagated_risk.get(drift_id, 0.0)
         # The seed entity is sanctioned at the customer's sanctions_month;
         # before that, contagion risk does not exist (no look-ahead).
         listing_month = cust.sanctions_month
@@ -648,7 +648,7 @@ class DriftEngine:
         )
 
         return ReplayResult(
-            customer_id=cust.customer_id,
+            drift_id=cust.drift_id,
             name=cust.name,
             points=[
                 AsOfPointOut(
@@ -671,7 +671,7 @@ class DriftEngine:
         """Red-team: add a synthetic customer with a chosen drift scenario."""
         new_id = f"injected-{len(self._book) + 1:03d}"
         cust = generate_customer(
-            customer_id=new_id, name=name, scenario=scenario,
+            drift_id=new_id, name=name, scenario=scenario,
             seed=hash(new_id) % 10000,
         )
         self._book.append(cust)

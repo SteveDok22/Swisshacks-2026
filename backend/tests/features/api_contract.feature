@@ -1,12 +1,12 @@
 Feature: API Contract
 
   Scenario: Customer list is sorted by drift score descending
-    When I call GET "/api/v1/drift/customers"
+    When I call GET "/api/v1/drift/subjects"
     Then the response status is 200
     And customers are sorted by drift_score descending
 
   Scenario: Unknown customer returns 404
-    When I call GET "/api/v1/drift/customers/nonexistent-xyz-abc"
+    When I call GET "/api/v1/drift/subjects/nonexistent-xyz-abc"
     Then the response status is 404
 
   Scenario: Cascade scan returns a valid cost report

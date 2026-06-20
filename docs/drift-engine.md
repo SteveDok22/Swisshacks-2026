@@ -238,7 +238,7 @@ sequenceDiagram
     participant DE as Drift Engine
     participant DB as Database
 
-    O->>TT: replay(customer_id, as_of_date)
+    O->>TT: replay(drift_id, as_of_date)
     TT->>DB: Fetch data WHERE timestamp ≤ as_of_date
     TT->>DB: Fetch public signals WHERE date ≤ as_of_date
     TT->>DB: Fetch contagion edges WHERE listed_at ≤ as_of_date

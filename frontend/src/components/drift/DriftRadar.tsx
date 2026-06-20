@@ -109,9 +109,9 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
 
         {/* Dots */}
         {customers.map((c) => {
-          const selected = c.customer_id === selectedId;
+          const selected = c.drift_id === selectedId;
           return (
-            <g key={c.customer_id}>
+            <g key={c.drift_id}>
               <circle
                 cx={sx(c.drift_score)}
                 cy={sy(c.drift_velocity)}
@@ -121,7 +121,7 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
                 stroke={selected ? "#0a0a0b" : "white"}
                 strokeWidth={selected ? 2 : 1}
                 className="cursor-pointer transition-all"
-                onClick={() => onSelect(c.customer_id)}
+                onClick={() => onSelect(c.drift_id)}
               />
               {(selected || c.drift_score > 55) && (
                 <text
@@ -144,11 +144,11 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
       {/* Customer list — click to select (easier than hunting for dots) */}
       <div className="mt-3 border-t border-paper-line pt-2 space-y-0.5 max-h-56 overflow-y-auto">
         {customers.map((c) => {
-          const selected = c.customer_id === selectedId;
+          const selected = c.drift_id === selectedId;
           return (
             <button
-              key={c.customer_id}
-              onClick={() => onSelect(c.customer_id)}
+              key={c.drift_id}
+              onClick={() => onSelect(c.drift_id)}
               className={cn(
                 "w-full flex items-center gap-2 px-2 py-1.5 rounded text-left transition-colors",
                 selected ? "bg-accent-bg" : "hover:bg-paper-sunken",

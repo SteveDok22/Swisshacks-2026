@@ -71,7 +71,7 @@ See [`docs/sources.md`](docs/sources.md) for full cost/access breakdown.
 - [x] **`sources/gleif.py`** — Global LEI Foundation (Cases 3, 4, 5, 8, 10) · FREE · `fetch()` fully implemented (legal name, jurisdiction, LEI status, parent + child LEIs); `fetch_signals()` returns `[]` by design — signals emitted by service layer via `diff_snapshots()`
 
 *Still to implement (carcasses exist):*
-- [ ] **`sources/opensanctions.py`** — OFAC / EU / UN sanctions + PEP screening (Cases 2, 5) · FREEMIUM
+- [x] **`sources/opensanctions.py`** — OFAC / EU / UN sanctions + PEP screening (Cases 2, 5) · FREEMIUM
 - [ ] **`sources/gdelt.py`** — GDELT 2.0 free news feed (Cases 1, 6, 8, 10) · FREE — **fallback** when Event Registry key absent
 - [ ] **`sources/firecrawl.py`** — website-to-markdown scraping, current content (Cases 9, 10) · FREEMIUM
 - [ ] **`sources/wayback.py`** — Internet Archive historical snapshot at onboarding date (Cases 9, 10) · FREE
@@ -319,7 +319,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 |---|---|---|---|
 | ZEFIX | 4, 7, 8, 10 | FREEMIUM¹ | ✅ IMPLEMENTED (engine wiring pending) |
 | GLEIF | 3, 4, 5, 8, 10 | FREE | ✅ IMPLEMENTED — `fetch()` live; signals via `diff_snapshots()` |
-| OpenSanctions | 2, 5 | FREEMIUM | 🔲 PLANNED |
+| OpenSanctions | 2, 5 | FREEMIUM | ✅ IMPLEMENTED — `fetch_signals` live; key optional (non-commercial free tier) |
 | Event Registry / NewsAPI.ai | 1, 6, 8, 10 | FREEMIUM (hackathon key) | ✅ IMPLEMENTED — **primary news source** |
 | GDELT | 1, 6, 8, 10 | FREE | 🔲 PLANNED — fallback when ER key absent |
 | RDAP/WHOIS | 8, 9 | FREE | 🔲 PLANNED |

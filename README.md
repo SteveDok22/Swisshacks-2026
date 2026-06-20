@@ -78,7 +78,7 @@ Each hypothesis has an executable test in `backend/tests/` (run `cd backend && u
 
 | # | Hypothesis | Validation method | Result | Test |
 |---|---|---|---|---|
-| **H1** | Changepoint detection flags regime change months before the resulting sanctions event | Synthetic scenario suite, lead-time measurement | Validated — 2-7 month lead (median 5.5), 0 false positives on stable customers | `test_hypothesis_h1.py` |
+| **H1** | Changepoint detection flags regime change months before the resulting sanctions event | Synthetic scenario suite, lead-time measurement | Validated — 2-7 month lead, 0 false positives on stable customers | `test_hypothesis_h1.py` |
 | **H2** | Drift *velocity* is a leading indicator; drift *level* is lagging | Velocity vs absolute-threshold alerting | Validated — velocity alerts fire earlier at equal false-positive rate | `test_hypothesis_h2.py` |
 | **H3** | Risk propagates through ownership topology ahead of public disclosure | Personalized PageRank from a sanctioned seed | Validated — 2-hop customers elevated; distant customers unaffected | `test_hypothesis_h3.py` |
 | **H4** | A cost-aware cascade preserves recall at a fraction of the cost | Cascade vs LLM-on-everything on 1,000 customers | Validated — 96% cost reduction at equal high-risk recall | `test_hypothesis_h4.py` |

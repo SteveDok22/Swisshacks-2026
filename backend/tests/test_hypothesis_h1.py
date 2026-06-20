@@ -31,6 +31,17 @@ DAYS_PER_MONTH = 21
 MONTHS = 18
 SANCTIONS_MONTH = 17
 MIN_LEAD_MONTHS = 2
+# Upper bound of the documented lead-time band (README: "2-7 month lead").
+MAX_LEAD_MONTHS = 7
+# One regime change per ~2 business years of daily data — the value the live
+# engine uses in service.py.
+HAZARD = 1.0 / 500.0
+# BOCPD back-dates a confirmed changepoint to the observation where the run
+# reset; on a sharp step this lands within a day or two of the true change.
+# The detection EVENT itself happens much later (after burn-in + confirmation),
+# so this is an attribution offset, not look-ahead. We bound it tightly.
+CAUSAL_TOLERANCE_DAYS = 2
+ACCURACY_TOLERANCE_DAYS = 10
 
 
 def _step_volume_series(
@@ -50,18 +61,25 @@ def _step_volume_series(
     return np.concatenate(months)
 
 
-def _detect_change_month(series: np.ndarray) -> int | None:
-    """Run BOCPD and map the first detected changepoint (a day index) to its
-    month window."""
-    result = BOCPD(hazard=1.0 / 500.0).run(standardize(series))
+def _detect_change_day(series: np.ndarray) -> int | None:
+    """Run BOCPD and return the first detected changepoint as a day index."""
+    result = BOCPD(hazard=HAZARD).run(standardize(series))
     if not result.detected_changepoints:
         return None
-    return result.detected_changepoints[0] // DAYS_PER_MONTH
+    return result.detected_changepoints[0]
 
 
-# Regime-change months spanning the realistic detection window. Each pairs with
-# the fixed sanctions month to give a ground-truth lead time.
-CHANGE_MONTHS = [6, 7, 8, 9, 10]
+def _day_to_month(day: int) -> int:
+    """Map a day index to its nearest month. Rounding (not flooring) is the
+    honest reading of "which month did the regime change land in": it cancels
+    the <=1-day back-dating offset instead of letting it spill into the
+    previous month."""
+    return round(day / DAYS_PER_MONTH)
+
+
+# Regime-change months chosen so the resulting lead times span the documented
+# 2-7 month band against the fixed sanctions month.
+CHANGE_MONTHS = [10, 11, 12, 13, 14, 15]
 SEEDS = [0, 1, 2, 3, 4]
 
 
@@ -70,37 +88,46 @@ class TestH1LeadTime:
     @pytest.mark.parametrize("seed", SEEDS)
     def test_changepoint_detected_with_sufficient_lead(self, change_month: int, seed: int):
         series = _step_volume_series(change_month, seed=seed)
-        detected_month = _detect_change_month(series)
+        detected_day = _detect_change_day(series)
+        change_day = change_month * DAYS_PER_MONTH
 
-        assert detected_month is not None, f"BOCPD missed the regime change at month {change_month}"
-        # Causal: detection cannot precede the change (allow the confirmation
-        # delay of a few days that may straddle the month boundary).
-        assert detected_month >= change_month - 1, (
-            f"detected month {detected_month} precedes true change {change_month} "
-            "— the detector cannot see the future"
+        assert detected_day is not None, f"BOCPD missed the regime change at month {change_month}"
+        # Causal: the attributed changepoint may sit at most a day or two before
+        # the true step (back-dating), never earlier — the detector has no
+        # access to the future.
+        assert detected_day >= change_day - CAUSAL_TOLERANCE_DAYS, (
+            f"detected day {detected_day} precedes true change day {change_day} "
+            "by more than the back-dating tolerance — would imply look-ahead"
         )
-        lead = SANCTIONS_MONTH - detected_month
-        assert lead >= MIN_LEAD_MONTHS, (
-            f"lead time {lead} < required {MIN_LEAD_MONTHS} months "
-            f"(detected month {detected_month}, sanctions month {SANCTIONS_MONTH})"
+        # Accuracy: the changepoint lands on the true step, not somewhere random.
+        assert abs(detected_day - change_day) <= ACCURACY_TOLERANCE_DAYS, (
+            f"detected day {detected_day} is far from true change day {change_day}"
+        )
+        lead = SANCTIONS_MONTH - _day_to_month(detected_day)
+        assert MIN_LEAD_MONTHS <= lead <= MAX_LEAD_MONTHS, (
+            f"lead time {lead} outside documented {MIN_LEAD_MONTHS}-{MAX_LEAD_MONTHS} "
+            f"month band (detected day {detected_day}, sanctions month {SANCTIONS_MONTH})"
         )
 
-    def test_lead_time_distribution_is_positive_with_documented_median(self):
+    def test_lead_time_distribution_matches_documented_band(self):
         leads = []
         for change_month in CHANGE_MONTHS:
             for seed in SEEDS:
-                detected = _detect_change_month(_step_volume_series(change_month, seed=seed))
-                assert detected is not None
-                leads.append(SANCTIONS_MONTH - detected)
+                detected_day = _detect_change_day(_step_volume_series(change_month, seed=seed))
+                assert detected_day is not None
+                leads.append(SANCTIONS_MONTH - _day_to_month(detected_day))
 
+        # The whole distribution sits inside the documented 2-7 month band, and
+        # its median is a solid multi-month lead.
         assert min(leads) >= MIN_LEAD_MONTHS
-        assert np.median(leads) >= MIN_LEAD_MONTHS
+        assert max(leads) <= MAX_LEAD_MONTHS
+        assert MIN_LEAD_MONTHS <= np.median(leads) <= MAX_LEAD_MONTHS
 
     def test_simulator_step_scenario_is_detected(self):
         # dormancy_break is the suite's genuine step scenario (a dormant shell
         # that suddenly activates). BOCPD must flag it with positive lead.
         cust = generate_customer("step", "Dormant Shell", "dormancy_break", seed=7)
-        result = BOCPD(hazard=1.0 / 500.0).run(standardize(cust.daily_volume_series()))
+        result = BOCPD(hazard=HAZARD).run(standardize(cust.daily_volume_series()))
         assert result.detected_changepoints, "BOCPD missed the dormancy-break step"
         cp_month = cust.day_to_month(result.detected_changepoints[0])
         assert cust.sanctions_month is not None
@@ -113,7 +140,7 @@ class TestH1NoFalsePositives:
         stable = [c for c in book if c.scenario == "stable"]
         assert stable, "demo book has no stable control group"
         for cust in stable:
-            result = BOCPD(hazard=1.0 / 500.0).run(standardize(cust.daily_volume_series()))
+            result = BOCPD(hazard=HAZARD).run(standardize(cust.daily_volume_series()))
             assert result.detected_changepoints == [], (
                 f"false positive on stable customer {cust.drift_id}: {result.detected_changepoints}"
             )
@@ -121,7 +148,7 @@ class TestH1NoFalsePositives:
     @pytest.mark.parametrize("seed", range(42, 52))
     def test_stable_customers_across_seeds_have_zero_false_positives(self, seed: int):
         cust = generate_customer(f"stable-{seed}", "Control", "stable", seed=seed)
-        result = BOCPD(hazard=1.0 / 500.0).run(standardize(cust.daily_volume_series()))
+        result = BOCPD(hazard=HAZARD).run(standardize(cust.daily_volume_series()))
         assert result.detected_changepoints == [], (
             f"false positive on stable seed {seed}: {result.detected_changepoints}"
         )

@@ -288,7 +288,7 @@ suite with `cd backend && uv run pytest`.
 
 | Hypothesis | Scenario | Result | Test |
 |---|---|---|---|
-| H1 — Lead time | Changepoint on step data, none on stationary | 2–7 months lead (median 5.5), 0 false positives | `test_hypothesis_h1.py` |
+| H1 — Lead time | Changepoint on step data, none on stationary | 2–7 months lead, 0 false positives | `test_hypothesis_h1.py` |
 | H2 — Velocity leads level | Velocity vs absolute-threshold alerting | Velocity fires earlier at equal FP rate | `test_hypothesis_h2.py` |
 | H3 — Contagion propagates | Personalized PageRank from sanctioned seed | 2-hop customers elevated; distant unaffected | `test_hypothesis_h3.py` |
 | H4 — Cascade cost reduction | Cascade vs LLM-on-everything, 1,000 customers | 96% cost reduction at equal recall | `test_hypothesis_h4.py` |

@@ -37,6 +37,10 @@ def _synthetic_book(seed: int = 0) -> list[CustomerSignal]:
     rng = np.random.default_rng(seed)
     signals: list[CustomerSignal] = []
     for i in range(N_CUSTOMERS):
+        # Synthetic risk mix: most customers clean, a thin band of mid-risk, a
+        # sliver of high-risk (a few with a deterministic sanctions hit). The
+        # exact split is illustrative of a real book's skew, not load-bearing —
+        # TestH4Robustness re-checks the claim across several seeds/draws.
         r = rng.random()
         if r < 0.90:
             score = rng.uniform(0, 25)
@@ -61,10 +65,19 @@ def _llm_on_everything_cost(n: int) -> float:
     return n * sum(TIER_COST[t] for t in Tier)
 
 
+def _all_llm_reached(book: list[CustomerSignal]) -> dict[str, Tier]:
+    """The baseline strategy under comparison: deep T2 LLM review for everyone."""
+    return {s.drift_id: Tier.T2_LLM for s in book}
+
+
 def _is_high_risk(signal: CustomerSignal, router: CascadeRouter) -> bool:
     """Ground-truth high-risk = a case the deep T2 LLM review is warranted for:
     high effective risk clearing the value floor, or a sanctions hit with value.
-    This is exactly the population the all-LLM strategy 'catches'."""
+
+    This mirrors the T2 escalation rule in ``CascadeRouter.route_one``
+    (app/drift/cascade.py) and is driven off the router's own thresholds, so it
+    stays in sync if those thresholds are retuned.
+    """
     effective_risk = max(signal.drift_score, signal.propagated_risk * 100.0)
     value_ok = signal.case_value >= router.t2_value_floor
     return value_ok and (signal.sanctions_hit or effective_risk >= router.t2_drift_threshold)
@@ -92,7 +105,9 @@ class TestH4Cost:
 
     def test_most_customers_never_leave_the_free_tier(self, router, book):
         report = router.route_book(book)
-        # The bulk of the book should be cleared by T0 rules at zero marginal cost.
+        # Sanity check on the cost mechanism: the bulk of the book is cleared by
+        # T0 rules at zero marginal cost (the synthetic mix is ~90% clean, so a
+        # 0.80 floor is comfortably satisfied without being brittle).
         assert report.tier_counts["T0_RULES"] > 0.80 * len(book)
 
 
@@ -113,15 +128,21 @@ class TestH4RecallUnchanged:
     def test_cascade_recall_equals_all_llm_recall(self, router, book):
         report = router.route_book(book)
         reached = {d.drift_id: d.reached_tier for d in report.decisions}
+        all_llm_reached = _all_llm_reached(book)
 
         high_risk = [s for s in book if _is_high_risk(s, router)]
-        # All-LLM analyses everyone, so its recall over the high-risk set is 1.0.
-        all_llm_recall = 1.0
-        cascade_recall = sum(1 for s in high_risk if reached[s.drift_id] == Tier.T2_LLM) / len(
-            high_risk
-        )
+        assert high_risk, "test book contains no high-risk customers"
+
+        def recall(routing: dict[str, Tier]) -> float:
+            return sum(1 for s in high_risk if routing[s.drift_id] == Tier.T2_LLM) / len(high_risk)
+
+        cascade_recall = recall(reached)
+        all_llm_recall = recall(all_llm_reached)
+        # The baseline analyses everyone, so it catches every high-risk case;
+        # the cascade must match that recall while spending a fraction of the cost.
+        assert all_llm_recall == pytest.approx(1.0)
         assert cascade_recall == pytest.approx(all_llm_recall), (
-            f"cascade recall {cascade_recall:.3f} != all-LLM recall {all_llm_recall}"
+            f"cascade recall {cascade_recall:.3f} != all-LLM recall {all_llm_recall:.3f}"
         )
 
 

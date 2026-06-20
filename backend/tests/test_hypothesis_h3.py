@@ -18,7 +18,8 @@ import pytest
 from app.drift.contagion import OwnershipGraph, build_demo_graph
 
 # Above this propagated-risk value a customer is "elevated" for review. Matches
-# the operating threshold used by the contagion feature suite.
+# the 0.1 alert level asserted in tests/features/contagion.feature
+# ("... has propagated_risk above 0.1").
 ELEVATED_THRESHOLD = 0.1
 # Personalized PageRank leaves a tiny numerical residual on nodes in a separate
 # component (power iteration stops at a finite tolerance); anything below this
@@ -98,7 +99,6 @@ class TestH3TopologyDecay:
     def test_unconnected_customer_receives_negligible_risk(self, branching_result):
         assert branching_result.hops_from_seed.get("cX") is None
         assert branching_result.propagated_risk["cX"] < NEGLIGIBLE_RISK
-        assert branching_result.propagated_risk["cX"] <= ELEVATED_THRESHOLD
 
     def test_risk_decays_monotonically_with_hop_distance(self, branching_result):
         risks = [branching_result.propagated_risk[c] for c in ("c2a", "c3a", "c4a")]

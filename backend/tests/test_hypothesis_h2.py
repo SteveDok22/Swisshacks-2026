@@ -42,6 +42,10 @@ def _velocity_threshold_zero_fp(stable_customers) -> float:
         ds = compute_drift_series(cust.metric_windows())
         if ds.velocity:
             peak = max(peak, max(ds.velocity))
+    # A zero peak would make the threshold 0 and let any drift pass trivially,
+    # voiding the "equal false-positive rate" comparison. Stable customers carry
+    # real noise velocity, so this must be positive.
+    assert peak > 0.0, "stable cohort produced no velocity — calibration is meaningless"
     return peak * 1.05
 
 
@@ -55,14 +59,14 @@ def _velocity_alert_month(cust, threshold: float) -> int | None:
 
 def _absolute_alert_month(cust, threshold: float) -> int | None:
     return next(
-        (m for m in range(cust.months) if float(np.mean(cust.monthly_volume[m])) >= threshold),
+        (m for m in range(cust.months) if np.mean(cust.monthly_volume[m]) >= threshold),
         None,
     )
 
 
 @pytest.fixture(scope="module")
 def stable_cohort():
-    return [c for c in generate_book() if c.scenario == "stable"]
+    return [c for c in generate_book(seed=42) if c.scenario == "stable"]
 
 
 @pytest.fixture(scope="module")
@@ -95,11 +99,13 @@ class TestH2VelocityLeads:
 
         assert vel_month is not None, "velocity detector never fired on a drift scenario"
         # The absolute detector may fire late or not at all within the horizon;
-        # either way velocity must lead it.
+        # either way velocity must lead it. When it never fires we treat it as
+        # firing just past the observation horizon.
         effective_abs_month = abs_month if abs_month is not None else cust.months
         assert vel_month < effective_abs_month, (
             f"velocity ({vel_month}) did not lead absolute threshold "
-            f"({effective_abs_month}) for {scenario} seed {seed}"
+            f"({abs_month if abs_month is not None else 'never fired'}) "
+            f"for {scenario} seed {seed}"
         )
 
     def test_aggregate_lead_is_positive(self, velocity_threshold: float):

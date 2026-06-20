@@ -154,7 +154,7 @@ flowchart TD
 
     T0{"Tier 0\nRule Engine\nFree — ~95% of customers"}
     T1{"Tier 1\nML · XGBoost + SHAP\n~$0.0002 per customer"}
-    T2{"Tier 2\nLLM · Claude Sonnet\n~$0.05 per customer"}
+    T2{"Tier 2\nLLM · Claude adjudication\n~$0.05 per customer"}
 
     Clear["Clear\nLow-risk — no action"]
     Review["Review\nScheduled re-KYC"]
@@ -163,18 +163,21 @@ flowchart TD
     Start --> T0
     T0 -->|"Deterministic rules pass\n~95% volume"| Clear
     T0 -->|Borderline| T1
-    T1 -->|Score < 40| Clear
-    T1 -->|40 ≤ Score < 70| Review
-    T1 -->|Score ≥ 70| T2
-    T2 -->|Confirms risk| EDD
-    T2 -->|Downrates| Review
+    T1 -->|Effective risk < 55| Review
+    T1 -->|Effective risk ≥ 55\nand case value clears floor| T2
+    T2 -->|Verdict: risk| EDD
+    T2 -->|Verdict: benign or ambiguous| Review
 
     style Clear fill:#16a34a,color:#fff
     style Review fill:#d97706,color:#fff
     style EDD fill:#dc2626,color:#fff
 ```
 
-**Result:** 96% cost reduction vs LLM-on-everything at equal high-risk recall (H4, validated on 1,000-customer synthetic book).
+T2 adjudication is an actual execution path in `drift/service.py`: every customer routed to `T2_LLM` is sent through the shared `AnthropicClient`. The adjudicator compares risk-shaped drift, benign business change, and ambiguous/insufficient-evidence hypotheses, and returns parsed JSON with verdict, confidence, rationale, key evidence, and a human compliance action. In development, the same client runs in mock mode when no Anthropic API key is configured.
+
+The scan response keeps `llm_on_everything_cost` as a counterfactual baseline and separately reports `actual_t2_llm_calls`, `real_t2_llm_calls`, `mock_t2_llm_calls`, and `llm_adjudications[]`.
+
+**Result:** 96% cost reduction vs LLM-on-everything at equal high-risk recall (H4, validated on the synthetic book).
 
 ---
 

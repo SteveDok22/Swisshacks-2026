@@ -61,7 +61,7 @@ flowchart LR
         DS1["DriftCustomerSummary\ncustomer_id · name · score · velocity\naction · risk_level"]
         DS2["DriftCustomerDetail\n+ LayerContribution[]\n+ CausalVerdictOut\n+ StabilityOut\n+ contagion_score"]
         DS3["ReplayResult\nas_of_score · current_score\nlead_time_months"]
-        DS4["CascadeCostReport\ntier_counts · cost_saved · total_customers"]
+        DS4["CascadeCostReport\ntier_counts · costs · total_customers\n+ actual_t2_llm_calls\n+ llm_adjudications[]"]
     end
 
     subgraph CaseSchemas["Case Schemas"]
@@ -90,4 +90,13 @@ flowchart LR
     Request --> Anon --> Claude --> Response
 ```
 
-No auth tokens required in dev mode. All LLM calls pass through `anonymizer.py` — raw names and exact amounts never leave the backend.
+No auth tokens required in dev mode.
+
+Case-explanation LLM calls pass through `anonymizer.py` so raw names and exact amounts are not sent to Claude. Drift scan T2 adjudication uses the shared `AnthropicClient` and sends structured drift evidence for customers that actually reach `T2_LLM`; when no Anthropic API key is configured, the same path runs in deterministic mock mode.
+
+`POST /drift/scan` returns the counterfactual `llm_on_everything_cost` plus actual execution counters:
+
+- `actual_t2_llm_calls`
+- `real_t2_llm_calls`
+- `mock_t2_llm_calls`
+- `llm_adjudications[]` with customer id, customer name, mode, cache flag, and parsed JSON adjudication.

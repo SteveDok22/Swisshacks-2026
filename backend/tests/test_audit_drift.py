@@ -73,6 +73,9 @@ class TestAuditDriftEndpoints:
         assert "total_customers" in entry.payload
         assert "savings_pct" in entry.payload
         assert "tier_counts" in entry.payload
+        assert "actual_t2_llm_calls" in entry.payload
+        assert "real_t2_llm_calls" in entry.payload
+        assert "mock_t2_llm_calls" in entry.payload
         assert entry.payload["total_customers"] > 0
 
     async def test_rfi_writes_audit_entry(self, client, audit_query):

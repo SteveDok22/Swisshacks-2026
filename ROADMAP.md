@@ -78,7 +78,8 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 - [ ] **Train drift XGBoost model** — `ml/training.py` has no drift training; feed synthetic book (8 scenarios × time windows ≈ 200 samples) through `DriftFeatureExtractor` → label → `XGBClassifier.fit()`
 
 **5. UX / explainability**
-- [ ] **Source citations on signal cards** — add `source_url` field to `PublicSignalOut` in `public_intel.py`; display in `TwoLayerPanel.tsx`
+- [ ] **DormancyPanel.tsx** — `DormancyOut` is computed by the engine and included in `DriftCustomerDetail` (API), but the frontend has no panel for it and the TS types are stale: add `DormancyVerdict` interface to `api.ts`; add `dormancy: DormancyVerdict | null` to `DriftCustomerDetail` and `dormancy_break: number` + `is_dormancy_break: boolean` to `DriftCustomerSummary`; create `DormancyPanel.tsx` mirroring `StabilityPanel.tsx` (depth × activation-strength product, flagged banner when `is_dormancy_break`)
+- [ ] **Source citations on signal cards** — backend done (`source_url` field on `PublicSignal` in `sources/base.py` and on `PublicSignalOut` in `schemas/drift.py`); remaining: add `source_url: string | null` to `PublicSignal` TS type in `api.ts`; render as a clickable link in `TwoLayerPanel.tsx` signal rows
 - [ ] **SHAP wired to drift** — option A (fast): reword docs to "per-layer contribution breakdown", drop per-variable SHAP claim; option B (correct): route T1 drift customers through `RiskEngine.score_case`, attach SHAP values to `DriftCustomerDetail`
 
 **6. Cost tracking**

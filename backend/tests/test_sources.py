@@ -109,11 +109,23 @@ class TestRegistryClassification:
 # --------------------------------------------------------------------------- #
 class TestCarcassBehaviour:
     async def test_planned_adapter_raises_not_implemented(self):
-        # Free source, simply not built yet — both entry points.
+        # Free source whose carcass is not built yet — both entry points.
+        # GLEIF is the representative still-unbuilt PLANNED adapter (ZEFIX is
+        # now implemented; without credentials it degrades to None/[], it does
+        # not raise — see test_zefix.py).
+        from app.sources.gleif import GleifAdapter
+
         with pytest.raises(NotImplementedError):
-            await ZefixAdapter().fetch("c", "Helvetia AG")
+            await GleifAdapter().fetch("c", "Helvetia AG")
         with pytest.raises(NotImplementedError):
-            await ZefixAdapter().fetch_signals("c", "Helvetia AG")
+            await GleifAdapter().fetch_signals("c", "Helvetia AG")
+
+    async def test_zefix_without_credentials_degrades_quietly(self):
+        # The one implemented free adapter: no account configured → graceful
+        # no-op, NOT a NotImplementedError carcass.
+        adapter = ZefixAdapter(username="", password="")
+        assert await adapter.fetch("c", "Helvetia AG") is None
+        assert await adapter.fetch_signals("c", "Helvetia AG") == []
 
     async def test_skipped_adapter_raises_source_unavailable(self):
         # Paid source, intentionally skipped — a DIFFERENT error type.

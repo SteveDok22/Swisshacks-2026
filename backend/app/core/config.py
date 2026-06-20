@@ -59,6 +59,16 @@ class Settings(BaseSettings):
     anthropic_model_fast: str = "claude-haiku-4-5"
     anthropic_max_tokens: int = 1024
 
+    # === Source adapters ===
+    # ZEFIX (Swiss commercial register) — the ZefixPublicREST API requires a
+    # free registered HTTP Basic-auth account (verified live: 401 without
+    # credentials). Request one from the Federal Office of Justice
+    # (zefix@bj.admin.ch). Left blank by default → ZefixAdapter degrades
+    # gracefully (fetch returns None, fetch_signals returns []) so the engine
+    # still runs without an account.
+    zefix_username: str = ""
+    zefix_password: str = ""
+
     # === ML ===
     model_dir: str = "./data/models"
     enable_dice_counterfactuals: bool = True

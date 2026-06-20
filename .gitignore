@@ -68,3 +68,6 @@ BUILD_JOURNAL.md
 WRAP_UP.md
 docs/Kak-*.pdf
 _private_materials/
+
+# Frontend TS build cache
+frontend/*.tsbuildinfo

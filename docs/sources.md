@@ -54,7 +54,7 @@ status == PLANNED   <=>   cost == FREE or FREEMIUM
 
 | Source | What it provides | Cost | Key? | Decision |
 |---|---|---|---|---|
-| **ZEFIX** | Swiss commercial register: name, legal form, seat, status, purpose (Zweck), SHAB mutation log | FREEMIUM | yes⁰ | ✅ IMPLEMENT |
+| **ZEFIX** | Swiss commercial register: name, legal form, seat, status, purpose (Zweck), SHAB mutation log | FREEMIUM | yes⁰ | ✅ IMPLEMENTED |
 | **GLEIF** | Global LEI: name, status, jurisdiction, parent/children ownership graph | FREE | no | ✅ IMPLEMENT |
 | **OpenSanctions** | OFAC/EU/UN sanctions + PEP screening with match scores | FREEMIUM | yes¹ | ✅ IMPLEMENT |
 | **GDELT 2.0** | Global news article lists + volume time-series (free news feed) | FREE | no | ✅ IMPLEMENT |
@@ -70,6 +70,14 @@ Basic-auth account** (verified live — `401 WWW-Authenticate: Basic` without
 credentials), so it is FREEMIUM, not FREE. The no-auth path is the daily ZEFIX
 *Open Data* bulk dump (name-index snapshot, not live detail). ZEFIX does **not**
 expose officers / board members / UBOs — those are in the cantonal registers.
+The adapter (`sources/zefix.py`) is implemented against the live OpenAPI schema
+(`POST /company/search` → `CompanyShort[]`, `GET /company/uid/{uid}` →
+`CompanyFull[]`; `legalForm` is a nested `{de,fr,it,en}` map, `status` ∈
+{ACTIVE, BEING_CANCELLED, CANCELLED}). Credentials come from
+`ZEFIX_USERNAME`/`ZEFIX_PASSWORD`; with none set the adapter degrades gracefully
+(`fetch → None`, `fetch_signals → []`) so the engine still runs. Engine wiring
+(aggregator, score floor, synthetic scenario, UI badge) is tracked separately in
+the ROADMAP use-case close-out tasks.
 ¹ OpenSanctions: hosted API needs a key and is metered; the data + the `yente`
 matcher are **free for non-commercial use** and self-hostable. Commercial use
 needs a paid bulk-data licence — flag for production.

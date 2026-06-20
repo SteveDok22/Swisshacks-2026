@@ -66,7 +66,7 @@ Decision rule: **only 100%-free / free-tier sources are implemented**; paid sour
 See [`docs/sources.md`](docs/sources.md) for full cost/access breakdown.
 
 *Free — implement these (status: `PLANNED`):*
-- [ ] **`sources/zefix.py`** — Swiss commercial register (Cases 4, 7, 8, 10) · FREEMIUM (free, but needs a free registered Basic-auth account — verified live 401 without creds; no officers/UBO in the API)
+- [x] **`sources/zefix.py`** — Swiss commercial register (Cases 4, 7, 8, 10) · FREEMIUM (free, but needs a free registered Basic-auth account — verified live 401 without creds; no officers/UBO in the API). **`fetch` + `fetch_signals` implemented** against the live OpenAPI schema; Basic-auth from `ZEFIX_USERNAME`/`ZEFIX_PASSWORD`, graceful degradation without creds; unit tests mock the HTTP layer (`tests/test_zefix.py`). Engine wiring tracked in the UC4/UC8 close-out tasks below.
 - [ ] **`sources/gleif.py`** — Global LEI Foundation (Cases 3, 4, 5, 8, 10) · FREE
 - [ ] **`sources/opensanctions.py`** — OFAC / EU / UN sanctions + PEP screening (Cases 2, 5) · FREEMIUM
 - [ ] **`sources/gdelt.py`** — GDELT 2.0 free news feed (Cases 1, 6, 8, 10) · FREE — replaces paid Event Registry
@@ -98,6 +98,7 @@ Each adapter has two methods to implement. `fetch()` returns a current `EntitySn
   - `jurisdiction` changed → `signal_type="jurisdiction_change"`, severity=`"high"`
   - `status` is `IN_LIQUIDATION` or `DELETED` → `signal_type="status_change"`, severity=`"critical"`
 - **Auth**: **free registered Basic-auth account** required (verified live — `401 WWW-Authenticate: Basic` without credentials; request one from the Federal Office of Justice, zefix@bj.admin.ch). Add `User-Agent: Sentinel/1.0` header. Respect 429 with exponential backoff.
+- **✅ IMPLEMENTED** (`sources/zefix.py`). The pseudocode above predates a live OpenAPI check — the shipped adapter follows the **real** contract: `search` body is `{"name", "activeOnly"}` (no `maxEntries`/`languageKey`) and returns `CompanyShort[]`; `GET /company/uid/{uid}` returns `CompanyFull[]`; `legalForm` is a nested `{de,fr,it,en}` map (we read `shortName`, preferring `de` → "AG"/"GmbH"); `status` ∈ {ACTIVE, BEING_CANCELLED, CANCELLED} mapped to the `dissolution_status` vocabulary. `jurisdiction` carries the Swiss **canton** (operative Case-4 seat; country is invariantly CH, kept in `raw_data`). `fetch_signals` diffs against a **caller-injected** `baseline` snapshot (no DB import in the adapter) and maps `diff_snapshots`' `*_changed` keys → noun-form `*_change` `PublicSignal`s. Credentials via `ZEFIX_USERNAME`/`ZEFIX_PASSWORD`; absent → graceful no-op.
 
 ---
 
@@ -207,7 +208,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 - [ ] Diff GLEIF `ownership_chain` vs KYC baseline using `diff_snapshots`; emit `ownership_change` signals
 
 > **UC 4 — Jurisdiction / legal form change** (🔶 INDIRECT → ✅)
-- [ ] Implement `ZefixAdapter.fetch` and `fetch_signals` (legal_form + jurisdiction diff path — see spec above)
+- [x] Implement `ZefixAdapter.fetch` and `fetch_signals` (legal_form + jurisdiction diff path — see spec above)
 - [ ] Implement `GleifAdapter.fetch` jurisdiction field (already in spec above)
 - [ ] Extend `EntitySnapshotDB` with `legal_form: str | None` and `jurisdiction: str | None` columns so the diff has a persisted baseline to compare against
 - [ ] A confirmed `jurisdiction_change` or `legal_form_change` signal floors the drift score at 50 in `service.py:_analyze_customer` (mandatory re-KYC trigger)
@@ -222,7 +223,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 - [ ] Compute scale-jump ratio (`active_volume / baseline_volume`) in `causal.py`; if ratio ≥ 5× and a `funding_event` signal exists in the same window, raise `causal_p_risk` (corroborating that the volume jump is acquisition-driven rather than laundering)
 
 > **UC 8 — Legal entity name change** (❌ MISSING → ✅)
-- [ ] Implement `ZefixAdapter.fetch` + `fetch_signals` name-change diff path (see spec above)
+- [x] Implement `ZefixAdapter.fetch` + `fetch_signals` name-change diff path (see spec above)
 - [ ] Implement `GleifAdapter.fetch` + `fetch_signals` name-change diff path (see spec above)
 - [ ] Implement `WhoisAdapter.fetch` + `fetch_signals` domain registrant diff path (see spec above)
 - [ ] Add `name_changed: bool` to the analysis dict in `service.py:_analyze_customer`; a confirmed name change floors the drift score at 60 regardless of other signals
@@ -296,7 +297,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 
 | Source | Cases | Cost | Status |
 |---|---|---|---|
-| ZEFIX | 4, 7, 8, 10 | FREEMIUM¹ | 🔲 PLANNED |
+| ZEFIX | 4, 7, 8, 10 | FREEMIUM¹ | ✅ ADAPTER DONE (engine wiring pending) |
 | GLEIF | 3, 4, 5, 8, 10 | FREE | 🔲 PLANNED |
 | OpenSanctions | 2, 5 | FREEMIUM | 🔲 PLANNED |
 | GDELT | 1, 6, 8, 10 | FREE | 🔲 PLANNED |

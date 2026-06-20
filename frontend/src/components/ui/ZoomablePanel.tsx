@@ -1,6 +1,6 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Maximize2, X } from "lucide-react";
 
@@ -16,6 +16,24 @@ export function ZoomablePanel({
   zoomLabel = "Zoom visualization",
 }: ZoomablePanelProps) {
   const [zoomed, setZoomed] = useState(false);
+  const [resizeKey, setResizeKey] = useState(0);
+
+  useEffect(() => {
+    let frame = 0;
+
+    const handleResize = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        setResizeKey((key) => key + 1);
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   return (
     <>
@@ -33,14 +51,15 @@ export function ZoomablePanel({
 
       {zoomed && (
         <div
-          className="fixed inset-0 z-50 flex items-start justify-center bg-ink/45 px-4 pb-4 overflow-y-auto"
+          className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-ink/45 p-4"
           role="dialog"
           aria-modal="true"
           onClick={() => setZoomed(false)}
         >
           <div
+            key={resizeKey}
             className={cn(
-              "relative max-h-[92vh] w-[min(1120px,calc(100vw-2rem))] overflow-auto shadow-raised",
+              "relative my-4 max-h-[88vh] w-[min(980px,calc(100vw-2rem))] overflow-auto shadow-raised [&_svg]:mx-auto [&_svg]:h-auto [&_svg]:max-h-[58vh] [&_svg]:w-full",
               className,
             )}
             onClick={(event) => event.stopPropagation()}

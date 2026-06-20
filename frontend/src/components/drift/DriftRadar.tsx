@@ -25,19 +25,29 @@ interface DriftRadarProps {
 export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps) {
   const W = 520;
   const H = 380;
-  const PAD = 44;
+  const PAD_X = 68;
+  const PAD_Y = 44;
   const explanation =
     "Current book snapshot. X-axis is fused drift score from 0 to 100; Y-axis is drift velocity in bits per month. Higher and farther right means a customer is both risky and changing quickly.";
 
   const maxScore = 100;
   const maxVel = Math.max(4, ...customers.map((c) => c.drift_velocity));
 
-  const sx = (score: number) => PAD + (score / maxScore) * (W - 2 * PAD);
-  const sy = (vel: number) => H - PAD - (vel / maxVel) * (H - 2 * PAD);
+  const sx = (score: number) =>
+    PAD_X + (score / maxScore) * (W - PAD_X - PAD_Y);
+  const sy = (vel: number) =>
+    H - PAD_Y - (vel / maxVel) * (H - 2 * PAD_Y);
   const scoreTicks = [0, 25, 50, 75, 100];
   const velocityTicks = [0, maxVel / 2, maxVel].map((tick) =>
     Number(tick.toFixed(1)),
   );
+  const formatVelocityTick = (tick: number) => {
+    if (Math.abs(tick) >= 1000) {
+      return `${(tick / 1000).toFixed(Math.abs(tick) >= 10000 ? 0 : 1)}k`;
+    }
+
+    return Number.isInteger(tick) ? tick.toFixed(0) : tick.toFixed(1);
+  };
 
   const dotColor = (band: string) => {
     switch (band) {
@@ -82,9 +92,9 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
         {/* Quadrant shading: upper-right danger zone */}
         <rect
           x={sx(55)}
-          y={PAD}
-          width={W - PAD - sx(55)}
-          height={sy(maxVel * 0.5) - PAD}
+          y={PAD_Y}
+          width={W - PAD_Y - sx(55)}
+          height={sy(maxVel * 0.5) - PAD_Y}
           fill="var(--risk-critical, #b91c1c)"
           opacity={0.04}
         />
@@ -94,15 +104,15 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
           <g key={`score-${tick}`}>
             <line
               x1={sx(tick)}
-              y1={PAD}
+              y1={PAD_Y}
               x2={sx(tick)}
-              y2={H - PAD}
+              y2={H - PAD_Y}
               stroke="var(--paper-line, #e4e4e7)"
               strokeWidth={1}
             />
             <text
               x={sx(tick)}
-              y={H - PAD + 16}
+              y={H - PAD_Y + 16}
               textAnchor="middle"
               fontSize={9}
               fill="var(--ink-muted, #71717a)"
@@ -114,32 +124,32 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
         {velocityTicks.map((tick) => (
           <g key={`vel-${tick}`}>
             <line
-              x1={PAD}
+              x1={PAD_X}
               y1={sy(tick)}
-              x2={W - PAD}
+              x2={W - PAD_Y}
               y2={sy(tick)}
               stroke="var(--paper-line, #e4e4e7)"
               strokeWidth={1}
             />
             <text
-              x={PAD - 8}
+              x={PAD_X - 10}
               y={sy(tick) + 3}
               textAnchor="end"
               fontSize={9}
               fill="var(--ink-muted, #71717a)"
             >
-              {tick}
+              {formatVelocityTick(tick)}
             </text>
           </g>
         ))}
 
         {/* Axes */}
-        <line x1={PAD} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="var(--paper-line, #e4e4e7)" strokeWidth={1} />
-        <line x1={PAD} y1={PAD} x2={PAD} y2={H - PAD} stroke="var(--paper-line, #e4e4e7)" strokeWidth={1} />
+        <line x1={PAD_X} y1={H - PAD_Y} x2={W - PAD_Y} y2={H - PAD_Y} stroke="var(--paper-line, #e4e4e7)" strokeWidth={1} />
+        <line x1={PAD_X} y1={PAD_Y} x2={PAD_X} y2={H - PAD_Y} stroke="var(--paper-line, #e4e4e7)" strokeWidth={1} />
 
         {/* Axis labels */}
         <text x={W / 2} y={H - 8} textAnchor="middle" fontSize={11} fill="var(--ink-muted, #71717a)">
-          Drift score →
+          {"Drift score ->"}
         </text>
         <text
           x={14}
@@ -149,15 +159,15 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
           fill="var(--ink-muted, #71717a)"
           transform={`rotate(-90 14 ${H / 2})`}
         >
-          Drift velocity →
+          Drift velocity
         </text>
 
         {/* Threshold guides */}
         <line
           x1={sx(55)}
-          y1={PAD}
+          y1={PAD_Y}
           x2={sx(55)}
-          y2={H - PAD}
+          y2={H - PAD_Y}
           stroke="var(--ink-faint, #a1a1aa)"
           strokeWidth={1}
           strokeDasharray="3 3"
@@ -165,13 +175,13 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
         <line
           x1={sx(55)}
           y1={sy(maxVel * 0.5)}
-          x2={W - PAD}
+          x2={W - PAD_Y}
           y2={sy(maxVel * 0.5)}
           stroke="var(--ink-faint, #a1a1aa)"
           strokeWidth={1}
           strokeDasharray="3 3"
         />
-        <text x={sx(55) + 4} y={PAD + 12} fontSize={9} fill="var(--ink-muted, #71717a)">
+        <text x={sx(55) + 4} y={PAD_Y + 12} fontSize={9} fill="var(--ink-muted, #71717a)">
           priority zone
         </text>
 

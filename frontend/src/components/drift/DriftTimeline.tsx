@@ -35,7 +35,8 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
 
   const W = 640;
   const H = 200;
-  const PAD = 36;
+  const PAD_X = 64;
+  const PAD_Y = 36;
 
   const minVel = Math.min(0, ...timeline.map((p) => p.velocity));
   const maxVel = Math.max(1, ...timeline.map((p) => p.velocity));
@@ -44,9 +45,9 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
   const maxMonth = Math.max(...months);
 
   const mx = (m: number) =>
-    PAD + ((m - minMonth) / Math.max(1, maxMonth - minMonth)) * (W - 2 * PAD);
+    PAD_X + ((m - minMonth) / Math.max(1, maxMonth - minMonth)) * (W - PAD_X - PAD_Y);
   const vy = (v: number) =>
-    H - PAD - ((v - minVel) / Math.max(0.1, maxVel - minVel)) * (H - 2 * PAD);
+    H - PAD_Y - ((v - minVel) / Math.max(0.1, maxVel - minVel)) * (H - 2 * PAD_Y);
   const monthTickCount = Math.min(5, Math.max(2, maxMonth - minMonth + 1));
   const monthTicks = Array.from(
     new Set(
@@ -58,6 +59,13 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
   const velocityTicks = Array.from(
     new Set([minVel, 0, 0.8, maxVel].map((tick) => Number(tick.toFixed(1)))),
   ).sort((a, b) => a - b);
+  const formatVelocityTick = (tick: number) => {
+    if (Math.abs(tick) >= 1000) {
+      return `${(tick / 1000).toFixed(Math.abs(tick) >= 10000 ? 0 : 1)}k`;
+    }
+
+    return Number.isInteger(tick) ? tick.toFixed(0) : tick.toFixed(1);
+  };
 
   // Find the month where the Drift Engine first flags (velocity >= 0.8)
   const alertPoint = timeline.find((p) => p.velocity >= 0.8);
@@ -104,21 +112,21 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
         {velocityTicks.map((tick) => (
           <g key={`vel-${tick}`}>
             <line
-              x1={PAD}
+              x1={PAD_X}
               y1={vy(tick)}
-              x2={W - PAD}
+              x2={W - PAD_Y}
               y2={vy(tick)}
               stroke={tick === 0 ? "var(--paper-line, #e4e4e7)" : "var(--paper-raised, #ffffff)"}
               strokeWidth={tick === 0 ? 1.25 : 1}
             />
             <text
-              x={PAD - 8}
+              x={PAD_X - 10}
               y={vy(tick) + 3}
               textAnchor="end"
               fontSize={9}
               fill="var(--ink-muted, #71717a)"
             >
-              {tick.toFixed(1)}
+              {formatVelocityTick(tick)}
             </text>
           </g>
         ))}
@@ -126,15 +134,15 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
           <g key={`month-${tick}`}>
             <line
               x1={mx(tick)}
-              y1={H - PAD}
+              y1={H - PAD_Y}
               x2={mx(tick)}
-              y2={H - PAD + 4}
+              y2={H - PAD_Y + 4}
               stroke="var(--ink-faint, #a1a1aa)"
               strokeWidth={1}
             />
             <text
               x={mx(tick)}
-              y={H - PAD + 16}
+              y={H - PAD_Y + 16}
               textAnchor="middle"
               fontSize={9}
               fill="var(--ink-muted, #71717a)"
@@ -145,8 +153,8 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
         ))}
 
         {/* Axes */}
-        <line x1={PAD} y1={vy(0)} x2={W - PAD} y2={vy(0)} stroke="var(--paper-line, #e4e4e7)" />
-        <line x1={PAD} y1={PAD} x2={PAD} y2={H - PAD} stroke="var(--paper-line, #e4e4e7)" />
+        <line x1={PAD_X} y1={vy(0)} x2={W - PAD_Y} y2={vy(0)} stroke="var(--paper-line, #e4e4e7)" />
+        <line x1={PAD_X} y1={PAD_Y} x2={PAD_X} y2={H - PAD_Y} stroke="var(--paper-line, #e4e4e7)" />
         <text x={W / 2} y={H - 7} textAnchor="middle" fontSize={10} fill="var(--ink-muted, #71717a)">
           Month in observed history
         </text>
@@ -163,16 +171,16 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
 
         {/* Alert band threshold */}
         <line
-          x1={PAD}
+          x1={PAD_X}
           y1={vy(0.8)}
-          x2={W - PAD}
+          x2={W - PAD_Y}
           y2={vy(0.8)}
           stroke="var(--risk-medium, #a16207)"
           strokeWidth={1}
           strokeDasharray="4 4"
           opacity={0.5}
         />
-        <text x={W - PAD} y={vy(0.8) - 5} textAnchor="end" fontSize={9} fill="var(--risk-medium, #a16207)">
+        <text x={W - PAD_Y} y={vy(0.8) - 5} textAnchor="end" fontSize={9} fill="var(--risk-medium, #a16207)">
           alert band 0.8 bits/mo
         </text>
 
@@ -180,9 +188,9 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
         {drift_start_month !== null && (
           <line
             x1={mx(drift_start_month)}
-            y1={PAD}
+            y1={PAD_Y}
             x2={mx(drift_start_month)}
-            y2={H - PAD}
+            y2={H - PAD_Y}
             stroke="var(--ink-faint, #a1a1aa)"
             strokeWidth={1}
             strokeDasharray="2 3"
@@ -194,9 +202,9 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
           <g>
             <line
               x1={mx(changepointMonth)}
-              y1={PAD}
+              y1={PAD_Y}
               x2={mx(changepointMonth)}
-              y2={H - PAD}
+              y2={H - PAD_Y}
               stroke="var(--accent-2, #7c3aed)"
               strokeWidth={1.5}
               strokeDasharray="5 3"
@@ -204,7 +212,7 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
             />
             <text
               x={mx(changepointMonth) + 4}
-              y={H - PAD - 4}
+              y={H - PAD_Y - 4}
               fontSize={9}
               fill="var(--accent-2, #7c3aed)"
               fontWeight={600}
@@ -219,15 +227,15 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
           <g>
             <line
               x1={mx(alertMonth)}
-              y1={PAD}
+              y1={PAD_Y}
               x2={mx(alertMonth)}
-              y2={H - PAD}
+              y2={H - PAD_Y}
               stroke="var(--risk-high, #c2410c)"
               strokeWidth={2}
             />
             <text
               x={mx(alertMonth) + 4}
-              y={PAD + 12}
+              y={PAD_Y + 12}
               fontSize={9}
               fill="var(--risk-high, #c2410c)"
               fontWeight={600}
@@ -242,15 +250,15 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
           <g>
             <line
               x1={mx(sanctions_month)}
-              y1={PAD}
+              y1={PAD_Y}
               x2={mx(sanctions_month)}
-              y2={H - PAD}
+              y2={H - PAD_Y}
               stroke="var(--risk-critical, #b91c1c)"
               strokeWidth={2}
             />
             <text
               x={mx(sanctions_month) - 4}
-              y={PAD + 12}
+              y={PAD_Y + 12}
               fontSize={9}
               fill="var(--risk-critical, #b91c1c)"
               fontWeight={600}
@@ -267,9 +275,9 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
         {/* Cursor */}
         <line
           x1={mx(current.month)}
-          y1={PAD}
+          y1={PAD_Y}
           x2={mx(current.month)}
-          y2={H - PAD}
+          y2={H - PAD_Y}
           stroke="var(--ink, #0a0a0b)"
           strokeWidth={1}
           opacity={0.3}

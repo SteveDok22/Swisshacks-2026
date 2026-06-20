@@ -121,6 +121,108 @@ def confirmation_amplification(lift: float) -> float:
     ) * DRIFT_CONFIRMATION_MAX_AMPLIFICATION
 
 
+def compute_drift_analysis(
+    cust: SyntheticCustomer,
+    *,
+    cohort_cv: float,
+    propagated_risk: float = 0.0,
+    public_signals: list[PublicSignal] | None = None,
+) -> dict:
+    """Passive-layer drift analysis shared by DriftEngine (live) and the
+    offline training pipeline.
+
+    Produces every raw signal plus the heuristic ``drift_score`` (after the
+    causal modulation) but BEFORE the XGBoost blend and the suspicious-stability
+    / dormancy-break floors — those are scoring *policy* the caller applies.
+
+    Offline callers (model training) pass ``propagated_risk=0.0`` and
+    ``public_signals=None``: there is no contagion graph and no live adapters,
+    so those layers are neutral. Crucially the ``internal_risk`` formula and
+    every other layer are computed here identically for both paths, so the
+    training feature distribution can never silently diverge from inference.
+
+    NOTE: with no live signals, ``propagated_risk``, ``public_risk`` and
+    ``confirmation_lift`` are fixed at their neutral defaults (0.0, 0.0, 1.0).
+    The model therefore learns nothing from those three of the twenty features
+    during offline training — they only carry signal at inference time.
+    """
+    signals = public_signals or []
+
+    ds = compute_drift_series(cust.metric_windows())
+    latest_velocity = ds.velocity[-1] if ds.velocity else 0.0
+    max_velocity = max(ds.velocity) if ds.velocity else 0.0
+    final_drift = ds.drift_bits[-1] if ds.drift_bits else 0.0
+
+    # --- INTERNAL: BOCPD on daily volume ---
+    daily = standardize(cust.daily_volume_series())
+    bres = BOCPD(hazard=1 / 500).run(daily)
+    cp_day = bres.detected_changepoints[0] if bres.detected_changepoints else None
+    cp_month = cust.day_to_month(cp_day) if cp_day is not None else None
+    if cp_month is not None:
+        internal_peak_month = cp_month
+    elif ds.velocity:
+        internal_peak_month = ds.windows[int(np.argmax(ds.velocity))]
+    else:
+        internal_peak_month = None
+
+    # Internal risk 0..1: velocity (leading) + accumulated drift + contagion
+    vel_norm = min(max_velocity / 3.0, 1.0)
+    drift_norm = min(final_drift / 20.0, 1.0)
+    internal_risk = min(
+        DRIFT_INTERNAL_VELOCITY_WEIGHT * vel_norm
+        + DRIFT_INTERNAL_ACCUMULATED_WEIGHT * drift_norm
+        + DRIFT_INTERNAL_CONTAGION_WEIGHT * propagated_risk,
+        1.0,
+    )
+
+    # --- PUBLIC + Confirmation Lift ---
+    pi = assess_public_risk(signals, months=cust.months)
+    lift = confirmation_lift(
+        pi.public_risk, internal_risk,
+        pi.peak_signal_month, internal_peak_month,
+    )
+
+    # --- Fused score 0..100 ---
+    base = max(internal_risk, pi.public_risk * DRIFT_PUBLIC_RISK_WEIGHT)
+    amplification = confirmation_amplification(lift)
+    score = min(base * amplification * 100.0, 100.0)
+
+    # --- CAUSAL / SUSPICIOUS STABILITY / DORMANCY ---
+    causal = causal_assessment(cust.causal_windows())
+    stability = assess_stability(
+        cust.monthly_volume,
+        cohort_cv,
+        counterparty_monthly=cust.counterparty_risk,
+        corridor_monthly=cust.corridor_risk,
+        public_risk=pi.public_risk,
+    )
+    dormancy = assess_dormancy(cust.monthly_volume)
+
+    # Causal modulation — demote benign (life-shaped) drift, confirm risk-shaped.
+    causal_factor = 0.45 + 0.55 * causal.p_risk
+    score = min(score * causal_factor, 100.0)
+
+    return {
+        "drift_series": ds,
+        "latest_velocity": latest_velocity,
+        "max_velocity": max_velocity,
+        "final_drift": final_drift,
+        "bocpd_changepoint_day": cp_day,
+        "bocpd_changepoint_month": cp_month,
+        "propagated_risk": propagated_risk,
+        "internal_risk": internal_risk,
+        "internal_peak_month": internal_peak_month,
+        "public_signals": signals,
+        "public_risk": pi.public_risk,
+        "public_peak_month": pi.peak_signal_month,
+        "confirmation_lift": lift,
+        "causal": causal,
+        "stability": stability,
+        "dormancy": dormancy,
+        "drift_score": score,
+    }
+
+
 class DriftEngine:
     """Orchestrates drift detection over the customer book."""
 
@@ -153,6 +255,10 @@ class DriftEngine:
             registry = get_registry()
             return registry.get(CaseType.KYC_DRIFT)
         except Exception:
+            # Heuristic-only is a valid mode, but make the fallback visible —
+            # the startup registry logs `model_file_missing`; this parallel
+            # path must not swallow a genuine load error in silence.
+            logger.warning("drift_model_load_failed", exc_info=True)
             return None
 
     # ------------------------------------------------------------------ #
@@ -198,91 +304,23 @@ class DriftEngine:
             -> internal_risk
         The two are fused, then amplified by Confirmation Lift when an
         external signal co-occurs in time with internal drift.
+
+        The passive-layer computation is shared with the offline training
+        pipeline via the module-level ``compute_drift_analysis``. This method
+        layers the live inputs (contagion graph, public adapters) plus the two
+        scoring policies that training does not need — the XGBoost blend and the
+        regulatory floors — on top of that shared analysis.
         """
-        ds = compute_drift_series(cust.metric_windows())
-        latest_velocity = ds.velocity[-1] if ds.velocity else 0.0
-        max_velocity = max(ds.velocity) if ds.velocity else 0.0
-        final_drift = ds.drift_bits[-1] if ds.drift_bits else 0.0
-
-        # --- INTERNAL: BOCPD on daily volume ---
-        daily = standardize(cust.daily_volume_series())
-        bres = BOCPD(hazard=1 / 500).run(daily)
-        cp_day = bres.detected_changepoints[0] if bres.detected_changepoints else None
-        # Map the BOCPD changepoint (a day index over the concatenated daily
-        # series) to its month window. Computed once here and reused for both
-        # the temporal co-occurrence signal and the timeline marker.
-        cp_month = cust.day_to_month(cp_day) if cp_day is not None else None
-        # Internal drift peak month (for temporal co-occurrence): the changepoint
-        # month if we have one, else the velocity peak.
-        if cp_month is not None:
-            internal_peak_month = cp_month
-        elif ds.velocity:
-            internal_peak_month = ds.windows[int(np.argmax(ds.velocity))]
-        else:
-            internal_peak_month = None
-
-        prop_risk = self._contagion.propagated_risk.get(cust.drift_id, 0.0)
-
-        # Internal risk 0..1: velocity (leading) + accumulated drift + contagion
-        vel_norm = min(max_velocity / 3.0, 1.0)
-        drift_norm = min(final_drift / 20.0, 1.0)
-        internal_risk = min(
-            DRIFT_INTERNAL_VELOCITY_WEIGHT * vel_norm
-            + DRIFT_INTERNAL_ACCUMULATED_WEIGHT * drift_norm
-            + DRIFT_INTERNAL_CONTAGION_WEIGHT * prop_risk,
-            1.0,
+        # --- Shared passive-layer analysis (identical formula to training) ---
+        analysis = compute_drift_analysis(
+            cust,
+            cohort_cv=self._cohort_cv,
+            propagated_risk=self._contagion.propagated_risk.get(cust.drift_id, 0.0),
+            # PUBLIC: real adapter signals via aggregator (live), or the
+            # deterministic synthetic generator (offline/mock). See _public_signals.
+            public_signals=self._public_signals(cust),
         )
-
-        # --- PUBLIC: real adapter signals via aggregator (live), or the
-        # deterministic synthetic generator (offline/mock). See _public_signals. ---
-        signals = self._public_signals(cust)
-        pi = assess_public_risk(signals, months=cust.months)
-
-        # --- Confirmation Lift: do the two worlds confirm each other? ---
-        lift = confirmation_lift(
-            pi.public_risk, internal_risk,
-            pi.peak_signal_month, internal_peak_month,
-        )
-
-        # --- Fused score 0..100 ---
-        # Base from the stronger of the two layers, then amplified by lift.
-        base = max(internal_risk, pi.public_risk * DRIFT_PUBLIC_RISK_WEIGHT)
-        # Lift in [1, ~4]; map its excess over 1 into up to +35% amplification
-        amplification = confirmation_amplification(lift)
-        score = min(base * amplification * 100.0, 100.0)
-
-        # --- CAUSAL: is this drift risk-shaped or life-shaped? ---
-        # Uses causal_windows (includes margin_ratio, the discriminator) which
-        # is deliberately kept OUT of velocity so the two measures stay
-        # orthogonal: velocity = how much changed, causal = in which direction.
-        causal = causal_assessment(cust.causal_windows())
-
-        # --- SUSPICIOUS STABILITY: is the customer anomalously smooth while
-        # the environment moves? (the slow-walker / sleeper) ---
-        stability = assess_stability(
-            cust.monthly_volume,
-            self._cohort_cv,
-            counterparty_monthly=cust.counterparty_risk,
-            corridor_monthly=cust.corridor_risk,
-            public_risk=pi.public_risk,
-        )
-
-        # --- DORMANCY BREAK: was the customer dormant, then suddenly active?
-        # (AMINA use case: "previously dormant company begins high volume") ---
-        dormancy = assess_dormancy(cust.monthly_volume)
-
-        # Causal modulation — the whole point of the causal layer is to act on
-        # the verdict, not just display it. A high-magnitude drift that is
-        # clearly LIFE-SHAPED (benign) should NOT sit at the top of the
-        # officer's queue; a risk-shaped drift is confirmed. We modulate the
-        # score by a factor derived from p_risk:
-        #   p_risk ~1.0 (risk)   -> factor ~1.0  (score stands)
-        #   p_risk ~0.5 (unsure) -> factor ~0.85 (mild discount)
-        #   p_risk ~0.0 (benign) -> factor ~0.45 (strong discount)
-        # Benign business growth is demoted, not erased — an officer can still
-        # see it, but it stops generating false-positive alerts.
-        causal_factor = 0.45 + 0.55 * causal.p_risk
-        score = min(score * causal_factor, 100.0)
+        score = analysis["drift_score"]
 
         # XGBoost ML blend — applied BEFORE the regulatory floors below.
         # The floors enforce "cannot hide below the radar" invariants for
@@ -292,31 +330,25 @@ class DriftEngine:
         ml_score: float | None = None
         if self._drift_model is not None:
             try:
-                partial_analysis = {
-                    "latest_velocity": latest_velocity,
-                    "max_velocity": max_velocity,
-                    "final_drift": final_drift,
-                    "bocpd_changepoint_day": cp_day,
-                    "internal_risk": internal_risk,
-                    "propagated_risk": prop_risk,
-                    "public_risk": pi.public_risk,
-                    "confirmation_lift": lift,
-                    "causal": causal,
-                    "stability": stability,
-                    "dormancy": dormancy,
-                }
-                features = self._drift_extractor.extract(partial_analysis)
+                features = self._drift_extractor.extract(analysis)
                 feat_df = self._drift_extractor.to_dataframe(features)
                 ml_prob = float(self._drift_model.model.predict_proba(feat_df)[0][1])
                 ml_score = ml_prob * 100.0
                 score = 0.60 * score + 0.40 * ml_score
             except Exception:
-                pass  # ML blend is best-effort; fall through to heuristic score
+                # ML blend is best-effort — fall through to the heuristic score,
+                # but make the degradation visible: a silent failure would leave
+                # operators on heuristic-only scores with no signal that the ML
+                # layer stopped contributing.
+                logger.warning(
+                    "drift_ml_blend_failed", drift_id=cust.drift_id, exc_info=True
+                )
 
         # Suspicious-stability ELEVATION — the slow-walker keeps drift low ON
         # PURPOSE, so it would otherwise slip through with a near-zero score.
         # When suspicion is high we floor the score upward: a flagged
         # slow-walker cannot hide below the radar.
+        stability = analysis["stability"]
         if stability.is_suspicious:
             score = max(score, 50.0 + stability.suspicion * 40.0)
 
@@ -327,29 +359,13 @@ class DriftEngine:
         # override it on purpose — a reactivated shell must surface even if the
         # causal layer reads the new activity as (so far) benign-shaped. This is
         # the same "cannot hide below the radar" policy as the stability floor.
+        dormancy = analysis["dormancy"]
         if dormancy.is_dormancy_break:
             score = max(score, 55.0 + dormancy.dormancy_break * 35.0)
 
-        return {
-            "drift_series": ds,
-            "latest_velocity": latest_velocity,
-            "max_velocity": max_velocity,
-            "final_drift": final_drift,
-            "bocpd_changepoint_day": cp_day,
-            "bocpd_changepoint_month": cp_month,
-            "propagated_risk": prop_risk,
-            "internal_risk": internal_risk,
-            "internal_peak_month": internal_peak_month,
-            "public_signals": signals,
-            "public_risk": pi.public_risk,
-            "public_peak_month": pi.peak_signal_month,
-            "confirmation_lift": lift,
-            "causal": causal,
-            "stability": stability,
-            "dormancy": dormancy,
-            "drift_score": score,
-            "ml_score": ml_score,
-        }
+        analysis["drift_score"] = score
+        analysis["ml_score"] = ml_score
+        return analysis
 
     def _build_layers(self, cust: SyntheticCustomer, analysis: dict) -> list[LayerContribution]:
         """Construct explainable per-layer contributions."""

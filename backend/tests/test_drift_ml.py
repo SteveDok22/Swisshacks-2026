@@ -18,7 +18,6 @@ import pytest
 
 from app.ml.extractors.drift import DriftFeatureExtractor
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
@@ -216,3 +215,93 @@ class TestDriftModelTraining:
 
         model, _ = train_drift_model(output_dir=tmp_path, n_per_scenario=10)
         assert len(model.feature_extractor.feature_names) == 20
+
+
+# ---------------------------------------------------------------------------
+# DriftEngine ML blend path (service.py) — the core wiring of this PR
+# ---------------------------------------------------------------------------
+
+class _LowRiskModel:
+    """Stub standing in for a RiskModel: always predicts near-zero risk."""
+
+    class _Clf:
+        def predict_proba(self, features):
+            return np.array([[0.999, 0.001]])
+
+    model = _Clf()
+
+
+class _RaisingModel:
+    """Stub whose inference always raises — exercises the blend's failure path."""
+
+    class _Clf:
+        def predict_proba(self, features):
+            raise RuntimeError("inference boom")
+
+    model = _Clf()
+
+
+@pytest.mark.slow
+class TestDriftBlendPath:
+    def _engine_with_model(self, tmp_path):
+        from app.drift.service import DriftEngine
+        from app.ml.training import train_drift_model
+
+        model, _ = train_drift_model(output_dir=tmp_path, n_per_scenario=10)
+        engine = DriftEngine()
+        engine._drift_model = model  # inject directly (bypass registry/disk)
+        return engine
+
+    def test_ml_score_populated_when_model_present(self, tmp_path):
+        engine = self._engine_with_model(tmp_path)
+        analysis = engine._analyze_customer(engine._book[0])
+        assert analysis["ml_score"] is not None
+        assert isinstance(analysis["ml_score"], float)
+        assert 0.0 <= analysis["ml_score"] <= 100.0
+
+    def test_ml_score_none_without_model(self):
+        from app.drift.service import DriftEngine
+
+        engine = DriftEngine()
+        engine._drift_model = None
+        analysis = engine._analyze_customer(engine._book[0])
+        assert analysis["ml_score"] is None
+        assert analysis["drift_score"] >= 0.0  # heuristic still produced
+
+    def test_blend_failure_preserves_heuristic_score(self):
+        """A failed ML inference must not break scoring — ml_score is None and
+        the heuristic score is preserved (and the failure is logged)."""
+        from app.drift.service import DriftEngine
+
+        engine = DriftEngine()
+        engine._drift_model = None
+        heuristic = engine._analyze_customer(engine._book[0])["drift_score"]
+
+        engine._drift_model = _RaisingModel()
+        blended = engine._analyze_customer(engine._book[0])
+        assert blended["ml_score"] is None
+        assert blended["drift_score"] == heuristic
+
+    def test_floors_survive_low_ml_score(self):
+        """Regulatory invariant: a flagged suspicious-stability / dormancy-break
+        customer stays floored even when the ML model says low-risk, because the
+        blend is applied BEFORE the floors."""
+        from app.drift.service import DriftEngine
+
+        engine = DriftEngine()
+        engine._drift_model = None
+
+        floored = None
+        for cust in engine._book:
+            a = engine._analyze_customer(cust)
+            if a["stability"].is_suspicious or a["dormancy"].is_dormancy_break:
+                floored = cust
+                break
+        assert floored is not None, "expected a floored customer in the demo book"
+
+        # Attach a model that drags the blended score down toward zero.
+        engine._drift_model = _LowRiskModel()
+        blended = engine._analyze_customer(floored)
+        assert blended["ml_score"] is not None and blended["ml_score"] < 5.0
+        # Both floors sit at >= 50; the low ML score must not undercut them.
+        assert blended["drift_score"] >= 50.0

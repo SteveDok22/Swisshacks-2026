@@ -13,7 +13,6 @@ Run via CLI:
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -27,11 +26,7 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import train_test_split
 
-from app.core.config import (
-    DRIFT_INTERNAL_ACCUMULATED_WEIGHT,
-    DRIFT_INTERNAL_VELOCITY_WEIGHT,
-    settings,
-)
+from app.core.config import settings
 from app.core.logging import get_logger
 from app.ml.base import RiskModel
 from app.ml.extractors import DriftFeatureExtractor, SocialEngineeringFeatureExtractor
@@ -306,81 +301,6 @@ def train_social_engineering_model(
     return risk_model, metrics
 
 
-def _analyze_customer_for_training(
-    cust: Any,
-    cohort_cv: float = 0.30,
-) -> dict:
-    """
-    Run the drift analysis pipeline on a SyntheticCustomer without
-    needing a live DriftEngine (no contagion graph, no public signals).
-
-    Used exclusively during model training to build the feature matrix.
-    Public-risk and contagion are fixed at 0 — the model learns from the
-    internal engine layers, which are fully deterministic.
-    """
-    from app.drift.bocpd import BOCPD, standardize
-    from app.drift.causal import causal_assessment
-    from app.drift.dormancy import assess_dormancy
-    from app.drift.public_intel import PublicIntelResult, confirmation_lift
-    from app.drift.stability import assess_stability
-    from app.drift.velocity import compute_drift_series
-
-    ds = compute_drift_series(cust.metric_windows())
-    latest_velocity = ds.velocity[-1] if ds.velocity else 0.0
-    max_velocity = max(ds.velocity) if ds.velocity else 0.0
-    final_drift = ds.drift_bits[-1] if ds.drift_bits else 0.0
-
-    daily = standardize(cust.daily_volume_series())
-    bres = BOCPD(hazard=1 / 500).run(daily)
-    cp_day = bres.detected_changepoints[0] if bres.detected_changepoints else None
-    cp_month = cust.day_to_month(cp_day) if cp_day is not None else None
-
-    if cp_month is not None:
-        internal_peak_month = cp_month
-    elif ds.velocity:
-        internal_peak_month = ds.windows[int(np.argmax(ds.velocity))]
-    else:
-        internal_peak_month = None
-
-    vel_norm = min(max_velocity / 3.0, 1.0)
-    drift_norm = min(final_drift / 20.0, 1.0)
-    internal_risk = min(
-        DRIFT_INTERNAL_VELOCITY_WEIGHT * vel_norm
-        + DRIFT_INTERNAL_ACCUMULATED_WEIGHT * drift_norm,
-        1.0,
-    )
-
-    # No live public signals during offline training
-    pi = PublicIntelResult()
-    lift = confirmation_lift(
-        pi.public_risk, internal_risk, pi.peak_signal_month, internal_peak_month
-    )
-
-    causal = causal_assessment(cust.causal_windows())
-    stability = assess_stability(
-        cust.monthly_volume,
-        cohort_cv,
-        counterparty_monthly=cust.counterparty_risk,
-        corridor_monthly=cust.corridor_risk,
-        public_risk=0.0,
-    )
-    dormancy = assess_dormancy(cust.monthly_volume)
-
-    return {
-        "latest_velocity": latest_velocity,
-        "max_velocity": max_velocity,
-        "final_drift": final_drift,
-        "bocpd_changepoint_day": cp_day,
-        "internal_risk": internal_risk,
-        "propagated_risk": 0.0,
-        "public_risk": 0.0,
-        "confirmation_lift": lift,
-        "causal": causal,
-        "stability": stability,
-        "dormancy": dormancy,
-    }
-
-
 # Scenarios flagged as risk (label=1); everything else is label=0.
 _DRIFT_RISK_SCENARIOS = frozenset(
     {"volume_creep", "counterparty_migration", "corridor_shift", "combined", "dormancy_break", "suspicious_stability"}
@@ -395,14 +315,24 @@ def generate_drift_training_data(
     Generate synthetic drift training data.
 
     For each scenario, create ``n_per_scenario`` synthetic customers with
-    varied seeds (different noise realizations), run the standalone analysis
-    pipeline, extract the 20-dim feature vector, and label by scenario type.
+    varied seeds (different noise realizations), run the SHARED analysis
+    pipeline (``compute_drift_analysis``, the exact function the live
+    DriftEngine uses), extract the 20-dim feature vector, and label by
+    scenario type.
+
+    Offline training has no contagion graph and no live public adapters, so
+    ``propagated_risk``, ``public_risk`` and ``confirmation_lift`` stay at their
+    neutral defaults (0.0, 0.0, 1.0) — three of the twenty features carry no
+    signal here and only vary at inference. Reusing the engine's own function
+    (rather than a parallel reimplementation) guarantees the remaining
+    seventeen features match inference exactly.
 
     Labels:
         1 — risk scenarios (volume_creep, counterparty_migration,
             corridor_shift, combined, dormancy_break, suspicious_stability)
         0 — benign / stable (stable, benign_expansion)
     """
+    from app.drift.service import compute_drift_analysis
     from app.drift.simulator import SCENARIOS, generate_customer
     from app.drift.stability import cohort_volatility
 
@@ -428,7 +358,7 @@ def generate_drift_training_data(
                 scenario=scenario,
                 seed=int(seed),
             )
-            analysis = _analyze_customer_for_training(cust, cohort_cv=ref_cv)
+            analysis = compute_drift_analysis(cust, cohort_cv=ref_cv)
             features = extractor.extract(analysis)
             rows.append({**features, "label": label})
 
@@ -442,6 +372,13 @@ def train_drift_model(
 ) -> tuple[RiskModel, dict]:
     """
     Train the drift XGBoost model end-to-end.
+
+    NOTE on metrics: train and test are drawn from the same 8 deterministic
+    scenario archetypes, so the model memorises each scenario's feature
+    signature and the reported accuracy/F1/ROC-AUC typically reach ~1.0. That
+    is expected on this synthetic, perfectly-separable data — it certifies the
+    pipeline trains, NOT real-world calibration, which would degrade on live
+    data. Treat the metrics as a smoke test, not a generalisation estimate.
 
     Returns:
         (trained_model, metrics_dict)

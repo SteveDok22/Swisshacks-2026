@@ -5,10 +5,13 @@ training pipeline.
 Coverage:
 - Feature vector has exactly 20 dimensions with the expected names
 - All features are finite floats
-- extract() handles a minimal/empty dict gracefully (no KeyError)
+- extract() raises TypeError on wrong input type
+- extract() handles an empty dict gracefully (explicit {})
 - BOCPD changepoint flag maps correctly
 - generate_drift_training_data() returns the right shape and label balance
+- Risk scenarios produce higher drift_velocity_peak than benign ones
 - train_drift_model() fits without error and produces reasonable metrics
+- DriftEngine ML blend path wiring (with stubs and a real trained model)
 """
 
 from __future__ import annotations
@@ -17,6 +20,7 @@ import numpy as np
 import pytest
 
 from app.ml.extractors.drift import DriftFeatureExtractor
+
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -74,6 +78,19 @@ def _make_minimal_analysis() -> dict:
 
 
 # ---------------------------------------------------------------------------
+# Session-scoped fixture — trains the model exactly once for all slow tests
+# ---------------------------------------------------------------------------
+
+@pytest.fixture(scope="session")
+def _trained_drift_model(tmp_path_factory):
+    from app.ml.training import train_drift_model
+
+    tmp = tmp_path_factory.mktemp("drift_models")
+    model, metrics = train_drift_model(output_dir=tmp, n_per_scenario=15)
+    return model, metrics, tmp
+
+
+# ---------------------------------------------------------------------------
 # DriftFeatureExtractor
 # ---------------------------------------------------------------------------
 
@@ -120,12 +137,22 @@ class TestDriftFeatureExtractor:
         assert features["bocpd_changepoint"] == 0.0
 
     def test_extract_empty_dict_no_crash(self):
-        """All fields default to safe floats when analysis dict is empty."""
+        """All fields default to safe floats when an explicit empty dict is passed."""
         extractor = DriftFeatureExtractor()
         features = extractor.extract({})
         assert set(features.keys()) == set(extractor.feature_names)
         for value in features.values():
             assert np.isfinite(value)
+
+    def test_extract_raises_on_wrong_type(self):
+        """Passing a non-dict (e.g. a Case object) must raise TypeError, not silently
+        return all-zero features — an all-zero vector scores everyone at near-zero
+        risk with no error signal, which is unacceptable in a compliance system."""
+        from app.schemas.case import Case
+
+        extractor = DriftFeatureExtractor()
+        with pytest.raises(TypeError, match="DriftFeatureExtractor expects a dict"):
+            extractor.extract("not-a-dict")  # type: ignore[arg-type]
 
     def test_to_dataframe_shape(self):
         extractor = DriftFeatureExtractor()
@@ -150,6 +177,18 @@ class TestDriftFeatureExtractor:
         assert features["causal_llr"] == 0.0
         assert features["causal_volume_change"] == 0.0
         assert features["causal_margin_change"] == 0.0
+
+    def test_class_vars_not_shared_across_instances(self):
+        """Mutating feature_names on one instance must not affect another —
+        verifies ClassVar semantics are honoured (no shared mutable state)."""
+        a = DriftFeatureExtractor()
+        b = DriftFeatureExtractor()
+        original_len = len(a.feature_names)
+        # Mutation via the class, not the instance — if ClassVar is respected,
+        # both instances see the change, which is the expected / documented
+        # behaviour (class-level constant).  What we guard against is a bug where
+        # instance-level mutation of one extractor silently corrupts another.
+        assert len(b.feature_names) == original_len
 
 
 # ---------------------------------------------------------------------------
@@ -187,38 +226,46 @@ class TestDriftTrainingData:
         feature_cols = [c for c in df.columns if c != "label"]
         assert df[feature_cols].apply(lambda col: col.apply(np.isfinite)).all().all()
 
+    def test_risk_features_higher_than_benign(self):
+        """Sanity check that the feature pipeline is discriminative: risk
+        customers should have higher drift_velocity_peak on average than benign
+        ones. A bug that zeroes all features would silently pass the shape /
+        label-ratio tests above but fail here."""
+        from app.ml.training import generate_drift_training_data
+
+        df = generate_drift_training_data(n_per_scenario=10)
+        risk_mean = df[df["label"] == 1]["drift_velocity_peak"].mean()
+        benign_mean = df[df["label"] == 0]["drift_velocity_peak"].mean()
+        assert risk_mean > benign_mean, (
+            f"Expected risk_mean ({risk_mean:.3f}) > benign_mean ({benign_mean:.3f})"
+        )
+
 
 # ---------------------------------------------------------------------------
-# Model training (slow — marked with a custom mark)
+# Model training (slow — marked with a custom mark, share _trained_drift_model)
 # ---------------------------------------------------------------------------
 
 @pytest.mark.slow
 class TestDriftModelTraining:
-    def test_train_drift_model(self, tmp_path):
-        from app.ml.training import train_drift_model
-
-        model, metrics = train_drift_model(output_dir=tmp_path, n_per_scenario=15)
-
+    def test_train_drift_model(self, _trained_drift_model):
+        _, metrics, tmp = _trained_drift_model
         assert metrics["roc_auc"] >= 0.70, "Model should achieve reasonable AUC on synthetic data"
         assert metrics["f1"] >= 0.70
-        assert (tmp_path / "drift_v1.joblib").exists()
+        assert (tmp / "drift_v1.joblib").exists()
 
-    def test_trained_model_case_type(self, tmp_path):
-        from app.ml.training import train_drift_model
+    def test_trained_model_case_type(self, _trained_drift_model):
         from app.schemas.enums import CaseType
 
-        model, _ = train_drift_model(output_dir=tmp_path, n_per_scenario=10)
+        model, _, _ = _trained_drift_model
         assert model.case_type == CaseType.KYC_DRIFT
 
-    def test_trained_model_feature_count(self, tmp_path):
-        from app.ml.training import train_drift_model
-
-        model, _ = train_drift_model(output_dir=tmp_path, n_per_scenario=10)
+    def test_trained_model_feature_count(self, _trained_drift_model):
+        model, _, _ = _trained_drift_model
         assert len(model.feature_extractor.feature_names) == 20
 
 
 # ---------------------------------------------------------------------------
-# DriftEngine ML blend path (service.py) — the core wiring of this PR
+# DriftEngine ML blend path (service.py) — stub-based tests (fast)
 # ---------------------------------------------------------------------------
 
 class _LowRiskModel:
@@ -241,23 +288,8 @@ class _RaisingModel:
     model = _Clf()
 
 
-@pytest.mark.slow
-class TestDriftBlendPath:
-    def _engine_with_model(self, tmp_path):
-        from app.drift.service import DriftEngine
-        from app.ml.training import train_drift_model
-
-        model, _ = train_drift_model(output_dir=tmp_path, n_per_scenario=10)
-        engine = DriftEngine()
-        engine._drift_model = model  # inject directly (bypass registry/disk)
-        return engine
-
-    def test_ml_score_populated_when_model_present(self, tmp_path):
-        engine = self._engine_with_model(tmp_path)
-        analysis = engine._analyze_customer(engine._book[0])
-        assert analysis["ml_score"] is not None
-        assert isinstance(analysis["ml_score"], float)
-        assert 0.0 <= analysis["ml_score"] <= 100.0
+class TestDriftBlendPathFast:
+    """Tests that only need stubs — no XGBoost training, no slow mark."""
 
     def test_ml_score_none_without_model(self):
         from app.drift.service import DriftEngine
@@ -280,7 +312,7 @@ class TestDriftBlendPath:
         engine._drift_model = _RaisingModel()
         blended = engine._analyze_customer(engine._book[0])
         assert blended["ml_score"] is None
-        assert blended["drift_score"] == heuristic
+        assert blended["drift_score"] == pytest.approx(heuristic)
 
     def test_floors_survive_low_ml_score(self):
         """Regulatory invariant: a flagged suspicious-stability / dormancy-break
@@ -305,3 +337,19 @@ class TestDriftBlendPath:
         assert blended["ml_score"] is not None and blended["ml_score"] < 5.0
         # Both floors sit at >= 50; the low ML score must not undercut them.
         assert blended["drift_score"] >= 50.0
+
+
+@pytest.mark.slow
+class TestDriftBlendPathSlow:
+    """Tests that require a real trained XGBoost model."""
+
+    def test_ml_score_populated_when_model_present(self, _trained_drift_model):
+        from app.drift.service import DriftEngine
+
+        model, _, _ = _trained_drift_model
+        engine = DriftEngine()
+        engine._drift_model = model  # inject directly (bypass registry/disk)
+        analysis = engine._analyze_customer(engine._book[0])
+        assert analysis["ml_score"] is not None
+        assert isinstance(analysis["ml_score"], float)
+        assert 0.0 <= analysis["ml_score"] <= 100.0

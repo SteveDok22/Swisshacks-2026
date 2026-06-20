@@ -133,6 +133,34 @@ class TestNameChangeFloor:
             # The floor must hold on the publicly surfaced score too.
             assert s.drift_score >= 60.0
 
+    def test_detail_surfaces_is_name_changed(self, live_public_intel):
+        # The flag must also be present on the full DriftSubjectDetail (UC8
+        # follow-up), not just the summary, so the detail panel can render the
+        # identity-reset treatment without re-deriving it from public_signals.
+        engine = DriftEngine()
+        engine._drift_model = None
+
+        cust = next(c for c in engine._book if c.scenario == "name_cycling")
+        detail = engine.get_subject(cust.drift_id)
+
+        assert detail is not None
+        assert detail.is_name_changed is True
+        assert detail.drift_score >= 60.0
+        # The underlying public signals that set the flag flow through the detail.
+        signal_types = {s.signal_type for s in detail.public_signals}
+        assert "name_change" in signal_types
+        assert "domain_change" in signal_types
+
+    def test_detail_not_flagged_for_stable(self, live_public_intel):
+        engine = DriftEngine()
+        engine._drift_model = None
+
+        cust = next(c for c in engine._book if c.scenario == "stable")
+        detail = engine.get_subject(cust.drift_id)
+
+        assert detail is not None
+        assert detail.is_name_changed is False
+
 
 class TestNameChangeApiContract:
     """The `is_name_changed` flag must be present and correct on the public
@@ -157,3 +185,24 @@ class TestNameChangeApiContract:
         flagged = [s for s in subjects if s["is_name_changed"]]
         assert flagged, "expected at least one is_name_changed subject"
         assert all(s["drift_score"] >= 60.0 for s in flagged)
+
+    async def test_detail_endpoint_exposes_is_name_changed(
+        self, client, live_public_intel
+    ):
+        # The flag must also be on GET /drift/subjects/{id} (the shape the detail
+        # panel reads), with the name_change/domain_change signals present.
+        _service.get_drift_engine()._list_cache = None
+
+        subjects = (await client.get("/api/v1/drift/subjects")).json()
+        flagged = [s for s in subjects if s["is_name_changed"]]
+        assert flagged, "expected at least one is_name_changed subject"
+
+        resp = await client.get(f"/api/v1/drift/subjects/{flagged[0]['drift_id']}")
+        assert resp.status_code == 200
+
+        detail = resp.json()
+        assert detail["is_name_changed"] is True
+        assert detail["drift_score"] >= 60.0
+        signal_types = {s["signal_type"] for s in detail["public_signals"]}
+        assert "name_change" in signal_types
+        assert "domain_change" in signal_types

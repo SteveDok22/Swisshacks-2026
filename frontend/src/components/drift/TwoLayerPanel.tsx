@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import type { DriftCustomerDetail } from "@/types/api";
-import { Globe, Building2, Link2, Newspaper, ShieldAlert, TrendingUp, Network, ExternalLink } from "lucide-react";
+import { Globe, Building2, Link2, Newspaper, ShieldAlert, TrendingUp, Network, ExternalLink, BadgeAlert } from "lucide-react";
 
 interface TwoLayerPanelProps {
   detail: DriftCustomerDetail;
@@ -15,6 +15,8 @@ const SIGNAL_ICON: Record<string, typeof Newspaper> = {
   ownership_change: Network,
   funding_event: TrendingUp,
   business_model_change: Globe,
+  name_change: BadgeAlert,
+  domain_change: Link2,
 };
 
 const SIGNAL_LABEL: Record<string, string> = {
@@ -24,6 +26,8 @@ const SIGNAL_LABEL: Record<string, string> = {
   ownership_change: "Ownership change",
   funding_event: "Funding event",
   business_model_change: "Business-model change",
+  name_change: "Legal name change",
+  domain_change: "Domain registrant change",
 };
 
 /**
@@ -41,6 +45,7 @@ export function TwoLayerPanel({ detail }: TwoLayerPanelProps) {
     internal_risk,
     confirmation_lift,
     public_signals,
+    is_name_changed,
     is_business_model_change,
     business_model_distance,
   } = detail;
@@ -104,6 +109,30 @@ export function TwoLayerPanel({ detail }: TwoLayerPanelProps) {
             : "— layers independent"}
         </span>
       </div>
+
+      {/* Identity reset (UC8): confirmed legal-entity name change → re-KYC. The
+          name_change (ZEFIX) + domain_change (WHOIS) signals appear in the feed
+          below; this callout makes the re-KYC trigger and the score-floor
+          rationale explicit, since the transactions can look clean. */}
+      {is_name_changed && (
+        <div className="flex items-start gap-2 rounded py-2 px-2.5 mb-3 border bg-risk-medium-bg border-risk-medium/20">
+          <BadgeAlert
+            className="h-3.5 w-3.5 shrink-0 mt-0.5 text-risk-medium"
+            strokeWidth={2}
+          />
+          <div className="min-w-0">
+            <p className="text-xs font-medium text-risk-medium">
+              Identity Reset — Re-KYC Triggered
+            </p>
+            <p className="text-2xs text-ink-muted mt-0.5 leading-snug">
+              Confirmed legal-entity name change (ZEFIX) with a WHOIS registrant
+              handover — the shelf-cycling pattern that resets the KYC review
+              clock. The drift score is floored at 60 so the identity reset
+              surfaces for review even when the transactions look clean.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Business-model drift (UC 9): website/domain pivot since onboarding */}
       {showBusinessModel && (

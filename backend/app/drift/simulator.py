@@ -38,6 +38,11 @@ SCENARIOS = (
     "dormancy_break",
 )
 
+# Must match `assess_dormancy`'s `baseline_fraction` default (drift/dormancy.py):
+# the dormancy_break scenario activates exactly on this split so the dormant
+# baseline window stays clean.
+DORMANCY_BASELINE_FRACTION = 0.5
+
 # Country risk weights reused conceptually from the social-engineering extractor
 CORRIDOR_RISK = {"CH": 0.05, "DE": 0.1, "IT": 0.15, "SG": 0.35, "HK": 0.4, "AE": 0.5, "RU": 0.95, "IR": 1.0}
 LOW_RISK = ["CH", "DE", "IT"]
@@ -112,6 +117,15 @@ def generate_customer(
     """
     if scenario not in SCENARIOS:
         raise ValueError(f"unknown scenario {scenario!r}; choose from {SCENARIOS}")
+
+    # Dormancy break must activate exactly at the dormancy detector's
+    # baseline/active split (DORMANCY_BASELINE_FRACTION of the series); otherwise
+    # an active month leaks into the baseline window and the depth factor clips
+    # to 0. Snap the activation here so EVERY entry point — the demo book and the
+    # live /drift/inject path — produces a flaggable customer regardless of the
+    # caller's drift_start_month.
+    if scenario == "dormancy_break":
+        drift_start_month = round(months * DORMANCY_BASELINE_FRACTION)
 
     rng = np.random.default_rng(seed)
     # Causal ground-truth label: benign_expansion is the only benign drift;
@@ -274,14 +288,13 @@ def generate_book(
     )
     idx += 1
     # The reactivated sleeper (Case 7): a previously dormant shell that suddenly
-    # begins high transaction volume. Activation is placed at month 9 so the
-    # burst lands exactly at the dormancy detector's baseline/active split.
+    # begins high transaction volume. generate_customer snaps the activation to
+    # the dormancy detector's baseline/active split, so it always flags.
     book.append(
         generate_customer(
             customer_id=f"drift-{idx:03d}",
             name="Dormant Holdings AG",
             scenario="dormancy_break",
-            drift_start_month=9,
             seed=seed + 300,
         )
     )

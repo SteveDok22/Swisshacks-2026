@@ -216,7 +216,10 @@ class InjectScenarioRequest(BaseModel):
 
     scenario: str = Field(
         default="combined",
-        description="stable | volume_creep | counterparty_migration | corridor_shift | combined",
+        description=(
+            "stable | volume_creep | counterparty_migration | corridor_shift | "
+            "combined | benign_expansion | suspicious_stability | dormancy_break"
+        ),
     )
     name: str = Field(default="Injected Test Customer")
 

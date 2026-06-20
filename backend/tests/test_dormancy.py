@@ -84,8 +84,8 @@ class TestAssessDormancy:
         assert result.dormancy_depth == 0.0
 
     def test_custom_thresholds_change_outcome(self):
-        # A modest 5x jump from a quiet baseline: with a high activation_floor
-        # it should NOT count as a burst; with a low floor it should.
+        # A ~6x jump from a quiet baseline: a high activation_floor makes the
+        # burst weaker (or no burst), a low floor makes it stronger.
         series = _dormant_then_active(active_level=300.0)  # ~6x over the 50 baseline
         strict = assess_dormancy(series, activation_floor=20.0)
         lenient = assess_dormancy(series, activation_floor=2.0)
@@ -122,6 +122,20 @@ class TestDormancyScenarioEndToEnd:
         assert result.is_dormancy_break is True
         assert result.active_volume > result.baseline_volume
 
+    def test_inject_default_start_month_still_aligns_and_flags(self):
+        # The /drift/inject path calls generate_customer with the DEFAULT
+        # drift_start_month (8), which would misalign with the detector's
+        # baseline/active split (month 9) if not snapped. generate_customer
+        # snaps it, so an injected dormancy break must still fire.
+        cust = generate_customer(
+            customer_id="t-inject",
+            name="Injected Dormant AG",
+            scenario="dormancy_break",  # no drift_start_month override
+            seed=11,
+        )
+        assert cust.drift_start_month == 9  # snapped to round(18 * 0.5)
+        assert assess_dormancy(cust.monthly_volume).is_dormancy_break is True
+
     def test_book_contains_a_flagged_dormant_customer(self):
         book = generate_book()
         flagged = [
@@ -131,8 +145,11 @@ class TestDormancyScenarioEndToEnd:
         ]
         assert flagged, "expected at least one dormant customer that fires the detector"
 
-    def test_steady_book_customers_do_not_falsely_flag(self):
+    def test_no_non_dormant_scenario_falsely_flags(self):
+        # The dormancy layer must stay orthogonal to ordinary drift: NO scenario
+        # other than dormancy_break may trip the detector. Each starts from a
+        # flat (non-dormant) baseline, so depth -> 0.
         book = generate_book()
         for c in book:
-            if c.scenario in ("stable", "benign_expansion"):
+            if c.scenario != "dormancy_break":
                 assert assess_dormancy(c.monthly_volume).is_dormancy_break is False, c.scenario

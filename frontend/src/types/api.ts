@@ -254,6 +254,7 @@ export interface PublicSignal {
   headline: string;
   severity: number;
   source: string;
+  source_url: string | null;
 }
 
 export interface LayerContribution {

@@ -10,8 +10,8 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 |---|---|---|
 | **AI Intelligence Quality** | 25% | ✅ Strong — 7 real algorithms, causal separation, suspicious stability |
 | **Cost Efficiency** | 20% | ⚠️ Partial — T2 LLM works; no per-workflow token count yet |
-| **UX & Explainability** | 20% | ⚠️ Gap — 7 visualisations solid; drift uses per-layer LLR contribution breakdown (no per-variable SHAP, by design); source citations missing |
-| **Compliance & Safety** | 20% | ✅ Good — audit log wired; DecisionBar on drift; source citations still missing |
+| **UX & Explainability** | 20% | ✅ Good — 7 visualisations solid; drift uses per-layer LLR contribution breakdown; signal cards include source citations |
+| **Compliance & Safety** | 20% | ✅ Good — audit log wired; DecisionBar on drift; source citations surfaced |
 | **Engineering & Architecture** | 15% | ✅ Good — modular engine, clean API, async, unit + BDD tests; no CI/CD |
 
 ---
@@ -79,7 +79,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 **5. UX / explainability**
 - [ ] **DormancyPanel.tsx** — `DormancyOut` is computed by the engine and included in `DriftCustomerDetail` (API), but the frontend has no panel for it and the TS types are stale: add `DormancyVerdict` interface to `api.ts`; add `dormancy: DormancyVerdict | null` to `DriftCustomerDetail` and `dormancy_break: number` + `is_dormancy_break: boolean` to `DriftCustomerSummary`; create `DormancyPanel.tsx` mirroring `StabilityPanel.tsx` (depth × activation-strength product, flagged banner when `is_dormancy_break`)
-- [ ] **Source citations on signal cards** — backend done (`source_url` field on `PublicSignal` in `sources/base.py` and on `PublicSignalOut` in `schemas/drift.py`); remaining: add `source_url: string | null` to `PublicSignal` TS type in `api.ts`; render as a clickable link in `TwoLayerPanel.tsx` signal rows
+- [x] **Source citations on signal cards** — `source_url` field on canonical `PublicSignal` in `sources/base.py` and `PublicSignalOut` in `schemas/drift.py`; synthetic demo signals emit deterministic source references; `PublicSignal` TS type includes `source_url`; `TwoLayerPanel.tsx` renders clickable source links.
 - [x] **Drift explainability** — option A chosen: drift attribution is a per-layer LLR contribution breakdown (7 layers × `LayerContribution.llr` + `CausalVerdictOut.contributions` per metric). Per-variable SHAP is case-scoring only; applying it to drift time-series would explain the wrong thing (transaction features ≠ behavioural drift features).
 
 **6. Cost tracking**

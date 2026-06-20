@@ -504,9 +504,9 @@ class TestPublicIntelIntegration:
             seed=7,
         )
         for s in signals:
-            # source_url defaults to None for internally-generated signals
             assert hasattr(s, "source_url")
-            assert s.source_url is None
+            assert s.source_url is not None
+            assert "drift-002" in s.source_url
 
     def test_to_dict_includes_source_url_key(self):
         from app.drift.public_intel import generate_signals_for_customer

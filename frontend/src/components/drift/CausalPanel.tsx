@@ -1,6 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { InfoHint } from "@/components/ui/InfoHint";
+import { ZoomablePanel } from "@/components/ui/ZoomablePanel";
 import type { CausalVerdict } from "@/types/api";
 import { GitBranch, TrendingUp } from "lucide-react";
 
@@ -31,21 +33,9 @@ const SCALE_JUMP_FUNDING = "scale_jump_funding";
  * correlation SIGNATURE does. Margin is the discriminator.
  */
 export function CausalPanel({ causal }: CausalPanelProps) {
-  const { label, p_risk, causal_llr, contributions } = causal;
-
-  const verdictColor =
-    label === "risk"
-      ? "text-risk-critical"
-      : label === "benign"
-        ? "text-risk-low"
-        : "text-risk-medium";
-
-  const verdictBg =
-    label === "risk"
-      ? "bg-risk-critical-bg border-risk-critical/20"
-      : label === "benign"
-        ? "bg-risk-low-bg border-risk-low/20"
-        : "bg-risk-medium-bg border-risk-medium/20";
+  const { causal_llr, contributions } = causal;
+  const explanation =
+    "Likelihood ratio between two generative hypotheses. Drift magnitude alone cannot separate benign from risk — the correlation signature can.";
 
   // Pull the scale-jump × funding corroboration out of the per-metric ranking —
   // it gets its own callout below the metric bars (UC6).
@@ -57,45 +47,29 @@ export function CausalPanel({ causal }: CausalPanelProps) {
     .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
 
   return (
-    <div className="border border-paper-line rounded bg-paper-raised p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <GitBranch className="h-3.5 w-3.5 text-accent" strokeWidth={2} />
-        <h3 className="text-2xs font-semibold uppercase tracking-wide text-ink-muted">
-          Causal Analysis — risk or normal life?
-        </h3>
-      </div>
-
-      {/* Verdict banner */}
-      <div className={cn("rounded border p-3 mb-3", verdictBg)}>
-        <div className="flex items-center justify-between">
+    <ZoomablePanel
+      className="border border-paper-line rounded bg-paper-raised p-4"
+      zoomLabel="Zoom Causal Analysis"
+    >
+      <div className="mb-3 flex items-start justify-between gap-3 pr-10">
+        <div className="flex items-start gap-2">
+          <GitBranch className="h-3.5 w-3.5 text-accent mt-0.5" strokeWidth={2} />
           <div>
-            <div className={cn("text-sm font-semibold capitalize", verdictColor)}>
-              {label === "ambiguous" ? "Ambiguous — needs review" : `${label}-shaped drift`}
-            </div>
-            <div className="text-2xs text-ink-muted mt-0.5">
-              {label === "risk" &&
-                "Change matches a transit/laundering signature"}
-              {label === "benign" &&
-                "Change matches legitimate business growth"}
-              {label === "ambiguous" &&
-                "Signal insufficient to separate risk from life"}
-            </div>
-          </div>
-          <div className="text-right">
-            <div className={cn("font-mono text-xl font-semibold tabular", verdictColor)}>
-              {Math.round(p_risk * 100)}%
-            </div>
-            <div className="text-2xs text-ink-muted">P(risk)</div>
+            <h3 className="text-sm font-semibold text-ink">Causal Analysis</h3>
+            <p className="text-2xs text-ink-muted mt-0.5">
+              Risk or normal life?
+            </p>
           </div>
         </div>
+        <InfoHint text={explanation} />
       </div>
 
       {/* Two competing hypotheses */}
       <div className="grid grid-cols-2 gap-2 mb-3 text-2xs">
         <div
           className={cn(
-            "rounded border p-2 text-center",
-            causal_llr < 0 ? "border-risk-low/40 bg-risk-low-bg" : "border-paper-line",
+            "rounded border border-paper-line p-2 text-center",
+            causal_llr < 0 && "bg-risk-low-bg",
           )}
         >
           <div className="font-medium text-ink">Benign growth</div>
@@ -103,8 +77,8 @@ export function CausalPanel({ causal }: CausalPanelProps) {
         </div>
         <div
           className={cn(
-            "rounded border p-2 text-center",
-            causal_llr > 0 ? "border-risk-critical/40 bg-risk-critical-bg" : "border-paper-line",
+            "rounded border border-paper-line p-2 text-center",
+            causal_llr > 0 && "bg-risk-critical-bg",
           )}
         >
           <div className="font-medium text-ink">Risk transit</div>
@@ -115,6 +89,15 @@ export function CausalPanel({ causal }: CausalPanelProps) {
       {/* Per-metric evidence */}
       <div className="text-2xs font-semibold uppercase tracking-wide text-ink-muted mb-2">
         What drove the verdict
+      </div>
+      <div className="mb-1.5 grid grid-cols-[7rem_1fr_3rem] items-center gap-2 text-[0.625rem] text-ink-faint">
+        <span />
+        <div className="grid grid-cols-3">
+          <span>benign</span>
+          <span className="text-center">neutral</span>
+          <span className="text-right">risk</span>
+        </div>
+        <span className="text-right">score</span>
       </div>
       <div className="space-y-1.5">
         {ranked.map(([metric, llr]) => {
@@ -176,11 +159,6 @@ export function CausalPanel({ causal }: CausalPanelProps) {
           </span>
         </div>
       )}
-
-      <p className="text-2xs text-ink-faint mt-3 leading-relaxed">
-        Likelihood ratio between two generative hypotheses. Drift magnitude
-        alone cannot separate benign from risk — the correlation signature can.
-      </p>
-    </div>
+    </ZoomablePanel>
   );
 }

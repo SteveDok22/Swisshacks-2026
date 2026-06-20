@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { casesApi, scoringApi } from "@/lib/api";
 import {
   CASE_TYPE_LABELS,
@@ -24,7 +24,12 @@ import {
   StreamingSkeleton,
 } from "@/components/ui/Skeleton";
 import { MousePointerClick, Activity } from "lucide-react";
-import type { Jurisdiction, ScoringResponse } from "@/types/api";
+import type {
+  CaseDetail,
+  CaseListItem,
+  Jurisdiction,
+  PaginatedResponse,
+} from "@/types/api";
 
 interface CaseDetailPanelProps {
   caseId: string | null;
@@ -46,25 +51,15 @@ interface CaseDetailPanelProps {
  * This is what gets demoed.
  */
 export function CaseDetailPanel({ caseId }: CaseDetailPanelProps) {
+  const queryClient = useQueryClient();
   const [activeJurisdiction, setActiveJurisdiction] =
     useState<Jurisdiction>("CH");
-  const [scoringResult, setScoringResult] =
-    useState<ScoringResponse | null>(null);
 
   const { data: caseDetail, isLoading } = useQuery({
     queryKey: ["case", caseId],
     queryFn: () => casesApi.get(caseId!),
     enabled: !!caseId,
   });
-
-  // Auto-score if case has no score yet
-  useEffect(() => {
-    if (caseId && caseDetail && caseDetail.risk_score === null) {
-      scoringApi.score(caseId).then(setScoringResult);
-    } else {
-      setScoringResult(null);
-    }
-  }, [caseId, caseDetail]);
 
   // Sync active jurisdiction with case's jurisdiction
   useEffect(() => {
@@ -80,6 +75,38 @@ export function CaseDetailPanel({ caseId }: CaseDetailPanelProps) {
     enabled: !!caseId && !!caseDetail,
     staleTime: 60_000,
   });
+
+  useEffect(() => {
+    if (!caseId || !scoring) return;
+
+    const { score, level, confidence, scored_at } = scoring.result;
+
+    queryClient.setQueryData<CaseDetail>(["case", caseId], (old) =>
+      old
+        ? {
+            ...old,
+            risk_score: score,
+            risk_level: level,
+            confidence,
+            scored_at,
+          }
+        : old,
+    );
+    queryClient.setQueryData<PaginatedResponse<CaseListItem>>(
+      ["cases"],
+      (old) =>
+        old
+          ? {
+              ...old,
+              items: old.items.map((item) =>
+                item.id === caseId
+                  ? { ...item, risk_score: score, risk_level: level }
+                  : item,
+              ),
+            }
+          : old,
+    );
+  }, [caseId, scoring, queryClient]);
 
   if (!caseId) {
     return (
@@ -231,6 +258,7 @@ export function CaseDetailPanel({ caseId }: CaseDetailPanelProps) {
 
       {/* === Decision bar (sticky) === */}
       <DecisionBar
+        key={caseId}
         caseId={caseId}
         aiRecommendedAction={recommendedAction}
       />

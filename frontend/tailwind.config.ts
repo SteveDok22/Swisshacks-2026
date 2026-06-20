@@ -1,11 +1,11 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Swiss Institutional Design System
+ * AMINA-aligned Design System
  *
- * Philosophy: refined minimalism for a FINMA-regulated compliance tool.
- * Monochrome base with risk-driven accent colors only.
- * Dense information grids, generous negative space around decisions.
+ * Brand match to aminagroup.com: Bitter (serif display) + Satoshi (UI sans),
+ * teal-500 primary accent over a Tailwind-gray neutral scale. Risk spectrum
+ * is kept functional/semantic and untouched.
  */
 const config: Config = {
   content: [
@@ -14,18 +14,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // === Monochrome base (the "paper and ink" of the app) ===
+        // === Neutral base (AMINA gray scale — "paper and ink") ===
         ink: {
-          DEFAULT: "#0a0a0b",   // near-black, primary text
-          soft: "#3f3f46",      // secondary text
-          muted: "#71717a",     // tertiary text
-          faint: "#a1a1aa",     // disabled / hints
+          DEFAULT: "#111827",   // gray-900, primary text
+          soft: "#374151",      // gray-700, secondary text
+          muted: "#6b7280",     // gray-500, tertiary text
+          faint: "#9ca3af",     // gray-400, disabled / hints
         },
         paper: {
-          DEFAULT: "#fafafa",   // main background
+          DEFAULT: "#f9fafb",   // gray-50, main background
           raised: "#ffffff",    // cards, raised surfaces
-          sunken: "#f4f4f5",    // wells, insets
-          line: "#e4e4e7",      // borders, dividers
+          sunken: "#f3f4f6",    // gray-100, wells, insets
+          line: "#e5e7eb",      // gray-200, borders, dividers
         },
         // === Risk spectrum (the ONLY decorative color, semantic) ===
         risk: {
@@ -38,17 +38,19 @@ const config: Config = {
           critical: "#b91c1c",  // deep red
           "critical-bg": "#fef2f2",
         },
-        // === Functional accent (teal — AMINA brand-aligned) ===
+        // === Brand accent (AMINA teal) ===
         accent: {
-          DEFAULT: "#003d4c",   // AMINA deep teal
-          soft: "#1a5f6f",      // lighter teal for hover/active
-          bg: "#e8f1f3",        // pale teal wash
+          DEFAULT: "#0d9488",   // teal-600 — links, active, chart curves
+          soft: "#0f766e",      // teal-700 — hover/active
+          strong: "#14b8a6",    // teal-500 — primary CTA fills
+          bg: "#f0fdfa",        // teal-50 — pale teal wash
         },
         "accent-2": "#7c3aed",  // violet — BOCPD regime-change marker
 
       },
       fontFamily: {
-        sans: ["Geist", "ui-sans-serif", "system-ui", "sans-serif"],
+        sans: ["Satoshi", "ui-sans-serif", "system-ui", "sans-serif"],
+        serif: ["Bitter", "ui-serif", "Georgia", "serif"],
         mono: ["'IBM Plex Mono'", "ui-monospace", "monospace"],
       },
       fontSize: {
@@ -68,7 +70,7 @@ const config: Config = {
         // Subtle, layered — never dramatic
         card: "0 1px 2px 0 rgb(0 0 0 / 0.04), 0 1px 3px 0 rgb(0 0 0 / 0.06)",
         raised: "0 2px 8px -2px rgb(0 0 0 / 0.08), 0 4px 16px -4px rgb(0 0 0 / 0.06)",
-        focus: "0 0 0 3px rgb(30 58 95 / 0.12)",
+        focus: "0 0 0 3px rgb(13 148 136 / 0.18)",
       },
       animation: {
         "fade-in": "fadeIn 0.4s ease-out forwards",

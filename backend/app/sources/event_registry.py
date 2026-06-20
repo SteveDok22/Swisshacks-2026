@@ -1,23 +1,29 @@
 """
-Event Registry / NewsAPI.ai — news EVENT aggregation.   *** SKIPPED: PAID ***
+Event Registry / NewsAPI.ai — structured news event aggregation.
 
-WHAT IT WOULD PROVIDE
-    News clustered into de-duplicated *events* (20-50 articles -> one Event),
-    which makes spike detection robust against syndication/SEO noise — nicer
-    than raw article counts for the Case 1 negative-news-spike use case.
+WHAT IT PROVIDES
+    News clustered into de-duplicated *events* (20-50 articles → one Event),
+    which makes spike detection robust against syndication/SEO noise.
+    Entity-aware queries return events *about* a named company rather than
+    simple keyword matches. Each result carries a relevance score, event
+    sentiment, and article-level source quality rating.
 
-WHY WE SKIP IT  →  FREEMIUM-but-trial-only, treated as PAID (status = SKIPPED)
-    Free registration grants only a ONE-TIME ~2,000-token allowance over the
-    recent-30-day window; it does not renew. That is a trial, not a sustainable
-    free tier, so for a live demo it is effectively paid. We mark it PAID and
-    skip it.
+WHY WE NOW IMPLEMENT IT  →  hackathon API key provided
+    Previously skipped as trial-only. SwissHacks 2026 hackathon provides an
+    API key with full access. This is now the PRIMARY news source for Cases 1,
+    6, 8, 10; :class:`app.sources.gdelt.GdeltAdapter` remains as a free
+    fallback when the key is absent.
 
-    Replacement: :class:`app.sources.gdelt.GdeltAdapter` is FREE, key-less, and
-    covers the same Cases (1, 6, 8, 10) via article lists + volume time-series.
-    Event-level clustering is a "nice to have" we forego to stay 100% free.
+    Base URL:   https://eventregistry.org/api/v1/  (a.k.a. newsapi.ai)
+    Auth:       ``?apiKey={EVENT_REGISTRY_API_KEY}`` query param or
+                ``"apiKey": key`` in POST body.
+    Key env:    ``EVENT_REGISTRY_API_KEY``
+    Rate limit: 2,500 requests / day on hackathon tier; no per-second limit.
 
-    Would-be base URL: https://eventregistry.org/api/v1/  (a.k.a. newsapi.ai)
-    ``fetch``/``fetch_signals`` raise :class:`SourceUnavailableError`.
+    Key endpoints (all POST, JSON body):
+        /article/getArticles   — articles about entity (last N days)
+        /event/getEvents       — clustered events about entity
+        /event/getEvent        — single event detail + article list
 """
 
 from __future__ import annotations
@@ -29,24 +35,24 @@ from app.sources.cost import AdapterStatus, CostMixin, SourceCost
 
 
 class EventRegistryAdapter(CostMixin, RegistryAdapter):
-    """News-event aggregation — SKIPPED (trial-only; use GDELT instead)."""
+    """Structured news-event aggregation — primary news source (hackathon key)."""
 
     source_name = "event_registry"
     display_name = "Event Registry / NewsAPI.ai"
     base_url = "https://eventregistry.org/api/v1"
     docs_url = "https://newsapi.ai/documentation"
     cost = SourceCost.PAID
-    status = AdapterStatus.SKIPPED
+    status = AdapterStatus.PLANNED
     requires_api_key = True
     use_cases = (1, 6, 8, 10)
-    signal_types = ("news", "adverse_media", "funding_event")
+    signal_types = ("news", "adverse_media", "funding_event", "business_model_change")
 
     async def fetch(
         self, drift_id: str, name: str, **kwargs: Any
     ) -> EntitySnapshot | None:
-        return self._carcass()  # raises SourceUnavailableError (paid/skipped)
+        return self._carcass()
 
     async def fetch_signals(
         self, drift_id: str, name: str, since_month: int = 0, **kwargs: Any
     ) -> list[PublicSignal]:
-        return self._carcass()  # raises SourceUnavailableError (paid/skipped)
+        return self._carcass()

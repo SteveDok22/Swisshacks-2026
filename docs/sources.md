@@ -65,7 +65,7 @@ status == PLANNED   <=>   cost == FREE or FREEMIUM
 | **ZEFIX** | Swiss commercial register: name, legal form, seat, status, purpose (Zweck), SHAB mutation log | FREEMIUM | yes⁰ | ✅ BUILT |
 | **GLEIF** | Global LEI: name, status, jurisdiction, parent/children ownership graph | FREE | no | ✅ BUILT |
 | **OpenSanctions** | OFAC/EU/UN sanctions + PEP screening with match scores | FREEMIUM | yes¹ | ✅ BUILT (key optional) |
-| **GDELT 2.0** | Global news article lists + volume time-series (free news feed) | FREE | no | ✅ IMPLEMENT |
+| **GDELT 2.0** | Global news article lists + volume time-series (free news feed) | FREE | no | ✅ BUILT |
 | **Event Registry** | News clustered into de-duplicated *events*, primary news source (hackathon key) | FREEMIUM³ | yes | ✅ BUILT (key-gated) |
 | **Firecrawl** | Live website → markdown (current page content) | FREEMIUM | yes² | ✅ BUILT (key-optional) |
 | **Wayback** | Historical website snapshot at the onboarding date | FREE | no | ✅ BUILT |
@@ -112,6 +112,40 @@ always-on free fallback. The two adapters complement each other — GDELT covers
 free baseline article counts; Event Registry adds event-level de-duplication and
 structured sentiment.
 
+### GDELT 2.0 — how it works and what it can't do
+
+GDELT is a free, key-less news index. We use the `gdeltdoc` client (synchronous,
+wrapped in `asyncio.to_thread`). `fetch_signals(name)` runs two modes and merges
+their signals (`fetch()` is always `None` — GDELT has no entity record):
+
+- **News-volume regime change (UC 1).** `timelinevolraw` over 12 months returns a
+  ~354-point *daily* article-count series (columns `datetime, Article Count,
+  All Articles`). We z-score it and run BOCPD; each changepoint → one signal,
+  with severity from the `timelinetone` average-tone value at that point
+  (negative tone → `adverse_media` ≥ 0.65, else `news`). Deduped to one per month.
+- **Funding + pivot (UC 6 / UC 10).** One `article_search` over the last ~3 months;
+  each headline is keyword-classified → `funding_event`, and pivot/rebrand hits
+  become a `business_model_change` *only* when ≥ 3 cluster inside a ~60-day window.
+
+**Verified live (June 2026)** against the real API on "Wirecard": the volume series
+parsed correctly and BOCPD detected changepoints; `article_search` returned the
+expected columns with `seendate` as `YYYYMMDDTHHMMSSZ`.
+
+**Limitations — GDELT is an obscure, quirky API; treat it as best-effort fallback:**
+
+1. **Rate limiting (#1 failure mode).** ~1 request / 5 s per IP; bursts raise
+   `RateLimitError`. Each `fetch_signals` makes up to 3 calls (two concurrent), so
+   under load some are throttled. Every query degrades to `[]` on any error — the
+   adapter never crashes, but it can return **partial or no** signals. Add backoff
+   at the caller if you need reliable volume signals.
+2. **Major-media bias.** Small/private KYC subjects often have near-zero coverage →
+   no signals. GDELT shines for large, news-covered entities.
+3. **Keyword match, not entity resolution.** Common names yield false positives;
+   no concept/URI disambiguation. This is precisely why Event Registry is primary
+   and GDELT is only the free fallback.
+4. **Approximate month mapping** (~30-day buckets) and `article_search` reaches back
+   only ~3 months, so funding/pivot signals cluster in recent months.
+
 ### Why each skip is safe (coverage is not lost)
 
 | Skipped (paid) | Use cases | Free source that covers it |
@@ -119,7 +153,7 @@ structured sentiment.
 | OpenCorporates | 3, 4, 5, 7 | **GLEIF** entity-level ownership (parent/child LEIs) + **ZEFIX** company fields. ⚠️ Natural-person **officers/directors** are a real gap — no free source (incl. ZEFIX) exposes them; entity-level UBO only. |
 | Crunchbase | 6 | **Event Registry** (structured funding articles) + **GDELT** (free fallback) |
 
-Net: **8 adapters to run (7 built — GLEIF, ZEFIX, Event Registry, OpenSanctions, Wayback, WHOIS/RDAP, Firecrawl — 1 carcass),
+Net: **8 adapters to run (all 8 built — GLEIF, ZEFIX, Event Registry, OpenSanctions, Wayback, WHOIS/RDAP, Firecrawl, GDELT — 0 carcasses),
 2 skipped.** No use case is fully dropped; officer/director-level resolution
 (part of Cases 3/5) is degraded to entity-level ownership only — the one
 capability lost by skipping the paid OpenCorporates. Event Registry is the

@@ -244,9 +244,10 @@ class DriftEngine:
         # Optional XGBoost drift model — loaded lazily; absent = heuristic-only.
         self._drift_extractor = DriftFeatureExtractor()
         self._drift_model = self._load_drift_model()
+        # Running count of ML blend failures; escalates to ERROR after threshold.
+        self._ml_blend_failure_count: int = 0
 
-    @staticmethod
-    def _load_drift_model():
+    def _load_drift_model(self):
         """Load the drift XGBoost model if available; return None otherwise."""
         try:
             from app.ml.registry import get_registry
@@ -340,8 +341,17 @@ class DriftEngine:
                 # but make the degradation visible: a silent failure would leave
                 # operators on heuristic-only scores with no signal that the ML
                 # layer stopped contributing.
-                logger.warning(
-                    "drift_ml_blend_failed", drift_id=cust.drift_id, exc_info=True
+                self._ml_blend_failure_count += 1
+                log_fn = (
+                    logger.error
+                    if self._ml_blend_failure_count >= 3
+                    else logger.warning
+                )
+                log_fn(
+                    "drift_ml_blend_failed",
+                    drift_id=cust.drift_id,
+                    consecutive_failures=self._ml_blend_failure_count,
+                    exc_info=True,
                 )
 
         # Suspicious-stability ELEVATION — the slow-walker keeps drift low ON
@@ -812,7 +822,10 @@ class DriftEngine:
         new_id = f"injected-{len(self._book) + 1:03d}"
         cust = generate_customer(
             drift_id=new_id, name=name, scenario=scenario,
-            seed=hash(new_id) % 10000,
+            # zlib.crc32, not builtin hash — same reasoning as _public_signals:
+            # PYTHONHASHSEED randomises str hashing per-process, so injected
+            # scenarios would produce different customers across restarts.
+            seed=zlib.crc32(new_id.encode()) % 10000,
         )
         self._book.append(cust)
         detail = self.get_subject(new_id)

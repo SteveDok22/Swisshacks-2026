@@ -12,16 +12,15 @@ the hand-tuned layer weights.
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, ClassVar
 
 from app.ml.base import FeatureExtractor
-from app.schemas.case import Case
 
 
 class DriftFeatureExtractor(FeatureExtractor):
     """Extract 20-dim features from a drift analysis dict for XGBoost scoring."""
 
-    feature_names: list[str] = [
+    feature_names: ClassVar[list[str]] = [
         # Velocity / BOCPD
         "drift_velocity_latest",
         "drift_velocity_peak",
@@ -49,7 +48,7 @@ class DriftFeatureExtractor(FeatureExtractor):
         "activation_strength",
     ]
 
-    feature_labels: dict[str, str] = {
+    feature_labels: ClassVar[dict[str, str]] = {
         "drift_velocity_latest": "Drift velocity (latest window)",
         "drift_velocity_peak": "Drift velocity peaked at {value:.2f} bits/month",
         "drift_bits_final": "Accumulated drift: {value:.2f} bits",
@@ -76,12 +75,22 @@ class DriftFeatureExtractor(FeatureExtractor):
         """Extract drift features from an analysis dict.
 
         Args:
-            case: The analysis dict returned by DriftEngine._analyze_customer().
-                  The base-class ``Case`` type is not applicable to drift — this
-                  extractor is wired directly to the engine's analysis output.
+            case: The analysis dict produced by ``compute_drift_analysis`` (or
+                  ``DriftEngine._analyze_customer``). Must be a plain dict — the
+                  base-class ``Case`` type does not apply here.
             client_context: Unused; present for base-class compatibility.
+
+        Raises:
+            TypeError: If ``case`` is not a dict. Failing silently would return
+                all-zero features, scoring every customer at near-zero risk with
+                no error signal — unacceptable in a compliance system.
         """
-        a: dict = case if isinstance(case, dict) else {}
+        if not isinstance(case, dict):
+            raise TypeError(
+                f"DriftFeatureExtractor expects a dict (output of "
+                f"compute_drift_analysis), got {type(case).__name__}"
+            )
+        a: dict = case
 
         causal = a.get("causal")
         stability = a.get("stability")

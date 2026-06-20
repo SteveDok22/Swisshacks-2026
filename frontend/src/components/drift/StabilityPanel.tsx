@@ -34,10 +34,10 @@ export function StabilityPanel({ stability }: StabilityPanelProps) {
   return (
     <div
       className={cn(
-        "border rounded p-4",
+        "rounded p-4",
         is_suspicious
-          ? "border-risk-high/30 bg-risk-high-bg"
-          : "border-paper-line bg-paper-raised",
+          ? "bg-risk-high-bg"
+          : "border border-paper-line bg-paper-raised",
       )}
     >
       <div className="flex items-center gap-2 mb-3">

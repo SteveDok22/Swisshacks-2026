@@ -70,9 +70,6 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
       <div className="flex items-center justify-between gap-3 mb-3 pr-10">
         <div>
           <h3 className="text-sm font-semibold text-ink">Drift Radar</h3>
-          <p className="text-2xs text-ink-muted mt-0.5">
-            Score x Velocity. Upper-right = highest priority.
-          </p>
         </div>
         <div className="flex items-center gap-3 text-2xs text-ink-muted">
           <InfoHint text={explanation} />
@@ -149,7 +146,7 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
 
         {/* Axis labels */}
         <text x={W / 2} y={H - 8} textAnchor="middle" fontSize={11} fill="var(--ink-muted, #71717a)">
-          {"Drift score ->"}
+          Drift score
         </text>
         <text
           x={14}

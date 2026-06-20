@@ -34,10 +34,10 @@ export function DormancyPanel({ dormancy }: DormancyPanelProps) {
   return (
     <div
       className={cn(
-        "border rounded p-4",
+        "rounded p-4",
         is_dormancy_break
-          ? "border-risk-critical/30 bg-risk-critical-bg"
-          : "border-paper-line bg-paper-raised",
+          ? "bg-risk-critical-bg"
+          : "border border-paper-line bg-paper-raised",
       )}
     >
       <div className="flex items-center gap-2 mb-3">

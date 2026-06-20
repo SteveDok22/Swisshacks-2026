@@ -26,40 +26,14 @@ const METRIC_LABEL: Record<string, string> = {
  * correlation SIGNATURE does. Margin is the discriminator.
  */
 export function CausalPanel({ causal }: CausalPanelProps) {
-  const { label, p_risk, causal_llr, contributions } = causal;
+  const { causal_llr, contributions } = causal;
   const explanation =
     "Likelihood ratio between two generative hypotheses. Drift magnitude alone cannot separate benign from risk — the correlation signature can.";
-
-  const verdictColor =
-    label === "risk"
-      ? "text-risk-critical"
-      : label === "benign"
-        ? "text-risk-low"
-        : "text-risk-medium";
-
-  const verdictBg =
-    label === "risk"
-      ? "bg-risk-critical-bg border-risk-critical/20"
-      : label === "benign"
-        ? "bg-risk-low-bg border-risk-low/20"
-        : "bg-risk-medium-bg border-risk-medium/20";
 
   // Order contributions by absolute magnitude (most decisive first)
   const ranked = Object.entries(contributions).sort(
     (a, b) => Math.abs(b[1]) - Math.abs(a[1]),
   );
-
-  const verdictTitle =
-    label === "ambiguous"
-      ? "Ambiguous — needs review"
-      : `${label.charAt(0).toUpperCase()}${label.slice(1)}-shaped drift`;
-
-  const verdictSubtitle =
-    label === "risk"
-      ? "Change matches a transit/laundering signature"
-      : label === "benign"
-        ? "Change matches legitimate business growth"
-        : "Signal insufficient to separate risk from life";
 
   return (
     <ZoomablePanel
@@ -79,38 +53,12 @@ export function CausalPanel({ causal }: CausalPanelProps) {
         <InfoHint text={explanation} />
       </div>
 
-      {/* Verdict banner */}
-      <div
-        className={cn(
-          "rounded border px-3 py-2 mb-3 flex items-center justify-between gap-3",
-          verdictBg,
-        )}
-      >
-        <div className="flex items-baseline gap-x-2 gap-y-0.5 flex-wrap min-w-0">
-          <span className={cn("text-sm font-semibold", verdictColor)}>
-            {verdictTitle}
-          </span>
-          <span className="text-2xs text-ink-muted">{verdictSubtitle}</span>
-        </div>
-        <div className="flex items-baseline gap-1 shrink-0">
-          <span
-            className={cn(
-              "font-mono text-xl font-semibold tabular",
-              verdictColor,
-            )}
-          >
-            {Math.round(p_risk * 100)}%
-          </span>
-          <span className="text-2xs text-ink-muted">P(risk)</span>
-        </div>
-      </div>
-
       {/* Two competing hypotheses */}
       <div className="grid grid-cols-2 gap-2 mb-3 text-2xs">
         <div
           className={cn(
-            "rounded border p-2 text-center",
-            causal_llr < 0 ? "border-risk-low/40 bg-risk-low-bg" : "border-paper-line",
+            "rounded p-2 text-center",
+            causal_llr < 0 ? "bg-risk-low-bg" : "border border-paper-line",
           )}
         >
           <div className="font-medium text-ink">Benign growth</div>
@@ -118,8 +66,8 @@ export function CausalPanel({ causal }: CausalPanelProps) {
         </div>
         <div
           className={cn(
-            "rounded border p-2 text-center",
-            causal_llr > 0 ? "border-risk-critical/40 bg-risk-critical-bg" : "border-paper-line",
+            "rounded p-2 text-center",
+            causal_llr > 0 ? "bg-risk-critical-bg" : "border border-paper-line",
           )}
         >
           <div className="font-medium text-ink">Risk transit</div>

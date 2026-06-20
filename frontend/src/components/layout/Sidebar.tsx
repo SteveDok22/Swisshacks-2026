@@ -92,7 +92,7 @@ export function Sidebar() {
             priority
           />
           <div className="leading-tight">
-            <div className="font-semibold text-sm text-ink">Sentinel</div>
+            <div className="font-serif font-semibold text-base text-ink tracking-tight">Sentinel</div>
             <div className="text-2xs text-ink-muted">Risk Intelligence</div>
           </div>
         </div>

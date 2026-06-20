@@ -228,10 +228,10 @@ function CaseSummary({ detail }: { detail: DriftCustomerDetail }) {
   // recommendation — the same value the Decision Bar highlights, so the two
   // surfaces can never disagree.
   const toneClasses = {
-    critical: "border-risk-critical/25 bg-risk-critical-bg text-risk-critical",
-    high: "border-risk-high/25 bg-risk-high-bg text-risk-high",
-    medium: "border-risk-medium/25 bg-risk-medium-bg text-risk-medium",
-    low: "border-risk-low/25 bg-risk-low-bg text-risk-low",
+    critical: "bg-risk-critical-bg text-risk-critical",
+    high: "bg-risk-high-bg text-risk-high",
+    medium: "bg-risk-medium-bg text-risk-medium",
+    low: "bg-risk-low-bg text-risk-low",
   }[detail.risk_level];
 
   const Icon =
@@ -283,7 +283,7 @@ function CaseSummary({ detail }: { detail: DriftCustomerDetail }) {
       </div>
 
       {/* Verdict banner — single authoritative "what to do + why + KPIs" */}
-      <div className={cn("flex items-center gap-3 rounded border p-3", toneClasses)}>
+      <div className={cn("flex items-center gap-3 rounded p-3", toneClasses)}>
         <Icon className="h-5 w-5 shrink-0" strokeWidth={2} />
         <div className="flex-1 min-w-0">
           <div className="text-2xs uppercase tracking-wide opacity-70">
@@ -298,21 +298,17 @@ function CaseSummary({ detail }: { detail: DriftCustomerDetail }) {
           )}
         </div>
         <div className="flex items-stretch gap-4 shrink-0 text-center">
-          <div>
+          <div className="flex flex-col justify-center">
             <div className="font-mono text-2xl font-semibold tabular leading-none">
               {Math.round(score)}
-            </div>
-            <div className="text-2xs uppercase tracking-wide opacity-70 mt-1">
-              risk / 100
+              <span className="text-sm opacity-50"> / 100</span>
             </div>
           </div>
           <div className="border-l border-black/10 pl-4 flex flex-col justify-center">
             <div className="text-sm font-semibold leading-none">
               {TIER_LABELS[detail.reached_tier] ?? detail.reached_tier}
             </div>
-            <div className="text-2xs uppercase tracking-wide opacity-70 mt-1">
-              reviewed by
-            </div>
+            <div className="text-2xs opacity-50 mt-1">reviewed by</div>
           </div>
         </div>
       </div>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { decisionsApi } from "@/lib/api";
 import { cn, ACTION_LABELS, formatDateTime } from "@/lib/utils";
-import { Check, ChevronUp, AlertOctagon, ShieldAlert, X } from "lucide-react";
+import { Check, ChevronUp, AlertOctagon, ShieldAlert, X, RotateCcw } from "lucide-react";
 import type { DecisionAction, DecisionRead } from "@/types/api";
 
 type DecisionBarProps = {
@@ -66,6 +66,9 @@ export function DecisionBar(props: DecisionBarProps) {
     null,
   );
   const [rationale, setRationale] = useState("");
+  // Reopen the resolved bar to record a fresh decision. The prior decision is
+  // never deleted — a new one is appended, so the audit trail keeps both.
+  const [reopened, setReopened] = useState(false);
   const queryClient = useQueryClient();
 
   const isDrift = "driftId" in props;
@@ -123,6 +126,7 @@ export function DecisionBar(props: DecisionBarProps) {
       ]);
       setPendingAction(null);
       setRationale("");
+      setReopened(false);
       queryClient.invalidateQueries({ queryKey: decisionsKey });
       if (isDrift) {
         queryClient.invalidateQueries({ queryKey: ["drift-customers"] });
@@ -152,7 +156,7 @@ export function DecisionBar(props: DecisionBarProps) {
     mutation.mutate({ action: pendingAction, rationale: rationale.trim() });
   };
 
-  if (latestDecision) {
+  if (latestDecision && !reopened) {
     return (
       <div className="border-t border-paper-line bg-risk-low-bg px-6 py-4 flex items-center gap-3 animate-fade-in">
         <div className="h-6 w-6 rounded-full bg-risk-low flex items-center justify-center shrink-0">
@@ -170,6 +174,13 @@ export function DecisionBar(props: DecisionBarProps) {
             logged to audit trail
           </div>
         </div>
+        <button
+          onClick={() => setReopened(true)}
+          className="shrink-0 inline-flex items-center gap-1.5 rounded border border-risk-low/30 bg-paper-raised px-2.5 py-1.5 text-xs font-medium text-risk-low transition-colors hover:bg-risk-low/10"
+        >
+          <RotateCcw className="h-3.5 w-3.5" strokeWidth={2} />
+          Revert decision
+        </button>
       </div>
     );
   }
@@ -247,17 +258,32 @@ export function DecisionBar(props: DecisionBarProps) {
     <div className="border-t border-paper-line bg-paper-raised px-6 py-3">
       <div className="flex items-center justify-between mb-2">
         <div className="text-2xs font-semibold uppercase tracking-wide text-ink-muted">
-          Decision
+          {reopened ? "New decision" : "Decision"}
         </div>
-        {aiRecommendedAction && (
-          <div className="text-2xs text-ink-muted">
-            AI suggests:{" "}
-            <span className="font-medium text-ink">
-              {ACTION_LABELS[aiRecommendedAction]}
-            </span>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          {aiRecommendedAction && (
+            <div className="text-2xs text-ink-muted">
+              AI suggests:{" "}
+              <span className="font-medium text-ink">
+                {ACTION_LABELS[aiRecommendedAction]}
+              </span>
+            </div>
+          )}
+          {reopened && (
+            <button
+              onClick={() => setReopened(false)}
+              className="inline-flex items-center gap-1 text-2xs text-ink-muted hover:text-ink"
+            >
+              <X className="h-3.5 w-3.5" /> Cancel
+            </button>
+          )}
+        </div>
       </div>
+      {reopened && (
+        <p className="text-2xs text-ink-muted mb-2">
+          The previous decision stays in the audit trail — this records a new one.
+        </p>
+      )}
       <div className="grid grid-cols-4 gap-2">
         {ACTIONS.map(({ action, icon: Icon, variant }) => {
           const isAiChoice = action === aiRecommendedAction;

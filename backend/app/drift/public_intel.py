@@ -27,13 +27,14 @@ from __future__ import annotations
 
 import asyncio
 import concurrent.futures
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.drift.business_model import WEBSITE_COMPARISON_SOURCE
 from app.sources.base import PublicSignal
 
 if TYPE_CHECKING:
@@ -67,7 +68,23 @@ _SEVERITY_LEXICON = {
 
 # PublicSignal is now defined in sources/base.py (canonical location) and
 # imported above. The re-export keeps existing imports from this module working.
-__all__ = ["PublicSignal"]
+__all__ = ["PublicSignal", "elevate_corroborated_pivots"]
+
+# --- UC 10: cross-source business-model-pivot corroboration ----------------
+# Signal type emitted BOTH by news adapters (Event Registry primary / GDELT
+# fallback, on a pivot/rebrand article cluster) AND by the website cosine
+# comparator (drift/business_model.py, on Wayback↔Firecrawl distance ≥ 0.35).
+_PIVOT_SIGNAL_TYPE = "business_model_change"
+# A lone pivot headline is noise; a credible news *event cluster* needs at least
+# this many independent news-derived pivot signals. Mirrors the adapters' own
+# clustering (GDELT requires ≥ 3 articles; Event Registry emits one per article).
+_NEWS_PIVOT_CLUSTER_MIN = 2
+# Severity a corroborated pivot is elevated to — the top "near-certain escalation
+# trigger" band (0.90–1.00) in docs/source-integration-architecture.md §5.
+_CRITICAL_SEVERITY = 0.95
+# Synthetic-scenario calibration (offline demo path only).
+_PIVOT_NEWS_SEVERITY = 0.60     # matches Event Registry / GDELT pivot signals
+_PIVOT_WEBSITE_DISTANCE = 0.52  # cosine distance, comfortably past the 0.35 threshold
 
 
 def classify_severity(headline: str) -> float:
@@ -109,6 +126,11 @@ _HEADLINES = {
         "{name} firm announces partnership expansion",
         "{name}-linked company product launch covered in trade press",
         "{name} entity announces new hiring in Zurich office",
+    ],
+    "business_model_change": [
+        "{name} entity announces strategic pivot to a new product line",
+        "Trade press: {name}-linked company rebrands around a new business model",
+        "{name} firm shifts focus, unveils new product after strategic review",
     ],
 }
 
@@ -185,6 +207,59 @@ def generate_signals_for_customer(
                 )
             )
         return sorted(signals, key=lambda s: s.month)
+
+    # Pivot scenario (UC 10, Centra Tech pattern): a public business-model pivot
+    # that surfaces in two independent lenses at once — a NEWS pivot/rebrand
+    # cluster and a WEBSITE cosine shift — alongside a co-occurring funding event.
+    # elevate_corroborated_pivots() then lifts the corroborated pivot to the
+    # critical band, exactly as the live aggregator does.
+    if scenario == "pivot":
+        pivot_signals: list[PublicSignal] = []
+        pivot_month = min(drift_start_month + 1, months - 1)  # ~month 9 for the default onset
+        # 1. News pivot/rebrand CLUSTER (one past the minimum, like real coverage).
+        for offset in range(_NEWS_PIVOT_CLUSTER_MIN + 1):
+            m = min(pivot_month + offset, months - 1)
+            headline = rng.choice(_HEADLINES["business_model_change"]).format(name=first)
+            pivot_signals.append(
+                PublicSignal(
+                    month=m, signal_type="business_model_change", headline=headline,
+                    severity=_PIVOT_NEWS_SEVERITY, source="trade press",
+                    source_url=_demo_source_url(
+                        "trade press", drift_id, "business_model_change", m
+                    ),
+                )
+            )
+        # 2. Co-occurring funding event — the pivot is financed (Centra Tech's ICO raise).
+        funding_headline = rng.choice(_HEADLINES["funding_event"]).format(name=first)
+        pivot_signals.append(
+            PublicSignal(
+                month=pivot_month, signal_type="funding_event", headline=funding_headline,
+                severity=classify_severity(funding_headline), source="press release",
+                source_url=_demo_source_url(
+                    "press release", drift_id, "funding_event", pivot_month
+                ),
+            )
+        )
+        # 3. Website cosine distance fires, mirroring drift/business_model.py's
+        #    signal at distance ≥ 0.35 (severity = clip(0.20 + 1.30 × distance, 0, 0.95)).
+        distance = _PIVOT_WEBSITE_DISTANCE
+        severity = min(0.20 + 1.30 * distance, 0.95)
+        pivot_signals.append(
+            PublicSignal(
+                month=pivot_month, signal_type="business_model_change",
+                headline=(
+                    f"Website content for {name} shifted materially since onboarding "
+                    f"(cosine distance {distance:.2f})"
+                ),
+                severity=severity, source=WEBSITE_COMPARISON_SOURCE,
+                source_url=_demo_source_url(
+                    "website", drift_id, "business_model_change", pivot_month
+                ),
+            )
+        )
+        return elevate_corroborated_pivots(
+            sorted(pivot_signals, key=lambda s: s.month)
+        )
 
     # Drifting customer: signals align with and follow internal drift onset.
     # Earlier signals are softer (funding/ownership), later turn adverse.
@@ -288,6 +363,51 @@ def detect_news_spike_month(
     if elevated_months < _MIN_SPIKE_MONTHS:
         return None
     return spike_month
+
+
+def elevate_corroborated_pivots(signals: list[PublicSignal]) -> list[PublicSignal]:
+    """Elevate a business-model pivot to *critical* when two independent sources confirm it (UC 10).
+
+    A public business-model pivot (the Centra Tech pattern: a debit-card fintech
+    that became an ICO in 90 days) is only high-confidence when it shows up in two
+    *independent* lenses at once:
+
+    1. a **news** pivot/rebrand event cluster — ``business_model_change`` signals
+       whose source is a news outlet (Event Registry primary, GDELT fallback), and
+    2. a **website** cosine shift — a ``business_model_change`` signal from
+       ``drift/business_model.py``, which only fires when the Wayback↔Firecrawl
+       cosine distance clears ``BUSINESS_MODEL_DISTANCE_THRESHOLD`` (0.35). Its
+       mere presence in the list therefore *is* the "distance ≥ 0.35" condition.
+
+    When both lenses are present (≥ ``_NEWS_PIVOT_CLUSTER_MIN`` news pivots AND
+    ≥ 1 website pivot) the two corroborate each other, so every pivot signal is
+    elevated to the critical band. Either lens alone is left untouched — one
+    source is a lead, not a confirmation. The input list is never mutated:
+    ``PublicSignal`` is frozen, so elevated signals are fresh copies and order is
+    preserved.
+    """
+    pivots = [s for s in signals if s.signal_type == _PIVOT_SIGNAL_TYPE]
+    if not pivots:
+        return signals
+
+    website_pivots = [s for s in pivots if s.source == WEBSITE_COMPARISON_SOURCE]
+    news_pivots = [s for s in pivots if s.source != WEBSITE_COMPARISON_SOURCE]
+    # Need BOTH independent lenses: a news event cluster AND the website cosine
+    # shift. One alone is a lead, not a corroboration — leave severities as-is.
+    if not website_pivots or len(news_pivots) < _NEWS_PIVOT_CLUSTER_MIN:
+        return signals
+
+    _logger.info(
+        "pivot_corroborated_critical",
+        news_pivots=len(news_pivots),
+        website_pivots=len(website_pivots),
+    )
+    return [
+        replace(s, severity=max(s.severity, _CRITICAL_SEVERITY))
+        if s.signal_type == _PIVOT_SIGNAL_TYPE
+        else s
+        for s in signals
+    ]
 
 
 @dataclass
@@ -530,7 +650,9 @@ async def gather_public_signals(
         return []
 
     signals: list[PublicSignal] = [s for batch in batches for s in batch]
-    return sorted(signals, key=lambda s: s.month)
+    # Cross-source corroboration (UC 10): a news pivot cluster + a website cosine
+    # shift together elevate the pivot to critical before the merged list returns.
+    return elevate_corroborated_pivots(sorted(signals, key=lambda s: s.month))
 
 
 def gather_public_signals_sync(

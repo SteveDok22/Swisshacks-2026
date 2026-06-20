@@ -59,6 +59,7 @@ logger = get_logger(__name__)
 
 __all__ = [
     "BUSINESS_MODEL_DISTANCE_THRESHOLD",
+    "WEBSITE_COMPARISON_SOURCE",
     "BusinessModelComparison",
     "CachedEmbedding",
     "Embedder",
@@ -90,8 +91,12 @@ _SEVERITY_CAP = 0.95
 # comparator skips rather than emit a distance computed from noise.
 _MIN_TEXT_CHARS = 50
 
-# Human-readable provenance stamped on the emitted signal.
-_SIGNAL_SOURCE = "website comparison (Wayback↔Firecrawl)"
+# Human-readable provenance stamped on every business-model-change signal. Public
+# so the public-intel aggregator can recognise *website-derived* pivot signals and
+# corroborate them against *news-derived* ones (Event Registry / GDELT) for UC 10.
+WEBSITE_COMPARISON_SOURCE = "website comparison (Wayback↔Firecrawl)"
+# Internal alias kept so existing references read naturally at the emit site.
+_SIGNAL_SOURCE = WEBSITE_COMPARISON_SOURCE
 
 
 # ---------------------------------------------------------------------------

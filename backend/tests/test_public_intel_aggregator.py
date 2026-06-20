@@ -15,9 +15,12 @@ from __future__ import annotations
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from app.drift.business_model import WEBSITE_COMPARISON_SOURCE
 from app.drift.public_intel import (
     _AGGREGATE_TIMEOUT_S,
+    _CRITICAL_SEVERITY,
     _FALLBACK_NEWS_SOURCE,
+    _NEWS_PIVOT_CLUSTER_MIN,
     _PRIMARY_NEWS_SOURCE,
     _SYNC_TIMEOUT_S,
     _resolve_ubo_names,
@@ -25,6 +28,7 @@ from app.drift.public_intel import (
     assess_public_risk,
     classify_severity,
     detect_news_spike_month,
+    elevate_corroborated_pivots,
     gather_public_signals,
     gather_public_signals_sync,
     generate_signals_for_customer,
@@ -822,3 +826,133 @@ class TestDetectNewsSpikeMonth:
             assert detect_news_spike_month(signals, cust.months) is None, (
                 f"false-positive news spike on stable seed {seed}"
             )
+
+
+# ---------------------------------------------------------------------------
+# UC 10 — cross-source business-model-pivot corroboration
+# ---------------------------------------------------------------------------
+
+def _news_pivot(month: int, severity: float = 0.60) -> PublicSignal:
+    """A news-derived pivot signal (Event Registry / GDELT)."""
+    return PublicSignal(
+        month=month,
+        signal_type="business_model_change",
+        headline=f"Acme announces strategic pivot (month {month})",
+        severity=severity,
+        source="Event Registry / NewsAPI.ai",
+        source_url="https://eventregistry.org/event/x",
+    )
+
+
+def _website_pivot(month: int, severity: float = 0.80) -> PublicSignal:
+    """A website-derived pivot signal (Wayback↔Firecrawl cosine ≥ 0.35)."""
+    return PublicSignal(
+        month=month,
+        signal_type="business_model_change",
+        headline="Website content shifted materially since onboarding",
+        severity=severity,
+        source=WEBSITE_COMPARISON_SOURCE,
+        source_url="https://example.com/site",
+    )
+
+
+class TestElevateCorroboratedPivots:
+    def test_both_sources_elevate_all_pivots_to_critical(self):
+        signals = [
+            _news_pivot(8),
+            _news_pivot(9),
+            _website_pivot(9),
+            _signal(2, "news", 0.2),  # untouched non-pivot
+        ]
+        out = elevate_corroborated_pivots(signals)
+
+        pivots = [s for s in out if s.signal_type == "business_model_change"]
+        assert pivots, "expected pivot signals"
+        assert all(s.severity == _CRITICAL_SEVERITY for s in pivots)
+        # Non-pivot signal is left exactly as-is.
+        news = next(s for s in out if s.signal_type == "news")
+        assert news.severity == 0.2
+
+    def test_news_only_is_not_elevated(self):
+        # A news cluster with no website corroboration stays as a lead.
+        signals = [_news_pivot(8), _news_pivot(9)]
+        out = elevate_corroborated_pivots(signals)
+        assert all(s.severity == 0.60 for s in out)
+
+    def test_website_only_is_not_elevated(self):
+        signals = [_website_pivot(9)]
+        out = elevate_corroborated_pivots(signals)
+        assert out[0].severity == 0.80
+
+    def test_single_news_pivot_below_cluster_min_is_not_elevated(self):
+        assert _NEWS_PIVOT_CLUSTER_MIN >= 2  # one stray headline is not a cluster
+        signals = [_news_pivot(9), _website_pivot(9)]
+        out = elevate_corroborated_pivots(signals)
+        assert all(s.severity < _CRITICAL_SEVERITY for s in out)
+
+    def test_no_pivot_signals_returns_input_unchanged(self):
+        signals = [_signal(1, "news", 0.2), _signal(3, "funding_event", 0.5)]
+        out = elevate_corroborated_pivots(signals)
+        assert out == signals
+
+    def test_existing_critical_severity_is_not_lowered(self):
+        # max() guard: a website signal already above the critical floor keeps it.
+        signals = [_news_pivot(8), _news_pivot(9), _website_pivot(9, severity=0.99)]
+        out = elevate_corroborated_pivots(signals)
+        website = next(s for s in out if s.source == WEBSITE_COMPARISON_SOURCE)
+        assert website.severity == 0.99
+
+    def test_input_list_is_not_mutated(self):
+        signals = [_news_pivot(8), _news_pivot(9), _website_pivot(9)]
+        elevate_corroborated_pivots(signals)
+        assert all(s.severity < _CRITICAL_SEVERITY for s in signals)
+
+    async def test_gather_applies_corroboration_across_adapters(self):
+        # Two independent adapters: a news pivot cluster and the website cosine
+        # comparator. The aggregator must corroborate them into critical.
+        cls_news = _make_adapter_cls("news", [_news_pivot(8), _news_pivot(9)])
+        cls_site = _make_adapter_cls("site", [_website_pivot(9)])
+
+        with patch("app.sources.registry.usable_adapters", return_value=(cls_news, cls_site)):
+            signals = await gather_public_signals("drift-001", "Acme AG")
+
+        pivots = [s for s in signals if s.signal_type == "business_model_change"]
+        assert len(pivots) == 3
+        assert all(s.severity == _CRITICAL_SEVERITY for s in pivots)
+
+
+class TestPivotSyntheticSignals:
+    def test_pivot_scenario_emits_corroborated_critical_signals(self):
+        signals = generate_signals_for_customer(
+            "drift-pivot", "Centra Holdings AG", "pivot",
+            months=18, drift_start_month=8, seed=7,
+        )
+        by_type = [s.signal_type for s in signals]
+        assert by_type.count("business_model_change") >= _NEWS_PIVOT_CLUSTER_MIN + 1
+        assert "funding_event" in by_type, "Centra Tech pattern co-occurring funding event"
+
+        # Both lenses present → every pivot signal sits in the critical band.
+        pivots = [s for s in signals if s.signal_type == "business_model_change"]
+        assert all(s.severity == _CRITICAL_SEVERITY for s in pivots)
+        # A website-derived cosine signal is among them.
+        assert any(s.source == WEBSITE_COMPARISON_SOURCE for s in pivots)
+
+    def test_pivot_news_signals_fire_around_month_nine(self):
+        signals = generate_signals_for_customer(
+            "drift-pivot", "Centra Holdings AG", "pivot",
+            months=18, drift_start_month=8, seed=7,
+        )
+        news = [
+            s for s in signals
+            if s.signal_type == "business_model_change"
+            and s.source != WEBSITE_COMPARISON_SOURCE
+        ]
+        assert news, "expected news-derived pivot signals"
+        assert min(s.month for s in news) == 9  # first article fires at month 9
+
+    def test_pivot_signals_are_time_sorted(self):
+        signals = generate_signals_for_customer(
+            "drift-pivot", "Centra Holdings AG", "pivot", drift_start_month=8, seed=3,
+        )
+        months = [s.month for s in signals]
+        assert months == sorted(months)

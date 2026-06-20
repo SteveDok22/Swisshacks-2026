@@ -19,6 +19,11 @@ Scenarios:
 - news_spike:            reputational risk (UC 1) — a sustained negative-news
                          event spike whose external story confirms an internal
                          volume drift + margin collapse (the Wirecard pattern)
+- pivot:                 a public business-model pivot (UC 10, Centra Tech
+                         pattern) — volume climbs while margin collapses as the
+                         raised capital flows straight through; the public-intel
+                         layer pairs it with a news pivot cluster, a website
+                         cosine shift, and a co-occurring funding event
 
 Every scenario ends with a simulated sanctions listing at the final month
 (month 0 in demo language), so lead time = listing date - detection date.
@@ -40,6 +45,7 @@ SCENARIOS = (
     "suspicious_stability",
     "dormancy_break",
     "news_spike",
+    "pivot",
 )
 
 # Must match `assess_dormancy`'s `baseline_fraction` default (drift/dormancy.py):
@@ -161,7 +167,7 @@ def generate_customer(
         causal_truth = "suspicious"
     else:
         # volume_creep / counterparty_migration / corridor_shift / combined /
-        # dormancy_break / news_spike are all risk-shaped.
+        # dormancy_break / news_spike / pivot are all risk-shaped.
         causal_truth = "risk"
 
     cust = SyntheticCustomer(
@@ -197,7 +203,7 @@ def generate_customer(
             # SAME magnitude — so velocity alone cannot tell them apart. The
             # causal layer distinguishes them by OTHER metrics (margin, etc.).
             vol_mult = 1.0
-            if scenario in ("volume_creep", "combined", "benign_expansion", "news_spike"):
+            if scenario in ("volume_creep", "combined", "benign_expansion", "news_spike", "pivot"):
                 vol_mult = 1.0 + 1.2 * intensity  # up to +120% by the end
             # suspicious_stability: anomalously LOW noise — the slow-walker keeps
             # an unnaturally smooth profile. Real customers jitter (~15% daily
@@ -243,10 +249,11 @@ def generate_customer(
         base_margin = 0.25
         if scenario in (
             "volume_creep", "counterparty_migration", "corridor_shift",
-            "combined", "dormancy_break", "news_spike",
+            "combined", "dormancy_break", "news_spike", "pivot",
         ):
             # Risk: margin collapses toward 0 as intensity rises (the reactivated
-            # shell pushes money straight through — near-zero retention).
+            # shell — or the pivoted ICO — pushes money straight through with
+            # near-zero retention).
             margin_mean = base_margin * (1.0 - 0.9 * intensity)
         elif scenario == "benign_expansion":
             # Benign: margin holds (tiny dip from growth costs, then recovers)

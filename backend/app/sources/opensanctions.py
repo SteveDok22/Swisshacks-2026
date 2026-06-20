@@ -317,4 +317,14 @@ class OpenSanctionsAdapter(CostMixin, RegistryAdapter):
             severity=severity,
             source=_SIGNAL_SOURCE,
             source_url=self.record_url(entity_id),
+            # Structured provenance so the API can surface the screened UBO name +
+            # matched watchlist entity + score (Case 5) without re-parsing the
+            # headline. ``kind`` tags this as a UBO-screening hit for the aggregator.
+            meta={
+                "kind": "ubo_screening",
+                "ubo_name": ubo_name,
+                "matched_entity": caption,
+                "score": round(score, 2),
+                "definitive": is_definitive,
+            },
         )

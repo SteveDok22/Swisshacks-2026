@@ -10,7 +10,7 @@ import asyncio
 
 import pytest
 from httpx import AsyncClient
-from pytest_bdd import given, parsers, scenarios, then, when
+from pytest_bdd import parsers, scenarios, then, when
 
 scenarios("features/api_contract.feature")
 
@@ -53,3 +53,29 @@ def assert_body_contains_key(key: str, context: dict) -> None:
     assert key in data, (
         f"Key {key!r} not found in response. Available keys: {list(data.keys())}"
     )
+
+
+# --------------------------------------------------------------------------- #
+# UC5 — DriftSubjectDetail exposes the ubo_screening field (contract test)     #
+# --------------------------------------------------------------------------- #
+
+async def test_subject_detail_exposes_ubo_screening(client: AsyncClient) -> None:
+    """DriftSubjectDetail must always carry the ``ubo_screening`` list (UC5).
+
+    Offline (default), no OpenSanctions hits are produced, so the field is an
+    empty list — but it must be present and correctly typed in the contract.
+    """
+    listing = await client.get("/api/v1/drift/subjects")
+    assert listing.status_code == 200
+    subjects = listing.json()
+    assert subjects, "synthetic book should not be empty"
+
+    drift_id = subjects[0]["drift_id"]
+    detail = await client.get(f"/api/v1/drift/subjects/{drift_id}")
+    assert detail.status_code == 200
+
+    body = detail.json()
+    assert "ubo_screening" in body, (
+        f"ubo_screening missing from detail. Keys: {list(body.keys())}"
+    )
+    assert isinstance(body["ubo_screening"], list)

@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { InfoHint } from "@/components/ui/InfoHint";
+import { ZoomablePanel } from "@/components/ui/ZoomablePanel";
 import type { DriftCustomerDetail } from "@/types/api";
 
 interface DriftTimelineProps {
@@ -21,6 +22,8 @@ interface DriftTimelineProps {
 export function DriftTimeline({ detail }: DriftTimelineProps) {
   const { timeline, sanctions_month, drift_start_month } = detail;
   const [cursor, setCursor] = useState(timeline.length - 1);
+  const explanation =
+    "Past timeline of observed drift velocity. X-axis is historical month; Y-axis is velocity in bits per month. Values above the alert band indicate the behaviour is changing fast enough to flag before any sanctions event.";
 
   if (timeline.length === 0) {
     return (
@@ -34,6 +37,7 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
   const H = 200;
   const PAD = 36;
 
+  const minVel = Math.min(0, ...timeline.map((p) => p.velocity));
   const maxVel = Math.max(1, ...timeline.map((p) => p.velocity));
   const months = timeline.map((p) => p.month);
   const minMonth = Math.min(...months);
@@ -41,7 +45,19 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
 
   const mx = (m: number) =>
     PAD + ((m - minMonth) / Math.max(1, maxMonth - minMonth)) * (W - 2 * PAD);
-  const vy = (v: number) => H - PAD - (v / maxVel) * (H - 2 * PAD);
+  const vy = (v: number) =>
+    H - PAD - ((v - minVel) / Math.max(0.1, maxVel - minVel)) * (H - 2 * PAD);
+  const monthTickCount = Math.min(5, Math.max(2, maxMonth - minMonth + 1));
+  const monthTicks = Array.from(
+    new Set(
+      Array.from({ length: monthTickCount }, (_, i) =>
+        Math.round(minMonth + (i / Math.max(1, monthTickCount - 1)) * (maxMonth - minMonth)),
+      ),
+    ),
+  );
+  const velocityTicks = Array.from(
+    new Set([minVel, 0, 0.8, maxVel].map((tick) => Number(tick.toFixed(1)))),
+  ).sort((a, b) => a - b);
 
   // Find the month where the Drift Engine first flags (velocity >= 0.8)
   const alertPoint = timeline.find((p) => p.velocity >= 0.8);
@@ -64,28 +80,86 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
   const current = timeline[Math.min(cursor, timeline.length - 1)];
 
   return (
-    <div className="border border-paper-line rounded bg-paper-raised p-4">
-      <div className="flex items-center justify-between mb-3">
-        <div>
+    <ZoomablePanel
+      className="border border-paper-line rounded bg-paper-raised p-4"
+      zoomLabel="Zoom Drift Timeline"
+    >
+      <div className="flex items-center justify-between mb-3 pr-10">
+        <div className="flex items-center gap-2">
           <h3 className="text-sm font-semibold text-ink">Drift Timeline</h3>
-          <p className="text-2xs text-ink-muted mt-0.5">
-            Velocity over time. Drag the slider to replay.
-          </p>
+          <InfoHint text={explanation} />
         </div>
         {leadTime !== null && leadTime > 0 && (
-          <div className="text-right">
-            <div className="font-mono text-lg font-semibold text-risk-high tabular">
+          <div className="text-right whitespace-nowrap">
+            <span className="font-mono text-lg font-semibold text-risk-high tabular">
               {leadTime} mo
-            </div>
-            <div className="text-2xs text-ink-muted">advance warning</div>
+            </span>
+            <span className="text-2xs text-ink-muted ml-1">advance warning</span>
           </div>
         )}
       </div>
 
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img">
+        {/* Grid + ticks */}
+        {velocityTicks.map((tick) => (
+          <g key={`vel-${tick}`}>
+            <line
+              x1={PAD}
+              y1={vy(tick)}
+              x2={W - PAD}
+              y2={vy(tick)}
+              stroke={tick === 0 ? "var(--paper-line, #e4e4e7)" : "var(--paper-raised, #ffffff)"}
+              strokeWidth={tick === 0 ? 1.25 : 1}
+            />
+            <text
+              x={PAD - 8}
+              y={vy(tick) + 3}
+              textAnchor="end"
+              fontSize={9}
+              fill="var(--ink-muted, #71717a)"
+            >
+              {tick.toFixed(1)}
+            </text>
+          </g>
+        ))}
+        {monthTicks.map((tick) => (
+          <g key={`month-${tick}`}>
+            <line
+              x1={mx(tick)}
+              y1={H - PAD}
+              x2={mx(tick)}
+              y2={H - PAD + 4}
+              stroke="var(--ink-faint, #a1a1aa)"
+              strokeWidth={1}
+            />
+            <text
+              x={mx(tick)}
+              y={H - PAD + 16}
+              textAnchor="middle"
+              fontSize={9}
+              fill="var(--ink-muted, #71717a)"
+            >
+              m{tick}
+            </text>
+          </g>
+        ))}
+
         {/* Axes */}
-        <line x1={PAD} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="#e4e4e7" />
-        <line x1={PAD} y1={PAD} x2={PAD} y2={H - PAD} stroke="#e4e4e7" />
+        <line x1={PAD} y1={vy(0)} x2={W - PAD} y2={vy(0)} stroke="var(--paper-line, #e4e4e7)" />
+        <line x1={PAD} y1={PAD} x2={PAD} y2={H - PAD} stroke="var(--paper-line, #e4e4e7)" />
+        <text x={W / 2} y={H - 7} textAnchor="middle" fontSize={10} fill="var(--ink-muted, #71717a)">
+          Month in observed history
+        </text>
+        <text
+          x={13}
+          y={H / 2}
+          textAnchor="middle"
+          fontSize={10}
+          fill="var(--ink-muted, #71717a)"
+          transform={`rotate(-90 13 ${H / 2})`}
+        >
+          Drift velocity (bits/mo)
+        </text>
 
         {/* Alert band threshold */}
         <line
@@ -98,6 +172,9 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
           strokeDasharray="4 4"
           opacity={0.5}
         />
+        <text x={W - PAD} y={vy(0.8) - 5} textAnchor="end" fontSize={9} fill="var(--risk-medium, #a16207)">
+          alert band 0.8 bits/mo
+        </text>
 
         {/* Drift start marker */}
         {drift_start_month !== null && (
@@ -106,7 +183,7 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
             y1={PAD}
             x2={mx(drift_start_month)}
             y2={H - PAD}
-            stroke="#a1a1aa"
+            stroke="var(--ink-faint, #a1a1aa)"
             strokeWidth={1}
             strokeDasharray="2 3"
           />
@@ -193,7 +270,7 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
           y1={PAD}
           x2={mx(current.month)}
           y2={H - PAD}
-          stroke="#0a0a0b"
+          stroke="var(--ink, #0a0a0b)"
           strokeWidth={1}
           opacity={0.3}
         />
@@ -237,6 +314,6 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
           bits
         </span>
       </div>
-    </div>
+    </ZoomablePanel>
   );
 }

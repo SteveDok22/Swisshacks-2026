@@ -1,7 +1,8 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { casesApi, ApiError } from "@/lib/api";
+import { useEffect, useRef } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { casesApi, scoringApi, ApiError } from "@/lib/api";
 import {
   cn,
   timeAgo,
@@ -10,7 +11,7 @@ import {
 } from "@/lib/utils";
 import { RiskBadge } from "@/components/ui/RiskBadge";
 import { RiskScore } from "@/components/ui/RiskScore";
-import type { CaseListItem } from "@/types/api";
+import type { CaseListItem, PaginatedResponse } from "@/types/api";
 import { ChevronRight, Inbox, AlertCircle, RefreshCw } from "lucide-react";
 
 interface CaseQueueProps {
@@ -25,10 +26,68 @@ interface CaseQueueProps {
  * Each row is a button (full-row click target) with a hover affordance.
  */
 export function CaseQueue({ selectedCaseId, onSelectCase }: CaseQueueProps) {
+  const queryClient = useQueryClient();
+  const scoringIdsRef = useRef<Set<string>>(new Set());
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ["cases"],
     queryFn: () => casesApi.list({ page_size: 50 }),
   });
+
+  useEffect(() => {
+    const unscored = (data?.items ?? []).filter(
+      (c) => c.risk_score === null && !scoringIdsRef.current.has(c.id),
+    );
+    if (unscored.length === 0) return;
+
+    unscored.forEach((c) => scoringIdsRef.current.add(c.id));
+    let cancelled = false;
+
+    Promise.allSettled(unscored.map((c) => scoringApi.score(c.id))).then(
+      (results) => {
+        if (cancelled) return;
+
+        const scoredById = new Map<
+          string,
+          { score: number; level: CaseListItem["risk_level"] }
+        >();
+        results.forEach((result, index) => {
+          if (result.status !== "fulfilled") return;
+          scoredById.set(unscored[index].id, {
+            score: result.value.result.score,
+            level: result.value.result.level,
+          });
+        });
+
+        if (scoredById.size > 0) {
+          queryClient.setQueryData<PaginatedResponse<CaseListItem>>(
+            ["cases"],
+            (old) =>
+              old
+                ? {
+                    ...old,
+                    items: old.items.map((item) => {
+                      const scored = scoredById.get(item.id);
+                      return scored
+                        ? {
+                            ...item,
+                            risk_score: scored.score,
+                            risk_level: scored.level,
+                          }
+                        : item;
+                    }),
+                  }
+                : old,
+          );
+        }
+
+        queryClient.invalidateQueries({ queryKey: ["cases"] });
+      },
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [data?.items, queryClient]);
 
   if (isLoading) {
     return <QueueSkeleton />;

@@ -8,6 +8,14 @@
   --accent: #003d4c;          /* AMINA deep teal */
   --accent-soft: #1a5f6f;
   --accent-2: #7c3aed;        /* violet — BOCPD regime-change marker */
+  --ink: #0a0a0b;
+  --ink-soft: #3f3f46;
+  --ink-muted: #71717a;
+  --ink-faint: #a1a1aa;
+  --paper: #fafafa;
+  --paper-raised: #ffffff;
+  --paper-sunken: #f4f4f5;
+  --paper-line: #e4e4e7;
   --risk-critical: #b91c1c;
   --risk-high: #c2410c;
   --risk-medium: #a16207;

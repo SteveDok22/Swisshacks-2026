@@ -1,6 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { InfoHint } from "@/components/ui/InfoHint";
+import { ZoomablePanel } from "@/components/ui/ZoomablePanel";
 import type { CausalVerdict } from "@/types/api";
 import { GitBranch } from "lucide-react";
 
@@ -25,6 +27,8 @@ const METRIC_LABEL: Record<string, string> = {
  */
 export function CausalPanel({ causal }: CausalPanelProps) {
   const { label, p_risk, causal_llr, contributions } = causal;
+  const explanation =
+    "Likelihood ratio between two generative hypotheses. Drift magnitude alone cannot separate benign from risk — the correlation signature can.";
 
   const verdictColor =
     label === "risk"
@@ -46,12 +50,21 @@ export function CausalPanel({ causal }: CausalPanelProps) {
   );
 
   return (
-    <div className="border border-paper-line rounded bg-paper-raised p-4">
-      <div className="flex items-center gap-2 mb-3">
-        <GitBranch className="h-3.5 w-3.5 text-accent" strokeWidth={2} />
-        <h3 className="text-2xs font-semibold uppercase tracking-wide text-ink-muted">
-          Causal Analysis — risk or normal life?
-        </h3>
+    <ZoomablePanel
+      className="border border-paper-line rounded bg-paper-raised p-4"
+      zoomLabel="Zoom Causal Analysis"
+    >
+      <div className="mb-3 flex items-start justify-between gap-3 pr-10">
+        <div className="flex items-start gap-2">
+          <GitBranch className="h-3.5 w-3.5 text-accent mt-0.5" strokeWidth={2} />
+          <div>
+            <h3 className="text-sm font-semibold text-ink">Causal Analysis</h3>
+            <p className="text-2xs text-ink-muted mt-0.5">
+              Risk or normal life?
+            </p>
+          </div>
+        </div>
+        <InfoHint text={explanation} />
       </div>
 
       {/* Verdict banner */}
@@ -105,6 +118,15 @@ export function CausalPanel({ causal }: CausalPanelProps) {
       <div className="text-2xs font-semibold uppercase tracking-wide text-ink-muted mb-2">
         What drove the verdict
       </div>
+      <div className="mb-1.5 grid grid-cols-[7rem_1fr_3rem] items-center gap-2 text-[0.625rem] text-ink-faint">
+        <span />
+        <div className="grid grid-cols-3">
+          <span>benign</span>
+          <span className="text-center">LLR 0</span>
+          <span className="text-right">risk</span>
+        </div>
+        <span className="text-right">score</span>
+      </div>
       <div className="space-y-1.5">
         {ranked.map(([metric, llr]) => {
           const towardRisk = llr > 0;
@@ -148,10 +170,6 @@ export function CausalPanel({ causal }: CausalPanelProps) {
         })}
       </div>
 
-      <p className="text-2xs text-ink-faint mt-3 leading-relaxed">
-        Likelihood ratio between two generative hypotheses. Drift magnitude
-        alone cannot separate benign from risk — the correlation signature can.
-      </p>
-    </div>
+    </ZoomablePanel>
   );
 }

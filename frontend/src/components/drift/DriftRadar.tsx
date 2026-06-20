@@ -1,6 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { InfoHint } from "@/components/ui/InfoHint";
+import { ZoomablePanel } from "@/components/ui/ZoomablePanel";
 import type { DriftCustomerSummary } from "@/types/api";
 
 interface DriftRadarProps {
@@ -24,12 +26,18 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
   const W = 520;
   const H = 380;
   const PAD = 44;
+  const explanation =
+    "Current book snapshot. X-axis is fused drift score from 0 to 100; Y-axis is drift velocity in bits per month. Higher and farther right means a customer is both risky and changing quickly.";
 
   const maxScore = 100;
   const maxVel = Math.max(4, ...customers.map((c) => c.drift_velocity));
 
   const sx = (score: number) => PAD + (score / maxScore) * (W - 2 * PAD);
   const sy = (vel: number) => H - PAD - (vel / maxVel) * (H - 2 * PAD);
+  const scoreTicks = [0, 25, 50, 75, 100];
+  const velocityTicks = [0, maxVel / 2, maxVel].map((tick) =>
+    Number(tick.toFixed(1)),
+  );
 
   const dotColor = (band: string) => {
     switch (band) {
@@ -45,8 +53,11 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
   };
 
   return (
-    <div className="border border-paper-line rounded bg-paper-raised p-4">
-      <div className="flex items-center justify-between mb-3">
+    <ZoomablePanel
+      className="border border-paper-line rounded bg-paper-raised p-4"
+      zoomLabel="Zoom Drift Radar"
+    >
+      <div className="flex items-center justify-between gap-3 mb-3 pr-10">
         <div>
           <h3 className="text-sm font-semibold text-ink">Drift Radar</h3>
           <p className="text-2xs text-ink-muted mt-0.5">
@@ -54,6 +65,7 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
           </p>
         </div>
         <div className="flex items-center gap-3 text-2xs text-ink-muted">
+          <InfoHint text={explanation} />
           {["natural", "notable", "structural", "rapid"].map((b) => (
             <span key={b} className="flex items-center gap-1">
               <span
@@ -77,12 +89,56 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
           opacity={0.04}
         />
 
+        {/* Grid + ticks */}
+        {scoreTicks.map((tick) => (
+          <g key={`score-${tick}`}>
+            <line
+              x1={sx(tick)}
+              y1={PAD}
+              x2={sx(tick)}
+              y2={H - PAD}
+              stroke="var(--paper-line, #e4e4e7)"
+              strokeWidth={1}
+            />
+            <text
+              x={sx(tick)}
+              y={H - PAD + 16}
+              textAnchor="middle"
+              fontSize={9}
+              fill="var(--ink-muted, #71717a)"
+            >
+              {tick}
+            </text>
+          </g>
+        ))}
+        {velocityTicks.map((tick) => (
+          <g key={`vel-${tick}`}>
+            <line
+              x1={PAD}
+              y1={sy(tick)}
+              x2={W - PAD}
+              y2={sy(tick)}
+              stroke="var(--paper-line, #e4e4e7)"
+              strokeWidth={1}
+            />
+            <text
+              x={PAD - 8}
+              y={sy(tick) + 3}
+              textAnchor="end"
+              fontSize={9}
+              fill="var(--ink-muted, #71717a)"
+            >
+              {tick}
+            </text>
+          </g>
+        ))}
+
         {/* Axes */}
-        <line x1={PAD} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="#e4e4e7" strokeWidth={1} />
-        <line x1={PAD} y1={PAD} x2={PAD} y2={H - PAD} stroke="#e4e4e7" strokeWidth={1} />
+        <line x1={PAD} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="var(--paper-line, #e4e4e7)" strokeWidth={1} />
+        <line x1={PAD} y1={PAD} x2={PAD} y2={H - PAD} stroke="var(--paper-line, #e4e4e7)" strokeWidth={1} />
 
         {/* Axis labels */}
-        <text x={W / 2} y={H - 8} textAnchor="middle" fontSize={11} fill="#71717a">
+        <text x={W / 2} y={H - 8} textAnchor="middle" fontSize={11} fill="var(--ink-muted, #71717a)">
           Drift score →
         </text>
         <text
@@ -90,7 +146,7 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
           y={H / 2}
           textAnchor="middle"
           fontSize={11}
-          fill="#71717a"
+          fill="var(--ink-muted, #71717a)"
           transform={`rotate(-90 14 ${H / 2})`}
         >
           Drift velocity →
@@ -102,10 +158,22 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
           y1={PAD}
           x2={sx(55)}
           y2={H - PAD}
-          stroke="#d4d4d8"
+          stroke="var(--ink-faint, #a1a1aa)"
           strokeWidth={1}
           strokeDasharray="3 3"
         />
+        <line
+          x1={sx(55)}
+          y1={sy(maxVel * 0.5)}
+          x2={W - PAD}
+          y2={sy(maxVel * 0.5)}
+          stroke="var(--ink-faint, #a1a1aa)"
+          strokeWidth={1}
+          strokeDasharray="3 3"
+        />
+        <text x={sx(55) + 4} y={PAD + 12} fontSize={9} fill="var(--ink-muted, #71717a)">
+          priority zone
+        </text>
 
         {/* Dots */}
         {customers.map((c) => {
@@ -118,7 +186,7 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
                 r={selected ? 9 : 6}
                 fill={dotColor(c.velocity_band)}
                 opacity={selected ? 1 : 0.78}
-                stroke={selected ? "#0a0a0b" : "white"}
+                stroke={selected ? "var(--ink, #0a0a0b)" : "white"}
                 strokeWidth={selected ? 2 : 1}
                 className="cursor-pointer transition-all"
                 onClick={() => onSelect(c.drift_id)}
@@ -129,7 +197,7 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
                   y={sy(c.drift_velocity) - 12}
                   textAnchor="middle"
                   fontSize={10}
-                  fill="#3f3f46"
+                  fill="var(--ink-soft, #3f3f46)"
                   fontWeight={selected ? 600 : 400}
                   className="pointer-events-none"
                 >
@@ -188,6 +256,6 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
           );
         })}
       </div>
-    </div>
+    </ZoomablePanel>
   );
 }

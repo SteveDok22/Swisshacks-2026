@@ -34,11 +34,23 @@ confirmed-risk vs confirmed-benign cases (closing the human-in-the-loop loop).
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 
 import numpy as np
 
 LOG2 = float(np.log(2.0))
+
+# === Scale-jump corroboration (UC6: large funding round / expansion) ===
+# A volume jump alone is ambiguous: legal expansion and a laundering conduit
+# both move volume up. But when the active period runs at >= 5x the onboarding
+# baseline AND a public funding_event corroborates the jump in the same window,
+# the expansion is real and large enough to be a *scale risk* in its own right
+# (the FTX pattern: a $900M raise whose transaction volumes never matched the
+# claimed revenue). We treat that corroboration as positive evidence and add a
+# fixed boost to the causal LLR so the customer surfaces for review.
+_SCALE_JUMP_THRESHOLD = 5.0       # active_volume / baseline_volume to qualify
+_SCALE_JUMP_CORROBORATION_LLR = 1.5  # nats added when corroborated by funding
 
 
 @dataclass
@@ -49,6 +61,7 @@ class CausalSignature:
     margin_change: float       # absolute change in margin ratio (-0.2 = lost 20pp)
     counterparty_change: float # absolute change in mean counterparty risk
     corridor_change: float     # absolute change in mean corridor risk
+    scale_jump_ratio: float = 1.0  # active_volume / baseline_volume (1.0 = flat)
 
 
 @dataclass
@@ -98,6 +111,16 @@ def _gaussian_log_density(x: float, mean: float, std: float) -> float:
     return -0.5 * z * z - np.log(std) - 0.5 * np.log(2 * np.pi)
 
 
+def _recent_window_start(n: int, baseline_windows: int) -> int:
+    """First index of the recent ("active") window over ``n`` monthly windows.
+
+    Single source of truth for the baseline-vs-recent split so the scale-jump
+    funding alignment in ``causal_assessment`` cannot drift from the window
+    ``compute_signature`` actually reads from.
+    """
+    return max(baseline_windows, n - 3)
+
+
 def compute_signature(metric_windows: dict[str, list[np.ndarray]], baseline_windows: int = 3) -> CausalSignature:
     """
     Compute the drift signature: how each metric moved from the onboarding
@@ -113,11 +136,16 @@ def compute_signature(metric_windows: dict[str, list[np.ndarray]], baseline_wind
     if n <= baseline_windows:
         return CausalSignature(0.0, 0.0, 0.0, 0.0)
 
-    recent_lo = max(baseline_windows, n - 3)
+    recent_lo = _recent_window_start(n, baseline_windows)
 
     vol_base = window_mean(metric_windows["monthly_volume"], 0, baseline_windows)
     vol_recent = window_mean(metric_windows["monthly_volume"], recent_lo, n)
-    volume_change = (vol_recent - vol_base) / max(vol_base, 1e-6)
+    safe_base = max(vol_base, 1e-6)
+    volume_change = (vol_recent - vol_base) / safe_base
+    # Scale-jump ratio: how many times larger the active period runs vs baseline
+    # (UC6). Distinct from volume_change (a relative delta) so the >= 5x scale
+    # test reads directly off the signature.
+    scale_jump_ratio = vol_recent / safe_base
 
     def abs_change(metric: str) -> float:
         if metric not in metric_windows:
@@ -131,6 +159,7 @@ def compute_signature(metric_windows: dict[str, list[np.ndarray]], baseline_wind
         margin_change=abs_change("margin_ratio"),
         counterparty_change=abs_change("counterparty_risk"),
         corridor_change=abs_change("corridor_risk"),
+        scale_jump_ratio=scale_jump_ratio,
     )
 
 
@@ -139,6 +168,7 @@ def classify_causal(
     *,
     prior_risk: float = 0.5,
     ambiguous_band: float = 1.0,
+    funding_corroborated: bool = False,
 ) -> CausalVerdict:
     """
     Compete the two hypotheses. Returns the causal LLR and posterior.
@@ -149,6 +179,13 @@ def classify_causal(
 
     Per-metric contributions show WHICH dimension drove the verdict — the
     explainability the analyst needs.
+
+    ``funding_corroborated`` (UC6) signals that a public ``funding_event`` was
+    observed in the same window as the drift. Combined with a scale-jump ratio
+    >= ``_SCALE_JUMP_THRESHOLD`` it adds a fixed positive boost to the LLR: a
+    large, funding-confirmed expansion is a scale risk in its own right and must
+    surface for review. The boost is recorded as a ``scale_jump_funding``
+    contribution for explainability.
     """
     sig_dict = {
         "volume_change": signature.volume_change,
@@ -187,6 +224,12 @@ def classify_causal(
         contributions[metric] = metric_llr
         total_llr += metric_llr
 
+    # Scale-jump corroboration (UC6): a >= 5x active/baseline volume jump that a
+    # public funding_event confirms in the same window is positive risk evidence.
+    if funding_corroborated and signature.scale_jump_ratio >= _SCALE_JUMP_THRESHOLD:
+        contributions["scale_jump_funding"] = _SCALE_JUMP_CORROBORATION_LLR
+        total_llr += _SCALE_JUMP_CORROBORATION_LLR
+
     # Posterior via logistic of (LLR + log prior odds)
     log_prior_odds = np.log(prior_risk / max(1 - prior_risk, 1e-6))
     p_risk = 1.0 / (1.0 + np.exp(-(total_llr + log_prior_odds)))
@@ -207,7 +250,25 @@ def classify_causal(
     )
 
 
-def causal_assessment(metric_windows: dict[str, list[np.ndarray]]) -> CausalVerdict:
-    """Convenience: signature + classification in one call."""
-    sig = compute_signature(metric_windows)
-    return classify_causal(sig)
+def causal_assessment(
+    metric_windows: dict[str, list[np.ndarray]],
+    *,
+    funding_event_months: Sequence[int] | None = None,
+    baseline_windows: int = 3,
+) -> CausalVerdict:
+    """Convenience: signature + classification in one call.
+
+    ``funding_event_months`` (UC6) are the months at which public
+    ``funding_event`` signals were observed. A funding event lands "in the same
+    window" as the scale jump when it falls inside the recent window that
+    ``compute_signature`` reads from — keeping the windowing logic in one place.
+    """
+    sig = compute_signature(metric_windows, baseline_windows=baseline_windows)
+
+    n = len(metric_windows.get("monthly_volume", []))
+    recent_lo = _recent_window_start(n, baseline_windows)
+    funding_corroborated = any(
+        recent_lo <= month < n for month in (funding_event_months or ())
+    )
+
+    return classify_causal(sig, funding_corroborated=funding_corroborated)

@@ -142,6 +142,8 @@ causal_LLR = log P(signature | RISK) / P(signature | BENIGN)
 
 Margin is the discriminator (kept orthogonal to velocity). A forensic asymmetry applies: a metric sitting in its neutral zone does not argue *against* risk just because the risk profile expected movement there — absence of evidence is not evidence of absence. The verdict modulates the final score: clearly-benign drift is demoted out of the alert queue; risk-shaped drift is confirmed.
 
+**Scale-jump corroboration (UC6 — large funding round / expansion).** The signature also carries a `scale_jump_ratio` (active-window mean volume ÷ onboarding-baseline mean volume). When that ratio is ≥ 5× **and** a public `funding_event` signal lands in the same recent window, `causal_assessment` flags the jump as funding-corroborated and adds a fixed positive boost to the LLR — raising `causal_p_risk`. A large, funding-confirmed expansion is a *scale risk* in its own right (the FTX pattern: a $900M raise whose transaction volumes never matched the claimed revenue) and must surface for review rather than be demoted as ordinary growth. The boost is recorded as a `scale_jump_funding` evidence contribution for explainability.
+
 ---
 
 ## Layer 6 — Suspicious Stability

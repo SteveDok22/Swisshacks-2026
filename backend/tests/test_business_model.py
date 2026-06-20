@@ -289,3 +289,123 @@ class TestCache:
         assert result.wayback_embedding is not None
         assert result.wayback_embedding.vector == [1.0, 0.0, 0.0]
         assert result.wayback_embedding.fingerprint == text_fingerprint(_ONBOARDING)
+
+
+# --------------------------------------------------------------------------- #
+# UC 9 — domain_pivot synthetic scenario                                      #
+# --------------------------------------------------------------------------- #
+class _HashEmbedder:
+    """Deterministic offline embedder: each distinct text → a pseudo-random unit
+    vector. Two materially different texts are near-orthogonal in high dimension,
+    so their cosine distance reliably clears the 0.35 change threshold — without
+    loading model2vec or hitting the network.
+    """
+
+    def encode(self, texts):
+        out = []
+        for t in texts:
+            rng = np.random.default_rng(abs(hash(t)) % (2**32))
+            v = rng.normal(size=64)
+            out.append(v / np.linalg.norm(v))
+        return np.array(out, dtype=float)
+
+
+class TestDomainPivotScenario:
+    def test_scenario_registered(self):
+        from app.drift.simulator import SCENARIOS
+
+        assert "domain_pivot" in SCENARIOS
+
+    def test_generated_customer_carries_divergent_website_texts(self):
+        from app.drift.simulator import generate_customer
+
+        cust = generate_customer("drift-xyz", "Helvetia Advisory AG", "domain_pivot", seed=1)
+        # Both texts present, distinct, and clear the comparator's 50-char floor.
+        assert cust.onboarding_website_text is not None
+        assert cust.current_website_text is not None
+        assert len(cust.onboarding_website_text) >= 50
+        assert len(cust.current_website_text) >= 50
+        assert cust.onboarding_website_text != cust.current_website_text
+        # Ground-truth causal label is "risk" (a silent pivot is risk-shaped).
+        assert cust.causal_truth == "risk"
+        # WHOIS registrant change / pivot onset defaults to month 8.
+        assert cust.drift_start_month == 8
+
+    def test_other_scenarios_have_no_website_texts(self):
+        from app.drift.simulator import generate_customer
+
+        cust = generate_customer("drift-stable", "Control", "stable", seed=2)
+        assert cust.onboarding_website_text is None
+        assert cust.current_website_text is None
+
+    def test_demo_book_includes_a_domain_pivot_customer(self):
+        from app.drift.simulator import generate_book
+
+        book = generate_book()
+        pivots = [c for c in book if c.scenario == "domain_pivot"]
+        assert len(pivots) == 1
+        assert pivots[0].onboarding_website_text is not None
+
+    def test_scenario_texts_fire_a_change_under_a_real_embedder(self):
+        # The canned onboarding/current texts must read as materially different
+        # businesses, so any reasonable embedder flags the pivot.
+        from app.drift.simulator import (
+            DOMAIN_PIVOT_CURRENT_TEXT,
+            DOMAIN_PIVOT_ONBOARDING_TEXT,
+        )
+
+        result = compare_business_model(
+            "drift-009",
+            "Helvetia Advisory AG",
+            DOMAIN_PIVOT_ONBOARDING_TEXT,
+            DOMAIN_PIVOT_CURRENT_TEXT,
+            month=8,
+            embedder=_HashEmbedder(),
+        )
+        assert result.skipped is False
+        assert result.is_change is True
+        assert result.distance >= BUSINESS_MODEL_DISTANCE_THRESHOLD
+        assert result.signal is not None
+        assert result.signal.signal_type == "business_model_change"
+        assert result.signal.month == 8
+
+
+# --------------------------------------------------------------------------- #
+# UC 9 — engine wiring (_analyze_customer → DriftSubjectDetail)               #
+# --------------------------------------------------------------------------- #
+class TestEngineWiring:
+    def test_domain_pivot_subject_surfaces_business_model_fields(self, monkeypatch):
+        # Force a deterministic offline embedder so the wiring is exercised
+        # without model2vec or any network.
+        monkeypatch.setattr(bm, "_get_default_embedder", lambda: _HashEmbedder())
+
+        from app.drift.service import DriftEngine
+
+        engine = DriftEngine()
+        pivot = next(c for c in engine._book if c.scenario == "domain_pivot")
+        detail = engine.get_subject(pivot.drift_id)
+
+        assert detail is not None
+        assert detail.is_business_model_change is True
+        assert detail.business_model_distance >= BUSINESS_MODEL_DISTANCE_THRESHOLD
+        # The pivot is folded into the public layer as a business_model_change signal.
+        assert any(
+            s.signal_type == "business_model_change" for s in detail.public_signals
+        )
+
+    def test_non_pivot_subject_has_neutral_business_model_fields(self, monkeypatch):
+        monkeypatch.setattr(bm, "_get_default_embedder", lambda: _HashEmbedder())
+
+        from app.drift.service import DriftEngine
+
+        engine = DriftEngine()
+        stable = next(c for c in engine._book if c.scenario == "stable")
+        detail = engine.get_subject(stable.drift_id)
+
+        assert detail is not None
+        # No website texts → comparison skipped → neutral defaults.
+        assert detail.is_business_model_change is False
+        assert detail.business_model_distance == 0.0
+        assert not any(
+            s.signal_type == "business_model_change" for s in detail.public_signals
+        )

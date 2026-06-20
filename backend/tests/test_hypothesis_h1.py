@@ -130,7 +130,7 @@ class TestH1LeadTime:
     def test_simulator_step_scenario_is_detected(self):
         # dormancy_break is the suite's genuine step scenario (a dormant shell
         # that suddenly activates). BOCPD must flag it with positive lead.
-        cust = generate_customer("step", "Dormant Shell", "dormancy_break", seed=7)
+        cust = generate_customer("h1-dormancy-break", "Dormant Shell", "dormancy_break", seed=7)
         result = BOCPD(hazard=HAZARD).run(standardize(cust.daily_volume_series()))
         assert result.detected_changepoints, "BOCPD missed the dormancy-break step"
         cp_month = cust.day_to_month(result.detected_changepoints[0])

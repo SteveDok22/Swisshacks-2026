@@ -109,7 +109,12 @@ class TestH3TopologyDecay:
 
 class TestH3DemoGraph:
     """The shipped demo graph must exhibit the same property: the two wired
-    customers (2 hops via shells) are elevated; the rest are untouched."""
+    customers (2 hops via shells) are elevated; the rest are untouched.
+
+    "drift-002" and "drift-004" are the customers wired 2 hops from
+    SANCTIONED_ENTITY in build_demo_graph (app/drift/contagion.py). If the
+    demo graph topology changes, update these IDs to match.
+    """
 
     def test_wired_two_hop_customers_are_elevated(self, demo_result):
         for cid in ("drift-002", "drift-004"):

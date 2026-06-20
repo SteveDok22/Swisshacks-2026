@@ -71,16 +71,13 @@ def _all_llm_reached(book: list[CustomerSignal]) -> dict[str, Tier]:
 
 
 def _is_high_risk(signal: CustomerSignal, router: CascadeRouter) -> bool:
-    """Ground-truth high-risk = a case the deep T2 LLM review is warranted for:
-    high effective risk clearing the value floor, or a sanctions hit with value.
+    """Ground-truth: would the router send this signal to T2_LLM?
 
-    This mirrors the T2 escalation rule in ``CascadeRouter.route_one``
-    (app/drift/cascade.py) and is driven off the router's own thresholds, so it
-    stays in sync if those thresholds are retuned.
+    Delegates to router.would_reach_t2 so the definition stays in sync with
+    the actual escalation logic in CascadeRouter.route_one — no duplicated
+    threshold conditions that can silently drift.
     """
-    effective_risk = max(signal.drift_score, signal.propagated_risk * 100.0)
-    value_ok = signal.case_value >= router.t2_value_floor
-    return value_ok and (signal.sanctions_hit or effective_risk >= router.t2_drift_threshold)
+    return router.would_reach_t2(signal)
 
 
 @pytest.fixture(scope="module")

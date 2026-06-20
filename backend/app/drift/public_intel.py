@@ -132,7 +132,25 @@ _HEADLINES = {
         "Trade press: {name}-linked company rebrands around a new business model",
         "{name} firm shifts focus, unveils new product after strategic review",
     ],
+    # Case 8 — legal-entity name change. Mirrors the ZEFIX/GLEIF diff signal the
+    # live adapters emit; here the synthetic generator fires it for name_cycling.
+    "name_change": [
+        "Registry filing: {name}-linked entity changes its legal name",
+        "ZEFIX update: legal name change recorded for {name} company",
+    ],
+    # Case 8 — domain registrant handover detected by the WHOIS/RDAP diff.
+    "domain_change": [
+        "WHOIS: registrant change on {name}-linked corporate domain",
+        "RDAP diff: new registrant on the {name} entity's domain",
+    ],
 }
+
+# Fixed severities for the Case 8 identity-change signal types, mirroring the
+# live adapter conventions (ZEFIX name-change is high-severity; a WHOIS
+# registrant handover is medium). These bypass the lexicon classifier because
+# their headlines carry no lexicon terms but the *event* is what matters.
+_NAME_CHANGE_SEVERITY = 0.85
+_DOMAIN_CHANGE_SEVERITY = 0.60
 
 
 _SOURCE_BASE_URLS = {
@@ -260,6 +278,27 @@ def generate_signals_for_customer(
         return elevate_corroborated_pivots(
             sorted(pivot_signals, key=lambda s: s.month)
         )
+
+    # Case 8 — name_cycling: a legal-entity name change fires ZEFIX (registry)
+    # and WHOIS (domain registrant) signals at the change month. These are the
+    # synthetic counterparts of the live ZEFIX/GLEIF/WHOIS diff signals; the
+    # engine floors the drift score on the `name_change` signal (re-KYC trigger).
+    if scenario == "name_cycling":
+        m = min(drift_start_month, months - 1)
+        zefix_headline = rng.choice(_HEADLINES["name_change"]).format(name=first)
+        whois_headline = rng.choice(_HEADLINES["domain_change"]).format(name=first)
+        return [
+            PublicSignal(
+                month=m, signal_type="name_change", headline=zefix_headline,
+                severity=_NAME_CHANGE_SEVERITY, source="corporate registry",
+                source_url=_demo_source_url("corporate registry", drift_id, "name_change", m),
+            ),
+            PublicSignal(
+                month=m, signal_type="domain_change", headline=whois_headline,
+                severity=_DOMAIN_CHANGE_SEVERITY, source="WHOIS",
+                source_url=_demo_source_url("WHOIS", drift_id, "domain_change", m),
+            ),
+        ]
 
     # Drifting customer: signals align with and follow internal drift onset.
     # Earlier signals are softer (funding/ownership), later turn adverse.

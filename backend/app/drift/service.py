@@ -514,6 +514,22 @@ class DriftEngine:
         if requires_re_kyc_floor(analysis["public_signals"]):
             score = max(score, RE_KYC_SCORE_FLOOR)
 
+        # Name-change ELEVATION (UC8) — a confirmed legal-entity name change is a
+        # mandatory re-KYC trigger. The ZEFIX/GLEIF/WHOIS diffs (live adapters)
+        # or the name_cycling scenario (offline) surface a `name_change` public
+        # signal. Floor the score at 60 regardless of other signals: an identity
+        # reset must surface for review even when the transactions look clean —
+        # the Mossack Fonseca shelf-cycling pattern of renaming shell companies
+        # to reset the KYC review clock. Same "cannot hide below the radar"
+        # policy as the stability and dormancy floors above, and applied last so
+        # it cannot be undercut by the causal demotion or a low ML blend.
+        name_changed = any(
+            s.signal_type == "name_change" for s in analysis["public_signals"]
+        )
+        if name_changed:
+            score = max(score, 60.0)
+
+        analysis["name_changed"] = name_changed
         analysis["drift_score"] = score
         analysis["ml_score"] = ml_score
         return analysis
@@ -759,6 +775,7 @@ class DriftEngine:
                     is_suspicious=a["stability"].is_suspicious,
                     dormancy_break=round(a["dormancy"].dormancy_break, 3),
                     is_dormancy_break=a["dormancy"].is_dormancy_break,
+                    is_name_changed=a["name_changed"],
                     scenario=cust.scenario,
                 )
             )

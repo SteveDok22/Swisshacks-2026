@@ -292,6 +292,7 @@ export interface DriftCustomerSummary {
   is_suspicious: boolean;
   dormancy_break: number;
   is_dormancy_break: boolean;
+  is_name_changed: boolean;
   scenario: string | null;
 }
 

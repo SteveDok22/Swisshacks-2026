@@ -24,6 +24,10 @@ Scenarios:
                          raised capital flows straight through; the public-intel
                          layer pairs it with a news pivot cluster, a website
                          cosine shift, and a co-occurring funding event
+- name_cycling:          legal entity name change at month 6 (ZEFIX + WHOIS
+                         signals fire) — the Mossack Fonseca shelf-cycling
+                         pattern, where shelf companies are renamed to reset
+                         KYC review clocks (Case 8 / re-KYC trigger)
 
 Every scenario ends with a simulated sanctions listing at the final month
 (month 0 in demo language), so lead time = listing date - detection date.
@@ -46,7 +50,14 @@ SCENARIOS = (
     "dormancy_break",
     "news_spike",
     "pivot",
+    "name_cycling",
 )
+
+# The name_cycling scenario (Case 8) injects a legal-entity name change at this
+# month. Public ZEFIX + WHOIS signals are emitted here by the synthetic
+# generator (see public_intel.generate_signals_for_customer) and the engine
+# floors the drift score on the resulting `name_change` signal.
+NAME_CHANGE_MONTH = 6
 
 # Must match `assess_dormancy`'s `baseline_fraction` default (drift/dormancy.py):
 # the dormancy_break scenario activates exactly on this split so the dormant
@@ -155,6 +166,13 @@ def generate_customer(
     if scenario == "dormancy_break":
         drift_start_month = round(months * DORMANCY_BASELINE_FRACTION)
 
+    # The name change is a fixed-month event (Case 8). Pin it to NAME_CHANGE_MONTH
+    # regardless of the caller's drift_start_month so every entry point — the demo
+    # book and the live /drift/inject path — emits the name_change signal at the
+    # same month the public signals fire. Clamp for unusually short books.
+    if scenario == "name_cycling":
+        drift_start_month = min(NAME_CHANGE_MONTH, months - 2)
+
     rng = np.random.default_rng(seed)
     # Causal ground-truth label: benign_expansion is the only benign drift;
     # suspicious_stability is its own category (the slow-walker / sleeper);
@@ -167,7 +185,7 @@ def generate_customer(
         causal_truth = "suspicious"
     else:
         # volume_creep / counterparty_migration / corridor_shift / combined /
-        # dormancy_break / news_spike / pivot are all risk-shaped.
+        # dormancy_break / news_spike / pivot / name_cycling are all risk-shaped.
         causal_truth = "risk"
 
     cust = SyntheticCustomer(
@@ -223,6 +241,12 @@ def generate_customer(
         # the whole signal.
         if scenario == "suspicious_stability":
             risky_share = base_risky_share + 0.35 * intensity
+        # name_cycling: the renamed shell quietly picks up new (riskier)
+        # counterparties after the identity reset — a mild migration. Volume
+        # stays flat; the identity change, not the volume, is the headline
+        # signal (surfaced by the public name_change feed + the score floor).
+        if scenario == "name_cycling":
+            risky_share = base_risky_share + 0.30 * intensity
         # Benign expansion DIVERSIFIES (slightly more counterparties) but they
         # stay low-risk — share barely moves.
         cp_risk = rng.binomial(1, min(risky_share, 0.95), days_per_month).astype(float)
@@ -249,7 +273,7 @@ def generate_customer(
         base_margin = 0.25
         if scenario in (
             "volume_creep", "counterparty_migration", "corridor_shift",
-            "combined", "dormancy_break", "news_spike", "pivot",
+            "combined", "dormancy_break", "news_spike", "pivot", "name_cycling",
         ):
             # Risk: margin collapses toward 0 as intensity rises (the reactivated
             # shell — or the pivoted ICO — pushes money straight through with
@@ -328,6 +352,19 @@ def generate_book(
             name="Dormant Holdings AG",
             scenario="dormancy_break",
             seed=seed + 300,
+        )
+    )
+    idx += 1
+    # The shelf-company cycler (Case 8): a legal entity that changes its name at
+    # NAME_CHANGE_MONTH to reset its KYC review clock (Mossack Fonseca pattern).
+    # ZEFIX + WHOIS public signals fire; the engine floors the drift score on the
+    # resulting name_change signal so the identity reset surfaces for re-KYC.
+    book.append(
+        generate_customer(
+            drift_id=f"drift-{idx:03d}",
+            name="Meridian Trust Reg.",
+            scenario="name_cycling",
+            seed=seed + 400,
         )
     )
     idx += 1

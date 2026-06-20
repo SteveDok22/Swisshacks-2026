@@ -26,7 +26,7 @@ Eight adapters are fully implemented (real HTTP calls):
 - **GLEIF** — free, no key required (PR #25)
 - **ZEFIX** — FREEMIUM, free Basic-auth account; degrades gracefully (`None`/`[]`) when credentials absent (PR #23)
 - **Event Registry** — FREEMIUM, key-gated; returns `[]` when key absent (PR #24)
-- **OpenSanctions** — FREEMIUM, key optional; unauthenticated non-commercial free tier works without a key (PR #27)
+- **OpenSanctions** — FREEMIUM, key optional; unauthenticated non-commercial free tier works without a key (PR #27). Screens the customer name (score ≥ 0.85 → `sanctions` critical; 0.70–0.85 → high/probable) and, via the `ubo_names` kwarg, each UBO/officer — a UBO hit emits an `ownership_change` signal carrying structured `meta` (screened name, matched entity, score). The aggregator resolves those UBO names from the GLEIF ownership chain (direct-child LEIs → legal names) and surfaces hits as `DriftSubjectDetail.ubo_screening` (UC5, PR #36)
 - **Wayback Machine** — free, no key required; `fetch_signals()` returns `[]` by design (signals via `drift/business_model.py`) (PR #26)
 - **Firecrawl** — FREEMIUM, key optional; cloud `/scrape` with key, else a zero-cost plain-HTTP + HTML-strip fallback (PR #28)
 - **GDELT** — free, no key required; GDELT 2.0 Doc API as the news fallback when Event Registry is unavailable (PR #30)

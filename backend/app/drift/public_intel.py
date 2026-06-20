@@ -257,6 +257,74 @@ _AGGREGATE_TIMEOUT_S: float = 25.0
 # a chance to run their finally/aclose blocks before the thread is abandoned.
 _SYNC_TIMEOUT_S: float = 30.0
 
+# Cap on how many GLEIF direct-child LEIs are resolved + screened per customer
+# (Case 5). Ownership chains fan out fast; resolving every child is one extra
+# GLEIF call each and unnecessary for a risk signal — the first N are screened.
+_MAX_UBO_CHILDREN: int = 10
+
+
+async def _resolve_lei_name(adapter: Any, drift_id: str, lei: str) -> str | None:
+    """Resolve one LEI to its legal name via GLEIF. Best-effort → None on error.
+
+    Not individually time-bounded: the whole resolution is wrapped in a single
+    wall-clock budget by the caller (see ``gather_public_signals``).
+    """
+    try:
+        snap = await adapter.fetch(drift_id, lei, lei=lei)
+    except Exception:  # noqa: BLE001 — one unresolvable LEI never sinks the rest
+        return None
+    return snap.name if snap and snap.name else None
+
+
+async def _resolve_ubo_names(
+    drift_id: str,
+    name: str,
+    adapters: tuple[Any, ...],
+) -> list[str]:
+    """Resolve the entity's GLEIF child LEIs to legal names for UBO screening.
+
+    Case 5 (new shareholders / UBOs): the OpenSanctions adapter screens each
+    name passed via its ``ubo_names`` kwarg. The names come from the GLEIF
+    ownership chain — we fetch the entity's direct-child LEIs (the GLEIF adapter
+    stores them in ``EntitySnapshot.officers``) and resolve each LEI back to a
+    legal name.
+
+    Returns ``[]`` when GLEIF is not among the usable adapters, the entity is
+    not in GLEIF, or any error occurs — screening then degrades to the main
+    entity only. Locating GLEIF by ``source_name`` (rather than importing the
+    class) keeps this step inert whenever the registry is patched to a mock set
+    without GLEIF, e.g. in the aggregator unit tests.
+    """
+    gleif_cls = next((a for a in adapters if a.source_name == "gleif"), None)
+    if gleif_cls is None:
+        return []
+
+    adapter: Any = None
+    try:
+        adapter = gleif_cls()
+        snapshot = await adapter.fetch(drift_id, name)
+        if snapshot is None:
+            return []
+        # GLEIF stores direct-child LEIs in ``officers`` (no subsidiaries field
+        # exists on EntitySnapshot). Cap the fan-out before resolving names.
+        child_leis = [lei for lei in snapshot.officers if lei][:_MAX_UBO_CHILDREN]
+        if not child_leis:
+            return []
+        resolved = await asyncio.gather(
+            *(_resolve_lei_name(adapter, drift_id, lei) for lei in child_leis)
+        )
+        # Drop unresolved (None) names; dedupe while preserving order.
+        return list(dict.fromkeys(n for n in resolved if n))
+    except Exception as exc:  # noqa: BLE001 — UBO resolution is best-effort
+        _logger.warning("public_intel_ubo_resolve_error", error=str(exc))
+        return []
+    finally:
+        if adapter is not None and hasattr(adapter, "aclose"):
+            try:
+                await adapter.aclose()
+            except Exception as exc:  # noqa: BLE001
+                _logger.debug("public_intel_ubo_aclose_error", error=str(exc))
+
 
 async def gather_public_signals(
     drift_id: str,
@@ -275,6 +343,27 @@ async def gather_public_signals(
     when individual adapter timeouts are bypassed (e.g. blocking GDELT calls).
     """
     from app.sources.registry import usable_adapters  # local import avoids circular
+
+    adapters = usable_adapters()
+
+    # Case 5: resolve UBO names from the GLEIF ownership chain so the
+    # OpenSanctions adapter screens each one (its ``ubo_names`` kwarg). Skipped
+    # when the caller already supplied ``ubo_names`` or GLEIF is not usable.
+    # Best-effort — a resolution failure degrades to main-entity screening only
+    # and never blocks the other adapters. The whole resolution (root fetch +
+    # per-child name lookups) is bounded to one adapter's wall-clock budget so it
+    # cannot, by itself, push the aggregation past the sync-bridge ceiling.
+    if "ubo_names" not in kwargs:
+        try:
+            ubo_names = await asyncio.wait_for(
+                _resolve_ubo_names(drift_id, name, adapters),
+                timeout=_PER_ADAPTER_TIMEOUT_S,
+            )
+        except Exception as exc:  # noqa: BLE001 — incl. TimeoutError; never blocks the rest
+            _logger.warning("public_intel_ubo_resolve_timeout", error=str(exc))
+            ubo_names = []
+        if ubo_names:
+            kwargs = {**kwargs, "ubo_names": ubo_names}
 
     async def _safe_fetch(cls: type[CostMixin]) -> list[PublicSignal]:
         # Construction is inside the guard too: an adapter __init__ that raises
@@ -306,7 +395,7 @@ async def gather_public_signals(
 
     try:
         batches = await asyncio.wait_for(
-            asyncio.gather(*[_safe_fetch(cls) for cls in usable_adapters()]),
+            asyncio.gather(*[_safe_fetch(cls) for cls in adapters]),
             timeout=_AGGREGATE_TIMEOUT_S,
         )
     except TimeoutError:

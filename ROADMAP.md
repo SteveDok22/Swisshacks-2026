@@ -24,7 +24,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 | 2 | Cross-border transfer anomaly | Behavioural anomaly | ✅ WORKS | BOCPD + velocity on synthetic data | — | **Deutsche Bank mirror trades** — $10B moved Russia→UK via back-to-back exchange orders, evading cross-border transfer controls (2011–2015) |
 | 3 | Multiple entities + sudden flows | Structuring / layering | ⚠️ PARTIAL | Contagion + causal; no named layering detector | GLEIF for real UBO graph to replace synthetic contagion graph | **Danske Estonia** — 15,000 non-resident shell-company customers, hidden UBO chains, €200B in suspicious cross-border flows |
 | 4 | Jurisdiction / legal form change | Structural risk | 🔶 INDIRECT | `jurisdiction.py` is rule-pack selector, not change detector | ZEFIX / GLEIF diff vs. KYC baseline → `jurisdiction_change` signal | **Long Blockchain Corp** — Long Island Iced Tea rebranded to exploit crypto hype; name change triggered mandatory re-KYC across its banking relationships |
-| 5 | New shareholders / UBOs | Ownership KYC drift | ⚠️ PARTIAL | PageRank over synthetic graph; no real UBO lookup | GLEIF ownership chain + OpenSanctions screening of each UBO | **1MDB** — beneficial ownership routed through multiple layers of Cayman/BVI shells; each UBO change further obscured the true principal |
+| 5 | New shareholders / UBOs | Ownership KYC drift | ✅ WORKS | PageRank over synthetic graph **plus** real UBO screening: GLEIF ownership chain (direct-child LEIs → names) → OpenSanctions screening of each UBO; hits surfaced as `ownership_change` signals + `DriftSubjectDetail.ubo_screening` | — | **1MDB** — beneficial ownership routed through multiple layers of Cayman/BVI shells; each UBO change further obscured the true principal |
 | 6 | Large funding round / expansion | Scale risk | ✅ | `funding_event` (ER/GDELT) + causal scale-jump corroboration | Event Registry funding-event query + scale-jump ratio; GDELT fallback | **FTX** — $900M raise at $18B valuation; transaction volumes never matched claimed revenue; scale jump was the leading AML signal |
 | 7 | Dormant company activates | Suspicious activation | ✅ WORKS | `drift/dormancy.py` explicit detector; wired into score + API; `dormancy_break` scenario in book; DormancyPanel in UI | — | **Azerbaijani Laundromat** — EU shell companies dormant for years, suddenly activated 2012–2014 to route $2.9B out of Azerbaijan |
 | 8 | Legal entity name change | Re-KYC required | ❌ MISSING | Not implemented | ZEFIX + GLEIF diff against KYC baseline; `name_changed` signal; score floor at 60 | **Mossack Fonseca shelf cycling** — systematic renaming of shelf companies every 12–18 months to reset KYC review clocks |
@@ -254,10 +254,10 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 - [ ] Extend `EntitySnapshotDB` with `legal_form: str | None` and `jurisdiction: str | None` columns so the diff has a persisted baseline to compare against
 - [ ] A confirmed `jurisdiction_change` or `legal_form_change` signal floors the drift score at 50 in `service.py:_analyze_customer` (mandatory re-KYC trigger)
 
-> **UC 5 — New shareholders / UBOs** (⚠️ PARTIAL → ✅)
-- [ ] Implement `OpenSanctionsAdapter.fetch_signals` customer name screening path
-- [ ] In the aggregator: fetch GLEIF `child_leis` → resolve each to entity name → screen through OpenSanctions; a UBO hit becomes `ownership_change` signal with UBO name in `detail`
-- [ ] Surface UBO screening results (matched entity names + scores) in `DriftSubjectDetail` API response
+> **UC 5 — New shareholders / UBOs** (⚠️ PARTIAL → ✅) — **DONE** (PR #36)
+- [x] Implement `OpenSanctionsAdapter.fetch_signals` customer name screening path — name screening (score ≥ 0.85 → `sanctions` critical; 0.70–0.85 → high/probable) + `ubo_names` kwarg screening each UBO into `ownership_change` signals carrying structured `meta` (screened name, matched entity, score)
+- [x] In the aggregator: fetch GLEIF `child_leis` → resolve each to entity name → screen through OpenSanctions; a UBO hit becomes `ownership_change` signal with the UBO name — `drift/public_intel.py` resolves the GLEIF ownership chain (direct-child LEIs → legal names, capped) and passes them as `ubo_names`; GLEIF located by `source_name` among `usable_adapters()` so the step is inert offline / in mocked tests
+- [x] Surface UBO screening results (matched entity names + scores) in `DriftSubjectDetail` API response — new `UboScreeningOut` schema + `DriftSubjectDetail.ubo_screening`, built from the screened-UBO signals' `meta` (no headline parsing)
 
 > **UC 6 — Large funding round / expansion** (⚠️ PARTIAL → ✅)
 - [x] Implement `EventRegistryAdapter.fetch_signals` — funding-events mode (primary)

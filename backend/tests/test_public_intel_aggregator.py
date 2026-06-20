@@ -18,6 +18,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from app.drift.public_intel import (
     _AGGREGATE_TIMEOUT_S,
     _SYNC_TIMEOUT_S,
+    _resolve_ubo_names,
     assess_public_risk,
     classify_severity,
     gather_public_signals,
@@ -28,7 +29,7 @@ from app.drift.public_intel import (
 # Captured at import time, BEFORE the autouse fixture patches the seam to [] —
 # lets the integration test below restore the genuine method.
 from app.drift.service import DriftEngine as _DriftEngine
-from app.sources.base import PublicSignal
+from app.sources.base import EntitySnapshot, PublicSignal
 
 _REAL_PUBLIC_SIGNALS = _DriftEngine._public_signals
 
@@ -68,6 +69,170 @@ def _make_adapter_cls(
     cls.source_name = source_name
     cls.return_value = mock_instance
     return cls
+
+
+# ---------------------------------------------------------------------------
+# UC5 — GLEIF -> OpenSanctions UBO screening wiring
+# ---------------------------------------------------------------------------
+
+class _FakeGleif:
+    """Minimal GLEIF adapter stand-in for UBO-resolution tests.
+
+    ``fetch`` returns a snapshot whose ``officers`` hold direct-child LEIs when
+    called with a name, and resolves each LEI to a legal name when called with
+    the ``lei`` kwarg (mirroring the real GleifAdapter contract).
+    """
+
+    source_name = "gleif"
+
+    def __init__(self, *, root_officers: list[str], lei_names: dict[str, str]) -> None:
+        self._root_officers = root_officers
+        self._lei_names = lei_names
+
+    async def fetch(self, drift_id, name, **kwargs):
+        lei = kwargs.get("lei")
+        if lei is None:
+            return EntitySnapshot(
+                drift_id=drift_id, name=name, source="gleif",
+                officers=list(self._root_officers),
+            )
+        resolved = self._lei_names.get(lei)
+        if resolved is None:
+            return None
+        return EntitySnapshot(drift_id=drift_id, name=resolved, source="gleif")
+
+    async def fetch_signals(self, *args, **kwargs):
+        return []
+
+    async def aclose(self):
+        return None
+
+
+def _gleif_cls(root_officers, lei_names) -> MagicMock:
+    instance = _FakeGleif(root_officers=root_officers, lei_names=lei_names)
+    cls = MagicMock()
+    cls.source_name = "gleif"
+    cls.return_value = instance
+    return cls
+
+
+class TestResolveUboNames:
+    async def test_resolves_child_leis_to_names(self):
+        cls = _gleif_cls(
+            ["LEI-A", "LEI-B"],
+            {"LEI-A": "Alpha Holdings", "LEI-B": "Beta Trust"},
+        )
+        names = await _resolve_ubo_names("d", "Root AG", (cls,))
+        assert names == ["Alpha Holdings", "Beta Trust"]
+
+    async def test_no_gleif_adapter_returns_empty(self):
+        other = _make_adapter_cls("other", [])
+        assert await _resolve_ubo_names("d", "Root AG", (other,)) == []
+
+    async def test_unresolvable_lei_dropped(self):
+        cls = _gleif_cls(["LEI-A", "LEI-MISSING"], {"LEI-A": "Alpha Holdings"})
+        names = await _resolve_ubo_names("d", "Root AG", (cls,))
+        assert names == ["Alpha Holdings"]
+
+    async def test_no_children_returns_empty(self):
+        cls = _gleif_cls([], {})
+        assert await _resolve_ubo_names("d", "Root AG", (cls,)) == []
+
+    async def test_entity_not_in_gleif_returns_empty(self):
+        # fetch returns None for the root name (no LEI match).
+        instance = _FakeGleif(root_officers=[], lei_names={})
+
+        async def _none_fetch(drift_id, name, **kwargs):
+            return None
+
+        instance.fetch = _none_fetch  # type: ignore[method-assign]
+        cls = MagicMock()
+        cls.source_name = "gleif"
+        cls.return_value = instance
+        assert await _resolve_ubo_names("d", "Root AG", (cls,)) == []
+
+
+class TestGatherUboScreening:
+    async def test_resolved_ubo_names_passed_to_opensanctions(self):
+        captured: dict = {}
+
+        async def os_fetch(drift_id, name, **kwargs):
+            captured["ubo_names"] = kwargs.get("ubo_names")
+            return [
+                PublicSignal(
+                    month=4, signal_type="ownership_change",
+                    headline="UBO hit", severity=0.9, source="OpenSanctions",
+                    source_url="https://www.opensanctions.org/entities/x/",
+                    meta={
+                        "kind": "ubo_screening", "ubo_name": "Alpha Holdings",
+                        "matched_entity": "Alpha Holdings Ltd", "score": 0.91,
+                        "definitive": True,
+                    },
+                )
+            ]
+
+        os_instance = MagicMock()
+        os_instance.source_name = "opensanctions"
+        os_instance.aclose = AsyncMock()
+        os_instance.fetch_signals = os_fetch
+        os_cls = MagicMock()
+        os_cls.source_name = "opensanctions"
+        os_cls.return_value = os_instance
+
+        gleif_cls = _gleif_cls(["LEI-A", "LEI-B"], {"LEI-A": "Alpha Holdings", "LEI-B": "Beta Trust"})
+
+        with patch("app.sources.registry.usable_adapters", return_value=(gleif_cls, os_cls)):
+            signals = await gather_public_signals("d", "Root AG")
+
+        assert captured["ubo_names"] == ["Alpha Holdings", "Beta Trust"]
+        assert len(signals) == 1
+        assert signals[0].meta["kind"] == "ubo_screening"
+
+    async def test_slow_ubo_resolution_does_not_block_other_adapters(self, monkeypatch):
+        # A hung GLEIF resolution must not sink the aggregation: the resolution
+        # is bounded to one adapter's budget, so the other adapters' signals
+        # still come through (just without UBO screening).
+        slow_instance = _FakeGleif(root_officers=["LEI-A"], lei_names={"LEI-A": "Alpha"})
+
+        async def _slow_fetch(drift_id, name, **kwargs):
+            await asyncio.sleep(1000)
+            return None
+
+        slow_instance.fetch = _slow_fetch  # type: ignore[method-assign]
+        gleif_cls = MagicMock()
+        gleif_cls.source_name = "gleif"
+        gleif_cls.return_value = slow_instance
+
+        cls_fast = _make_adapter_cls("fast", [_signal(5)])
+
+        monkeypatch.setattr("app.drift.public_intel._PER_ADAPTER_TIMEOUT_S", 0.05)
+        with patch("app.sources.registry.usable_adapters", return_value=(gleif_cls, cls_fast)):
+            signals = await gather_public_signals("d", "Root AG")
+
+        assert [s.month for s in signals] == [5]
+
+    async def test_caller_supplied_ubo_names_not_overridden(self):
+        captured: dict = {}
+
+        async def os_fetch(drift_id, name, **kwargs):
+            captured["ubo_names"] = kwargs.get("ubo_names")
+            return []
+
+        os_instance = MagicMock()
+        os_instance.source_name = "opensanctions"
+        os_instance.aclose = AsyncMock()
+        os_instance.fetch_signals = os_fetch
+        os_cls = MagicMock()
+        os_cls.source_name = "opensanctions"
+        os_cls.return_value = os_instance
+
+        gleif_cls = _gleif_cls(["LEI-A"], {"LEI-A": "Alpha Holdings"})
+
+        with patch("app.sources.registry.usable_adapters", return_value=(gleif_cls, os_cls)):
+            await gather_public_signals("d", "Root AG", ubo_names=["Explicit UBO"])
+
+        # GLEIF resolution must be skipped when the caller already supplied names.
+        assert captured["ubo_names"] == ["Explicit UBO"]
 
 
 # ---------------------------------------------------------------------------
@@ -388,6 +553,44 @@ class TestEngineAggregatorWiring:
 
         assert [s.severity for s in analysis["public_signals"]] == [0.9]
         assert analysis["public_risk"] > 0.0
+
+    def test_get_subject_surfaces_ubo_screening_from_meta(self, monkeypatch):
+        """A meta-tagged ownership_change signal surfaces in DriftSubjectDetail.ubo_screening."""
+        from app.drift import service
+
+        ubo_signal = PublicSignal(
+            month=6, signal_type="ownership_change",
+            headline="UBO sanctions match: Alice Holdings Ltd — screened as UBO 'Alice Holdings' (score 0.91)",
+            severity=0.9, source="OpenSanctions",
+            source_url="https://www.opensanctions.org/entities/un-abc/",
+            meta={
+                "kind": "ubo_screening", "ubo_name": "Alice Holdings",
+                "matched_entity": "Alice Holdings Ltd", "score": 0.91,
+                "definitive": True,
+            },
+        )
+        # A plain synthetic ownership_change signal (no meta) must NOT appear.
+        noise = PublicSignal(
+            month=2, signal_type="ownership_change",
+            headline="Registry update: ownership change in Acme-linked shell company",
+            severity=0.5, source="corporate registry",
+        )
+        monkeypatch.setattr(
+            service.DriftEngine, "_public_signals",
+            lambda self, cust: [noise, ubo_signal],
+        )
+
+        engine = service.DriftEngine()
+        detail = engine.get_subject(engine._book[0].drift_id)
+
+        assert detail is not None
+        assert len(detail.ubo_screening) == 1
+        hit = detail.ubo_screening[0]
+        assert hit.screened_ubo == "Alice Holdings"
+        assert hit.matched_entity == "Alice Holdings Ltd"
+        assert hit.score == 0.91
+        assert hit.definitive is True
+        assert hit.source_url == "https://www.opensanctions.org/entities/un-abc/"
 
     def test_offline_mode_uses_synthetic_signals_no_adapters(self, monkeypatch):
         # With the master switch OFF (default), the engine must NOT touch the

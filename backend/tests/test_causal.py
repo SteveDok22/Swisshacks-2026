@@ -122,3 +122,48 @@ class TestCausalAssessment:
         cust = generate_customer("bdd-test", "BDD Risk", "combined", seed=42)
         verdict = causal_assessment(cust.causal_windows())
         assert verdict.label == "risk"
+
+
+class TestScaleJumpCorroboration:
+    """UC6: large funding round / expansion -> scale risk."""
+
+    def _scale_jump_windows(self, n: int = 12, baseline: float = 1000.0, mult: float = 8.0) -> dict:
+        # Flat baseline for the early months, then an 8x step up for the active
+        # window (last few months) — a clear scale jump well past the 5x gate.
+        rng = np.random.default_rng(7)
+        vols = []
+        for i in range(n):
+            level = baseline if i < n - 3 else baseline * mult
+            vols.append(rng.normal(level, level * 0.02, 21))
+        return {"monthly_volume": vols}
+
+    def test_signature_exposes_scale_jump_ratio(self):
+        sig = compute_signature(self._scale_jump_windows(mult=8.0))
+        assert sig.scale_jump_ratio == pytest.approx(8.0, rel=0.1)
+
+    def test_funding_corroboration_raises_p_risk(self):
+        sig = compute_signature(self._scale_jump_windows(mult=8.0))
+        without = classify_causal(sig, funding_corroborated=False)
+        corroborated = classify_causal(sig, funding_corroborated=True)
+        assert corroborated.p_risk > without.p_risk
+        assert corroborated.causal_llr > without.causal_llr
+        assert "scale_jump_funding" in corroborated.contributions
+        assert "scale_jump_funding" not in without.contributions
+
+    def test_no_boost_below_scale_threshold(self):
+        # A modest 2x jump does not qualify even with a funding event present.
+        sig = compute_signature(self._scale_jump_windows(mult=2.0))
+        assert sig.scale_jump_ratio < 5.0
+        boosted = classify_causal(sig, funding_corroborated=True)
+        assert "scale_jump_funding" not in boosted.contributions
+
+    def test_assessment_requires_funding_event_in_recent_window(self):
+        windows = self._scale_jump_windows(n=12, mult=8.0)
+        # recent window starts at max(3, 12 - 3) = 9
+        in_window = causal_assessment(windows, funding_event_months=[10])
+        out_window = causal_assessment(windows, funding_event_months=[2])
+        none = causal_assessment(windows, funding_event_months=None)
+        assert "scale_jump_funding" in in_window.contributions
+        assert "scale_jump_funding" not in out_window.contributions
+        assert "scale_jump_funding" not in none.contributions
+        assert in_window.p_risk > out_window.p_risk

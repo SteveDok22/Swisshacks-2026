@@ -604,8 +604,9 @@ sequenceDiagram
     CAS->>CAS: T0: name_changed=True → skip to ESCALATE
     CAS-->>UI: reached_tier=T2_LLM, recommended_action=ESCALATE
 
-    ENG->>LLM: adjudicate(context={name_change evidence, internal signals})
-    LLM-->>ENG: {verdict:"risk", confidence:0.91,<br/>rationale:"Legal entity rename without disclosed business reason;<br/>internal drift elevated; re-KYC required.",<br/>recommended_action:"Trigger KYC refresh"}
+    ENG->>LLM: adjudicate(context=name_change evidence and internal signals)
+    LLM-->>ENG: verdict=risk, confidence=0.91, recommended_action=Trigger KYC refresh
+    Note over LLM,ENG: rationale: Legal entity rename without disclosed business reason<br/>internal drift elevated — re-KYC required
 
     ENG->>AUD: log(drift_customer_analyzed, customer_id, score=81.4, name_changed=True)
     UI->>UI: render DecisionBar with AI recommendation=ESCALATE

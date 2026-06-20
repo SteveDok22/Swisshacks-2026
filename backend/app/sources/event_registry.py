@@ -96,6 +96,13 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
     base_url = _BASE_URL
     docs_url = "https://newsapi.ai/documentation"
     cost = SourceCost.FREEMIUM
+    # PLANNED is the correct value here — the registry invariant is
+    # PLANNED↔FREE/FREEMIUM (enforced by tests). This adapter is FULLY
+    # IMPLEMENTED: fetch returns None, fetch_signals runs live API calls
+    # when the key is set, and returns [] when absent. PLANNED means
+    # "usable / not skipped", not "carcass" — AdapterStatus has no LIVE
+    # variant; the distinction lives in whether _carcass() is called (it
+    # isn't here).
     status = AdapterStatus.PLANNED
     requires_api_key = True
     use_cases = (1, 6, 8, 10)

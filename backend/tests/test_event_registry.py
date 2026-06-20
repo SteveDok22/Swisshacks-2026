@@ -365,6 +365,33 @@ class TestNameChangePivot:
         assert len(pivot_signals) == 1
         assert pivot_signals[0].severity == pytest.approx(0.60)
 
+    async def test_name_change_wins_when_headline_contains_both_keywords(
+        self, adapter_with_key: EventRegistryAdapter
+    ):
+        """name_change wins when headline contains both name-change and pivot keywords."""
+        both_kw_article = {
+            "articles": {
+                "results": [
+                    {
+                        "title": "Acme AG renamed and pivots to blockchain",
+                        "url": "https://example.com/both",
+                        "dateTime": "2025-05-01T10:00:00Z",
+                        "source": {"title": "Reuters"},
+                    }
+                ]
+            }
+        }
+        with patch.object(
+            adapter_with_key,
+            "_post",
+            new=AsyncMock(side_effect=[self._EMPTY, self._EMPTY, both_kw_article]),
+        ):
+            signals = await adapter_with_key.fetch_signals("drift-1", "Acme AG")
+
+        assert len(signals) == 1
+        assert signals[0].signal_type == "name_change"
+        assert signals[0].severity == pytest.approx(0.70)
+
 
 # ---------------------------------------------------------------------------
 # Rate-limit retry (429 backoff)

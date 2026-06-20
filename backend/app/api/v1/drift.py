@@ -68,21 +68,6 @@ async def get_drift_customer(
     return detail
 
 
-@router.get("/customers/{customer_id}/timeline", response_model=DriftCustomerDetail)
-async def get_drift_timeline(customer_id: str) -> DriftCustomerDetail:
-    """
-    Timeline-focused view (same payload as detail; the frontend scrubber
-    reads the `timeline` array). Kept as a separate route for clarity.
-    """
-    detail = get_drift_engine().get_customer(customer_id)
-    if detail is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No drift customer {customer_id!r}",
-        )
-    return detail
-
-
 @router.post("/scan", response_model=CascadeCostReport)
 async def run_cascade_scan(
     session: Annotated[AsyncSession, Depends(get_session)],

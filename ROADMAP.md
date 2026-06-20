@@ -33,6 +33,31 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 ---
 
+## ▶ Next Steps (current focus)
+
+**Where we are:** 7 of 8 free/freemium source adapters are implemented and unit-tested (385 source tests green); GDELT is in progress. **The blocker is integration, not more adapters** — every shipped adapter is currently dead code from the engine's perspective: `drift/public_intel.py` still emits synthetic templates and nothing in `service.py` calls `sources/`.
+
+Do these in order:
+
+1. **Aggregator refactor — `drift/public_intel.py`** _(highest leverage; unblocks UC 1, 3, 4, 5, 6, 8, 9, 10 at once)_
+   Replace `generate_signals_for_customer()` synthetic templates with real adapter dispatch through `sources/registry.py`. Aggregator picks Event Registry when `EVENT_REGISTRY_API_KEY` is set, else falls back to GDELT. This is the single change that makes all 7 adapters actually run.
+
+2. **`drift/business_model.py` — Wayback↔Firecrawl cosine comparator** _(closes UC 9)_
+   Embed onboarding (Wayback) vs current (Firecrawl) website text with `all-MiniLM-L6-v2`; cosine distance ≥ 0.35 → `business_model_change` signal. Wayback + Firecrawl + WHOIS adapters are already shipped and waiting on this.
+
+3. **Finish `sources/gdelt.py`** _(in progress — free fallback)_
+   `fetch_signals` volume + funding + pivot modes; `User-Agent` header mandatory; wire into the aggregator fallback path from step 1. Lower urgency than 1–2 because Event Registry (primary) already works with the hackathon key.
+
+4. **Score-flooring + scenarios** _(turns wired signals into table-flipping outcomes)_
+   `jurisdiction_change`/`legal_form_change` floor score at 50; `name_changed` floors at 60 (UC 4, 8). Add `news_spike`, `name_cycling`, `domain_pivot`, `pivot` synthetic scenarios to `simulator.py` so the demo exercises each path.
+
+5. **Drift ML path** _(optional polish)_
+   `ml/extractors/drift.py` (`DriftFeatureExtractor`, 20-dim) + drift training path in `ml/training.py`. Not on the UC critical path; defer if time-boxed.
+
+> Detailed per-task breakdowns live under **P1 §5 (Integration glue)** and **P1 §6 (Use case close-out)** below.
+
+---
+
 ## Tasks
 
 ### P0 — Already done ✅
@@ -73,7 +98,7 @@ See [`docs/sources.md`](docs/sources.md) for full cost/access breakdown.
 
 *Still to implement (carcasses exist):*
 - [x] **`sources/opensanctions.py`** — OFAC / EU / UN sanctions + PEP screening (Cases 2, 5) · FREEMIUM
-- [ ] **`sources/gdelt.py`** — GDELT 2.0 free news feed (Cases 1, 6, 8, 10) · FREE — **fallback** when Event Registry key absent
+- [ ] 🚧 **`sources/gdelt.py`** — GDELT 2.0 free news feed (Cases 1, 6, 8, 10) · FREE — **fallback** when Event Registry key absent · **IN PROGRESS** (on a feature branch; not yet pushed/merged)
 - [x] **`sources/firecrawl.py`** — website-to-markdown scraping, current content (Cases 9, 10) · FREEMIUM — key-optional (cloud `/scrape` → plain-HTTP strip → empty fallback)
 - [x] **`sources/wayback.py`** — Internet Archive historical snapshot at onboarding date (Cases 9, 10) · FREE
 
@@ -204,7 +229,7 @@ Each adapter has two methods to implement. `fetch()` returns a current `EntitySn
 
 **5. Integration glue — wire adapters into the engine**
 
-- [ ] **Refactor `public_intel.py` into aggregator** — `service.py` calls `generate_signals_for_customer()` which returns synthetic templates; replace with real adapter calls dispatched through `sources/registry.py`. This is the single step that makes every adapter actually run in the engine.
+- [ ] ⬅ **NEXT: Refactor `public_intel.py` into aggregator** — `service.py` calls `generate_signals_for_customer()` which returns synthetic templates; replace with real adapter calls dispatched through `sources/registry.py`. This is the single step that makes every adapter actually run in the engine. **Top of the Next Steps list above.**
 - [ ] **`drift/business_model.py`** — load Wayback text + Firecrawl text for a customer; embed both with `sentence-transformers/all-MiniLM-L6-v2` (14 MB, fully offline); `cosine_distance(wayback_embed, firecrawl_embed)` ≥ 0.35 → `PublicSignal(signal_type="business_model_change")`; store embeddings in `EntitySnapshotDB.extra` to skip re-embedding on re-scan.
 - [ ] **`ml/extractors/drift.py`** — `DriftFeatureExtractor` with 20-dim feature vector; wire XGBoost to drift scoring (currently wired to case management only)
 - [ ] **Train drift XGBoost model** — `ml/training.py` has no drift training path; feed synthetic book (8 scenarios × time windows ≈ 200 samples) through `DriftFeatureExtractor` → label → `XGBClassifier.fit()`
@@ -305,7 +330,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | Drift Engine | `drift/service.py` | All 7 layers, confirmation lift, LLM adjudication |
 | Synthetic Book | `drift/simulator.py` | 8 scenarios with ground-truth labels |
 | KYC Baseline Store | `db/kyc_baseline.py` | `EntitySnapshotDB` — onboarding + history snapshots |
-| Source Adapter Layer | `sources/` | `RegistryAdapter` ABC; GLEIF, ZEFIX, EventRegistry, OpenSanctions, Wayback, WHOIS/RDAP, Firecrawl implemented; 1 planned carcass (GDELT); 2 SKIPPED |
+| Source Adapter Layer | `sources/` | `RegistryAdapter` ABC; GLEIF, ZEFIX, EventRegistry, OpenSanctions, Wayback, WHOIS/RDAP, Firecrawl implemented; GDELT in progress; 2 SKIPPED. **Adapters built but not yet wired into the engine — see "Next Steps" below.** |
 | REST API | `api/v1/` | 27 endpoints, all functional |
 | Frontend | `src/app/drift/`, `src/app/audit/` | 8 drift panels + audit log page + dormancy-break panel |
 | XGBoost + SHAP | `ml/base.py` | Wired to case management only; drift uses per-layer LLR breakdown |
@@ -323,7 +348,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | GLEIF | 3, 4, 5, 8, 10 | FREE | ✅ IMPLEMENTED — `fetch()` live; signals via `diff_snapshots()` |
 | OpenSanctions | 2, 5 | FREEMIUM | ✅ IMPLEMENTED — `fetch_signals` live; key optional (non-commercial free tier) |
 | Event Registry / NewsAPI.ai | 1, 6, 8, 10 | FREEMIUM (hackathon key) | ✅ IMPLEMENTED — **primary news source** |
-| GDELT | 1, 6, 8, 10 | FREE | 🔲 PLANNED — fallback when ER key absent |
+| GDELT | 1, 6, 8, 10 | FREE | 🚧 IN PROGRESS — fallback when ER key absent |
 | RDAP/WHOIS | 8, 9 | FREE | ✅ IMPLEMENTED — `fetch()` + `fetch_signals()` live; no key required |
 | Wayback Machine | 9, 10 | FREE | ✅ IMPLEMENTED — `fetch()` live; `fetch_signals()` returns `[]` by design |
 | Firecrawl | 9, 10 | FREEMIUM | ✅ IMPLEMENTED — key-optional (cloud → plain-HTTP fallback); comparator wiring pending |

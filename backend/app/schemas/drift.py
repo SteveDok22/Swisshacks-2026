@@ -179,6 +179,16 @@ class DriftSubjectDetail(BaseModel):
     # Case 5: UBO / ownership-chain sanctions screening hits (matched names + scores).
     ubo_screening: list[UboScreeningOut] = Field(default_factory=list)
 
+    # UC8: confirmed legal-entity name change (re-KYC trigger). Mirrors the
+    # summary flag so the detail panel can surface the identity-reset treatment
+    # without re-deriving it from the public-signals list. The underlying
+    # `name_change` (ZEFIX/GLEIF) and `domain_change` (WHOIS) signals that set
+    # this flag also flow through `public_signals` above.
+    is_name_changed: bool = Field(
+        default=False,
+        description="Confirmed legal-entity name change (re-KYC trigger, UC8); floors the drift score at 60",
+    )
+
     # Business-model drift (UC 9): silent website/domain pivot since onboarding.
     # Derived from the Wayback (onboarding) vs Firecrawl (current) website-text
     # cosine comparison in drift/business_model.py. When no website texts are

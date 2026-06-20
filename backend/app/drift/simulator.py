@@ -200,6 +200,14 @@ def generate_customer(
     # same month the public signals fire. Clamp for unusually short books.
     if scenario == "name_cycling":
         drift_start_month = min(NAME_CHANGE_MONTH, months - 2)
+        # sanctions_month is deliberately left at the risk-scenario default
+        # (final month) below: the name change at NAME_CHANGE_MONTH is a re-KYC
+        # TRIGGER, not the sanctions event itself. Keeping the listing at the
+        # final month gives the Time-Travel replay its strongest narrative — the
+        # high-severity name_change public signal lifts the as-of score across the
+        # alert threshold ~(months-1 - NAME_CHANGE_MONTH) months before the
+        # listing, demonstrating the early-warning lead time. An earlier explicit
+        # value would only shorten that lead time without any domain rationale.
 
     rng = np.random.default_rng(seed)
     # Causal ground-truth label: benign_expansion is the only benign drift;

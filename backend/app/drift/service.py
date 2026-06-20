@@ -1225,6 +1225,7 @@ class DriftEngine:
                 PublicSignalOut(**s.to_dict()) for s in a["public_signals"]
             ],
             ubo_screening=ubo_screening,
+            is_name_changed=a["name_changed"],
             is_business_model_change=a.get("is_business_model_change", False),
             business_model_distance=a.get("business_model_distance", 0.0),
             causal=CausalVerdictOut(

@@ -113,3 +113,29 @@ def test_public_signal_out_exposes_corroborated_flag() -> None:
         source="Event Registry / NewsAPI.ai",
     )
     assert PublicSignalOut(**lead.to_dict()).corroborated is False
+
+
+# --------------------------------------------------------------------------- #
+# UC8 — DriftSubjectDetail exposes the is_name_changed flag (contract test)    #
+# --------------------------------------------------------------------------- #
+
+async def test_subject_detail_exposes_is_name_changed(client: AsyncClient) -> None:
+    """DriftSubjectDetail must always carry the boolean ``is_name_changed`` flag
+    (UC8 follow-up), mirroring the summary so the detail panel can render the
+    identity-reset re-KYC treatment. Present and correctly typed for every
+    subject, regardless of whether a name change was detected.
+    """
+    listing = await client.get("/api/v1/drift/subjects")
+    assert listing.status_code == 200
+    subjects = listing.json()
+    assert subjects, "synthetic book should not be empty"
+
+    drift_id = subjects[0]["drift_id"]
+    detail = await client.get(f"/api/v1/drift/subjects/{drift_id}")
+    assert detail.status_code == 200
+
+    body = detail.json()
+    assert "is_name_changed" in body, (
+        f"is_name_changed missing from detail. Keys: {list(body.keys())}"
+    )
+    assert isinstance(body["is_name_changed"], bool)

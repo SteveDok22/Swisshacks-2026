@@ -340,6 +340,9 @@ export interface DriftCustomerDetail {
   public_signals: PublicSignal[];
   // Case 5: UBO / ownership-chain sanctions screening hits.
   ubo_screening: UboScreening[];
+  // UC8: confirmed legal-entity name change (re-KYC trigger). The underlying
+  // name_change / domain_change signals also appear in public_signals.
+  is_name_changed: boolean;
   // Business-model drift (UC 9): silent website/domain pivot since onboarding.
   is_business_model_change: boolean;
   business_model_distance: number;

@@ -9,7 +9,7 @@ Total API endpoints: 27
 ```mermaid
 flowchart TB
     subgraph Drift["Drift Engine  — /drift"]
-        D1["GET /subjects\nScan full subject book\nReturns risk-ranked list"]
+        D1["GET /subjects\nScan full subject book\nReturns risk-ranked list\nis_name_changed flags re-KYC triggers (UC8)"]
         D2["GET /subjects/{drift_id}\nFull per-subject analysis\nAll 7 layers + causal evidence + timeline"]
         D3["POST /scan\nRun cost cascade scan\nReturns CascadeCostReport"]
         D4["GET /contagion\nOwnership graph + PageRank scores"]
@@ -58,7 +58,7 @@ flowchart TB
 ```mermaid
 flowchart LR
     subgraph DriftSchemas["Drift Schemas"]
-        DS1["DriftSubjectSummary\ndrift_id · name · score · velocity\naction · risk_level"]
+        DS1["DriftSubjectSummary\ndrift_id · name · score · velocity\naction · risk_level\nis_suspicious · is_dormancy_break · is_name_changed"]
         DS2["DriftSubjectDetail\n+ LayerContribution[]\n+ CausalVerdictOut\n+ StabilityOut\n+ DriftTimelinePoint[]\n+ PublicSignalOut[]\n+ UboScreeningOut[] (UC5)\n+ contagion_score"]
         DS3["ReplayResult\nas_of_score · current_score\nlead_time_months"]
         DS4["CascadeCostReport\ntier_counts · costs · total_customers\n+ actual_t2_llm_calls\n+ llm_adjudications[]"]

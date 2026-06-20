@@ -16,6 +16,7 @@ remain stable within one process. This mutable demo state is process-local.
 from __future__ import annotations
 
 import json
+import time
 from typing import Any
 
 import numpy as np
@@ -129,6 +130,8 @@ class DriftEngine:
         # Cohort volatility reference for Suspicious Stability (computed once
         # over the whole book — the norm against which smoothness is judged).
         self._cohort_cv = cohort_volatility([c.monthly_volume for c in self._book])
+        self._list_cache: list[DriftCustomerSummary] | None = None
+        self._list_cache_at: float = 0.0
 
     # ------------------------------------------------------------------ #
     # Core per-customer analysis
@@ -477,7 +480,13 @@ class DriftEngine:
     # ------------------------------------------------------------------ #
     # Public API methods
     # ------------------------------------------------------------------ #
+    _LIST_CACHE_TTL = 30.0  # seconds
+
     def list_customers(self) -> list[DriftCustomerSummary]:
+        now = time.monotonic()
+        if self._list_cache is not None and now - self._list_cache_at < self._LIST_CACHE_TTL:
+            return self._list_cache
+
         out: list[DriftCustomerSummary] = []
         for cust in self._book:
             a = self._analyze_customer(cust)
@@ -509,6 +518,8 @@ class DriftEngine:
                 )
             )
         out.sort(key=lambda c: c.drift_score, reverse=True)
+        self._list_cache = out
+        self._list_cache_at = time.monotonic()
         return out
 
     def get_customer(self, customer_id: str) -> DriftCustomerDetail | None:

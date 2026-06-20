@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   Activity,
@@ -28,12 +29,17 @@ export default function AboutPage() {
       <header className="border-b border-paper-line bg-paper-raised/90 backdrop-blur sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-8 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="h-7 w-7 rounded bg-accent flex items-center justify-center">
-              <span className="text-paper-raised font-semibold text-sm">S</span>
-            </div>
+            <Image
+              src="/assets/logo.png"
+              alt="Sentinel logo"
+              width={28}
+              height={28}
+              className="h-7 w-7 rounded object-contain"
+              priority
+            />
             <div className="leading-tight">
-              <div className="font-semibold text-sm text-ink">Sentinel</div>
-              <div className="text-2xs text-ink-muted">Drift Engine</div>
+              <div className="font-serif font-semibold text-base text-ink tracking-tight">Sentinel</div>
+              <div className="text-2xs text-ink-muted">Risk Intelligence</div>
             </div>
           </Link>
           <Link
@@ -57,10 +63,7 @@ export default function AboutPage() {
           }}
         />
         <div className="relative max-w-6xl mx-auto px-8 py-20">
-          <div className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent-bg px-3 py-1 text-2xs font-semibold uppercase tracking-wide text-accent mb-6">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-            SwissHacks 2026 · AMINA Challenge 4
-          </div>
+          <HeroVisual className="pointer-events-none absolute right-0 top-10 hidden h-[360px] w-[440px] opacity-90 xl:block" />
           <h1 className="text-4xl sm:text-5xl font-semibold text-ink leading-[1.08] tracking-tight max-w-3xl">
             Catch KYC drift{" "}
             <span className="text-accent">before</span> it becomes a sanctions hit.
@@ -257,7 +260,7 @@ export default function AboutPage() {
                 "Tailwind v3 · AMINA teal",
                 "TanStack Query",
                 "Radix UI primitives",
-                "Geist + IBM Plex Mono",
+                "Bitter + Satoshi + IBM Plex Mono",
                 "Lucide icons",
               ]}
             />
@@ -275,9 +278,41 @@ export default function AboutPage() {
           </div>
         </section>
 
+        {/* ===== TEAM ===== */}
+        <section className="mt-16">
+          <SectionLabel>Team</SectionLabel>
+          <div className="rounded-xl border border-paper-line bg-paper-raised p-6">
+            <div className="flex items-baseline gap-2 mb-5">
+              <h3 className="font-serif text-xl font-semibold text-ink tracking-tight">
+                OSNOVA
+              </h3>
+              <span className="text-2xs text-ink-muted">the team behind Sentinel</span>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                "Danylo Serhieiev",
+                "Danylo Halytskyi",
+                "Stiven Ntoktorov",
+                "Mykola Tsaryk",
+                "Pavlo Bohulov",
+              ].map((name) => (
+                <div key={name} className="flex items-center gap-2.5">
+                  <span className="h-8 w-8 rounded-full bg-accent-bg text-accent flex items-center justify-center text-2xs font-semibold shrink-0">
+                    {name
+                      .split(" ")
+                      .map((w) => w[0])
+                      .join("")}
+                  </span>
+                  <span className="text-sm text-ink">{name}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Footer */}
         <footer className="border-t border-paper-line pt-6 mt-12 flex items-center justify-between text-2xs text-ink-muted">
-          <div>Sentinel · Drift Engine · Built for SwissHacks 2026 · Zürich</div>
+          <div>Sentinel · Built by team OSNOVA · SwissHacks 2026 · Zürich</div>
           <Link
             href="/drift"
             className="flex items-center gap-1.5 hover:text-accent transition-colors"
@@ -297,6 +332,81 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
       <span className="h-px w-6 bg-accent/40" />
       {children}
     </h2>
+  );
+}
+
+/**
+ * Minimalist animated hero visual — the product thesis as a vector:
+ * a drift trajectory rising across the alert threshold, a scanner sweeping
+ * the curve, radar rings pulsing at the detection point, and a muted red
+ * sanctions node it would have reached later. Pure SMIL, no libraries.
+ */
+function HeroVisual({ className }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 440 380" className={className} fill="none" aria-hidden="true">
+      <g>
+        {/* whole scene breathes gently */}
+        <animateTransform
+          attributeName="transform"
+          type="translate"
+          values="0 0;0 -10;0 0"
+          dur="7s"
+          repeatCount="indefinite"
+          calcMode="spline"
+          keyTimes="0;0.5;1"
+          keySplines="0.45 0 0.55 1;0.45 0 0.55 1"
+        />
+
+        {/* baseline + alert threshold */}
+        <line x1="30" y1="330" x2="410" y2="330" stroke="var(--paper-line,#e5e7eb)" strokeWidth="1" />
+        <line x1="30" y1="230" x2="410" y2="230" stroke="var(--ink-faint,#9ca3af)" strokeWidth="1.5" strokeDasharray="5 6" />
+        <text x="34" y="222" fontSize="11" fill="var(--ink-muted,#6b7280)">alert threshold</text>
+
+        {/* drift trajectory */}
+        <path
+          id="driftPath"
+          d="M30 330 C 110 322, 150 300, 212 230 S 330 92, 410 64"
+          stroke="var(--accent,#0d9488)"
+          strokeWidth="3"
+          strokeLinecap="round"
+        />
+
+        {/* scanner dot sweeping along the curve */}
+        <circle r="5" fill="var(--accent,#0d9488)">
+          <animateMotion dur="6s" repeatCount="indefinite" keyPoints="0;1;1" keyTimes="0;0.85;1" calcMode="linear">
+            <mpath href="#driftPath" />
+          </animateMotion>
+          <animate attributeName="opacity" values="0;1;1;0" keyTimes="0;0.06;0.85;1" dur="6s" repeatCount="indefinite" />
+        </circle>
+
+        {/* detection node + expanding radar rings at the crossing */}
+        <circle cx="212" cy="230" r="6" fill="var(--accent,#0d9488)" />
+        <circle cx="212" cy="230" r="6" fill="none" stroke="var(--accent,#0d9488)" strokeWidth="2">
+          <animate attributeName="r" values="6;40" dur="3.2s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.55;0" dur="3.2s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="212" cy="230" r="6" fill="none" stroke="var(--accent,#0d9488)" strokeWidth="2">
+          <animate attributeName="r" values="6;40" dur="3.2s" begin="1.6s" repeatCount="indefinite" />
+          <animate attributeName="opacity" values="0.55;0" dur="3.2s" begin="1.6s" repeatCount="indefinite" />
+        </circle>
+
+        {/* sanctions node it would have reached later — caught early */}
+        <circle cx="410" cy="64" r="5" fill="var(--risk-critical,#b91c1c)" opacity="0.45">
+          <animate attributeName="opacity" values="0.25;0.55;0.25" dur="3s" repeatCount="indefinite" />
+        </circle>
+
+        {/* faint floating data points */}
+        <circle cx="95" cy="312" r="2.5" fill="var(--ink-faint,#9ca3af)">
+          <animate attributeName="cy" values="312;304;312" dur="5s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="150" cy="292" r="2" fill="var(--ink-faint,#9ca3af)">
+          <animate attributeName="cy" values="292;300;292" dur="6.5s" repeatCount="indefinite" />
+        </circle>
+        <circle cx="322" cy="150" r="2.5" fill="var(--ink-faint,#9ca3af)">
+          <animate attributeName="cy" values="150;142;150" dur="5.5s" repeatCount="indefinite" />
+        </circle>
+      </g>
+    </svg>
   );
 }
 

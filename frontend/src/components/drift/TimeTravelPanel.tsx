@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { driftApi } from "@/lib/api";
-import { cn } from "@/lib/utils";
-import { History, ShieldCheck, Loader2 } from "lucide-react";
+import { cn, formatCompact, evenTicks } from "@/lib/utils";
+import { InfoHint } from "@/components/ui/InfoHint";
+import { ZoomablePanel } from "@/components/ui/ZoomablePanel";
+import { History, Loader2 } from "lucide-react";
 
 interface TimeTravelPanelProps {
   driftId: string;
@@ -28,6 +30,8 @@ export function TimeTravelPanel({ driftId }: TimeTravelPanelProps) {
   });
 
   const [cursor, setCursor] = useState<number | null>(null);
+  const explanation =
+    "Past-only replay. Score is recomputed using only data available at each selected month; no future information leaks backward. Verifiable property: corrupting any month after T leaves the as-of-T score unchanged. BOCPD is online by construction. Audited lead is the gap between when the system first crossed the alert threshold and when sanctions hit.";
 
   if (isLoading) {
     return (
@@ -40,7 +44,7 @@ export function TimeTravelPanel({ driftId }: TimeTravelPanelProps) {
 
   const W = 640;
   const H = 200;
-  const PAD = 36;
+  const PAD = 44;
 
   const months = data.points.map((p) => p.month);
   const minM = Math.min(...months);
@@ -49,6 +53,10 @@ export function TimeTravelPanel({ driftId }: TimeTravelPanelProps) {
 
   const mx = (m: number) => PAD + ((m - minM) / Math.max(1, maxM - minM)) * (W - 2 * PAD);
   const sy = (s: number) => H - PAD - (s / maxScore) * (H - 2 * PAD);
+  const monthTicks = evenTicks(minM, maxM);
+  const scoreTicks = Array.from(
+    new Set([0, 50, data.alert_threshold, 100].map((tick) => Math.round(tick))),
+  ).sort((a, b) => a - b);
 
   const curIdx = cursor ?? data.points.length - 1;
   const cur = data.points[Math.min(curIdx, data.points.length - 1)];
@@ -64,33 +72,94 @@ export function TimeTravelPanel({ driftId }: TimeTravelPanelProps) {
     .join(" ");
 
   return (
-    <div className="border border-paper-line rounded bg-paper-raised p-4">
-      <div className="flex items-center justify-between mb-1">
+    <ZoomablePanel
+      className="border border-paper-line rounded bg-paper-raised p-4"
+      zoomLabel="Zoom Time-Travel Audit"
+    >
+      <div className="flex items-start justify-between gap-3 mb-3 pr-10">
         <div className="flex items-center gap-2">
           <History className="h-3.5 w-3.5 text-accent" strokeWidth={2} />
-          <h3 className="text-2xs font-semibold uppercase tracking-wide text-ink-muted">
-            Time-Travel Audit — what would we have known?
-          </h3>
-        </div>
-        {data.lead_time_months !== null && data.lead_time_months > 0 && (
-          <div className="text-right">
-            <span className="font-mono text-lg font-semibold text-risk-high tabular">
-              {data.lead_time_months} mo
-            </span>
-            <span className="text-2xs text-ink-muted ml-1">audited lead</span>
+          <div>
+            <h3 className="text-sm font-semibold text-ink">Time-Travel Audit</h3>
+            <p className="text-2xs text-ink-muted mt-0.5">
+              What would we have known?
+            </p>
           </div>
-        )}
+        </div>
+        <div className="flex items-start gap-3 shrink-0">
+          {data.lead_time_months !== null && data.lead_time_months > 0 && (
+            <div className="text-right whitespace-nowrap">
+              <span className="font-mono text-lg font-semibold text-risk-high tabular">
+                {data.lead_time_months} mo
+              </span>
+              <span className="text-2xs text-ink-muted ml-1">audited lead</span>
+            </div>
+          )}
+          <InfoHint text={explanation} />
+        </div>
       </div>
 
-      <p className="text-2xs text-ink-faint mb-3">
-        Score recomputed using only data available at each month. No future
-        information leaks backward.
-      </p>
-
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img">
+        {/* Grid + ticks */}
+        {scoreTicks.map((tick) => (
+          <g key={`score-${tick}`}>
+            <line
+              x1={PAD}
+              y1={sy(tick)}
+              x2={W - PAD}
+              y2={sy(tick)}
+              stroke="var(--paper-line, #e4e4e7)"
+              strokeWidth={1}
+            />
+            <text
+              x={PAD - 8}
+              y={sy(tick) + 3}
+              textAnchor="end"
+              fontSize={9}
+              fill="var(--ink-muted, #71717a)"
+            >
+              {tick}
+            </text>
+          </g>
+        ))}
+        {monthTicks.map((tick) => (
+          <g key={`month-${tick}`}>
+            <line
+              x1={mx(tick)}
+              y1={H - PAD}
+              x2={mx(tick)}
+              y2={H - PAD + 4}
+              stroke="var(--ink-faint, #a1a1aa)"
+              strokeWidth={1}
+            />
+            <text
+              x={mx(tick)}
+              y={H - PAD + 16}
+              textAnchor="middle"
+              fontSize={9}
+              fill="var(--ink-muted, #71717a)"
+            >
+              m{tick}
+            </text>
+          </g>
+        ))}
+
         {/* Axes */}
-        <line x1={PAD} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="#e4e4e7" />
-        <line x1={PAD} y1={PAD} x2={PAD} y2={H - PAD} stroke="#e4e4e7" />
+        <line x1={PAD} y1={H - PAD} x2={W - PAD} y2={H - PAD} stroke="var(--paper-line, #e4e4e7)" />
+        <line x1={PAD} y1={PAD} x2={PAD} y2={H - PAD} stroke="var(--paper-line, #e4e4e7)" />
+        <text x={W / 2} y={H - 7} textAnchor="middle" fontSize={10} fill="var(--ink-muted, #71717a)">
+          Month in historical replay
+        </text>
+        <text
+          x={13}
+          y={H / 2}
+          textAnchor="middle"
+          fontSize={10}
+          fill="var(--ink-muted, #71717a)"
+          transform={`rotate(-90 13 ${H / 2})`}
+        >
+          As-of risk score
+        </text>
 
         {/* Alert threshold */}
         <line
@@ -103,7 +172,7 @@ export function TimeTravelPanel({ driftId }: TimeTravelPanelProps) {
           strokeDasharray="4 4"
           opacity={0.5}
         />
-        <text x={W - PAD} y={sy(data.alert_threshold) - 4} textAnchor="end" fontSize={9} fill="#a16207">
+        <text x={W - PAD} y={sy(data.alert_threshold) - 4} textAnchor="end" fontSize={9} fill="var(--risk-medium, #a16207)">
           alert threshold
         </text>
 
@@ -118,7 +187,7 @@ export function TimeTravelPanel({ driftId }: TimeTravelPanelProps) {
               stroke="var(--risk-high, #c2410c)"
               strokeWidth={2}
             />
-            <text x={mx(data.alert_month) + 4} y={PAD + 10} fontSize={9} fill="var(--risk-high,#c2410c)" fontWeight={600}>
+            <text x={mx(data.alert_month) + 4} y={PAD + 10} fontSize={9} fill="var(--risk-high, #c2410c)" fontWeight={600}>
               system flags
             </text>
           </g>
@@ -135,7 +204,7 @@ export function TimeTravelPanel({ driftId }: TimeTravelPanelProps) {
               stroke="var(--risk-critical, #b91c1c)"
               strokeWidth={2}
             />
-            <text x={mx(data.sanctions_month) - 4} y={PAD + 10} fontSize={9} fill="var(--risk-critical,#b91c1c)" fontWeight={600} textAnchor="end">
+            <text x={mx(data.sanctions_month) - 4} y={PAD + 10} fontSize={9} fill="var(--risk-critical, #b91c1c)" fontWeight={600} textAnchor="end">
               sanctions hit
             </text>
           </g>
@@ -148,6 +217,12 @@ export function TimeTravelPanel({ driftId }: TimeTravelPanelProps) {
 
         {/* Cursor point */}
         <circle cx={mx(cur.month)} cy={sy(cur.as_of_score)} r={5} fill="var(--accent, #003d4c)" stroke="white" strokeWidth={2} />
+        <g transform={`translate(${PAD} ${PAD - 18})`}>
+          <line x1={0} y1={0} x2={22} y2={0} stroke="var(--accent, #003d4c)" strokeWidth={2} />
+          <text x={28} y={3} fontSize={9} fill="var(--ink-muted, #71717a)">known as-of selected month</text>
+          <line x1={176} y1={0} x2={198} y2={0} stroke="var(--accent, #003d4c)" strokeWidth={1} opacity={0.2} />
+          <text x={204} y={3} fontSize={9} fill="var(--ink-muted, #71717a)">later months, audit context</text>
+        </g>
       </svg>
 
       {/* Slider */}
@@ -167,21 +242,13 @@ export function TimeTravelPanel({ driftId }: TimeTravelPanelProps) {
         </div>
         <div className="grid grid-cols-4 gap-2 text-center">
           <AsOfStat label="Score" value={cur.as_of_score.toFixed(0)} highlight={cur.as_of_score >= data.alert_threshold} />
-          <AsOfStat label="Velocity" value={cur.velocity.toFixed(1)} />
-          <AsOfStat label="Public" value={cur.public_risk.toFixed(2)} />
+          <AsOfStat label="Velocity" value={formatCompact(cur.velocity)} />
+          <AsOfStat label="Public risk" value={`${Math.round(cur.public_risk * 100)}`} />
           <AsOfStat label="Contagion" value={cur.contagion_active ? "active" : "—"} />
         </div>
       </div>
 
-      {/* Proof line */}
-      <div className="flex items-start gap-2 mt-3 text-2xs text-ink-muted">
-        <ShieldCheck className="h-3.5 w-3.5 text-risk-low shrink-0 mt-0.5" strokeWidth={2} />
-        <span>
-          Verifiable property: corrupting any month after T leaves the as-of-T
-          score unchanged. BOCPD is online by construction — no look-ahead.
-        </span>
-      </div>
-    </div>
+    </ZoomablePanel>
   );
 }
 

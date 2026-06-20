@@ -16,9 +16,21 @@ export function formatCHF(amount: number): string {
   }).format(amount);
 }
 
+/**
+ * Parse an ISO timestamp into a Date, treating timezone-less strings as UTC.
+ *
+ * The backend emits some naive UTC timestamps (no `Z`/offset suffix, e.g.
+ * `datetime.utcnow()`). Without this, `new Date()` would interpret them as the
+ * viewer's local time, making them appear shifted (i.e. shown "in UTC").
+ */
+export function parseTimestamp(iso: string): Date {
+  const hasTimezone = /[zZ]|[+-]\d{2}:?\d{2}$/.test(iso);
+  return new Date(hasTimezone ? iso : `${iso}Z`);
+}
+
 /** Format a relative time (e.g. "12 min ago"). */
 export function timeAgo(iso: string): string {
-  const then = new Date(iso).getTime();
+  const then = parseTimestamp(iso).getTime();
   const now = Date.now();
   const diffSec = Math.round((now - then) / 1000);
 
@@ -28,9 +40,9 @@ export function timeAgo(iso: string): string {
   return `${Math.floor(diffSec / 86400)} d ago`;
 }
 
-/** Format an ISO timestamp as a readable date-time. */
+/** Format an ISO timestamp as a readable date-time in the viewer's local zone. */
 export function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("en-GB", {
+  return parseTimestamp(iso).toLocaleString("en-GB", {
     day: "2-digit",
     month: "short",
     hour: "2-digit",
@@ -108,3 +120,69 @@ export const ACTION_LABELS: Record<string, string> = {
   escalate: "Escalate",
   block: "Block",
 };
+
+/** Plain-language labels for the cost-aware cascade tiers. */
+export const TIER_LABELS: Record<string, string> = {
+  T0_RULES: "Rules check",
+  T1_ML: "ML model",
+  T2_LLM: "AI review",
+};
+
+/** Compact number for dashboards: 15885.238 → "15.9k", 922.4 → "922". */
+export function formatCompact(n: number): string {
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (abs >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
+  return Math.round(n).toString();
+}
+
+/**
+ * Evenly-spaced integer axis ticks across [min, max], at most `maxTicks`.
+ *
+ * Uses one uniform step so the gap between every tick is identical (avoids the
+ * ragged spacing you get from rounding 5 fractional positions independently —
+ * e.g. 0, 4, 9, 13, 17). The final tick may stop just short of `max` to keep
+ * all intervals equal, which is standard axis behaviour.
+ */
+export function evenTicks(min: number, max: number, maxTicks = 5): number[] {
+  if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) {
+    return [min];
+  }
+  const step = Math.max(1, Math.round((max - min) / Math.max(1, maxTicks - 1)));
+  const ticks: number[] = [];
+  for (let v = min; v <= max; v += step) {
+    ticks.push(v);
+  }
+  return ticks;
+}
+
+/** Map a 0–1 internal score to a plain-language severity + colour class. */
+export function scoreSeverity(value: number): { label: string; color: string } {
+  if (value >= 0.7) return { label: "Critical", color: "text-risk-critical" };
+  if (value >= 0.4) return { label: "High", color: "text-risk-high" };
+  if (value >= 0.2) return { label: "Elevated", color: "text-risk-medium" };
+  return { label: "Low", color: "text-risk-low" };
+}
+
+/**
+ * Translate a log-likelihood ratio into a plain-language evidence weight.
+ * Positive pushes toward risk, negative toward benign. Magnitude → strength.
+ */
+export function llrWeight(llr: number): {
+  label: string;
+  color: string;
+  toward: "risk" | "benign" | "neutral";
+} {
+  const abs = Math.abs(llr);
+  const toward = abs < 0.2 ? "neutral" : llr > 0 ? "risk" : "benign";
+  const strength =
+    abs >= 2 ? "Strong" : abs >= 0.75 ? "Moderate" : abs >= 0.2 ? "Weak" : "Negligible";
+  const color =
+    toward === "risk"
+      ? "text-risk-critical"
+      : toward === "benign"
+        ? "text-risk-low"
+        : "text-ink-muted";
+  const arrow = toward === "risk" ? "↑ risk" : toward === "benign" ? "↓ benign" : "neutral";
+  return { label: toward === "neutral" ? "Neutral" : `${strength} ${arrow}`, color, toward };
+}

@@ -1,22 +1,32 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
-import { casesApi, ApiError } from "@/lib/api";
+import { useEffect, useRef, useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { casesApi, scoringApi, ApiError } from "@/lib/api";
 import {
   cn,
   timeAgo,
+  parseTimestamp,
   CASE_TYPE_LABELS,
   JURISDICTION_LABELS,
 } from "@/lib/utils";
 import { RiskBadge } from "@/components/ui/RiskBadge";
 import { RiskScore } from "@/components/ui/RiskScore";
-import type { CaseListItem } from "@/types/api";
-import { ChevronRight, Inbox, AlertCircle, RefreshCw } from "lucide-react";
+import type { CaseListItem, PaginatedResponse } from "@/types/api";
+import { ChevronRight, Inbox, AlertCircle, RefreshCw, ArrowUpDown, Check, ChevronDown } from "lucide-react";
 
 interface CaseQueueProps {
   selectedCaseId: string | null;
   onSelectCase: (caseId: string) => void;
 }
+
+type SortKey = "risk" | "newest" | "oldest";
+
+const SORT_OPTIONS: { key: SortKey; label: string }[] = [
+  { key: "risk", label: "Highest risk" },
+  { key: "newest", label: "Newest first" },
+  { key: "oldest", label: "Oldest first" },
+];
 
 /**
  * The case review queue — primary work surface for a compliance officer.
@@ -25,10 +35,69 @@ interface CaseQueueProps {
  * Each row is a button (full-row click target) with a hover affordance.
  */
 export function CaseQueue({ selectedCaseId, onSelectCase }: CaseQueueProps) {
+  const queryClient = useQueryClient();
+  const scoringIdsRef = useRef<Set<string>>(new Set());
+  const [sortKey, setSortKey] = useState<SortKey>("risk");
   const { data, isLoading, error, refetch, isRefetching } = useQuery({
     queryKey: ["cases"],
     queryFn: () => casesApi.list({ page_size: 50 }),
   });
+
+  useEffect(() => {
+    const unscored = (data?.items ?? []).filter(
+      (c) => c.risk_score === null && !scoringIdsRef.current.has(c.id),
+    );
+    if (unscored.length === 0) return;
+
+    unscored.forEach((c) => scoringIdsRef.current.add(c.id));
+    let cancelled = false;
+
+    Promise.allSettled(unscored.map((c) => scoringApi.score(c.id))).then(
+      (results) => {
+        if (cancelled) return;
+
+        const scoredById = new Map<
+          string,
+          { score: number; level: CaseListItem["risk_level"] }
+        >();
+        results.forEach((result, index) => {
+          if (result.status !== "fulfilled") return;
+          scoredById.set(unscored[index].id, {
+            score: result.value.result.score,
+            level: result.value.result.level,
+          });
+        });
+
+        if (scoredById.size > 0) {
+          queryClient.setQueryData<PaginatedResponse<CaseListItem>>(
+            ["cases"],
+            (old) =>
+              old
+                ? {
+                    ...old,
+                    items: old.items.map((item) => {
+                      const scored = scoredById.get(item.id);
+                      return scored
+                        ? {
+                            ...item,
+                            risk_score: scored.score,
+                            risk_level: scored.level,
+                          }
+                        : item;
+                    }),
+                  }
+                : old,
+          );
+        }
+
+        queryClient.invalidateQueries({ queryKey: ["cases"] });
+      },
+    );
+
+    return () => {
+      cancelled = true;
+    };
+  }, [data?.items, queryClient]);
 
   if (isLoading) {
     return <QueueSkeleton />;
@@ -82,27 +151,26 @@ export function CaseQueue({ selectedCaseId, onSelectCase }: CaseQueueProps) {
 
   const cases = data?.items ?? [];
 
-  // Sort: highest risk first, then unscored, then by recency
   const sorted = [...cases].sort((a, b) => {
-    const sa = a.risk_score ?? -1;
-    const sb = b.risk_score ?? -1;
-    return sb - sa;
+    if (sortKey === "risk") {
+      return (b.risk_score ?? -1) - (a.risk_score ?? -1);
+    }
+    const ta = parseTimestamp(a.created_at).getTime();
+    const tb = parseTimestamp(b.created_at).getTime();
+    return sortKey === "newest" ? tb - ta : ta - tb;
   });
 
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <div className="h-16 shrink-0 border-b border-paper-line px-6 flex items-center justify-between">
-        <div>
+      <div className="h-16 shrink-0 border-b border-paper-line px-6 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
           <h1 className="font-semibold text-ink">Case Queue</h1>
-          <p className="text-xs text-ink-muted mt-0.5">
-            {sorted.length} cases · sorted by risk
-          </p>
+          <span className="inline-flex items-center justify-center min-w-[1.5rem] h-6 px-2 rounded-full bg-accent-bg text-accent text-xs font-semibold tabular">
+            {sorted.length}
+          </span>
         </div>
-        <div className="flex items-center gap-2 text-xs text-ink-muted">
-          <span className="h-2 w-2 rounded-full bg-risk-low animate-pulse" />
-          Live
-        </div>
+        <SortControl value={sortKey} onChange={setSortKey} />
       </div>
 
       {/* List */}
@@ -185,6 +253,67 @@ function CaseRow({
         />
       </button>
     </li>
+  );
+}
+
+function SortControl({
+  value,
+  onChange,
+}: {
+  value: SortKey;
+  onChange: (key: SortKey) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const current = SORT_OPTIONS.find((o) => o.key === value) ?? SORT_OPTIONS[0];
+
+  return (
+    <div className="relative shrink-0">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        className="inline-flex items-center gap-1.5 rounded border border-paper-line bg-paper-raised px-2.5 py-1.5 text-xs font-medium text-ink-soft hover:bg-paper-sunken hover:text-ink transition-colors"
+      >
+        <ArrowUpDown className="h-3.5 w-3.5 text-ink-muted" strokeWidth={2} />
+        {current.label}
+        <ChevronDown
+          className={cn(
+            "h-3.5 w-3.5 text-ink-faint transition-transform",
+            open && "rotate-180",
+          )}
+          strokeWidth={2}
+        />
+      </button>
+
+      {open && (
+        <>
+          <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} />
+          <div
+            role="listbox"
+            className="absolute right-0 top-full mt-1 z-30 w-44 rounded border border-paper-line bg-paper-raised shadow-raised py-1"
+          >
+            {SORT_OPTIONS.map((o) => (
+              <button
+                key={o.key}
+                role="option"
+                aria-selected={o.key === value}
+                onClick={() => {
+                  onChange(o.key);
+                  setOpen(false);
+                }}
+                className={cn(
+                  "w-full flex items-center justify-between gap-2 px-3 py-1.5 text-xs text-left transition-colors hover:bg-paper-sunken",
+                  o.key === value ? "text-accent font-medium" : "text-ink-soft",
+                )}
+              >
+                {o.label}
+                {o.key === value && <Check className="h-3.5 w-3.5" strokeWidth={2.5} />}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
   );
 }
 

@@ -1,9 +1,9 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, formatCompact, scoreSeverity } from "@/lib/utils";
+import { InfoHint } from "@/components/ui/InfoHint";
 import type { DormancyVerdict } from "@/types/api";
 import { Activity, Moon, Power, X } from "lucide-react";
-
 interface DormancyPanelProps {
   dormancy: DormancyVerdict;
 }
@@ -30,13 +30,13 @@ export function DormancyPanel({ dormancy }: DormancyPanelProps) {
     return null;
   }
 
+  const sev = scoreSeverity(dormancy_break);
+
   return (
     <div
       className={cn(
-        "border rounded p-4",
-        is_dormancy_break
-          ? "border-risk-critical/30 bg-risk-critical-bg"
-          : "border-paper-line bg-paper-raised",
+        "rounded border border-paper-line p-4",
+        is_dormancy_break ? "bg-risk-critical-bg" : "bg-paper-raised",
       )}
     >
       <div className="flex items-center gap-2 mb-3">
@@ -55,6 +55,10 @@ export function DormancyPanel({ dormancy }: DormancyPanelProps) {
             FLAGGED
           </span>
         )}
+        <InfoHint
+          className="ml-auto"
+          text="Sleeper-account reactivation detector. Flags a previously dormant account (near-zero baseline) that suddenly bursts into high volume. Score = dormancy depth × activation strength — a product, so a still-dormant account or ordinary steady growth both score near zero; only the dormant-to-active jump scores high."
+        />
       </div>
 
       <div className="flex items-center gap-2 mb-3">
@@ -69,13 +73,15 @@ export function DormancyPanel({ dormancy }: DormancyPanelProps) {
         <div className="text-center shrink-0">
           <div
             className={cn(
-              "font-mono text-xl font-semibold tabular",
-              is_dormancy_break ? "text-risk-critical" : "text-ink",
+              "text-sm font-semibold",
+              is_dormancy_break ? "text-risk-critical" : sev.color,
             )}
           >
-            {dormancy_break.toFixed(2)}
+            {is_dormancy_break ? "Critical" : sev.label}
           </div>
-          <div className="text-2xs text-ink-muted">break score</div>
+          <div className="text-2xs text-ink-muted font-mono tabular">
+            {dormancy_break.toFixed(2)} break score
+          </div>
         </div>
       </div>
 
@@ -83,25 +89,25 @@ export function DormancyPanel({ dormancy }: DormancyPanelProps) {
         <span className="min-w-0">
           Baseline volume{" "}
           <span className="font-mono text-ink tabular">
-            {baseline_volume.toFixed(1)}
+            {formatCompact(baseline_volume)}
           </span>
         </span>
         <span className="min-w-0 text-right">
           Active volume{" "}
           <span className="font-mono text-ink tabular">
-            {active_volume.toFixed(1)}
+            {formatCompact(active_volume)}
           </span>
         </span>
       </div>
 
-      <p className="text-2xs text-ink-faint mt-2 leading-relaxed">{detail}</p>
-
-      {is_dormancy_break && (
-        <p className="text-2xs text-risk-critical mt-2 leading-relaxed font-medium">
-          A dormant baseline followed by a strong activation burst is treated as
-          suspicious reactivation and is surfaced for human AML review.
-        </p>
-      )}
+      <p
+        className={cn(
+          "text-2xs mt-2 leading-relaxed",
+          is_dormancy_break ? "text-risk-critical font-medium" : "text-ink-faint",
+        )}
+      >
+        {detail}
+      </p>
     </div>
   );
 }

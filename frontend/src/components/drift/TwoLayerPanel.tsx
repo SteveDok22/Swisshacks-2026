@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, scoreSeverity } from "@/lib/utils";
 import type { DriftCustomerDetail } from "@/types/api";
 import { Globe, Building2, Link2, Newspaper, ShieldAlert, TrendingUp, Network, ExternalLink, BadgeAlert } from "lucide-react";
 
@@ -73,13 +73,13 @@ export function TwoLayerPanel({ detail }: TwoLayerPanelProps) {
         <LayerCard
           icon={Globe}
           label="Public Intelligence"
-          sublabel="news · sanctions · media · ownership · funding"
+          sublabel="external real-time signals"
           risk={public_risk}
         />
         <LayerCard
           icon={Building2}
           label="Internal Bank Data"
-          sublabel="BOCPD drift · velocity · contagion"
+          sublabel="behavioural drift & contagion"
           risk={internal_risk}
         />
       </div>
@@ -87,27 +87,34 @@ export function TwoLayerPanel({ detail }: TwoLayerPanelProps) {
       {/* Confirmation lift connector */}
       <div
         className={cn(
-          "flex items-center justify-center gap-2 rounded py-2 mb-3 border",
+          "rounded border p-3 mb-3",
           lifted
             ? "bg-risk-high-bg border-risk-high/20"
             : "bg-paper-sunken border-paper-line",
         )}
       >
-        <Link2
-          className={cn("h-3.5 w-3.5", lifted ? "text-risk-high" : "text-ink-muted")}
-          strokeWidth={2}
-        />
-        <span className={cn("text-xs", lifted ? "text-risk-high font-medium" : "text-ink-muted")}>
-          Confirmation Lift{" "}
-          <span className="font-mono font-semibold tabular">
-            {confirmation_lift.toFixed(1)}x
+        <div className="flex items-center gap-2">
+          <Link2
+            className={cn("h-4 w-4 shrink-0", lifted ? "text-risk-high" : "text-ink-muted")}
+            strokeWidth={2}
+          />
+          <span className={cn("text-xs font-medium", lifted ? "text-risk-high" : "text-ink-soft")}>
+            Confirmation Lift
           </span>
-        </span>
-        <span className="text-2xs text-ink-muted">
+          <span
+            className={cn(
+              "font-mono text-base font-semibold tabular ml-auto",
+              lifted ? "text-risk-high" : "text-ink",
+            )}
+          >
+            {confirmation_lift.toFixed(1)}×
+          </span>
+        </div>
+        <p className="text-2xs text-ink-muted mt-1 leading-snug">
           {lifted
-            ? "— external intelligence confirms internal drift"
-            : "— layers independent"}
-        </span>
+            ? "External intelligence confirms internal drift — the combined signal is stronger than either layer alone."
+            : "Layers are independent — no temporal co-occurrence to amplify."}
+        </p>
       </div>
 
       {/* Identity reset (UC8): confirmed legal-entity name change → re-KYC. The
@@ -234,8 +241,11 @@ export function TwoLayerPanel({ detail }: TwoLayerPanelProps) {
                         </>
                       )}
                       <span>·</span>
-                      <span className={cn("shrink-0 font-mono tabular", sevColor(s.severity))}>
-                        severity {s.severity.toFixed(2)}
+                      <span
+                        className={cn("shrink-0 font-medium", sevColor(s.severity))}
+                        title={`Severity score: ${s.severity.toFixed(2)}`}
+                      >
+                        {scoreSeverity(s.severity).label}
                       </span>
                     </div>
                   </div>

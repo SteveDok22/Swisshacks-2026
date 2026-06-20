@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, scoreSeverity } from "@/lib/utils";
 import type { StabilityVerdict } from "@/types/api";
 import { Snowflake, Activity, X } from "lucide-react";
 
@@ -25,13 +25,17 @@ export function StabilityPanel({ stability }: StabilityPanelProps) {
     return null;
   }
 
+  const sev = scoreSeverity(suspicion);
+  // How calm this customer is versus their peer cohort (the slow-walker tell:
+  // unusually low volatility while the cohort moves).
+  const volatilityRatio =
+    cohort_volatility > 0 ? own_volatility / cohort_volatility : null;
+
   return (
     <div
       className={cn(
-        "border rounded p-4",
-        is_suspicious
-          ? "border-risk-high/30 bg-risk-high-bg"
-          : "border-paper-line bg-paper-raised",
+        "rounded border border-paper-line p-4",
+        is_suspicious ? "bg-risk-high-bg" : "bg-paper-raised",
       )}
     >
       <div className="flex items-center gap-2 mb-3">
@@ -66,37 +70,42 @@ export function StabilityPanel({ stability }: StabilityPanelProps) {
         <div className="text-center shrink-0">
           <div
             className={cn(
-              "font-mono text-xl font-semibold tabular",
-              is_suspicious ? "text-risk-high" : "text-ink",
+              "text-sm font-semibold",
+              is_suspicious ? "text-risk-high" : sev.color,
             )}
           >
-            {suspicion.toFixed(2)}
+            {is_suspicious ? "High" : sev.label}
           </div>
-          <div className="text-2xs text-ink-muted">suspicion</div>
+          <div className="text-2xs text-ink-muted font-mono tabular">
+            {suspicion.toFixed(2)} suspicion
+          </div>
         </div>
       </div>
 
       {/* Volatility comparison */}
       <div className="flex items-center justify-between text-2xs text-ink-muted border-t border-paper-line pt-2">
-        <span>
-          Customer volatility{" "}
-          <span className="font-mono text-ink tabular">{own_volatility.toFixed(3)}</span>
-        </span>
-        <span>
-          Cohort norm{" "}
-          <span className="font-mono text-ink tabular">{cohort_volatility.toFixed(3)}</span>
-        </span>
+        <span>Movement vs peer cohort</span>
+        {volatilityRatio !== null ? (
+          <span className="text-ink">
+            <span className="font-mono tabular">{volatilityRatio.toFixed(1)}×</span>{" "}
+            cohort norm{" "}
+            <span className="text-ink-muted">
+              ({volatilityRatio < 0.8 ? "calmer than peers" : volatilityRatio > 1.2 ? "more volatile" : "in line"})
+            </span>
+          </span>
+        ) : (
+          <span className="text-ink-muted">n/a</span>
+        )}
       </div>
 
-      <p className="text-2xs text-ink-faint mt-2 leading-relaxed">{detail}</p>
-
-      {is_suspicious && (
-        <p className="text-2xs text-risk-high mt-2 leading-relaxed font-medium">
-          This customer keeps an unnaturally calm profile while their surroundings
-          move — the signature of someone who knows drift is monitored. Elevated
-          despite low drift, so they cannot hide below the radar.
-        </p>
-      )}
+      <p
+        className={cn(
+          "text-2xs mt-2 leading-relaxed",
+          is_suspicious ? "text-risk-high font-medium" : "text-ink-faint",
+        )}
+      >
+        {detail}
+      </p>
     </div>
   );
 }

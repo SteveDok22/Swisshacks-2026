@@ -54,9 +54,6 @@ export function StreamingExplanation({ caseId }: StreamingExplanationProps) {
               reconnecting (attempt {retryCount + 1})…
             </span>
           )}
-          {isDone && !error && (
-            <span className="text-2xs text-ink-muted">· complete</span>
-          )}
         </div>
         {(isDone || error) && (
           <button

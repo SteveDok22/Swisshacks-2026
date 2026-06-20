@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { driftApi } from "@/lib/api";
-import { cn, formatCompact } from "@/lib/utils";
+import { cn, formatCompact, evenTicks } from "@/lib/utils";
 import { InfoHint } from "@/components/ui/InfoHint";
 import { ZoomablePanel } from "@/components/ui/ZoomablePanel";
 import { History, Loader2 } from "lucide-react";
@@ -53,14 +53,7 @@ export function TimeTravelPanel({ driftId }: TimeTravelPanelProps) {
 
   const mx = (m: number) => PAD + ((m - minM) / Math.max(1, maxM - minM)) * (W - 2 * PAD);
   const sy = (s: number) => H - PAD - (s / maxScore) * (H - 2 * PAD);
-  const monthTickCount = Math.min(5, Math.max(2, maxM - minM + 1));
-  const monthTicks = Array.from(
-    new Set(
-      Array.from({ length: monthTickCount }, (_, i) =>
-        Math.round(minM + (i / Math.max(1, monthTickCount - 1)) * (maxM - minM)),
-      ),
-    ),
-  );
+  const monthTicks = evenTicks(minM, maxM);
   const scoreTicks = Array.from(
     new Set([0, 50, data.alert_threshold, 100].map((tick) => Math.round(tick))),
   ).sort((a, b) => a - b);

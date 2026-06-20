@@ -136,6 +136,26 @@ export function formatCompact(n: number): string {
   return Math.round(n).toString();
 }
 
+/**
+ * Evenly-spaced integer axis ticks across [min, max], at most `maxTicks`.
+ *
+ * Uses one uniform step so the gap between every tick is identical (avoids the
+ * ragged spacing you get from rounding 5 fractional positions independently —
+ * e.g. 0, 4, 9, 13, 17). The final tick may stop just short of `max` to keep
+ * all intervals equal, which is standard axis behaviour.
+ */
+export function evenTicks(min: number, max: number, maxTicks = 5): number[] {
+  if (!Number.isFinite(min) || !Number.isFinite(max) || max <= min) {
+    return [min];
+  }
+  const step = Math.max(1, Math.round((max - min) / Math.max(1, maxTicks - 1)));
+  const ticks: number[] = [];
+  for (let v = min; v <= max; v += step) {
+    ticks.push(v);
+  }
+  return ticks;
+}
+
 /** Map a 0–1 internal score to a plain-language severity + colour class. */
 export function scoreSeverity(value: number): { label: string; color: string } {
   if (value >= 0.7) return { label: "Critical", color: "text-risk-critical" };

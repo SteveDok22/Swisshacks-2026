@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { formatCompact } from "@/lib/utils";
+import { formatCompact, evenTicks } from "@/lib/utils";
 import { InfoHint } from "@/components/ui/InfoHint";
 import { ZoomablePanel } from "@/components/ui/ZoomablePanel";
 import type { DriftCustomerDetail } from "@/types/api";
@@ -49,14 +49,7 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
     PAD_X + ((m - minMonth) / Math.max(1, maxMonth - minMonth)) * (W - PAD_X - PAD_Y);
   const vy = (v: number) =>
     H - PAD_Y - ((v - minVel) / Math.max(0.1, maxVel - minVel)) * (H - 2 * PAD_Y);
-  const monthTickCount = Math.min(5, Math.max(2, maxMonth - minMonth + 1));
-  const monthTicks = Array.from(
-    new Set(
-      Array.from({ length: monthTickCount }, (_, i) =>
-        Math.round(minMonth + (i / Math.max(1, monthTickCount - 1)) * (maxMonth - minMonth)),
-      ),
-    ),
-  );
+  const monthTicks = evenTicks(minMonth, maxMonth);
   const velocityTicks = Array.from(
     new Set([minVel, 0, 0.8, maxVel].map((tick) => Number(tick.toFixed(1)))),
   ).sort((a, b) => a - b);

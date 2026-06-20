@@ -13,7 +13,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 | Criterion | Weight | Status | Notes |
 |---|---|---|---|
 | **AI Intelligence Quality** | 25% | ✅ Strong | 7 real algorithms, genuine causal separation, suspicious stability |
-| **Cost Efficiency** | 20% | ⚠️ Gap | Cascade well-designed; T2 LLM calls counted but never executed; no per-workflow token count |
+| **Cost Efficiency** | 20% | ⚠️ Partial | Cascade executes T2 LLM adjudications and reports actual real/mock calls; no per-workflow token count |
 | **UX & Explainability** | 20% | ⚠️ Gap | 7 visualisations solid; SHAP disconnected from drift; source citations missing |
 | **Compliance & Safety** | 20% | ⚠️ Gap | Anonymizer works; ~~audit log not written from drift~~ fixed; HITL missing on drift page |
 | **Engineering & Architecture** | 15% | ✅ Good | Modular 10-file engine, clean API, async throughout; unit + BDD tests added; no CI/CD |
@@ -45,7 +45,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 | XGBoost + SHAP | Real — wired to case management only, not drift |
 | Audit service | Append-only, SQLite-persisted |
 | Privacy / anonymizer | PII pseudonymized before Claude |
-| Claude AI integration | Works for case explanations; not connected to drift |
+| Claude AI integration | Works for case explanations and T2 drift adjudication; mock mode works without an API key |
 | Jurisdiction rule packs | CH / EU / HK / AE all loaded |
 | Docker | Backend Dockerfile production-quality (multi-stage, non-root, healthcheck) |
 
@@ -79,7 +79,7 @@ Ordered by judging weight × demo impact. Check off as work is completed.
 
 ### 🔴 P0 — Cost Efficiency (20%)
 
-- [ ] **At least one real T2 LLM call** — for T2 customers in `drift/service.py:scan()`, call `AnthropicClient` to adjudicate the causal vs benign hypothesis; without this the "96% savings" comparison is circular (the baseline LLM calls are also never made)
+- [x] **Actual T2 LLM adjudication path** — for T2 customers in `drift/service.py:scan()`, call `AnthropicClient` to adjudicate risk-shaped vs benign vs ambiguous hypotheses; report actual real/mock calls and parsed adjudications. The LLM-on-everything baseline remains a counterfactual cost estimate.
 
 ### 🟠 P1 — AI Quality (25%)
 
@@ -264,6 +264,7 @@ BDD is a natural fit here: the 7 synthetic scenarios and H1–H4 hypotheses are 
 - [x] **`test_causal.py`** — risk signature → `label="risk"`; benign signature → `label="benign"`; p_risk in [0,1]; contributions cover all dimensions; end-to-end with simulator — 8 tests
 - [x] **`test_stability.py`** — flat customer in volatile cohort → `is_suspicious=True`; volatile customer → not suspicious; quiet environment does not flag; `cohort_volatility` behavior — 11 tests
 - [x] **`test_cascade.py`** — score < 30 → T0; 30–55 → T1; ≥55 + value → T2; sanctions + value → T2; cumulative cost ordering — 11 tests (actual thresholds: t1=30, t2=55)
+- [x] **`test_drift_t2_llm.py`** — scan calls LLM only for T2 customers; zero-T2 scan performs zero calls; invalid LLM JSON returns safe fallback.
 - [x] **`test_contagion.py`** — direct neighbor elevated > 0.1; near > far; hop counts; cytoscape shape; empty seeds — 11 tests
 - [x] **`test_score_boundaries.py`** — `score_to_level` / `score_to_action` full boundary coverage incl. float regression — 15 tests (previously `test_score_to_level`)
 

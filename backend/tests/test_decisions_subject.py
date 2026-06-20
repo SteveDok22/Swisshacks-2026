@@ -134,7 +134,7 @@ async def test_list_subject_decisions_empty(client: AsyncClient, cid: str) -> No
 
 
 @pytest.mark.asyncio
-async def test_list_unknown_customer_returns_404(client: AsyncClient) -> None:
+async def test_list_unknown_subject_returns_404(client: AsyncClient) -> None:
     resp = await client.get("/api/v1/decisions/subject/unknown-customer")
     assert resp.status_code == 404, resp.text
 
@@ -143,7 +143,7 @@ async def test_list_unknown_customer_returns_404(client: AsyncClient) -> None:
 async def test_list_subject_decisions_chronological(
     client: AsyncClient, cid: str
 ) -> None:
-    """Multiple decisions for the same customer are returned in creation order."""
+    """Multiple decisions for the same subject are returned in creation order."""
     for action in ("escalate", "step_up_verification", "block"):
         rationale = None if action == "escalate" else "Documented officer override."
         r = await post_drift_decision(
@@ -164,7 +164,7 @@ async def test_list_subject_decisions_chronological(
 async def test_list_subject_decisions_isolated_by_subject(
     client: AsyncClient, cid: str
 ) -> None:
-    """Decisions for one customer don't appear under another."""
+    """Decisions for one subject don't appear under another."""
     customers = (await client.get("/api/v1/drift/subjects")).json()
     cid_a = cid
     cid_b = next(c["drift_id"] for c in customers if c["drift_id"] != cid_a)
@@ -263,7 +263,7 @@ async def test_empty_drift_id_rejected(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
-async def test_unknown_customer_rejected(client: AsyncClient) -> None:
+async def test_unknown_subject_rejected(client: AsyncClient) -> None:
     resp = await post_drift_decision(
         client,
         f"UNKNOWN-{uuid4().hex}",

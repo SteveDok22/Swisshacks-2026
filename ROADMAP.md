@@ -37,8 +37,8 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 ### P0 — Already done ✅
 
-- [x] Wire audit log into drift pipeline — `drift_customer_analyzed`, `drift_scan_completed`, `drift_replay_executed`, etc.
-- [x] DecisionBar on drift page — `POST /decisions` accepts `customer_id`; drift recommendations derived server-side
+- [x] Wire audit log into drift pipeline — `drift_subject_analyzed`, `drift_scan_completed`, `drift_replay_executed`, etc.
+- [x] DecisionBar on drift page — `POST /decisions` accepts `drift_id`; drift recommendations derived server-side
 - [x] T2 LLM adjudication — `AnthropicClient` called for T2 customers in `drift/service.py:scan()`
 - [x] Audit log frontend page — `GET /api/v1/audit` + `/audit` route in Next.js
 - [x] Backend Docker — multi-stage, non-root, healthcheck

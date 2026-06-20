@@ -9,8 +9,8 @@ Total endpoints: 28
 ```mermaid
 flowchart TB
     subgraph Drift["Drift Engine  — /drift"]
-        D1["GET /subjects\nScan full customer book\nReturns risk-ranked list"]
-        D2["GET /subjects/{drift_id}\nFull per-customer analysis\nAll 7 layers + causal evidence"]
+        D1["GET /subjects\nScan full subject book\nReturns risk-ranked list"]
+        D2["GET /subjects/{drift_id}\nFull per-subject analysis\nAll 7 layers + causal evidence"]
         D3["GET /subjects/{drift_id}/timeline\nDrift velocity over time"]
         D4["POST /scan\nRun cost cascade scan\nReturns CascadeCostReport"]
         D5["GET /contagion\nOwnership graph + PageRank scores"]
@@ -39,7 +39,7 @@ flowchart TB
     subgraph Governance["Governance"]
         G1["POST /decisions\nLog officer decision\nBody: case_id OR drift_id, action, officer_id\nOptional: rationale"]
         G2["GET /decisions/case/{case_id}\nList all decisions for a case"]
-        G7["GET /decisions/subject/{drift_id}\nList all drift-engine decisions for a customer"]
+        G7["GET /decisions/subject/{drift_id}\nList all drift-engine decisions for a subject"]
         G3["GET /audit\nAudit log — paginated"]
         G4["GET /jurisdictions\nList all loaded rule packs"]
         G5["GET /jurisdictions/{code}\nGet rules for CH / EU / HK / AE"]

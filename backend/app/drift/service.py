@@ -97,6 +97,9 @@ LLM_PARSE_FALLBACK = {
 
 # Sanctioned seed entity for the contagion demo
 SANCTIONED_SEED = "SANCTIONED_ENTITY"
+# Display name for the sanctioned seed node (kept in sync with build_demo_graph
+# so the live-LEI and synthetic graphs label the flagged entity identically).
+SANCTIONED_SEED_NAME = "Orion Capital Partners"
 # Wall-clock cap for the startup GLEIF ownership fetch (live mode only). On any
 # timeout or failure the engine falls back to the synthetic demo graph.
 _GLEIF_FETCH_TIMEOUT_S = 30.0
@@ -290,6 +293,12 @@ class DriftEngine:
         self._gleif_snapshots: dict[str, EntitySnapshot] = {}
         self._gleif_baselines: dict[str, EntitySnapshot] = {}
         self._graph: OwnershipGraph = self._build_ownership_graph()
+        # Load persisted GLEIF onboarding baselines so the live ownership diff
+        # has a same-source anchor to fire against (PR #45 follow-up). Live mode
+        # only — offline keeps the empty mapping so the diff stays inert and the
+        # offline scores are unchanged.
+        if settings.external_apis_enabled:
+            self._gleif_baselines = self._load_gleif_baselines()
         # Contagion is computed once (sanctions already hit in demo state)
         self._contagion = self._graph.propagate(seeds=[SANCTIONED_SEED])
         # Cohort volatility reference for Suspicious Stability (computed once
@@ -339,7 +348,14 @@ class DriftEngine:
         self._gleif_snapshots = self._fetch_gleif_snapshots(
             [(c.drift_id, c.name) for c in self._book]
         )
-        graph = build_graph_from_snapshots(self._gleif_snapshots)
+        # Seed the same flagged entity used by the synthetic demo graph into the
+        # real-LEI graph so contagion propagates over live LEIs (PR #45 follow-up).
+        graph = build_graph_from_snapshots(
+            self._gleif_snapshots,
+            sanctioned_seed=SANCTIONED_SEED,
+            sanctioned_seed_name=SANCTIONED_SEED_NAME,
+            contagion_affected=CONTAGION_AFFECTED,
+        )
         if graph is None:
             logger.info(
                 "ownership_graph_fallback_demo",
@@ -373,15 +389,60 @@ class DriftEngine:
         finally:
             pool.shutdown(wait=False)
 
+    @staticmethod
+    def _load_gleif_baselines() -> dict[str, EntitySnapshot]:
+        """Synchronous bridge to load persisted GLEIF onboarding baselines.
+
+        Mirrors ``_fetch_gleif_snapshots``: runs the async DB read in a dedicated
+        thread with its own event loop. It also creates its OWN short-lived async
+        engine inside that thread (the way ``gather_ownership_snapshots`` owns its
+        httpx client) so it never touches the app's engine, which is bound to a
+        different loop — calling that engine from this thread would raise. Any
+        failure (timeout included) degrades to an empty mapping, leaving the
+        ownership diff inert exactly as in offline mode.
+        """
+        async def _load() -> dict[str, EntitySnapshot]:
+            from sqlalchemy.ext.asyncio import (
+                AsyncSession,
+                async_sessionmaker,
+                create_async_engine,
+            )
+
+            from app.db.kyc_baseline import load_gleif_baselines
+
+            engine = create_async_engine(
+                settings.database_url,
+                connect_args={"check_same_thread": False},
+            )
+            try:
+                factory = async_sessionmaker(
+                    engine, class_=AsyncSession, expire_on_commit=False
+                )
+                async with factory() as session:
+                    return await load_gleif_baselines(session)
+            finally:
+                await engine.dispose()
+
+        pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        future = pool.submit(asyncio.run, _load())
+        try:
+            return future.result(timeout=_GLEIF_FETCH_TIMEOUT_S)
+        except Exception:  # noqa: BLE001 — honour the graceful-degradation contract
+            logger.warning("gleif_baseline_load_failed", exc_info=True)
+            return {}
+        finally:
+            pool.shutdown(wait=False)
+
     def _gleif_ownership_signals(self, cust: SyntheticCustomer) -> list[PublicSignal]:
         """Emit ``ownership_change`` signals from the GLEIF ownership-chain diff.
 
         Diffs the customer's current GLEIF snapshot against its persisted GLEIF
-        KYC baseline (same source) via :func:`ownership_change_signals`. Returns
+        KYC baseline (same source) via :func:`ownership_change_signals`. The seed
+        persists a dedicated ``source="gleif"`` onboarding baseline per customer
+        (``_load_gleif_baselines`` loads it in live mode), satisfying the
+        same-source contract that excludes the ``internal`` baseline. Returns
         ``[]`` when either side is absent — offline mode, an unmatched customer,
-        or before a GLEIF onboarding baseline has been persisted (the demo seed
-        currently writes ``internal``-source baselines, which the same-source
-        contract correctly excludes from this diff).
+        or before a GLEIF baseline has been persisted.
         """
         baseline = self._gleif_baselines.get(cust.drift_id)
         current = self._gleif_snapshots.get(cust.drift_id)

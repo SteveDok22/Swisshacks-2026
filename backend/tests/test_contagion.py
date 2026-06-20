@@ -169,6 +169,58 @@ class TestBuildGraphFromSnapshots:
         assert build_graph_from_snapshots(snaps) is None
 
 
+class TestBuildGraphFromSnapshotsSeeded:
+    """Inject a flagged/sanctioned entity into the real-LEI graph (PR #45)."""
+
+    def _real_graph_snaps(self) -> dict[str, EntitySnapshot]:
+        # Two customers linked by a shared LEI so the graph has a real edge.
+        return {
+            "drift-002": _snap("drift-002", lei="LEI002", children=["LEI004"]),
+            "drift-004": _snap("drift-004", lei="LEI004"),
+        }
+
+    def test_seed_node_added_and_linked_to_affected(self):
+        g = build_graph_from_snapshots(
+            self._real_graph_snaps(),
+            sanctioned_seed="SANCTIONED_ENTITY",
+            sanctioned_seed_name="Orion Capital Partners",
+            contagion_affected={"drift-004", "drift-002"},
+        )
+        assert g is not None
+        assert "SANCTIONED_ENTITY" in g.g
+        assert g.g.nodes["SANCTIONED_ENTITY"]["name"] == "Orion Capital Partners"
+        assert g.g.nodes["SANCTIONED_ENTITY"]["is_customer"] is False
+        assert g.g.has_edge("SANCTIONED_ENTITY", "drift-004")
+        assert g.g.has_edge("SANCTIONED_ENTITY", "drift-002")
+
+    def test_contagion_propagates_from_seed_to_affected(self):
+        g = build_graph_from_snapshots(
+            self._real_graph_snaps(),
+            sanctioned_seed="SANCTIONED_ENTITY",
+            contagion_affected={"drift-004", "drift-002"},
+        )
+        assert g is not None
+        result = g.propagate(["SANCTIONED_ENTITY"])
+        assert result.propagated_risk["drift-004"] > 0.1
+        assert result.propagated_risk["drift-002"] > 0.1
+
+    def test_no_seed_when_no_affected_customer_present(self):
+        # None of the affected ids resolve to a node → no orphan seed node.
+        g = build_graph_from_snapshots(
+            self._real_graph_snaps(),
+            sanctioned_seed="SANCTIONED_ENTITY",
+            contagion_affected={"drift-999"},
+        )
+        assert g is not None
+        assert "SANCTIONED_ENTITY" not in g.g
+
+    def test_default_no_seed_injection(self):
+        # Without sanctioned_seed the graph is unchanged (backward compatible).
+        g = build_graph_from_snapshots(self._real_graph_snaps())
+        assert g is not None
+        assert "SANCTIONED_ENTITY" not in g.g
+
+
 class TestToCytoscape:
     def test_returns_nodes_and_edges_keys(self):
         g, _, _ = _simple_graph()

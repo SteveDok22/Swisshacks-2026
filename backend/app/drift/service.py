@@ -28,6 +28,7 @@ from app.drift.public_intel import (
 )
 from app.drift.simulator import SyntheticCustomer, generate_book, generate_customer
 from app.drift.stability import assess_stability, cohort_volatility
+from app.drift.dormancy import assess_dormancy
 from app.drift.timetravel import replay_trajectory
 from app.drift.velocity import compute_drift_series, velocity_band
 from app.schemas.drift import (
@@ -142,6 +143,10 @@ class DriftEngine:
             public_risk=pi.public_risk,
         )
 
+        # --- DORMANCY BREAK: was the customer dormant, then suddenly active?
+        # (AMINA use case: "previously dormant company begins high volume") ---
+        dormancy = assess_dormancy(cust.monthly_volume)
+
         # Causal modulation — the whole point of the causal layer is to act on
         # the verdict, not just display it. A high-magnitude drift that is
         # clearly LIFE-SHAPED (benign) should NOT sit at the top of the
@@ -162,6 +167,12 @@ class DriftEngine:
         if stability.is_suspicious:
             score = max(score, 50.0 + stability.suspicion * 40.0)
 
+        # Dormancy-break ELEVATION — a reactivated sleeper starts from a quiet
+        # baseline, so drift/velocity under-react. When a genuine dormant->active
+        # burst is detected, floor the score upward so it surfaces for review.
+        if dormancy.is_dormancy_break:
+            score = max(score, 55.0 + dormancy.dormancy_break * 35.0)
+
         return {
             "drift_series": ds,
             "latest_velocity": latest_velocity,
@@ -177,6 +188,7 @@ class DriftEngine:
             "confirmation_lift": lift,
             "causal": causal,
             "stability": stability,
+            "dormancy": dormancy,
             "drift_score": score,
         }
 

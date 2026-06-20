@@ -170,6 +170,11 @@ class DriftSubjectDetail(BaseModel):
     drift_start_month: int | None = None
     sanctions_month: int | None = None
     bocpd_changepoint_day: int | None = None
+    # News-volume regime change (UC 1): the month a sustained news spike broke,
+    # detected by BOCPD over the weekly event-count series. Anchors the public
+    # side of the confirmation-lift window. None when no spike is found (or there
+    # are no public signals).
+    news_spike_month: int | None = None
 
     # Two-layer breakdown (AMINA Challenge 4 architecture)
     public_risk: float = Field(default=0.0, description="Public intelligence layer risk 0-1")

@@ -334,6 +334,8 @@ export interface DriftCustomerDetail {
   drift_start_month: number | null;
   sanctions_month: number | null;
   bocpd_changepoint_day: number | null;
+  // News-volume regime change (UC 1): month a sustained news spike broke.
+  news_spike_month: number | null;
   public_risk: number;
   internal_risk: number;
   confirmation_lift: number;

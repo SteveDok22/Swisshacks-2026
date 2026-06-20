@@ -139,3 +139,33 @@ async def test_subject_detail_exposes_is_name_changed(client: AsyncClient) -> No
         f"is_name_changed missing from detail. Keys: {list(body.keys())}"
     )
     assert isinstance(body["is_name_changed"], bool)
+
+
+# --------------------------------------------------------------------------- #
+# UC1 — DriftSubjectDetail surfaces news_spike_month (contract test)           #
+# --------------------------------------------------------------------------- #
+
+async def test_subject_detail_exposes_news_spike_month(client: AsyncClient) -> None:
+    """DriftSubjectDetail must carry the ``news_spike_month`` field (UC1).
+
+    The field is part of the contract and nullable. Public-intel acquisition is
+    neutralized in this fixture (conftest stubs ``_public_signals`` to []), so no
+    spike is detectable here and the value is ``None`` — the concrete-value path
+    (a real news spike resolving to a month) is asserted at the engine level in
+    test_news_spike_scenario.py. Here we only pin the contract shape.
+    """
+    listing = await client.get("/api/v1/drift/subjects")
+    assert listing.status_code == 200
+    subjects = listing.json()
+    assert subjects, "synthetic book should not be empty"
+
+    drift_id = subjects[0]["drift_id"]
+    detail = await client.get(f"/api/v1/drift/subjects/{drift_id}")
+    assert detail.status_code == 200
+    body = detail.json()
+    assert "news_spike_month" in body, (
+        f"news_spike_month missing from detail. Keys: {list(body.keys())}"
+    )
+    assert body["news_spike_month"] is None or isinstance(
+        body["news_spike_month"], int
+    ), f"news_spike_month must be int | None, got {body['news_spike_month']!r}"

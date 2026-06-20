@@ -63,8 +63,13 @@ class AnthropicClient:
         self._client: anthropic.Anthropic | None = None
         self._async_client: anthropic.AsyncAnthropic | None = None
         self._cache: dict[str, _CacheEntry] = {}
-        
-        if self._is_real_mode():
+        # Snapshot real-vs-mock ONCE at construction. The SDK clients below are
+        # created (or not) based on this, so is_mock must read the same snapshot —
+        # otherwise a later flip of settings.external_apis_enabled would make
+        # is_mock report real while self._client is still None (RuntimeError).
+        self._real_mode: bool = self._is_real_mode()
+
+        if self._real_mode:
             self._client = anthropic.Anthropic(api_key=self._api_key)
             self._async_client = anthropic.AsyncAnthropic(api_key=self._api_key)
             logger.info("anthropic_client_initialized", mode="real")
@@ -75,16 +80,21 @@ class AnthropicClient:
             )
     
     def _is_real_mode(self) -> bool:
-        """Real API calls only if a valid-looking key is set."""
+        """Real API calls only if external APIs are enabled AND a valid-looking
+        key is set. The master switch forces mock mode when offline regardless
+        of any configured key, so the offline demo never reaches Anthropic."""
         return bool(
-            self._api_key
+            settings.external_apis_enabled
+            and self._api_key
             and self._api_key.startswith("sk-ant-")
             and len(self._api_key) > 20
         )
     
     @property
     def is_mock(self) -> bool:
-        return not self._is_real_mode()
+        # Reads the construction-time snapshot, NOT live settings, so it can never
+        # disagree with whether self._client was actually created.
+        return not self._real_mode
     
     def _cache_key(self, prompt: str, model: str, max_tokens: int) -> str:
         """Stable hash of inputs for cache lookup."""

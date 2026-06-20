@@ -10,7 +10,13 @@
 
 ---
 
-## Status: partial implementation
+## Status: all adapters wired into the engine
+
+All eight free/free-tier adapters are fully implemented **and** wired into the live
+drift engine via `drift/public_intel.py`'s aggregator (`gather_public_signals` /
+`gather_public_signals_sync`). The engine now calls real adapters on every
+`_analyze_customer()` run; the synthetic-template fallback is retained only for the
+time-travel audit replay path (`drift/timetravel.py`).
 
 Seven adapters are fully implemented (real HTTP calls):
 - **WHOIS / RDAP** — free, no key required; returns RDAP domain metadata and domain-change signals from injected baselines (PR #29)
@@ -205,6 +211,16 @@ Each source combines `CostMixin` (cost metadata) with `RegistryAdapter` (the
 async fetch(drift_id, name, **kwargs) -> EntitySnapshot | None
 async fetch_signals(drift_id, name, since_month=0, **kwargs) -> [PublicSignal]
 ```
+
+### Aggregator entry point
+
+`drift/public_intel.gather_public_signals(drift_id, name, **kwargs)` (async) fans
+out `fetch_signals()` to every `usable_adapters()` in parallel via `asyncio.gather`,
+catches per-adapter errors, and returns a merged time-sorted list. The sync bridge
+`gather_public_signals_sync()` runs it in a dedicated thread so it is safe to call
+from the synchronous `DriftEngine._analyze_customer()` even when FastAPI's event loop
+is active. Tests that exercise the engine patch this bridge via an autouse conftest
+fixture to avoid real HTTP calls.
 
 - `fetch` returns the source's current canonical `EntitySnapshot` (or `None` if
   the entity isn't in that source). The service layer stores it via

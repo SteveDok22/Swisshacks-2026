@@ -7,6 +7,7 @@ from __future__ import annotations
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_session
@@ -29,7 +30,9 @@ router = APIRouter(prefix="/drift", tags=["drift"])
 @router.get("/subjects", response_model=list[DriftSubjectSummary])
 async def list_drift_subjects() -> list[DriftSubjectSummary]:
     """Book overview: drift score + velocity per subject, sorted by risk."""
-    return get_drift_engine().list_subjects()
+    # Engine analysis runs blocking adapter fetches per customer; keep it off
+    # the event loop so concurrent requests are not stalled.
+    return await run_in_threadpool(get_drift_engine().list_subjects)
 
 
 @router.get("/subjects/{drift_id}", response_model=DriftSubjectDetail)
@@ -39,7 +42,7 @@ async def get_drift_subject(
     actor_id: str | None = Query(None, description="ID of the officer viewing the subject"),
 ) -> DriftSubjectDetail:
     """Full layer breakdown + timeline for one drift subject."""
-    detail = get_drift_engine().get_subject(drift_id)
+    detail = await run_in_threadpool(get_drift_engine().get_subject, drift_id)
     if detail is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -74,7 +77,7 @@ async def run_cascade_scan(
     actor_id: str | None = Query(None, description="ID of the officer triggering the scan"),
 ) -> CascadeCostReport:
     """Run a full cascade pass over the book; return the cost report."""
-    report = get_drift_engine().scan()
+    report = await run_in_threadpool(get_drift_engine().scan)
 
     await AuditService(session).log(
         event_type="drift_scan_completed",
@@ -142,7 +145,9 @@ async def inject_scenario(
 ) -> DriftSubjectDetail:
     """Red-team: inject a synthetic drift scenario and return its analysis."""
     try:
-        detail = get_drift_engine().inject_scenario(req.scenario, req.name)
+        detail = await run_in_threadpool(
+            get_drift_engine().inject_scenario, req.scenario, req.name
+        )
     except ValueError as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
@@ -177,8 +182,7 @@ async def generate_rfi(
     Returns rule-based RFI questions tuned to the subject's dominant
     drift signal, ordered by expected information gain.
     """
-    engine = get_drift_engine()
-    detail = engine.get_subject(drift_id)
+    detail = await run_in_threadpool(get_drift_engine().get_subject, drift_id)
     if detail is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,

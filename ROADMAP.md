@@ -20,7 +20,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 | # | Use Case | Signal | Status | What exists | What's needed | Real-world example |
 |---|---|---|---|---|---|---|
-| 1 | Negative news spike | Reputational risk | ⚠️ PARTIAL | Lexicon classifier + confirmation lift; no live feed | Event Registry adapter (primary) + BOCPD on weekly event-count series; GDELT as fallback | **Wirecard** — adverse media, whistle-blower allegations, and accounting red flags accumulated in public signals 2 years before collapse |
+| 1 | Negative news spike | Reputational risk | ✅ WORKS | Event Registry (primary) / GDELT (fallback) selected at one call site; BOCPD on the weekly event-count series surfaces `news_spike_month` into the confirmation-lift window; `news_spike` scenario in the book | — | **Wirecard** — adverse media, whistle-blower allegations, and accounting red flags accumulated in public signals 2 years before collapse |
 | 2 | Cross-border transfer anomaly | Behavioural anomaly | ✅ WORKS | BOCPD + velocity on synthetic data | — | **Deutsche Bank mirror trades** — $10B moved Russia→UK via back-to-back exchange orders, evading cross-border transfer controls (2011–2015) |
 | 3 | Multiple entities + sudden flows | Structuring / layering | ✅ WORKS | Contagion + causal; real GLEIF LEI parent/child graph (`build_graph_from_snapshots`) with synthetic-demo fallback; `ownership_change` diff signals wired into the engine | — | **Danske Estonia** — 15,000 non-resident shell-company customers, hidden UBO chains, €200B in suspicious cross-border flows |
 | 4 | Jurisdiction / legal form change | Structural risk | ✅ WORKS | ZEFIX/GLEIF diff vs. persisted KYC baseline; `jurisdiction_change`/`legal_form_change` floors drift score at 50 (re-KYC) | ZEFIX / GLEIF diff vs. KYC baseline → `jurisdiction_change` signal | **Long Blockchain Corp** — Long Island Iced Tea rebranded to exploit crypto hype; name change triggered mandatory re-KYC across its banking relationships |
@@ -44,7 +44,7 @@ Do these in order:
 2. ~~**`drift/business_model.py` — Wayback↔Firecrawl cosine comparator** _(closes UC 9 comparator)_~~ ✅ **DONE** — embeds onboarding (Wayback) vs current (Firecrawl) website text with **model2vec static embeddings (pure NumPy, no torch; `sentence-transformers` swapped to keep the image lean)**; cosine distance ≥ 0.35 → `business_model_change`. Pure DB-free module + unit tests. **Remaining for UC 9 = aggregator wiring** (load the two texts per customer, persist embeddings) — folded into item 1.
 
 3. **Score-flooring + scenarios** _(turns wired signals into table-flipping outcomes)_
-   `jurisdiction_change`/`legal_form_change` floor score at 50; `name_changed` floors at 60 (UC 4, 8). Add `news_spike`, `name_cycling`, `domain_pivot`, `pivot` synthetic scenarios to `simulator.py` so the demo exercises each path.
+   `jurisdiction_change`/`legal_form_change` floor score at 50; `name_changed` floors at 60 (UC 4, 8). Add `news_spike` (✅ done), `name_cycling`, `domain_pivot`, `pivot` synthetic scenarios to `simulator.py` so the demo exercises each path.
 
 4. **Drift ML path** _(optional polish)_
    `ml/extractors/drift.py` (`DriftFeatureExtractor`, 20-dim) + drift training path in `ml/training.py`. Not on the UC critical path; defer if time-boxed.
@@ -236,12 +236,12 @@ Each adapter has two methods to implement. `fetch()` returns a current `EntitySn
 
 Each task below flips one row in the Use Case Coverage table. Prerequisite: the relevant adapter(s) from section 3 must be implemented first.
 
-> **UC 1 — Negative news spike** (⚠️ PARTIAL → ✅)
+> **UC 1 — Negative news spike** (⚠️ PARTIAL → ✅ DONE)
 - [x] Implement `EventRegistryAdapter.fetch_signals` — adverse-media / news-spike modes (primary; hackathon key)
 - [x] Implement `GdeltAdapter.fetch_signals` — volume + adverse-media modes (free fallback when key absent)
-- [ ] Aggregator selects EventRegistry if `EVENT_REGISTRY_API_KEY` is set, else falls back to GDELT — single call site in `public_intel.py`
-- [ ] Run BOCPD on weekly event-count series in `service.py:_analyze_customer`; surface `news_spike_month` in the analysis dict; feed into the confirmation-lift temporal window alongside internal BOCPD changepoint
-- [ ] Add `news_spike` synthetic scenario to `simulator.py` — customer whose public_risk surges at month 9 via a news event-count spike; causal label `"risk"`
+- [x] Aggregator selects EventRegistry if `EVENT_REGISTRY_API_KEY` is set, else falls back to GDELT — single call site (`_select_news_source` in `public_intel.py`, applied once in `gather_public_signals`; the non-selected news adapter is dropped so the two never double-count)
+- [x] Run BOCPD on weekly event-count series in `service.py:compute_drift_analysis` (`detect_news_spike_month`); surface `news_spike_month` in the analysis dict; feed it into the confirmation-lift temporal window alongside the internal BOCPD changepoint (a sustained-elevation guard keeps the stable control silent)
+- [x] Add `news_spike` synthetic scenario to `simulator.py` — customer whose public_risk surges via a sustained adverse-media spike from the drift onset (default month 9), with co-occurring internal volume drift + margin collapse; causal label `"risk"`; seeded as "Wirecard Holdings AG" in the demo book
 
 > **UC 3 — Multiple entities + sudden flows** (⚠️ PARTIAL → ✅)
 - [x] Implement `GleifAdapter.fetch` (ownership chain: parent LEI + direct children)

@@ -107,6 +107,8 @@ Five public-signal categories (news, sanctions, adverse media, ownership changes
 
 Each public signal carries a `source` and optional `source_url`. In the MVP these URLs are deterministic demo references generated with the synthetic signal; real feed adapters can replace them with article, registry, or sanctions-record citations without changing the API.
 
+**News-volume spike (UC 1).** Beyond per-signal severity, the engine runs BOCPD over a weekly event-count series built from the `news`/`adverse_media` signals (`detect_news_spike_month`). A *sustained* rise in coverage (the Wirecard pattern — adverse media that keeps accumulating, not a one-day blip; guarded by a multi-month elevation check so the stable control stays silent) registers as a regime change. Its onset month is surfaced as `news_spike_month` and used as the public anchor of the confirmation-lift temporal window, alongside the internal BOCPD changepoint. The single news source is selected once in `gather_public_signals`: **Event Registry** when `EVENT_REGISTRY_API_KEY` is set, **GDELT** as the free fallback.
+
 **Confirmation Lift** is the differentiator. Two weak, independent signals that co-occur in time provide more evidence together than the product of their parts:
 
 ```

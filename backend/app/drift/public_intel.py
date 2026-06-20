@@ -32,6 +32,7 @@ from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
+from app.core.config import settings
 from app.core.logging import get_logger
 from app.sources.base import PublicSignal
 
@@ -168,6 +169,23 @@ def generate_signals_for_customer(
             )
         return sorted(signals, key=lambda s: s.month)
 
+    if scenario == "news_spike":
+        # UC 1 — reputational risk. Adverse media begins at the drift onset and
+        # KEEPS accumulating month after month (the Wirecard pattern: red flags
+        # pile up in public signals long before collapse), not a one-day blip.
+        # The sustained run gives the weekly event-count series in the service
+        # layer a genuine BOCPD regime change (see detect_news_spike_month).
+        for month in range(drift_start_month + 1, months):
+            headline = rng.choice(_HEADLINES["adverse_media"]).format(name=first)
+            signals.append(
+                PublicSignal(
+                    month=int(month), signal_type="adverse_media", headline=headline,
+                    severity=classify_severity(headline), source="Reuters",
+                    source_url=_demo_source_url("Reuters", drift_id, "adverse_media", month),
+                )
+            )
+        return sorted(signals, key=lambda s: s.month)
+
     # Drifting customer: signals align with and follow internal drift onset.
     # Earlier signals are softer (funding/ownership), later turn adverse.
     sig_plan = [
@@ -192,6 +210,84 @@ def generate_signals_for_customer(
         )
 
     return sorted(signals, key=lambda s: s.month)
+
+
+# --- News-volume regime detection (UC 1) ---------------------------------- #
+
+# Sub-month buckets used when building the event-count series for BOCPD.
+# Month-resolution signals are too coarse for the detector (its burn-in alone is
+# 10 observations), so each month is sliced into weeks: an 18-month book becomes
+# a ~72-point weekly series, long enough to surface a sustained spike.
+_WEEKS_PER_MONTH = 4
+
+# Signal types that count as "news volume" for the spike detector. Structural
+# registry/web-change signals (name_change, ownership_change, ...) describe a
+# discrete event, not a news-coverage volume, so they are excluded.
+_NEWS_SIGNAL_TYPES = frozenset({"news", "adverse_media"})
+
+# Minimum number of distinct months (from the changepoint onward) that must
+# carry news for a regime change to count as a reputational spike. A genuine
+# adverse-media campaign accumulates over time (Wirecard); a stable customer's
+# sparse background noise (0-2 scattered stories) is a blip, not a spike — this
+# guard is the detector's honest false-positive control.
+_MIN_SPIKE_MONTHS = 3
+
+
+def detect_news_spike_month(
+    signals: list[PublicSignal],
+    months: int,
+    *,
+    weeks_per_month: int = _WEEKS_PER_MONTH,
+) -> int | None:
+    """Detect a sustained news-volume regime change via BOCPD on event counts.
+
+    Buckets the news / adverse-media signals into a weekly event-count series
+    over the observation window and runs the same BOCPD detector the engine
+    uses on internal transaction volume. A *sustained* rise in news coverage
+    (adverse media that keeps accumulating) registers as a regime change; the
+    first detected changepoint is mapped back to its month index and returned as
+    ``news_spike_month``.
+
+    Returns ``None`` when there is no news, no spike, or the series is degenerate
+    — the honest no-signal control (a stable customer's sparse background noise
+    must not read as a spike). Pure function; no I/O.
+    """
+    # Local import avoids a public_intel <-> drift module import cycle at startup.
+    from app.drift.bocpd import BOCPD, standardize
+
+    if not signals or months <= 0 or weeks_per_month < 1:
+        return None
+
+    weeks = months * weeks_per_month
+    counts = np.zeros(weeks)
+    for s in signals:
+        if s.signal_type not in _NEWS_SIGNAL_TYPES:
+            continue
+        # A month-resolution signal raises the news volume for that whole month,
+        # so it fills the month's week block. Clamp out-of-window months so a
+        # stray index can never write past the grid.
+        month = min(max(s.month, 0), months - 1)
+        start = month * weeks_per_month
+        counts[start : start + weeks_per_month] += 1.0
+
+    if counts.sum() == 0.0:
+        return None
+
+    result = BOCPD(hazard=1 / 500).run(standardize(counts))
+    if not result.detected_changepoints:
+        return None
+    spike_month = result.detected_changepoints[0] // weeks_per_month
+
+    # Reject one-off blips: require news to persist for several months from the
+    # changepoint onward (a sustained campaign, not a single scattered story).
+    elevated_months = sum(
+        1
+        for month in range(spike_month, months)
+        if counts[month * weeks_per_month] > 0.0
+    )
+    if elevated_months < _MIN_SPIKE_MONTHS:
+        return None
+    return spike_month
 
 
 @dataclass
@@ -326,6 +422,31 @@ async def _resolve_ubo_names(
                 _logger.debug("public_intel_ubo_aclose_error", error=str(exc))
 
 
+# The two news adapters are mutually exclusive: Event Registry is the
+# entity-aware PRIMARY (needs a key), GDELT the always-free FALLBACK. Running
+# both would double-count the same news-volume spike, so the aggregator keeps
+# exactly one — selected at the single call site below.
+_PRIMARY_NEWS_SOURCE = "event_registry"
+_FALLBACK_NEWS_SOURCE = "gdelt"
+
+
+def _select_news_source(
+    adapters: tuple[type[CostMixin], ...],
+) -> tuple[type[CostMixin], ...]:
+    """Collapse the two news adapters to a single primary-vs-fallback choice.
+
+    Event Registry when ``EVENT_REGISTRY_API_KEY`` is set, GDELT otherwise. The
+    non-selected news adapter is dropped from the dispatch list; every other
+    (non-news) adapter passes through untouched.
+    """
+    drop = (
+        _FALLBACK_NEWS_SOURCE
+        if settings.event_registry_api_key
+        else _PRIMARY_NEWS_SOURCE
+    )
+    return tuple(a for a in adapters if a.source_name != drop)
+
+
 async def gather_public_signals(
     drift_id: str,
     name: str,
@@ -333,6 +454,9 @@ async def gather_public_signals(
 ) -> list[PublicSignal]:
     """
     Dispatch fetch_signals() to all usable adapters in parallel and aggregate.
+
+    Exactly one news source runs (see :func:`_select_news_source`): Event
+    Registry when its key is set, GDELT as the free fallback otherwise.
 
     Each adapter is instantiated fresh per call and closed after use. Errors in
     individual adapters are caught so one failing source never blocks the rest.
@@ -344,7 +468,7 @@ async def gather_public_signals(
     """
     from app.sources.registry import usable_adapters  # local import avoids circular
 
-    adapters = usable_adapters()
+    adapters = _select_news_source(usable_adapters())
 
     # Case 5: resolve UBO names from the GLEIF ownership chain so the
     # OpenSanctions adapter screens each one (its ``ubo_names`` kwarg). Skipped

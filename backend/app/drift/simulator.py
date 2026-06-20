@@ -16,6 +16,9 @@ Scenarios:
 - combined:              all three, slowly — the realistic "quiet drift"
 - dormancy_break:        near-zero baseline then a sudden volume burst (the
                          reactivated sleeper / "suspicious activation")
+- news_spike:            reputational risk (UC 1) — a sustained negative-news
+                         event spike whose external story confirms an internal
+                         volume drift + margin collapse (the Wirecard pattern)
 
 Every scenario ends with a simulated sanctions listing at the final month
 (month 0 in demo language), so lead time = listing date - detection date.
@@ -36,6 +39,7 @@ SCENARIOS = (
     "benign_expansion",
     "suspicious_stability",
     "dormancy_break",
+    "news_spike",
 )
 
 # Must match `assess_dormancy`'s `baseline_fraction` default (drift/dormancy.py):
@@ -157,7 +161,7 @@ def generate_customer(
         causal_truth = "suspicious"
     else:
         # volume_creep / counterparty_migration / corridor_shift / combined /
-        # dormancy_break are all risk-shaped.
+        # dormancy_break / news_spike are all risk-shaped.
         causal_truth = "risk"
 
     cust = SyntheticCustomer(
@@ -193,7 +197,7 @@ def generate_customer(
             # SAME magnitude — so velocity alone cannot tell them apart. The
             # causal layer distinguishes them by OTHER metrics (margin, etc.).
             vol_mult = 1.0
-            if scenario in ("volume_creep", "combined", "benign_expansion"):
+            if scenario in ("volume_creep", "combined", "benign_expansion", "news_spike"):
                 vol_mult = 1.0 + 1.2 * intensity  # up to +120% by the end
             # suspicious_stability: anomalously LOW noise — the slow-walker keeps
             # an unnaturally smooth profile. Real customers jitter (~15% daily
@@ -239,7 +243,7 @@ def generate_customer(
         base_margin = 0.25
         if scenario in (
             "volume_creep", "counterparty_migration", "corridor_shift",
-            "combined", "dormancy_break",
+            "combined", "dormancy_break", "news_spike",
         ):
             # Risk: margin collapses toward 0 as intensity rises (the reactivated
             # shell pushes money straight through — near-zero retention).
@@ -275,6 +279,9 @@ def generate_book(
         "combined": "Sergei Mikhailov",
         "benign_expansion": "Maria Steiner",
         "suspicious_stability": "Pavel Novak",
+        # UC 1 — reputational risk. Kept LAST so the contagion-wired IDs
+        # (drift-002, drift-004, drift-005) stay pinned to their scenarios.
+        "news_spike": "Wirecard Holdings AG",
     }
     stable_names = [
         "Anna Keller", "Luca Moretti", "Sophie Brunner",

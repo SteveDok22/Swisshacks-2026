@@ -185,6 +185,24 @@ class TestFetch:
         adapter = _make_adapter(lambda r: _ok([]))
         assert await adapter.fetch("d", "Helvetia") is None
 
+    async def test_non_list_search_response_returns_none(self):
+        # A malformed (non-array) search body must degrade, not raise.
+        adapter = _make_adapter(lambda r: _ok({"unexpected": "object"}))
+        assert await adapter.fetch("d", "Helvetia") is None
+
+    async def test_unknown_status_maps_to_none(self):
+        # A new/unknown ZEFIX status must not crash and must not be guessed —
+        # it maps to None (and is logged); raw value is preserved.
+        weird = {**_COMPANY_FULL, "status": "SOME_NEW_STATUS"}
+        def handler(request):
+            if request.url.path.endswith("/company/search"):
+                return _ok([_COMPANY_SHORT])
+            return _ok([weird])
+
+        snap = await _make_adapter(handler).fetch("d", "Helvetia Trading")
+        assert snap.dissolution_status is None
+        assert snap.raw_data["status_raw"] == "SOME_NEW_STATUS"
+
     async def test_picks_best_record_among_multiple_uid_results(self):
         branch = {**_COMPANY_FULL, "name": "Helvetia Trading AG, Branch Geneva", "canton": "GE"}
         def handler(request):

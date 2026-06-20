@@ -64,7 +64,11 @@ class EntitySnapshot:
 
     # === Legal identity ===
     legal_form: str | None = None
-    jurisdiction: str | None = None       # ISO 3166-1 alpha-2
+    # ISO 3166-1 alpha-2 by convention; a single-country register may instead
+    # store a sub-national code (e.g. ZEFIX writes the Swiss canton "ZG").
+    # diff_snapshots compares this field as-is, so a baseline and current
+    # snapshot MUST come from the same source for the comparison to be valid.
+    jurisdiction: str | None = None
     registered_address: str | None = None
     # "active" | "dissolved" | "dormant" | "struck_off" | None
     dissolution_status: str | None = None

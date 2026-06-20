@@ -322,7 +322,7 @@ class ZefixAdapter(CostMixin, RegistryAdapter):
         client = self._client or self._new_client()
         owns_client = self._client is None
         try:
-            if uid is None:
+            if not uid:  # None or "" → resolve via name search
                 candidates = await self._send(
                     client,
                     "POST",
@@ -370,6 +370,12 @@ class ZefixAdapter(CostMixin, RegistryAdapter):
         ``month`` is set to ``since_month`` — the as-of scan month. Aligning a
         registry mutation date to the engine's month index is the aggregator's
         responsibility, not the adapter's.
+
+        CONTRACT: the injected ``baseline`` MUST be a same-source ZEFIX snapshot.
+        ``jurisdiction`` carries the Swiss *canton* (not an ISO country code), so
+        diffing against a baseline captured by another source that stored a
+        country code ("CH") would emit a spurious ``jurisdiction_change``. The
+        aggregator owns this guarantee (it loads the onboarding ZEFIX snapshot).
         """
         # Diffing two caller-supplied snapshots is pure compute — no account
         # needed. Only the network fetch path requires credentials.

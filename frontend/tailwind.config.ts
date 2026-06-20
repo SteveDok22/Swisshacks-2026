@@ -49,9 +49,11 @@ const config: Config = {
 
       },
       fontFamily: {
-        sans: ["Satoshi", "ui-sans-serif", "system-ui", "sans-serif"],
-        serif: ["Bitter", "ui-serif", "Georgia", "serif"],
-        mono: ["'IBM Plex Mono'", "ui-monospace", "monospace"],
+        // CSS variables provided by next/font (see src/app/layout.tsx). Fallback
+        // stacks keep text legible before the self-hosted fonts paint.
+        sans: ["var(--font-sans)", "ui-sans-serif", "system-ui", "sans-serif"],
+        serif: ["var(--font-serif)", "ui-serif", "Georgia", "serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
       fontSize: {
         // Tighter, more precise type scale

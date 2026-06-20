@@ -6,6 +6,7 @@ import pytest
 from pytest_bdd import given, parsers, scenarios, then, when
 
 from app.drift.causal import causal_assessment
+from app.drift.public_intel import assess_public_risk, generate_signals_for_customer
 from app.drift.simulator import generate_book, generate_customer
 from app.drift.stability import assess_stability, cohort_volatility
 
@@ -50,11 +51,21 @@ def compute_book_cohort_cv(context: dict) -> None:
 @when("stability is assessed with the customer's environment")
 def run_stability_assessment(context: dict) -> None:
     cust = context["customer"]
+    signals = generate_signals_for_customer(
+        cust.customer_id,
+        cust.name,
+        cust.scenario,
+        months=cust.months,
+        drift_start_month=cust.drift_start_month,
+        seed=hash(cust.customer_id) % 9999,
+    )
+    public_risk = assess_public_risk(signals, months=cust.months).public_risk
     context["stability"] = assess_stability(
         cust.monthly_volume,
         context["cohort_cv"],
         counterparty_monthly=cust.counterparty_risk,
         corridor_monthly=cust.corridor_risk,
+        public_risk=public_risk,
     )
 
 

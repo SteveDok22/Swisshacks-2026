@@ -14,7 +14,7 @@ from datetime import datetime
 from typing import Any
 from uuid import UUID
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 from app.schemas.enums import DecisionAction
 
@@ -28,6 +28,7 @@ class AuditEntryRead(BaseModel):
     event_type: str
     case_id: UUID | None = None
     client_id: UUID | None = None
+    customer_id: str | None = None
     actor_id: str | None = None
     actor_type: str
     payload: dict[str, Any]
@@ -42,6 +43,7 @@ class AuditQueryParams(BaseModel):
     event_type: str | None = None
     case_id: UUID | None = None
     client_id: UUID | None = None
+    customer_id: str | None = None
     actor_id: str | None = None
     risk_level: str | None = None
     
@@ -61,9 +63,10 @@ class DecisionCreate(BaseModel):
     - ``case_id`` — traditional case-review workflow
     - ``customer_id`` — drift-engine workflow (no linked case record)
 
-    For drift decisions, pass ``ai_hint`` to carry the VerdictBar's
-    recommended action so override detection still works correctly.
+    Drift recommendations are always derived by the backend.
     """
+
+    model_config = ConfigDict(extra="forbid")
 
     case_id: UUID | None = None
     customer_id: str | None = Field(None, min_length=1, max_length=255)
@@ -71,16 +74,14 @@ class DecisionCreate(BaseModel):
     officer_id: str = Field(..., description="Identifier of the deciding officer")
     rationale: str | None = Field(
         None,
+        min_length=10,
+        max_length=2000,
         description="Required if overriding AI recommendation",
     )
-    ai_hint: DecisionAction | None = Field(
-        None,
-        description=(
-            "Caller-supplied AI recommendation for the drift-engine workflow. "
-            "Ignored (and rejected) when case_id is provided — the case path "
-            "derives its own recommendation from the case risk score."
-        ),
-    )
+    @field_validator("customer_id", "officer_id", "rationale", mode="before")
+    @classmethod
+    def _strip_text(cls, value: str | None) -> str | None:
+        return value.strip() if isinstance(value, str) else value
 
     @model_validator(mode="after")
     def _exactly_one_id(self) -> "DecisionCreate":
@@ -90,11 +91,6 @@ class DecisionCreate(BaseModel):
             raise ValueError("Provide either case_id or customer_id")
         if has_case and has_customer:
             raise ValueError("Provide either case_id or customer_id, not both")
-        if has_case and self.ai_hint is not None:
-            raise ValueError(
-                "ai_hint is only valid for the drift (customer_id) workflow; "
-                "the case path derives its own AI recommendation"
-            )
         return self
 
 
@@ -112,5 +108,6 @@ class DecisionRead(BaseModel):
     ai_recommended_action: DecisionAction | None = None
     ai_risk_score: float | None = None
     ai_risk_level: str | None = None
+    analysis_snapshot: dict[str, Any] = Field(default_factory=dict)
 
     created_at: datetime

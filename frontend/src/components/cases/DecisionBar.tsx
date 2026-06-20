@@ -7,13 +7,12 @@ import { cn, ACTION_LABELS } from "@/lib/utils";
 import { Check, ChevronUp, AlertOctagon, ShieldAlert, X } from "lucide-react";
 import type { DecisionAction } from "@/types/api";
 
-interface DecisionBarProps {
-  /** Case-review workflow — provide exactly one of caseId or customerId. */
-  caseId?: string;
-  /** Drift-engine workflow — provide exactly one of caseId or customerId. */
-  customerId?: string;
+type DecisionBarProps = {
   aiRecommendedAction: DecisionAction | null;
-}
+} & (
+  | { caseId: string; customerId?: never }
+  | { customerId: string; caseId?: never }
+);
 
 const ACTIONS: {
   action: DecisionAction;
@@ -61,7 +60,8 @@ const VARIANT_STYLES: Record<string, { base: string; hover: string; ring: string
  *
  * Decision is logged immutably via /decisions with a full audit trail.
  */
-export function DecisionBar({ caseId, customerId, aiRecommendedAction }: DecisionBarProps) {
+export function DecisionBar(props: DecisionBarProps) {
+  const { aiRecommendedAction } = props;
   const [pendingAction, setPendingAction] = useState<DecisionAction | null>(
     null,
   );
@@ -69,7 +69,8 @@ export function DecisionBar({ caseId, customerId, aiRecommendedAction }: Decisio
   const [submitted, setSubmitted] = useState(false);
   const queryClient = useQueryClient();
 
-  const isDrift = !!customerId;
+  const isDrift = "customerId" in props;
+  const subjectId = isDrift ? props.customerId : props.caseId;
 
   const mutation = useMutation({
     mutationFn: (payload: {
@@ -79,14 +80,13 @@ export function DecisionBar({ caseId, customerId, aiRecommendedAction }: Decisio
       decisionsApi.record(
         isDrift
           ? {
-              customer_id: customerId,
+              customer_id: props.customerId,
               action: payload.action,
               officer_id: "anna.mueller@amina.ch",
               rationale: payload.rationale,
-              ai_hint: aiRecommendedAction ?? undefined,
             }
           : {
-              case_id: caseId,
+              case_id: props.caseId,
               action: payload.action,
               officer_id: "anna.mueller@amina.ch",
               rationale: payload.rationale,
@@ -98,11 +98,13 @@ export function DecisionBar({ caseId, customerId, aiRecommendedAction }: Decisio
       setRationale("");
       if (isDrift) {
         queryClient.invalidateQueries({ queryKey: ["drift-customers"] });
-        queryClient.invalidateQueries({ queryKey: ["drift-customer", customerId] });
+        queryClient.invalidateQueries({ queryKey: ["drift-customer", subjectId] });
+        queryClient.invalidateQueries({ queryKey: ["audit"] });
       } else {
         queryClient.invalidateQueries({ queryKey: ["cases"] });
-        queryClient.invalidateQueries({ queryKey: ["case", caseId] });
-        queryClient.invalidateQueries({ queryKey: ["case-history", caseId] });
+        queryClient.invalidateQueries({ queryKey: ["case", subjectId] });
+        queryClient.invalidateQueries({ queryKey: ["case-history", subjectId] });
+        queryClient.invalidateQueries({ queryKey: ["audit"] });
       }
     },
   });
@@ -204,6 +206,13 @@ export function DecisionBar({ caseId, customerId, aiRecommendedAction }: Decisio
             {mutation.isPending ? "Recording…" : "Record decision"}
           </button>
         </div>
+        {mutation.isError && (
+          <div className="mt-2 text-2xs text-risk-critical">
+            {mutation.error instanceof Error
+              ? mutation.error.message
+              : "Could not record decision"}
+          </div>
+        )}
       </div>
     );
   }
@@ -245,6 +254,13 @@ export function DecisionBar({ caseId, customerId, aiRecommendedAction }: Decisio
           );
         })}
       </div>
+      {mutation.isError && (
+        <div className="mt-2 text-2xs text-risk-critical">
+          {mutation.error instanceof Error
+            ? mutation.error.message
+            : "Could not record decision"}
+        </div>
+      )}
     </div>
   );
 }

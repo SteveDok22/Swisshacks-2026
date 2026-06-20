@@ -43,7 +43,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 | REST API | 28 endpoints, all functional |
 | Frontend — 7 drift visualizations | All render real API data |
 | XGBoost + SHAP | Real — wired to case management only, not drift |
-| Audit service | Append-only, SQLite-persisted |
+| Audit service | Append-only within each disposable SQLite runtime |
 | Privacy / anonymizer | PII pseudonymized before Claude |
 | Claude AI integration | Works for case explanations; not connected to drift |
 | Jurisdiction rule packs | CH / EU / HK / AE all loaded |
@@ -75,7 +75,7 @@ Ordered by judging weight × demo impact. Check off as work is completed.
 ### 🔴 P0 — Compliance & Safety (20%)
 
 - [x] **Wire audit log into drift pipeline** — 5 compliance-relevant endpoints now audited in `api/v1/drift.py`: `drift_customer_analyzed` · `drift_scan_completed` · `drift_replay_executed` · `drift_scenario_injected` · `drift_rfi_generated` · `_score_to_level()` maps score to risk_level · list/timeline/contagion intentionally unaudited (read-only browsing)
-- [x] **Decision bar on drift page** — `DecisionBar.tsx` now renders below `VerdictBar` in `frontend/src/app/drift/page.tsx`; `POST /decisions` extended to accept `customer_id: str` (or `case_id: UUID`, exactly one required); `ai_hint` field carries VerdictBar's recommendation for override detection; new `GET /decisions/customer/{customer_id}` endpoint; drift decisions emit `drift_decision_recorded` audit event; 10 new tests in `test_decisions_customer.py` (all pass)
+- [x] **Decision bar on drift page** — `DecisionBar.tsx` renders below `VerdictBar`; `POST /decisions` accepts `customer_id` or `case_id`; drift recommendations are derived server-side, customer existence is validated, analysis state is snapshotted, and `drift_decision_recorded` is queryable by customer.
 
 ### 🔴 P0 — Cost Efficiency (20%)
 
@@ -266,7 +266,7 @@ BDD is a natural fit here: the 7 synthetic scenarios and H1–H4 hypotheses are 
 - [x] **`test_cascade.py`** — score < 30 → T0; 30–55 → T1; ≥55 + value → T2; sanctions + value → T2; cumulative cost ordering — 11 tests (actual thresholds: t1=30, t2=55)
 - [x] **`test_contagion.py`** — direct neighbor elevated > 0.1; near > far; hop counts; cytoscape shape; empty seeds — 11 tests
 - [x] **`test_score_boundaries.py`** — `score_to_level` / `score_to_action` full boundary coverage incl. float regression — 15 tests (previously `test_score_to_level`)
-- [x] **`test_decisions_customer.py`** — drift-engine decision path: record with `customer_id`, `ai_hint` override detection, rationale enforcement, chronological list, customer isolation, schema validation (neither/both ID fields → 422), `drift_decision_recorded` audit event — 10 tests
+- [x] **`test_decisions_customer.py`** — drift decisions, server recommendation integrity, customer validation, rationale enforcement, chronological listing, path isolation, analysis snapshots, and audit events.
 
 ---
 

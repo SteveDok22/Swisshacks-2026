@@ -37,7 +37,7 @@ flowchart TB
     end
 
     subgraph Governance["Governance"]
-        G1["POST /decisions\nLog officer decision\nBody: case_id OR customer_id, action, officer_id\nOptional: rationale, ai_hint"]
+        G1["POST /decisions\nLog officer decision\nBody: case_id OR customer_id, action, officer_id\nOptional: rationale"]
         G2["GET /decisions/case/{case_id}\nList all decisions for a case"]
         G7["GET /decisions/customer/{customer_id}\nList all drift-engine decisions for a customer"]
         G3["GET /audit\nAudit log — paginated"]

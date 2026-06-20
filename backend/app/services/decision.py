@@ -41,8 +41,8 @@ class DecisionService:
 
         Two workflows are supported:
         - Case workflow (case_id set): looks up the case, captures AI state.
-        - Drift workflow (customer_id set): uses caller-supplied ai_hint as
-          the AI recommendation; no case record is required or modified.
+        - Drift workflow (customer_id set): validates the customer against the
+          live drift engine and captures its server-derived analysis state.
         """
         if payload.case_id is not None:
             return await self._record_case_decision(payload)
@@ -76,6 +76,12 @@ class DecisionService:
             ai_recommended_action=ai_recommended,
             ai_risk_score=case.risk_score,
             ai_risk_level=case.risk_level,
+            analysis_snapshot={
+                "source": "case",
+                "confidence": case.confidence,
+                "case_type": case.case_type.value,
+                "jurisdiction": case.jurisdiction.value,
+            },
             created_at=datetime.now(UTC),
         )
         self.session.add(decision)
@@ -133,28 +139,58 @@ class DecisionService:
             ai_recommended_action=decision.ai_recommended_action,
             ai_risk_score=decision.ai_risk_score,
             ai_risk_level=decision.ai_risk_level,
+            analysis_snapshot=decision.analysis_snapshot,
             created_at=decision.created_at,
         )
 
     async def _record_drift_decision(self, payload: DecisionCreate) -> DecisionRead:
-        """Drift-engine path — no case record; uses ai_hint for override detection."""
-        ai_recommended = payload.ai_hint
-        overrode_ai = (
-            ai_recommended is not None and ai_recommended != payload.action
-        )
+        """Drift path — validate the customer and snapshot server analysis."""
+        from app.drift.service import DRIFT_ANALYSIS_VERSION, get_drift_engine
+
+        customer_id = payload.customer_id
+        assert customer_id is not None
+
+        detail = get_drift_engine().get_customer(customer_id)
+        if detail is None:
+            raise ValueError(f"Drift customer {customer_id!r} not found")
+
+        ai_recommended = detail.recommended_action
+        overrode_ai = ai_recommended != payload.action
 
         if overrode_ai and not payload.rationale:
             raise ValueError(
                 "Rationale is required when overriding AI recommendation"
             )
 
+        snapshot = {
+            "analysis_version": DRIFT_ANALYSIS_VERSION,
+            "customer_name": detail.name,
+            "drift_score": detail.drift_score,
+            "risk_level": detail.risk_level,
+            "reached_tier": detail.reached_tier,
+            "drift_velocity": detail.drift_velocity,
+            "velocity_band": detail.velocity_band,
+            "public_risk": detail.public_risk,
+            "internal_risk": detail.internal_risk,
+            "confirmation_lift": detail.confirmation_lift,
+            "causal_label": detail.causal.label if detail.causal else None,
+            "causal_p_risk": detail.causal.p_risk if detail.causal else None,
+            "is_suspicious": (
+                detail.stability.is_suspicious if detail.stability else None
+            ),
+            "recommended_action": ai_recommended.value,
+        }
+
         decision = DecisionDB(
-            customer_id=payload.customer_id,
+            customer_id=customer_id,
             action=payload.action,
             officer_id=payload.officer_id,
             rationale=payload.rationale,
             overrode_ai=overrode_ai,
             ai_recommended_action=ai_recommended,
+            ai_risk_score=detail.drift_score,
+            ai_risk_level=detail.risk_level,
+            analysis_snapshot=snapshot,
             created_at=datetime.now(UTC),
         )
         self.session.add(decision)
@@ -163,23 +199,25 @@ class DecisionService:
 
         await self.audit.log(
             event_type="drift_decision_recorded",
+            customer_id=customer_id,
             actor_id=payload.officer_id,
             actor_type="compliance_officer",
+            risk_score=detail.drift_score,
+            risk_level=detail.risk_level,
             payload={
-                "customer_id": payload.customer_id,
+                "customer_id": customer_id,
                 "action": payload.action.value,
                 "overrode_ai": overrode_ai,
-                "ai_recommended_action": (
-                    ai_recommended.value if ai_recommended else None
-                ),
+                "ai_recommended_action": ai_recommended.value,
                 "rationale": payload.rationale,
                 "decision_id": str(decision.id),
+                "analysis_snapshot": snapshot,
             },
         )
 
         logger.info(
             "drift_decision_recorded",
-            customer_id=payload.customer_id,
+            customer_id=customer_id,
             action=payload.action.value,
             overrode_ai=overrode_ai,
             officer_id=payload.officer_id,
@@ -196,6 +234,7 @@ class DecisionService:
             ai_recommended_action=decision.ai_recommended_action,
             ai_risk_score=decision.ai_risk_score,
             ai_risk_level=decision.ai_risk_level,
+            analysis_snapshot=decision.analysis_snapshot,
             created_at=decision.created_at,
         )
     

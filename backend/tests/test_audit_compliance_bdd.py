@@ -6,6 +6,7 @@ step (for the append-only scenario). Requires asyncio_mode = "auto".
 
 from __future__ import annotations
 
+import asyncio
 from collections.abc import Callable
 
 import pytest
@@ -34,22 +35,24 @@ def drift_engine_ready() -> None:
 
 
 @when("an officer requests the full analysis for the top customer")
-async def get_top_customer_analysis(client: AsyncClient, context: dict) -> None:
+def get_top_customer_analysis(client: AsyncClient, context: dict) -> None:
     # Fetch the ranked customer list, then request the full detail for #1.
-    list_resp = await client.get("/api/v1/drift/customers")
+    list_resp = asyncio.run(client.get("/api/v1/drift/customers"))
     assert list_resp.status_code == 200, list_resp.text
     customers = list_resp.json()
     assert customers, "Drift engine returned no customers"
     context["customer_id"] = customers[0]["customer_id"]
-    detail_resp = await client.get(f"/api/v1/drift/customers/{context['customer_id']}")
+    detail_resp = asyncio.run(
+        client.get(f"/api/v1/drift/customers/{context['customer_id']}")
+    )
     assert detail_resp.status_code == 200, detail_resp.text
 
 
 @then(parsers.parse('an audit entry with event_type "{event_type}" exists'))
-async def assert_audit_entry_exists(
+def assert_audit_entry_exists(
     event_type: str, audit_query: Callable, context: dict
 ) -> None:
-    entries = await audit_query(event_type=event_type)
+    entries = asyncio.run(audit_query(event_type=event_type))
     assert entries, (
         f"No audit entry with event_type={event_type!r} found after requesting "
         f"customer {context.get('customer_id')!r}"

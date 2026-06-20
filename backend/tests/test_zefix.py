@@ -313,6 +313,12 @@ class TestFetchSignals:
         )
         by_type = {s.signal_type: s for s in signals}
         assert set(by_type) == {"name_change", "legal_form_change", "jurisdiction_change"}
+        # UC 4 contract: the legal_form/jurisdiction signal types this adapter
+        # emits are exactly the ones the drift engine treats as a mandatory
+        # re-KYC floor. If either side renames a type, this catches the drift.
+        from app.drift.service import RE_KYC_FLOOR_SIGNAL_TYPES
+
+        assert set(by_type) >= RE_KYC_FLOOR_SIGNAL_TYPES
         # Severities come straight from the diff layer (floats in [0,1]).
         assert by_type["jurisdiction_change"].severity == pytest.approx(0.80)
         assert by_type["name_change"].severity == pytest.approx(0.70)

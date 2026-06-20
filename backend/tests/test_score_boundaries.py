@@ -1,7 +1,11 @@
 """
-Boundary / pure-function tests for the scoring stack — no I/O, no app startup.
+Boundary tests for the scoring stack.
 
-Two independent groups live here, both exercising mathematical boundaries:
+Most groups here are pure-function (no I/O, no app startup). The trailing UC 4
+re-KYC floor group is the exception: its wiring tests (marked `slow`) construct
+the DriftEngine to prove the floor fires inside _analyze_customer.
+
+The pure-function groups below exercise mathematical boundaries:
 
 1. Decision boundaries — score_to_level() and score_to_action() tier cut-offs.
    Key regression: before the fix, thresholds were (<= 30, <= 60, <= 85) which
@@ -19,8 +23,10 @@ import pytest
 
 from app.drift.velocity import velocity_band, gaussian_kl_bits
 from app.drift.bocpd import standardize, BOCPD
+from app.drift.service import RE_KYC_SCORE_FLOOR, requires_re_kyc_floor
 from app.ml.base import score_to_action, score_to_level
 from app.schemas.enums import DecisionAction, RiskLevel
+from app.sources.base import PublicSignal
 
 
 class TestVelocityBand:
@@ -247,3 +253,94 @@ class TestLevelActionConsistency:
             action = score_to_action(score, 0.9)
             assert level in (RiskLevel.HIGH, RiskLevel.CRITICAL), f"score={score}"
             assert action in (DecisionAction.BLOCK, DecisionAction.ESCALATE), f"score={score}"
+
+
+def _structural_signal(signal_type: str, severity: float = 0.0) -> PublicSignal:
+    """A registry-sourced public signal.
+
+    Severity defaults to 0.0 so the re-KYC floor tests isolate the floor: any
+    score lift comes from the signal *type* (a structural change), never from
+    public-risk weighting.
+    """
+    return PublicSignal(
+        month=0,
+        signal_type=signal_type,
+        headline="Registry: structural change detected",
+        severity=severity,
+        source="zefix",
+    )
+
+
+class TestRequiresReKycFloor:
+    """UC 4 — pure predicate gating the mandatory re-KYC score floor."""
+
+    def test_jurisdiction_change_triggers(self):
+        assert requires_re_kyc_floor([_structural_signal("jurisdiction_change")]) is True
+
+    def test_legal_form_change_triggers(self):
+        assert requires_re_kyc_floor([_structural_signal("legal_form_change")]) is True
+
+    def test_unrelated_signal_does_not_trigger(self):
+        for stype in ("news", "sanctions", "adverse_media", "name_change"):
+            assert requires_re_kyc_floor([_structural_signal(stype)]) is False, stype
+
+    def test_empty_signal_list_does_not_trigger(self):
+        assert requires_re_kyc_floor([]) is False
+
+    def test_triggers_when_mixed_with_unrelated_signals(self):
+        signals = [
+            _structural_signal("news"),
+            _structural_signal("jurisdiction_change"),
+        ]
+        assert requires_re_kyc_floor(signals) is True
+
+
+@pytest.mark.slow
+class TestReKycScoreFloorWiring:
+    """UC 4 — a confirmed jurisdiction/legal-form change floors _analyze_customer
+    at RE_KYC_SCORE_FLOOR (mandatory re-KYC), overriding a low behavioral score.
+
+    Constructs the engine (heuristic-only: _drift_model=None) and injects the
+    registry signal via the _public_signals seam, which conftest otherwise stubs
+    to [] for determinism.
+    """
+
+    def _stable_engine_customer(self):
+        from app.drift.service import DriftEngine
+
+        engine = DriftEngine()
+        engine._drift_model = None  # heuristic-only → deterministic, no disk model
+        cust = next(c for c in engine._book if c.scenario == "stable")
+        return engine, cust
+
+    def test_stable_customer_baseline_is_below_floor(self, monkeypatch):
+        # Guards the premise of the floor tests: with no structural signal the
+        # stable customer scores below the floor, so a later >= floor result is
+        # attributable to the floor and not to an already-high score.
+        engine, cust = self._stable_engine_customer()
+        monkeypatch.setattr(engine, "_public_signals", lambda c: [])
+        assert engine._analyze_customer(cust)["drift_score"] < RE_KYC_SCORE_FLOOR
+
+    def test_jurisdiction_change_floors_score(self, monkeypatch):
+        engine, cust = self._stable_engine_customer()
+        monkeypatch.setattr(
+            engine, "_public_signals",
+            lambda c: [_structural_signal("jurisdiction_change")],
+        )
+        assert engine._analyze_customer(cust)["drift_score"] >= RE_KYC_SCORE_FLOOR
+
+    def test_legal_form_change_floors_score(self, monkeypatch):
+        engine, cust = self._stable_engine_customer()
+        monkeypatch.setattr(
+            engine, "_public_signals",
+            lambda c: [_structural_signal("legal_form_change")],
+        )
+        assert engine._analyze_customer(cust)["drift_score"] >= RE_KYC_SCORE_FLOOR
+
+    def test_unrelated_signal_does_not_floor(self, monkeypatch):
+        engine, cust = self._stable_engine_customer()
+        monkeypatch.setattr(
+            engine, "_public_signals",
+            lambda c: [_structural_signal("news")],
+        )
+        assert engine._analyze_customer(cust)["drift_score"] < RE_KYC_SCORE_FLOOR

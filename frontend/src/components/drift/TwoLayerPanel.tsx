@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import type { DriftCustomerDetail } from "@/types/api";
-import { Globe, Building2, Link2, Newspaper, ShieldAlert, TrendingUp, Network } from "lucide-react";
+import { Globe, Building2, Link2, Newspaper, ShieldAlert, TrendingUp, Network, ExternalLink } from "lucide-react";
 
 interface TwoLayerPanelProps {
   detail: DriftCustomerDetail;
@@ -115,12 +115,28 @@ export function TwoLayerPanel({ detail }: TwoLayerPanelProps) {
                   />
                   <div className="flex-1 min-w-0">
                     <p className="text-xs text-ink leading-snug">{s.headline}</p>
-                    <div className="flex items-center gap-2 mt-0.5 text-2xs text-ink-muted">
-                      <span>{SIGNAL_LABEL[s.signal_type] ?? s.signal_type}</span>
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-2xs text-ink-muted">
+                      <span className="min-w-0 break-words">
+                        {SIGNAL_LABEL[s.signal_type] ?? s.signal_type}
+                      </span>
                       <span>·</span>
-                      <span>{s.source}</span>
+                      <span className="min-w-0 break-words">{s.source}</span>
+                      {s.source_url && (
+                        <>
+                          <span>·</span>
+                          <a
+                            href={s.source_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex shrink-0 items-center gap-1 text-accent hover:text-ink transition-colors"
+                          >
+                            source
+                            <ExternalLink className="h-2.5 w-2.5" strokeWidth={2} />
+                          </a>
+                        </>
+                      )}
                       <span>·</span>
-                      <span className={cn("font-mono tabular", sevColor(s.severity))}>
+                      <span className={cn("shrink-0 font-mono tabular", sevColor(s.severity))}>
                         severity {s.severity.toFixed(2)}
                       </span>
                     </div>

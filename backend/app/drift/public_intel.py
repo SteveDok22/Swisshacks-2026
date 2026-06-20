@@ -63,6 +63,7 @@ class PublicSignal:
     headline: str
     severity: float          # 0..1 from the classifier
     source: str
+    source_url: str | None = None
 
     def to_dict(self) -> dict:
         return {
@@ -71,6 +72,7 @@ class PublicSignal:
             "headline": self.headline,
             "severity": round(self.severity, 2),
             "source": self.source,
+            "source_url": self.source_url,
         }
 
 
@@ -117,6 +119,28 @@ _HEADLINES = {
 }
 
 
+_SOURCE_BASE_URLS = {
+    "Reuters": "https://www.reuters.com/world/",
+    "OFAC": "https://sanctionssearch.ofac.treas.gov/",
+    "corporate registry": "https://www.zefix.admin.ch/",
+    "press release": "https://example.com/demo-sources/press-release/",
+    "trade press": "https://example.com/demo-sources/trade-press/",
+}
+
+
+def _demo_source_url(source: str, customer_id: str, signal_type: str, month: int) -> str:
+    """
+    Deterministic demo citation URL for synthetic public signals.
+
+    Real source adapters can replace this with article, registry, or sanctions
+    record URLs while preserving the API shape.
+    """
+    base = _SOURCE_BASE_URLS.get(source, "https://example.com/demo-sources/")
+    slug = f"{customer_id}-{signal_type}-m{month}".lower().replace("_", "-")
+    separator = "" if base.endswith("/") else "/"
+    return f"{base}{separator}{slug}"
+
+
 def generate_signals_for_customer(
     customer_id: str,
     name: str,
@@ -146,6 +170,7 @@ def generate_signals_for_customer(
                 PublicSignal(
                     month=m, signal_type="news", headline=headline,
                     severity=classify_severity(headline), source="trade press",
+                    source_url=_demo_source_url("trade press", customer_id, "news", m),
                 )
             )
         return sorted(signals, key=lambda s: s.month)
@@ -169,6 +194,7 @@ def generate_signals_for_customer(
             PublicSignal(
                 month=int(month), signal_type=stype, headline=headline,
                 severity=classify_severity(headline), source=source,
+                source_url=_demo_source_url(source, customer_id, stype, int(month)),
             )
         )
 

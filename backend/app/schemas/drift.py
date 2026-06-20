@@ -23,6 +23,10 @@ class PublicSignalOut(BaseModel):
     headline: str
     severity: float = Field(description="0-1 classifier severity")
     source: str
+    source_url: str | None = Field(
+        default=None,
+        description="Citation URL for the public signal source, synthetic in demo mode",
+    )
 
 
 class CausalVerdictOut(BaseModel):

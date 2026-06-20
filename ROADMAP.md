@@ -88,7 +88,7 @@ Ordered by judging weight × demo impact. Check off as work is completed.
 
 ### 🟠 P1 — Compliance & Safety (20%)
 
-- [ ] **Add source citations to signal cards** — add `source_url` / `source_reference` field to `PublicSignalOut` in `drift/public_intel.py`; display in `TwoLayerPanel.tsx`; even a mock citation ("Reuters, 15 Jun 2026") satisfies the challenge requirement
+- [x] **Add source citations to signal cards** — `PublicSignal` / `PublicSignalOut` include `source_url`; synthetic signals emit deterministic demo source references; `TwoLayerPanel.tsx` displays source links when present. Real source adapters can populate the same field with article, registry, or sanctions-record URLs.
 
 ### 🟠 P1 — Cost Efficiency (20%)
 

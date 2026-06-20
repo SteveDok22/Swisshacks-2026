@@ -112,8 +112,10 @@ class AnthropicClient:
             (text, was_cached, tokens_used)
             tokens_used is input+output tokens for real calls; 0 for mock/cached.
         """
-        model = model or settings.anthropic_model_main
-        max_tokens = max_tokens or settings.anthropic_max_tokens
+        if model is None:
+            model = settings.anthropic_model_main
+        if max_tokens is None:
+            max_tokens = settings.anthropic_max_tokens
 
         # === Cache lookup ===
         cache_key = self._cache_key(
@@ -134,7 +136,11 @@ class AnthropicClient:
             return response, False, 0
 
         # === Real API call ===
-        assert self._client is not None
+        if self._client is None:
+            raise RuntimeError(
+                "AnthropicClient._client is None but is_mock is False — "
+                "this indicates a construction bug."
+            )
 
         start = time.perf_counter()
         messages: list[dict[str, str]] = [{"role": "user", "content": prompt}]
@@ -170,7 +176,7 @@ class AnthropicClient:
 
         except anthropic.APIError as e:
             logger.error("anthropic_api_error", error=str(e))
-            # Graceful fallback to mock
+            # Partial token charges may have been incurred before the error; 0 is a safe undercount.
             return self._mock_response(prompt, system), False, 0
     
     # === Async streaming ===

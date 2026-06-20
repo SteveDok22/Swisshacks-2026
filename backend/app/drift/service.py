@@ -638,13 +638,14 @@ class DriftEngine:
 
         actual_t2_llm_calls = len(llm_adjudications)
         real_t2_llm_calls = sum(
-            1 for item in llm_adjudications if item["llm_mode"] == "real"
+            1 for item in llm_adjudications
+            if item["llm_mode"] == "real" and not item["was_cached"]
         )
         mock_t2_llm_calls = sum(
             1 for item in llm_adjudications if item["llm_mode"] == "mock"
         )
         total_tokens_used = sum(item["tokens_used"] for item in llm_adjudications)
-        # Model is the configured T2 model when real calls were made; None when all mock/cached
+        # Model reflects current config; set only when at least one uncached real call was made.
         adjudication_model = settings.anthropic_model_main if real_t2_llm_calls > 0 else None
         llm_all = len(signals) * 0.05
         savings = 100.0 * (1 - report.total_cost / llm_all) if llm_all > 0 else 0.0

@@ -159,6 +159,7 @@ The Drift Engine workspace presents a verdict-first view: a recommended action u
 | **Verdict Bar** | One-line recommended action derived from the full picture |
 | **Causal Panel** | Benign-vs-risk hypothesis competition with per-metric evidence |
 | **Drift Timeline** | Velocity over time, with lead-time markers and a dashed BOCPD regime-change marker |
+| **Dormancy Panel** | Dormant-baseline x activation-strength explanation for suspicious reactivation |
 | **Time-Travel Audit** | As-of score replay proving early detection |
 | **Two-Layer Panel** | Public Intelligence vs Internal Bank Data + Confirmation Lift |
 | **Contagion Graph** | Ownership risk propagation from a sanctioned entity |

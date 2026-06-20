@@ -11,6 +11,7 @@ import { ContagionGraph } from "@/components/drift/ContagionGraph";
 import { TwoLayerPanel } from "@/components/drift/TwoLayerPanel";
 import { CausalPanel } from "@/components/drift/CausalPanel";
 import { StabilityPanel } from "@/components/drift/StabilityPanel";
+import { DormancyPanel } from "@/components/drift/DormancyPanel";
 import { TimeTravelPanel } from "@/components/drift/TimeTravelPanel";
 import { DecisionBar } from "@/components/cases/DecisionBar";
 import type { DriftCustomerDetail } from "@/types/api";
@@ -186,6 +187,11 @@ export default function DriftPage() {
                     slow-walker
                   </span>
                 )}
+                {detail.dormancy?.is_dormancy_break && (
+                  <span className="text-2xs px-2 py-0.5 rounded font-medium bg-risk-critical text-white">
+                    dormancy
+                  </span>
+                )}
                 {detail.scenario && (
                   <span className="text-2xs text-ink-faint font-mono">
                     [{detail.scenario}]
@@ -227,6 +233,7 @@ export default function DriftPage() {
               {/* Right column: evidence & context */}
               <div className="space-y-5">
                 {detail.stability && <StabilityPanel stability={detail.stability} />}
+                {detail.dormancy && <DormancyPanel dormancy={detail.dormancy} />}
                 <TimeTravelPanel customerId={detail.customer_id} />
 
                 {/* Signal Layers */}

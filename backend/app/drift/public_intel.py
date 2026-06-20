@@ -29,6 +29,8 @@ from dataclasses import dataclass, field
 
 import numpy as np
 
+from app.sources.base import PublicSignal
+
 # Five public-signal categories named in the AMINA brief
 SIGNAL_TYPES = (
     "news",
@@ -54,24 +56,9 @@ _SEVERITY_LEXICON = {
 }
 
 
-@dataclass
-class PublicSignal:
-    """One external signal about a customer at a point in time."""
-
-    month: int
-    signal_type: str
-    headline: str
-    severity: float          # 0..1 from the classifier
-    source: str
-
-    def to_dict(self) -> dict:
-        return {
-            "month": self.month,
-            "signal_type": self.signal_type,
-            "headline": self.headline,
-            "severity": round(self.severity, 2),
-            "source": self.source,
-        }
+# PublicSignal is now defined in sources/base.py (canonical location) and
+# imported above. The re-export keeps existing imports from this module working.
+__all__ = ["PublicSignal"]
 
 
 def classify_severity(headline: str) -> float:

@@ -1,14 +1,13 @@
 """
 Synthetic data generation + model training.
 
-This is YOUR PP5 PATTERN applied to AMINA social engineering:
-- Generate balanced synthetic data with realistic distributions
-- Use SMOTE-like balancing (real SMOTE can be added as a future enhancement)
-- Train XGBoost with sensible defaults (Optuna optimization is a future enhancement)
-- Save model to disk
+Covers two models:
+  social_engineering_v1  — AMINA social engineering / fraud cases
+  drift_v1               — KYC drift detection (20-dim feature vector from engine layers)
 
 Run via CLI:
     python -m app.ml.training train-social-engineering
+    python -m app.ml.training train-drift
 """
 
 from __future__ import annotations
@@ -30,7 +29,7 @@ from sklearn.model_selection import train_test_split
 from app.core.config import settings
 from app.core.logging import get_logger
 from app.ml.base import RiskModel
-from app.ml.extractors import SocialEngineeringFeatureExtractor
+from app.ml.extractors import DriftFeatureExtractor, SocialEngineeringFeatureExtractor
 from app.schemas.enums import CaseType
 
 logger = get_logger(__name__)
@@ -302,17 +301,171 @@ def train_social_engineering_model(
     return risk_model, metrics
 
 
+# Scenarios flagged as risk (label=1); everything else is label=0.
+_DRIFT_RISK_SCENARIOS = frozenset(
+    {"volume_creep", "counterparty_migration", "corridor_shift", "combined", "dormancy_break", "suspicious_stability"}
+)
+
+
+def generate_drift_training_data(
+    n_per_scenario: int = 30,
+    random_state: int = 42,
+) -> pd.DataFrame:
+    """
+    Generate synthetic drift training data.
+
+    For each scenario, create ``n_per_scenario`` synthetic customers with
+    varied seeds (different noise realizations), run the SHARED analysis
+    pipeline (``compute_drift_analysis``, the exact function the live
+    DriftEngine uses), extract the 20-dim feature vector, and label by
+    scenario type.
+
+    Offline training has no contagion graph and no live public adapters, so
+    ``propagated_risk``, ``public_risk`` and ``confirmation_lift`` stay at their
+    neutral defaults (0.0, 0.0, 1.0) — three of the twenty features carry no
+    signal here and only vary at inference. Reusing the engine's own function
+    (rather than a parallel reimplementation) guarantees the remaining
+    seventeen features match inference exactly.
+
+    Labels:
+        1 — risk scenarios (volume_creep, counterparty_migration,
+            corridor_shift, combined, dormancy_break, suspicious_stability)
+        0 — benign / stable (stable, benign_expansion)
+    """
+    from app.drift.service import compute_drift_analysis
+    from app.drift.simulator import SCENARIOS, generate_customer
+    from app.drift.stability import cohort_volatility
+
+    extractor = DriftFeatureExtractor()
+
+    # Build a reference cohort once for a stable cohort_cv estimate
+    stable_custs = [
+        generate_customer(f"ref-{i}", f"Ref {i}", "stable", seed=1000 + i)
+        for i in range(10)
+    ]
+    ref_cv = cohort_volatility([c.monthly_volume for c in stable_custs])
+
+    rows: list[dict] = []
+    rng = np.random.default_rng(random_state)
+    base_seeds = rng.integers(0, 100_000, size=n_per_scenario)
+
+    for scenario in SCENARIOS:
+        label = 1 if scenario in _DRIFT_RISK_SCENARIOS else 0
+        for i, seed in enumerate(base_seeds):
+            cust = generate_customer(
+                drift_id=f"train-{scenario}-{i}",
+                name=f"Training {scenario} {i}",
+                scenario=scenario,
+                seed=int(seed),
+            )
+            analysis = compute_drift_analysis(cust, cohort_cv=ref_cv)
+            features = extractor.extract(analysis)
+            rows.append({**features, "label": label})
+
+    df = pd.DataFrame(rows)
+    return df.sample(frac=1, random_state=random_state).reset_index(drop=True)
+
+
+def train_drift_model(
+    output_dir: Path | None = None,
+    n_per_scenario: int = 30,
+) -> tuple[RiskModel, dict]:
+    """
+    Train the drift XGBoost model end-to-end.
+
+    NOTE on metrics: train and test are drawn from the same 8 deterministic
+    scenario archetypes, so the model memorises each scenario's feature
+    signature and the reported accuracy/F1/ROC-AUC typically reach ~1.0. That
+    is expected on this synthetic, perfectly-separable data — it certifies the
+    pipeline trains, NOT real-world calibration, which would degrade on live
+    data. Treat the metrics as a smoke test, not a generalisation estimate.
+
+    Returns:
+        (trained_model, metrics_dict)
+    """
+    output_dir = output_dir or Path(settings.model_dir)
+
+    logger.info("training_started", model="drift_v1", n_per_scenario=n_per_scenario)
+
+    df = generate_drift_training_data(n_per_scenario=n_per_scenario)
+    logger.info(
+        "drift_training_data_generated",
+        total=len(df),
+        risk_count=int(df["label"].sum()),
+        risk_rate=float(df["label"].mean()),
+    )
+
+    feature_cols = [c for c in df.columns if c != "label"]
+    X = df[feature_cols]
+    y = df["label"]
+
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42, stratify=y
+    )
+
+    pos_weight = float((y_train == 0).sum() / max((y_train == 1).sum(), 1))
+    model = xgb.XGBClassifier(
+        n_estimators=200,
+        max_depth=5,
+        learning_rate=0.05,
+        scale_pos_weight=pos_weight,
+        random_state=42,
+        eval_metric="logloss",
+        n_jobs=-1,
+    )
+    model.fit(X_train, y_train, eval_set=[(X_test, y_test)], verbose=False)
+
+    y_pred = model.predict(X_test)
+    y_proba = model.predict_proba(X_test)[:, 1]
+    metrics = {
+        "accuracy": float(accuracy_score(y_test, y_pred)),
+        "f1": float(f1_score(y_test, y_pred)),
+        "roc_auc": float(roc_auc_score(y_test, y_proba)),
+        "confusion_matrix": confusion_matrix(y_test, y_pred).tolist(),
+        "classification_report": classification_report(y_test, y_pred, output_dict=True),
+    }
+    logger.info(
+        "drift_training_completed",
+        accuracy=round(metrics["accuracy"], 3),
+        f1=round(metrics["f1"], 3),
+        roc_auc=round(metrics["roc_auc"], 3),
+    )
+
+    extractor = DriftFeatureExtractor()
+    risk_model = RiskModel(
+        name="drift_v1",
+        version="0.1.0",
+        case_type=CaseType.KYC_DRIFT,
+        feature_extractor=extractor,
+        model=model,
+    )
+
+    model_path = output_dir / "drift_v1.joblib"
+    risk_model.save(model_path)
+    return risk_model, metrics
+
+
 # === CLI entry point ===
 if __name__ == "__main__":
     import sys
-    
-    if len(sys.argv) > 1 and sys.argv[1] == "train-social-engineering":
+
+    cmd = sys.argv[1] if len(sys.argv) > 1 else ""
+
+    if cmd == "train-social-engineering":
         model, metrics = train_social_engineering_model()
-        print("\n=== Training metrics ===")
+        print("\n=== Social Engineering Training metrics ===")
         print(f"Accuracy: {metrics['accuracy']:.3f}")
         print(f"F1 score: {metrics['f1']:.3f}")
         print(f"ROC-AUC:  {metrics['roc_auc']:.3f}")
         print(f"\nModel saved to: {settings.model_dir}/social_engineering_v1.joblib")
+    elif cmd == "train-drift":
+        model, metrics = train_drift_model()
+        print("\n=== Drift Training metrics ===")
+        print(f"Accuracy: {metrics['accuracy']:.3f}")
+        print(f"F1 score: {metrics['f1']:.3f}")
+        print(f"ROC-AUC:  {metrics['roc_auc']:.3f}")
+        print(f"\nModel saved to: {settings.model_dir}/drift_v1.joblib")
     else:
         print("Usage:")
         print("  python -m app.ml.training train-social-engineering")
+        print("  python -m app.ml.training train-drift")

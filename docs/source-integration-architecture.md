@@ -5,6 +5,17 @@
 > the final drift score.
 >
 > Companion to [`architecture.md`](architecture.md) and [`drift-engine.md`](drift-engine.md).
+> For the **free-vs-paid decision per source** and the current scaffolding
+> status, see [`sources.md`](sources.md).
+
+> **Status — scaffolding (carcass).** `backend/app/sources/` now exists with the
+> shared contract (`RegistryAdapter`, `EntitySnapshot`, generic field-diff) and a
+> carcass per source. No adapter does real network I/O yet. Of the connectors
+> below, **7 are free and will be implemented** (ZEFIX, GLEIF, OpenSanctions,
+> GDELT, Firecrawl, Wayback, WHOIS/RDAP) and **3 are paid and skipped**
+> (OpenCorporates, Event Registry, Crunchbase). GDELT is the free, key-less news
+> feed that replaces the paid Event Registry. Details + rationale in
+> [`sources.md`](sources.md).
 
 ---
 
@@ -185,7 +196,7 @@ sequenceDiagram
 
 ### 4a. ZEFIX — Swiss Commercial Register (Cases 4, 7, 8, 10)
 
-API base: `https://www.zefix.admin.ch/ZefixREST/api/v1`
+API base: `https://www.zefix.admin.ch/ZefixPublicREST/api/v1` (free, no key)
 
 ```mermaid
 flowchart LR
@@ -652,18 +663,21 @@ gantt
 
 ```
 backend/app/
-├── sources/                        ← NEW package
-│   ├── __init__.py
-│   ├── base.py                     ← RegistryAdapter ABC + EntitySnapshot
-│   ├── zefix.py                    ← ZefixAdapter
-│   ├── gleif.py                    ← GleifAdapter
-│   ├── open_corporates.py          ← OpenCorporatesAdapter
-│   ├── opensanctions.py            ← OpenSanctionsAdapter
-│   ├── event_registry.py           ← EventRegistryAdapter
-│   ├── crunchbase.py               ← CrunchbaseAdapter
-│   ├── firecrawl.py                ← FirecrawlAdapter
-│   ├── wayback.py                  ← WaybackAdapter
-│   └── whois.py                    ← WhoisAdapter
+├── sources/                        ← NEW package (carcass — scaffolding only)
+│   ├── __init__.py                 ← exports contract + adapters + registry
+│   ├── base.py                     ← RegistryAdapter ABC + EntitySnapshot +
+│   │                                  SourceCost/AdapterStatus + generic diff
+│   ├── registry.py                 ← REGISTRY catalogue + usable/skipped helpers
+│   ├── zefix.py                    ← ZefixAdapter            (FREE  · implement)
+│   ├── gleif.py                    ← GleifAdapter            (FREE  · implement)
+│   ├── opensanctions.py            ← OpenSanctionsAdapter    (FREEMIUM · implement)
+│   ├── gdelt.py                    ← GdeltAdapter  NEW       (FREE  · implement)
+│   ├── firecrawl.py                ← FirecrawlAdapter        (FREEMIUM · implement)
+│   ├── wayback.py                  ← WaybackAdapter          (FREE  · implement)
+│   ├── whois.py                    ← WhoisAdapter            (FREE  · implement)
+│   ├── open_corporates.py          ← OpenCorporatesAdapter   (PAID  · SKIPPED)
+│   ├── event_registry.py           ← EventRegistryAdapter    (PAID  · SKIPPED)
+│   └── crunchbase.py               ← CrunchbaseAdapter       (PAID  · SKIPPED)
 │
 ├── drift/
 │   ├── public_intel.py             ← becomes aggregation layer not generation
@@ -683,18 +697,19 @@ backend/app/
 
 ## 14. Source → Use Case Coverage Matrix
 
-| Source | Use Cases |
-|---|---|
-| ZEFIX | 4, 7, 8, 10 |
-| GLEIF | 3, 4, 5, 8, 10 |
-| OpenCorporates | 3, 4, 5, 7 |
-| OpenSanctions | 2, 5 |
-| EventRegistry / NewsAPI.ai | 1, 6, 8, 10 |
-| GDELT | 1, 6, 10 (fallback) |
-| Crunchbase | 6 |
-| RDAP / WHOIS | 8, 9 |
-| Wayback Machine | 9, 10 |
-| Firecrawl | 9, 10 |
-| Internal transactions | 2, 3, 7 |
+| Source | Use Cases | Cost | Decision |
+|---|---|---|---|
+| ZEFIX | 4, 7, 8, 10 | FREE | ✅ implement |
+| GLEIF | 3, 4, 5, 8, 10 | FREE | ✅ implement |
+| OpenSanctions | 2, 5 | FREEMIUM | ✅ implement |
+| GDELT | 1, 6, 8, 10 | FREE | ✅ implement (replaces Event Registry) |
+| Firecrawl | 9, 10 | FREEMIUM | ✅ implement |
+| Wayback Machine | 9, 10 | FREE | ✅ implement |
+| RDAP / WHOIS | 8, 9 | FREE | ✅ implement |
+| OpenCorporates | 3, 4, 5, 7 | PAID | ⛔ skip (covered by GLEIF + ZEFIX) |
+| EventRegistry / NewsAPI.ai | 1, 6, 8, 10 | PAID | ⛔ skip (covered by GDELT) |
+| Crunchbase | 6 | PAID | ⛔ skip (partial via GDELT news) |
+| Internal transactions | 2, 3, 7 | — | already built |
 
-After all three sprints: **10/10 use cases covered**, up from 1 fully working today.
+After the free sprints: **10/10 use cases covered with 7 free adapters** (no paid
+dependency), up from 1 fully working today.

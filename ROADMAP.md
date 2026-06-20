@@ -58,18 +58,27 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 **2. Prerequisites (build these before adapters)**
 - [ ] **`db/kyc_baseline.py`** — store/load `EntitySnapshot` per customer
 - [ ] **Seed KYC baselines** — populate from `drift/simulator.py` synthetic onboarding snapshots so adapters have something to diff against
-- [ ] **`sources/base.py`** — `RegistryAdapter` ABC + `EntitySnapshot` + `PublicSignal` diff pattern; shared by all adapters below
+- [x] **`sources/base.py`** — `RegistryAdapter` ABC + `EntitySnapshot` + `SourceCost`/`AdapterStatus` enums + generic field-diff + `SourceUnavailableError`; `PublicSignal` extended with `source_url`/`raw_evidence`; shared by all adapters below. Plus `sources/registry.py` (free-vs-paid catalogue) + tests (`test_sources.py`). **CARCASS DONE.**
 
-**3. Source adapters — `backend/app/sources/` (package does not exist yet)**
-- [ ] **`sources/zefix.py`** — Swiss commercial register; name change, legal form, dissolution, dormancy (Cases 4, 7, 8, 10)
-- [ ] **`sources/gleif.py`** — Global LEI; name change, jurisdiction change, parent LEI change (Cases 3, 4, 5, 8, 10)
-- [ ] **`sources/opensanctions.py`** — OFAC / EU / UN screening (Cases 2, 5)
-- [ ] **`sources/open_corporates.py`** — directors / officers / relationships (Cases 3, 4, 5, 7)
-- [ ] **`sources/event_registry.py`** — news event aggregation; BOCPD on event-count time-series (Cases 1, 6, 8, 10)
-- [ ] **`sources/crunchbase.py`** — funding rounds; scale-jump ratio vs. customer AUM (Case 6)
-- [ ] **`sources/firecrawl.py`** — website-to-markdown scraping, current content (Cases 9, 10)
-- [ ] **`sources/wayback.py`** — historical website snapshot at onboarding date (Cases 9, 10)
-- [ ] **`sources/whois.py`** — RDAP/WHOIS domain age + registrant change (Cases 8, 9)
+**3. Source adapters — `backend/app/sources/` (carcass built; `fetch`/`normalize` are stubs)**
+
+Decision rule: **only 100%-free / free-tier sources are implemented**; paid
+sources are marked `SKIPPED` and their `fetch` raises `SourceUnavailableError`.
+See [`docs/sources.md`](docs/sources.md). Carcass classes exist for all of them.
+
+*Free — to implement (`PLANNED`):*
+- [ ] **`sources/zefix.py`** — Swiss commercial register; name change, legal form, dissolution, dormancy (Cases 4, 7, 8, 10) · FREE
+- [ ] **`sources/gleif.py`** — Global LEI; name change, jurisdiction change, parent LEI change (Cases 3, 4, 5, 8, 10) · FREE
+- [ ] **`sources/opensanctions.py`** — OFAC / EU / UN screening (Cases 2, 5) · FREEMIUM (free non-commercial / self-host yente)
+- [ ] **`sources/gdelt.py`** — NEW free news feed; article list + volume time-series; BOCPD on event-count (Cases 1, 6, 8, 10) · FREE — **replaces Event Registry**
+- [ ] **`sources/firecrawl.py`** — website-to-markdown scraping, current content (Cases 9, 10) · FREEMIUM (1k pages/mo free / self-host)
+- [ ] **`sources/wayback.py`** — historical website snapshot at onboarding date (Cases 9, 10) · FREE
+- [ ] **`sources/whois.py`** — RDAP/WHOIS domain age + registrant change (Cases 8, 9) · FREE
+
+*Paid — skipped (`SKIPPED`, carcass documents the decision):*
+- [x] ~~**`sources/open_corporates.py`**~~ — directors / officers (Cases 3, 4, 5, 7) · PAID — **SKIP** (covered by GLEIF + ZEFIX)
+- [x] ~~**`sources/event_registry.py`**~~ — news event aggregation (Cases 1, 6, 8, 10) · PAID (trial-only) — **SKIP** (covered by GDELT)
+- [x] ~~**`sources/crunchbase.py`**~~ — funding rounds; scale-jump ratio (Case 6) · PAID — **SKIP** (partial via GDELT news)
 
 **4. Integration glue (wire adapters into the engine — without these, adapters are dead code)**
 - [ ] **Refactor `public_intel.py` into aggregator** — `service.py:148` calls `generate_signals_for_customer()` which returns fake templates; replace with real adapter calls. This one step makes every adapter actually run.
@@ -131,15 +140,16 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 ## Source → Use Case Matrix
 
-| Source | Cases |
-|---|---|
-| ZEFIX | 4, 7, 8, 10 |
-| GLEIF | 3, 4, 5, 8, 10 |
-| OpenCorporates | 3, 4, 5, 7 |
-| OpenSanctions | 2, 5 |
-| EventRegistry / NewsAPI.ai | 1, 6, 8, 10 |
-| Crunchbase | 6 |
-| RDAP/WHOIS | 8, 9 |
-| Wayback Machine | 9, 10 |
-| Firecrawl | 9, 10 |
-| Internal transactions | 2, 3, 7 |
+| Source | Cases | Cost | Decision |
+|---|---|---|---|
+| ZEFIX | 4, 7, 8, 10 | FREE | ✅ implement |
+| GLEIF | 3, 4, 5, 8, 10 | FREE | ✅ implement |
+| OpenSanctions | 2, 5 | FREEMIUM | ✅ implement |
+| GDELT | 1, 6, 8, 10 | FREE | ✅ implement (replaces Event Registry) |
+| RDAP/WHOIS | 8, 9 | FREE | ✅ implement |
+| Wayback Machine | 9, 10 | FREE | ✅ implement |
+| Firecrawl | 9, 10 | FREEMIUM | ✅ implement |
+| OpenCorporates | 3, 4, 5, 7 | PAID | ⛔ skip |
+| EventRegistry / NewsAPI.ai | 1, 6, 8, 10 | PAID | ⛔ skip |
+| Crunchbase | 6 | PAID | ⛔ skip |
+| Internal transactions | 2, 3, 7 | — | built |

@@ -56,22 +56,39 @@ _SEVERITY_LEXICON = {
 
 @dataclass
 class PublicSignal:
-    """One external signal about a customer at a point in time."""
+    """One external signal about a customer at a point in time.
+
+    This is the unified signal type emitted by both the (current) synthetic
+    generator below and the (future) real source adapters in ``app.sources``.
+    The two trailing fields are optional so existing positional construction
+    keeps working while adapters can attach a citation URL and the raw evidence
+    that produced the signal.
+    """
 
     month: int
     signal_type: str
     headline: str
     severity: float          # 0..1 from the classifier
     source: str
+    # Citation link for the officer UI (e.g. the ZEFIX/GLEIF record URL).
+    source_url: str | None = None
+    # Adapter-specific raw evidence behind the signal (the changed fields,
+    # match score, article ids, ...). Kept opaque; surfaced in audit/debug.
+    raw_evidence: dict = field(default_factory=dict)
 
     def to_dict(self) -> dict:
-        return {
+        out = {
             "month": self.month,
             "signal_type": self.signal_type,
             "headline": self.headline,
             "severity": round(self.severity, 2),
             "source": self.source,
         }
+        if self.source_url is not None:
+            out["source_url"] = self.source_url
+        if self.raw_evidence:
+            out["raw_evidence"] = self.raw_evidence
+        return out
 
 
 def classify_severity(headline: str) -> float:

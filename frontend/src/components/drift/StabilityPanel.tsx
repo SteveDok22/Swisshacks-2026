@@ -100,15 +100,14 @@ export function StabilityPanel({ stability }: StabilityPanelProps) {
         )}
       </div>
 
-      <p className="text-2xs text-ink-faint mt-2 leading-relaxed">{detail}</p>
-
-      {is_suspicious && (
-        <p className="text-2xs text-risk-high mt-2 leading-relaxed font-medium">
-          This customer keeps an unnaturally calm profile while their surroundings
-          move — the signature of someone who knows drift is monitored. Elevated
-          despite low drift, so they cannot hide below the radar.
-        </p>
-      )}
+      <p
+        className={cn(
+          "text-2xs mt-2 leading-relaxed",
+          is_suspicious ? "text-risk-high font-medium" : "text-ink-faint",
+        )}
+      >
+        {detail}
+      </p>
     </div>
   );
 }

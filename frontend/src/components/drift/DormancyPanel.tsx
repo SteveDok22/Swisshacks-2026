@@ -97,14 +97,14 @@ export function DormancyPanel({ dormancy }: DormancyPanelProps) {
         </span>
       </div>
 
-      <p className="text-2xs text-ink-faint mt-2 leading-relaxed">{detail}</p>
-
-      {is_dormancy_break && (
-        <p className="text-2xs text-risk-critical mt-2 leading-relaxed font-medium">
-          A dormant baseline followed by a strong activation burst is treated as
-          suspicious reactivation and is surfaced for human AML review.
-        </p>
-      )}
+      <p
+        className={cn(
+          "text-2xs mt-2 leading-relaxed",
+          is_dormancy_break ? "text-risk-critical font-medium" : "text-ink-faint",
+        )}
+      >
+        {detail}
+      </p>
     </div>
   );
 }

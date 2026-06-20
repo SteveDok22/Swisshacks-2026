@@ -103,6 +103,8 @@ computed over an undirected, stake-weighted view so risk flows both ways (an own
 
 Five public-signal categories (news, sanctions, adverse media, ownership changes, funding events) are classified by severity and aggregated into a public-risk score, severity- and recency-weighted.
 
+Each public signal carries a `source` and optional `source_url`. In the MVP these URLs are deterministic demo references generated with the synthetic signal; real feed adapters can replace them with article, registry, or sanctions-record citations without changing the API.
+
 **Confirmation Lift** is the differentiator. Two weak, independent signals that co-occur in time provide more evidence together than the product of their parts:
 
 ```

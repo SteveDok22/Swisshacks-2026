@@ -120,6 +120,56 @@ class TestFetchSignalsNoKey:
 
 
 # ---------------------------------------------------------------------------
+# fetch_signals() — since_month boundary / clamping
+# ---------------------------------------------------------------------------
+
+class TestSinceMonthBoundary:
+    _EMPTY = {"events": {"results": []}, "articles": {"results": []}}
+
+    async def test_since_month_out_of_range_clamped(
+        self, adapter_with_key: EventRegistryAdapter
+    ):
+        """since_month values outside [0, 11] must not produce month=12+ in signals."""
+        event_response = {
+            "events": {
+                "results": [
+                    {
+                        "uri": "evt-x",
+                        "title": {"eng": "Bad news"},
+                        "eventDate": "2025-06-01",
+                        "sentiment": -0.8,
+                        "articleCounts": {"eng": 1},
+                    }
+                ]
+            }
+        }
+        with patch.object(
+            adapter_with_key,
+            "_post",
+            new=AsyncMock(side_effect=[event_response, self._EMPTY, self._EMPTY]),
+        ):
+            signals = await adapter_with_key.fetch_signals(
+                "drift-1", "Acme AG", since_month=12
+            )
+
+        for sig in signals:
+            assert 0 <= sig.month <= 11, f"month={sig.month} is out of [0, 11]"
+
+    async def test_since_month_null_api_response_does_not_crash(
+        self, adapter_with_key: EventRegistryAdapter
+    ):
+        """API returning {\"events\": null} must not raise AttributeError."""
+        with patch.object(
+            adapter_with_key,
+            "_post",
+            new=AsyncMock(return_value={"events": None, "articles": None}),
+        ):
+            signals = await adapter_with_key.fetch_signals("drift-1", "Acme AG")
+
+        assert signals == []
+
+
+# ---------------------------------------------------------------------------
 # fetch_signals() — mocked HTTP, adverse media (UC 1)
 # ---------------------------------------------------------------------------
 
@@ -160,8 +210,12 @@ class TestAdverseMedia:
         ):
             signals = await adapter_with_key.fetch_signals("drift-1", "Acme AG")
 
+        # evt-001 (sentiment=-0.72, articleCounts=15) → adverse_media + news spike.
+        # evt-002 (sentiment=0.20, positive) → filtered out.
+        assert len(signals) == 2
         types = {s.signal_type for s in signals}
-        assert "adverse_media" in types or "news" in types
+        assert types == {"adverse_media", "news"}
+        assert not any("Q3 results" in s.headline for s in signals)
 
     async def test_positive_event_is_excluded(
         self, adapter_with_key: EventRegistryAdapter
@@ -204,10 +258,11 @@ class TestAdverseMedia:
         ):
             signals = await adapter_with_key.fetch_signals("drift-1", "Acme AG")
 
-        # The event with articleCounts=15 should trigger both an adverse_media
-        # signal AND a news spike signal.
+        # evt-001 (articleCounts=15) must produce both an adverse_media base signal
+        # AND a news volume-spike signal.
         news_signals = [s for s in signals if s.signal_type == "news"]
         assert any("spike" in s.headline.lower() for s in news_signals)
+        assert any(s.signal_type == "adverse_media" for s in signals)
 
 
 # ---------------------------------------------------------------------------
@@ -344,6 +399,7 @@ class TestRateLimit:
                     "event/getEvents", {"keyword": "test"}
                 )
 
+        assert call_count == 2, f"Expected 2 HTTP calls (1×429 + 1×success), got {call_count}"
         assert result == {"events": {"results": []}}
 
     async def test_exhausted_retries_raises(
@@ -449,6 +505,11 @@ class TestHelpers:
         # Invalid date string should fall back to since_month.
         month = _date_str_to_month("not-a-date", since_month=3)
         assert month == 3
+
+    def test_sentiment_to_severity_exactly_zero_is_positive_bucket(self):
+        # sentiment=0.0 is neutral; excluded by the filter (>= 0.0) before this
+        # function is called. If it ever reaches here, it maps to the positive bucket.
+        assert _sentiment_to_severity(0.0) == pytest.approx(0.25)
 
     def test_public_signal_severity_in_range(self):
         """All severity values produced by the adapter must satisfy [0, 1]."""

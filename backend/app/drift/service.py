@@ -21,6 +21,7 @@ import json
 import time
 import zlib
 from collections.abc import Iterable
+from datetime import UTC, date, datetime
 from typing import Any
 
 import numpy as np
@@ -35,8 +36,19 @@ from app.core.config import (
     settings,
 )
 from app.core.logging import get_logger
+from app.db.kyc_baseline import (
+    EntitySnapshotDB,
+    load_latest_snapshot,
+    store_snapshot,
+)
+from app.db.session import session_scope
 from app.drift.bocpd import BOCPD, standardize
-from app.drift.business_model import BusinessModelComparison, compare_business_model
+from app.drift.business_model import (
+    BusinessModelComparison,
+    CachedEmbedding,
+    compare_business_model,
+    text_fingerprint,
+)
 from app.drift.cascade import CascadeRouter, CustomerSignal, Tier
 from app.drift.causal import causal_assessment
 from app.drift.contagion import (
@@ -77,7 +89,9 @@ from app.schemas.drift import (
 from app.schemas.enums import DecisionAction
 from app.services.anthropic_client import get_anthropic_client
 from app.sources.base import EntitySnapshot
+from app.sources.firecrawl import FirecrawlAdapter
 from app.sources.gleif import gather_ownership_snapshots, ownership_change_signals
+from app.sources.wayback import WaybackAdapter
 
 logger = get_logger(__name__)
 
@@ -106,6 +120,17 @@ _GLEIF_FETCH_TIMEOUT_S = 30.0
 # Customers wired into the ownership graph as contagion-affected
 CONTAGION_AFFECTED = {"drift-004", "drift-002"}
 DRIFT_ANALYSIS_VERSION = "drift-v1"
+
+# Wall-clock cap for the live business-model website fetch (Wayback + Firecrawl)
+# in live mode. The cosine comparison must never block the engine, so any
+# overrun (a slow archive.org capture, a hung scrape) is abandoned and the
+# customer simply gets no business-model signal. Sized above the Wayback polite
+# delay + two HTTP round-trips, well under the cascade's per-customer budget.
+_WEBSITE_FETCH_TIMEOUT_S = 30.0
+# raw_data key under which the comparator's embeddings are persisted, keyed by
+# the SHA-256 text fingerprint the comparator returns. A re-scan reads this back
+# as a read-through cache to skip re-embedding when the website text is unchanged.
+_BUSINESS_MODEL_EMBEDDINGS_KEY = "business_model_embeddings"
 
 # UC 4 — structural-change signal types that mandate a re-KYC review. A
 # confirmed jurisdiction or legal-form change is a hard regulatory trigger, so
@@ -493,19 +518,24 @@ class DriftEngine:
     ) -> BusinessModelComparison | None:
         """Compare onboarding vs current website text for a silent pivot (UC 9).
 
-        Returns ``None`` when the customer carries no website texts (every
-        scenario but ``domain_pivot`` in the offline demo, and — until the
-        snapshot/adapter wiring lands — every customer in live mode). Otherwise
-        runs the pure comparator, which itself degrades to a skipped result
-        (distance 0.0, no signal) when the embeddings backend is unavailable, so
-        this never requires a model download or any network at request time.
+        Two acquisition paths, selected by the ``external_apis_enabled`` master
+        switch — exactly the same seam as ``_public_signals``:
 
-        NOTE (deferred): the comparator returns the embeddings it used so a caller
-        can persist them in ``EntitySnapshotDB.raw_data`` to skip re-embedding on
-        re-scan. That persistence — and sourcing the two texts from the Wayback /
-        Firecrawl adapters in live mode — is the remaining aggregator wiring,
-        tracked as a follow-up.
+        - OFFLINE (default): the synthetic demo path. The texts ride on the
+          customer (only the ``domain_pivot`` scenario carries them); every other
+          scenario returns ``None`` (no signal). No network, no DB.
+        - LIVE: source the onboarding "before" text from Wayback and the current
+          "after" text from Firecrawl via a bounded sync bridge, with the
+          comparator's embeddings persisted to (and re-read from)
+          ``EntitySnapshotDB.raw_data`` as a read-through cache. Missing domain,
+          adapter error, or an absent embeddings backend all degrade to ``None``.
+
+        Either way the pure comparator never raises and never requires a model
+        download at request time — an unavailable backend yields a skipped result.
         """
+        if settings.external_apis_enabled:
+            return self._live_business_model_comparison(cust)
+
         onboarding = cust.onboarding_website_text
         current = cust.current_website_text
         if not onboarding or not current:
@@ -519,6 +549,228 @@ class DriftEngine:
             # change) so Confirmation Lift can time-match it to internal drift.
             month=cust.drift_start_month or 0,
         )
+
+    def _live_business_model_comparison(
+        self, cust: SyntheticCustomer
+    ) -> BusinessModelComparison | None:
+        """Synchronous bridge to the async live website-text comparison.
+
+        Mirrors the public-intel / GLEIF sync bridges: runs the async fetch +
+        compare in a dedicated thread with its own event loop, so it is safe to
+        call from the synchronous engine even under a running FastAPI loop. Bounded
+        by ``_WEBSITE_FETCH_TIMEOUT_S``; any failure (timeout included) degrades to
+        ``None`` (no signal). ``shutdown(wait=False)`` so a hung worker never
+        re-blocks the engine — it unwinds on its own once the inner work is
+        abandoned.
+        """
+        pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        future = pool.submit(
+            asyncio.run,
+            self._gather_business_model_async(
+                cust.drift_id, cust.name, month=cust.drift_start_month or 0
+            ),
+        )
+        try:
+            return future.result(timeout=_WEBSITE_FETCH_TIMEOUT_S)
+        except Exception:  # noqa: BLE001 — honour the graceful-degradation contract
+            logger.warning(
+                "business_model_live_fetch_failed", drift_id=cust.drift_id, exc_info=True
+            )
+            return None
+        finally:
+            pool.shutdown(wait=False)
+
+    async def _gather_business_model_async(
+        self, drift_id: str, name: str, *, month: int
+    ) -> BusinessModelComparison | None:
+        """Source live website texts, run the comparator, and persist embeddings.
+
+        Pipeline:
+          1. Read the customer's domain + any cached embeddings from the latest
+             persisted snapshot's ``raw_data`` (the read-through cache). No domain
+             → no live wiring (returns ``None``), so this never derives a domain
+             from the name slug or hits the network for an unknown customer.
+          2. Fetch the onboarding text (Wayback) and current text (Firecrawl).
+          3. Build per-side caches from the persisted embeddings (matched on the
+             SHA-256 fingerprint of the stripped text) and run the comparator,
+             which reuses a cached vector only while its fingerprint still matches.
+          4. Persist the embeddings the comparator actually used, but only when
+             they changed — a re-scan with unchanged text is a pure cache hit and
+             writes nothing.
+        """
+        domain, cached_map, onboarding_date = await self._load_website_baseline(drift_id)
+        if not domain:
+            logger.info("business_model_live_no_domain", drift_id=drift_id)
+            return None
+
+        wayback_text = await self._fetch_wayback_text(
+            drift_id, name, domain, onboarding_date
+        )
+        current_text, current_url = await self._fetch_firecrawl_text(
+            drift_id, name, domain
+        )
+
+        # Fingerprint the STRIPPED text the comparator embeds, so a persisted
+        # vector is reused only when it covers exactly that normalised text.
+        wb_fp = text_fingerprint((wayback_text or "").strip())
+        cur_fp = text_fingerprint((current_text or "").strip())
+        wb_cache = (
+            CachedEmbedding(wb_fp, cached_map[wb_fp]) if wb_fp in cached_map else None
+        )
+        cur_cache = (
+            CachedEmbedding(cur_fp, cached_map[cur_fp]) if cur_fp in cached_map else None
+        )
+
+        result = compare_business_model(
+            drift_id,
+            name,
+            wayback_text,
+            current_text,
+            month=month,
+            wayback_cache=wb_cache,
+            current_cache=cur_cache,
+            source_url=current_url,
+        )
+
+        # Persist the embeddings actually used (never the degenerate ones a skip
+        # withholds). Keep only the two current fingerprints so the cache stays
+        # bounded and self-prunes; skip the write when nothing changed.
+        if (
+            not result.skipped
+            and result.wayback_embedding is not None
+            and result.current_embedding is not None
+        ):
+            new_map = {
+                result.wayback_embedding.fingerprint: result.wayback_embedding.vector,
+                result.current_embedding.fingerprint: result.current_embedding.vector,
+            }
+            if new_map != cached_map:
+                await self._persist_website_embeddings(
+                    drift_id=drift_id,
+                    name=name,
+                    domain=domain,
+                    current_text=current_text or "",
+                    current_url=current_url,
+                    onboarding_date=onboarding_date,
+                    embeddings=new_map,
+                )
+        return result
+
+    async def _load_website_baseline(
+        self, drift_id: str
+    ) -> tuple[str | None, dict[str, list[float]], str | None]:
+        """Read the persisted domain + cached embeddings for one customer.
+
+        Returns ``(domain, embeddings_by_fingerprint, onboarding_date)`` from the
+        latest snapshot's ``raw_data``. Degrades to ``(None, {}, None)`` on any DB
+        error or when no snapshot (or no domain) exists — the live website path is
+        then inert for that customer.
+        """
+        try:
+            async with session_scope() as session:
+                latest = await load_latest_snapshot(session, drift_id)
+        except Exception:  # noqa: BLE001 — DB unavailable must degrade, not crash
+            logger.warning(
+                "business_model_baseline_load_failed", drift_id=drift_id, exc_info=True
+            )
+            return None, {}, None
+        if latest is None:
+            return None, {}, None
+        raw = latest.raw_data or {}
+        embeddings = raw.get(_BUSINESS_MODEL_EMBEDDINGS_KEY) or {}
+        return raw.get("domain"), embeddings, raw.get("onboarding_date")
+
+    async def _persist_website_embeddings(
+        self,
+        *,
+        drift_id: str,
+        name: str,
+        domain: str,
+        current_text: str,
+        current_url: str | None,
+        onboarding_date: str | None,
+        embeddings: dict[str, list[float]],
+    ) -> None:
+        """Append a Firecrawl snapshot carrying the comparator's embeddings.
+
+        Append-only, matching the snapshot store's contract: a fresh capture is a
+        new row, and ``load_latest_snapshot`` returns it on the next scan so the
+        read-through cache hits. Best-effort — a persistence failure must not sink
+        the comparison the caller already computed.
+        """
+        try:
+            async with session_scope() as session:
+                await store_snapshot(
+                    session,
+                    EntitySnapshotDB(
+                        drift_id=drift_id,
+                        snapshot_date=date.today(),
+                        snapshot_type="triggered",
+                        source="firecrawl",
+                        name=name,
+                        raw_data={
+                            "domain": domain,
+                            "url": current_url,
+                            "website_text": current_text,
+                            "onboarding_date": onboarding_date,
+                            "scraped_at": datetime.now(UTC).isoformat(),
+                            _BUSINESS_MODEL_EMBEDDINGS_KEY: embeddings,
+                        },
+                    ),
+                )
+        except Exception:  # noqa: BLE001 — persistence is best-effort
+            logger.warning(
+                "business_model_embeddings_persist_failed",
+                drift_id=drift_id,
+                exc_info=True,
+            )
+
+    async def _fetch_wayback_text(
+        self, drift_id: str, name: str, domain: str, onboarding_date: str | None
+    ) -> str | None:
+        """Fetch the onboarding-era website text via Wayback. None on any error."""
+        adapter = WaybackAdapter()
+        try:
+            snap = await adapter.fetch(
+                drift_id, name, domain=domain, onboarding_date=onboarding_date
+            )
+        except Exception:  # noqa: BLE001 — a Wayback outage degrades to no signal
+            logger.warning(
+                "business_model_wayback_failed", drift_id=drift_id, exc_info=True
+            )
+            return None
+        finally:
+            await self._safe_aclose(adapter)
+        return snap.raw_data.get("website_text") if snap else None
+
+    async def _fetch_firecrawl_text(
+        self, drift_id: str, name: str, domain: str
+    ) -> tuple[str | None, str | None]:
+        """Fetch the current website text + URL via Firecrawl. (None, None) on error."""
+        adapter = FirecrawlAdapter()
+        try:
+            snap = await adapter.fetch(drift_id, name, domain=domain)
+        except Exception:  # noqa: BLE001 — a scrape failure degrades to no signal
+            logger.warning(
+                "business_model_firecrawl_failed", drift_id=drift_id, exc_info=True
+            )
+            return None, None
+        finally:
+            await self._safe_aclose(adapter)
+        if snap is None:
+            return None, None
+        return snap.raw_data.get("website_text"), snap.raw_data.get("url")
+
+    @staticmethod
+    async def _safe_aclose(adapter: Any) -> None:
+        """Close an adapter's HTTP client if it owns one; never raise."""
+        aclose = getattr(adapter, "aclose", None)
+        if aclose is None:
+            return
+        try:
+            await aclose()
+        except Exception:  # noqa: BLE001
+            logger.debug("business_model_adapter_aclose_failed", exc_info=True)
 
     # ------------------------------------------------------------------ #
     # Core per-customer analysis

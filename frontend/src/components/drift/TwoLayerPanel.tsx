@@ -14,6 +14,7 @@ const SIGNAL_ICON: Record<string, typeof Newspaper> = {
   adverse_media: Newspaper,
   ownership_change: Network,
   funding_event: TrendingUp,
+  business_model_change: Globe,
 };
 
 const SIGNAL_LABEL: Record<string, string> = {
@@ -22,6 +23,7 @@ const SIGNAL_LABEL: Record<string, string> = {
   adverse_media: "Adverse media",
   ownership_change: "Ownership change",
   funding_event: "Funding event",
+  business_model_change: "Business-model change",
 };
 
 /**
@@ -34,8 +36,19 @@ const SIGNAL_LABEL: Record<string, string> = {
  * confidence beyond either alone.
  */
 export function TwoLayerPanel({ detail }: TwoLayerPanelProps) {
-  const { public_risk, internal_risk, confirmation_lift, public_signals } = detail;
+  const {
+    public_risk,
+    internal_risk,
+    confirmation_lift,
+    public_signals,
+    is_business_model_change,
+    business_model_distance,
+  } = detail;
   const lifted = confirmation_lift > 1.5;
+  // Only surface the business-model readout when a comparison actually ran
+  // (distance > 0). A skipped comparison (no website texts / no embedder) leaves
+  // the distance at its neutral 0.0, where "consistent" would be misleading.
+  const showBusinessModel = business_model_distance > 0;
 
   const sevColor = (sev: number) => {
     if (sev >= 0.7) return "text-risk-critical";
@@ -91,6 +104,42 @@ export function TwoLayerPanel({ detail }: TwoLayerPanelProps) {
             : "— layers independent"}
         </span>
       </div>
+
+      {/* Business-model drift (UC 9): website/domain pivot since onboarding */}
+      {showBusinessModel && (
+        <div
+          className={cn(
+            "flex items-center gap-2 rounded py-2 px-2.5 mb-3 border",
+            is_business_model_change
+              ? "bg-risk-high-bg border-risk-high/20"
+              : "bg-paper-sunken border-paper-line",
+          )}
+        >
+          <Globe
+            className={cn(
+              "h-3.5 w-3.5 shrink-0",
+              is_business_model_change ? "text-risk-high" : "text-ink-muted",
+            )}
+            strokeWidth={2}
+          />
+          <span
+            className={cn(
+              "text-xs",
+              is_business_model_change ? "text-risk-high font-medium" : "text-ink-muted",
+            )}
+          >
+            Business-Model Drift{" "}
+            <span className="font-mono font-semibold tabular">
+              {business_model_distance.toFixed(2)}
+            </span>
+          </span>
+          <span className="text-2xs text-ink-muted">
+            {is_business_model_change
+              ? "— website pivoted materially since onboarding (Wayback↔Firecrawl)"
+              : "— website consistent with onboarding"}
+          </span>
+        </div>
+      )}
 
       {/* Public signals feed */}
       {public_signals.length > 0 ? (

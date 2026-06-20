@@ -172,6 +172,20 @@ class DriftSubjectDetail(BaseModel):
     # Case 5: UBO / ownership-chain sanctions screening hits (matched names + scores).
     ubo_screening: list[UboScreeningOut] = Field(default_factory=list)
 
+    # Business-model drift (UC 9): silent website/domain pivot since onboarding.
+    # Derived from the Wayback (onboarding) vs Firecrawl (current) website-text
+    # cosine comparison in drift/business_model.py. When no website texts are
+    # available or the embeddings backend is absent, the comparison is skipped and
+    # these stay at their neutral defaults (no change, distance 0.0).
+    is_business_model_change: bool = Field(
+        default=False,
+        description="True when the public-facing business model shifted materially since onboarding",
+    )
+    business_model_distance: float = Field(
+        default=0.0,
+        description="Cosine distance between onboarding and current website text (0 = identical, higher = more divergent)",
+    )
+
     # Causal drift: risk-shaped vs life-shaped change
     causal: CausalVerdictOut | None = None
 
@@ -244,7 +258,8 @@ class InjectScenarioRequest(BaseModel):
         default="combined",
         description=(
             "stable | volume_creep | counterparty_migration | corridor_shift | "
-            "combined | benign_expansion | suspicious_stability | dormancy_break"
+            "combined | benign_expansion | suspicious_stability | dormancy_break | "
+            "domain_pivot"
         ),
     )
     name: str = Field(default="Injected Test Customer")

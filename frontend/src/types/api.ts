@@ -324,6 +324,9 @@ export interface DriftCustomerDetail {
   internal_risk: number;
   confirmation_lift: number;
   public_signals: PublicSignal[];
+  // Business-model drift (UC 9): silent website/domain pivot since onboarding.
+  is_business_model_change: boolean;
+  business_model_distance: number;
   causal: CausalVerdict | null;
   stability: StabilityVerdict | null;
   dormancy: DormancyVerdict | null;

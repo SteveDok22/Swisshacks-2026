@@ -28,6 +28,9 @@ Scenarios:
                          signals fire) — the Mossack Fonseca shelf-cycling
                          pattern, where shelf companies are renamed to reset
                          KYC review clocks (Case 8 / re-KYC trigger)
+- domain_pivot:          the public-facing business model changes (website +
+                         WHOIS registrant) while transactions look superficially
+                         normal — the Centra Tech pattern the AML profile misses
 
 Every scenario ends with a simulated sanctions listing at the final month
 (month 0 in demo language), so lead time = listing date - detection date.
@@ -51,6 +54,25 @@ SCENARIOS = (
     "news_spike",
     "pivot",
     "name_cycling",
+    "domain_pivot",
+)
+
+# Synthetic onboarding vs current website text for the domain_pivot scenario.
+# The two read as materially different businesses (boutique advisory → crypto
+# exchange / token ICO — the Centra Tech pattern), so an offline embedder yields
+# a cosine distance well above drift/business_model.py's 0.35 change threshold.
+# Each clears the comparator's 50-char minimum so the comparison is never skipped
+# as "empty_text". Used only in the offline demo path; live runs source these
+# texts from the Wayback / Firecrawl adapters instead.
+DOMAIN_PIVOT_ONBOARDING_TEXT = (
+    "Helvetia Advisory AG is a boutique import and export consultancy based in "
+    "Zug, advising family-owned manufacturers on cross-border trade finance, "
+    "customs documentation, and supplier due diligence across the EU and UK."
+)
+DOMAIN_PIVOT_CURRENT_TEXT = (
+    "HelvetiaX is a regulated cryptocurrency exchange and token launchpad "
+    "offering spot trading, staking rewards, custodial wallets, and an initial "
+    "coin offering for our new DeFi yield protocol with global onboarding."
 )
 
 # The name_cycling scenario (Case 8) injects a legal-entity name change at this
@@ -91,6 +113,12 @@ class SyntheticCustomer:
     sanctions_month: int | None = None
     # Ground-truth causal label for validation: "benign" | "risk" | None
     causal_truth: str | None = None
+    # Website text at KYC onboarding (Wayback "before" reference) and the current
+    # snapshot (Firecrawl "after"). Populated only for the domain_pivot scenario
+    # in the offline demo; the business-model comparator diffs the two. None for
+    # every other scenario, where no website comparison runs.
+    onboarding_website_text: str | None = None
+    current_website_text: str | None = None
 
     def metric_windows(self) -> dict[str, list[np.ndarray]]:
         """Behavioral metrics for velocity/BOCPD (magnitude of drift)."""
@@ -185,7 +213,7 @@ def generate_customer(
         causal_truth = "suspicious"
     else:
         # volume_creep / counterparty_migration / corridor_shift / combined /
-        # dormancy_break / news_spike / pivot / name_cycling are all risk-shaped.
+        # dormancy_break / news_spike / pivot / name_cycling / domain_pivot are all risk-shaped.
         causal_truth = "risk"
 
     cust = SyntheticCustomer(
@@ -273,11 +301,13 @@ def generate_customer(
         base_margin = 0.25
         if scenario in (
             "volume_creep", "counterparty_migration", "corridor_shift",
-            "combined", "dormancy_break", "news_spike", "pivot", "name_cycling",
+            "combined", "dormancy_break", "news_spike", "pivot", "name_cycling", "domain_pivot",
         ):
             # Risk: margin collapses toward 0 as intensity rises (the reactivated
-            # shell — or the pivoted ICO — pushes money straight through with
-            # near-zero retention).
+            # shell — the pivoted ICO, or the silently-pivoted business — pushes
+            # money straight through, near-zero retention). For domain_pivot this
+            # is the only transactional tell; volume/counterparty/corridor stay at
+            # baseline, so the public website/WHOIS change is what actually surfaces it.
             margin_mean = base_margin * (1.0 - 0.9 * intensity)
         elif scenario == "benign_expansion":
             # Benign: margin holds (tiny dip from growth costs, then recovers)
@@ -291,6 +321,14 @@ def generate_customer(
         cust.counterparty_risk.append(cp_risk)
         cust.corridor_risk.append(corridor_risk)
         cust.margin_ratio.append(margin)
+
+    # domain_pivot carries onboarding vs current website text so the
+    # business-model comparator can diff them (UC 9). The WHOIS registrant change
+    # the scenario represents lands at drift_start_month; the website divergence
+    # is the same pivot seen from the public side.
+    if scenario == "domain_pivot":
+        cust.onboarding_website_text = DOMAIN_PIVOT_ONBOARDING_TEXT
+        cust.current_website_text = DOMAIN_PIVOT_CURRENT_TEXT
 
     return cust
 
@@ -364,6 +402,18 @@ def generate_book(
             drift_id=f"drift-{idx:03d}",
             name="Meridian Trust Reg.",
             scenario="name_cycling",
+            seed=seed + 400,
+        )
+    )
+    idx += 1
+    # The silent business-model pivot (Case 9): a boutique advisory whose website
+    # and WHOIS registrant change into a crypto exchange while its transactions
+    # look superficially normal — the Centra Tech pattern the AML profile misses.
+    book.append(
+        generate_customer(
+            drift_id=f"drift-{idx:03d}",
+            name="Helvetia Advisory AG",
+            scenario="domain_pivot",
             seed=seed + 400,
         )
     )

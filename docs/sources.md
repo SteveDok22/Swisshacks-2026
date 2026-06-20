@@ -12,10 +12,11 @@
 
 ## Status: partial implementation
 
-Three adapters are fully implemented (real HTTP calls):
+Four adapters are fully implemented (real HTTP calls):
 - **GLEIF** — free, no key required (PR #25)
 - **ZEFIX** — FREEMIUM, free Basic-auth account; degrades gracefully (`None`/`[]`) when credentials absent (PR #23)
 - **Event Registry** — FREEMIUM, key-gated; returns `[]` when key absent (PR #24)
+- **OpenSanctions** — FREEMIUM, key optional; unauthenticated non-commercial free tier works without a key (this PR)
 
 All other adapters remain carcasses — no real network I/O yet:
 
@@ -60,7 +61,7 @@ status == PLANNED   <=>   cost == FREE or FREEMIUM
 |---|---|---|---|---|
 | **ZEFIX** | Swiss commercial register: name, legal form, seat, status, purpose (Zweck), SHAB mutation log | FREEMIUM | yes⁰ | ✅ BUILT |
 | **GLEIF** | Global LEI: name, status, jurisdiction, parent/children ownership graph | FREE | no | ✅ BUILT |
-| **OpenSanctions** | OFAC/EU/UN sanctions + PEP screening with match scores | FREEMIUM | yes¹ | ✅ IMPLEMENT |
+| **OpenSanctions** | OFAC/EU/UN sanctions + PEP screening with match scores | FREEMIUM | yes¹ | ✅ BUILT (key optional) |
 | **GDELT 2.0** | Global news article lists + volume time-series (free news feed) | FREE | no | ✅ IMPLEMENT |
 | **Event Registry** | News clustered into de-duplicated *events*, primary news source (hackathon key) | FREEMIUM³ | yes | ✅ BUILT (key-gated) |
 | **Firecrawl** | Live website → markdown (current page content) | FREEMIUM | yes² | ✅ IMPLEMENT |
@@ -82,8 +83,11 @@ The adapter (`sources/zefix.py`) is implemented against the live OpenAPI schema
 (`fetch → None`, `fetch_signals → []`) so the engine still runs. Engine wiring
 (aggregator, score floor, synthetic scenario, UI badge) is tracked separately in
 the ROADMAP use-case close-out tasks.
-¹ OpenSanctions: hosted API needs a key and is metered; the data + the `yente`
-matcher are **free for non-commercial use** and self-hostable. Commercial use
+¹ OpenSanctions: the hosted `yente` API at `api.opensanctions.org` works
+**unauthenticated** for non-commercial use (tighter rate limits). A key
+(`OPENSANCTIONS_API_KEY` env var, sent as `Authorization: ApiKey …`) unlocks
+higher limits. The adapter always attempts the API — it does **not** silently
+skip when no key is set, unlike Event Registry. Commercial use of the data
 needs a paid bulk-data licence — flag for production.
 ² Firecrawl: cloud free tier ~1,000 pages/month (no card); self-host is AGPL-3.0.
 ³ Event Registry: previously treated as paid (one-time trial allowance only). The
@@ -101,7 +105,7 @@ structured sentiment.
 | OpenCorporates | 3, 4, 5, 7 | **GLEIF** entity-level ownership (parent/child LEIs) + **ZEFIX** company fields. ⚠️ Natural-person **officers/directors** are a real gap — no free source (incl. ZEFIX) exposes them; entity-level UBO only. |
 | Crunchbase | 6 | **Event Registry** (structured funding articles) + **GDELT** (free fallback) |
 
-Net: **8 adapters to run (3 built — GLEIF, ZEFIX, Event Registry — 5 carcasses),
+Net: **8 adapters to run (4 built — GLEIF, ZEFIX, Event Registry, OpenSanctions — 4 carcasses),
 2 skipped.** No use case is fully dropped; officer/director-level resolution
 (part of Cases 3/5) is degraded to entity-level ownership only — the one
 capability lost by skipping the paid OpenCorporates. Event Registry is the

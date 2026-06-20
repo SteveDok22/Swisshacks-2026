@@ -74,6 +74,13 @@ class Settings(BaseSettings):
     # returns [] and GDELT remains the always-on fallback.
     event_registry_api_key: str = ""
 
+    # === Screening sources ===
+    # OpenSanctions hosted API key. The non-commercial free tier works without
+    # a key but has tighter rate limits. A key is required in production.
+    # Unauthenticated requests are still attempted when key is absent — the
+    # adapter degrades to tighter rate limits, not to silence.
+    opensanctions_api_key: str = ""
+
     # === ML ===
     model_dir: str = "./data/models"
     enable_dice_counterfactuals: bool = True

@@ -536,13 +536,16 @@ async def _resolve_ubo_names(
     name: str,
     adapters: tuple[Any, ...],
 ) -> list[str]:
-    """Resolve the entity's GLEIF child LEIs to legal names for UBO screening.
+    """Resolve the entity's GLEIF ownership-chain LEIs to legal names for screening.
 
     Case 5 (new shareholders / UBOs): the OpenSanctions adapter screens each
-    name passed via its ``ubo_names`` kwarg. The names come from the GLEIF
-    ownership chain — we fetch the entity's direct-child LEIs (the GLEIF adapter
-    stores them in ``EntitySnapshot.officers``) and resolve each LEI back to a
-    legal name.
+    name passed via its ``ubo_names`` kwarg. The names come from BOTH ends of the
+    GLEIF ownership chain — the ultimate-parent LEI (the entity-level UBO proxy,
+    stored in ``EntitySnapshot.beneficial_owners``) and the direct-child LEIs
+    (stored in ``EntitySnapshot.officers``) — each resolved back to a legal name
+    so OpenSanctions screens the parent as well as the subsidiaries. A parent hit
+    surfaces as an ``ownership_change`` signal carrying the parent name (identical
+    UBO-screening convention to a child hit).
 
     Returns ``[]`` when GLEIF is not among the usable adapters, the entity is
     not in GLEIF, or any error occurs — screening then degrades to the main
@@ -560,13 +563,20 @@ async def _resolve_ubo_names(
         snapshot = await adapter.fetch(drift_id, name)
         if snapshot is None:
             return []
-        # GLEIF stores direct-child LEIs in ``officers`` (no subsidiaries field
-        # exists on EntitySnapshot). Cap the fan-out before resolving names.
+        # Screen BOTH ends of the GLEIF ownership chain: the ultimate-parent LEI
+        # (stored in ``beneficial_owners`` — the entity-level UBO proxy) and the
+        # direct-child LEIs (stored in ``officers``; no ``subsidiaries`` field
+        # exists on EntitySnapshot). The child fan-out is capped first; the parent
+        # (at most one LEI) is added on top, keeping the per-adapter budget intact.
+        # Dedupe LEIs so a node appearing as both parent and child — or a repeated
+        # entry — is resolved/screened only once.
+        parent_leis = [lei for lei in snapshot.beneficial_owners if lei]
         child_leis = [lei for lei in snapshot.officers if lei][:_MAX_UBO_CHILDREN]
-        if not child_leis:
+        leis = list(dict.fromkeys([*parent_leis, *child_leis]))
+        if not leis:
             return []
         resolved = await asyncio.gather(
-            *(_resolve_lei_name(adapter, drift_id, lei) for lei in child_leis)
+            *(_resolve_lei_name(adapter, drift_id, lei) for lei in leis)
         )
         # Drop unresolved (None) names; dedupe while preserving order.
         return list(dict.fromkeys(n for n in resolved if n))

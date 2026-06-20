@@ -115,6 +115,16 @@ report this field"* and two `None`s are never a change; the list fields are
 set-diffed. `PublicSignal` carries `source_url` for the officer-UI citation; an
 adapter's `record_url()` supplies the click-through link.
 
+> **Two signal vocabularies — don't confuse them.** `diff_snapshots` emits
+> **past-tense** routing keys on `SnapshotDiff.drift_signal_type`
+> (`name_changed`, `jurisdiction_changed`, `dissolution_status_changed`,
+> `ubo_added`/`ubo_removed`, …). The adapter `signal_types` metadata and
+> `ADAPTER_SIGNAL_TYPES` use the **noun** form on `PublicSignal.signal_type`
+> (`name_change`, `jurisdiction_change`, `status_change`, …). These are two
+> deliberately separate namespaces — registry-diff routing keys vs. the public
+> signal type shown on a card. When the future aggregator turns a `SnapshotDiff`
+> into a `PublicSignal`, it must map `*_changed` → `*_change` explicitly.
+
 ---
 
 ## Build order (when the carcasses get filled in)

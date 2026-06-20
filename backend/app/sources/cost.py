@@ -31,6 +31,12 @@ from app.sources.base import EntitySnapshot, PublicSignal
 # Signal-type vocabulary the adapter layer emits via ``fetch_signals`` — the
 # five categories named in the AMINA brief (kept in ``public_intel.SIGNAL_TYPES``)
 # plus the registry/web change types the source adapters introduce.
+#
+# NOTE: these are the NOUN-form ``PublicSignal.signal_type`` values (e.g.
+# ``name_change``). They are a DIFFERENT namespace from the PAST-TENSE
+# ``SnapshotDiff.drift_signal_type`` routing keys produced by
+# ``base.diff_snapshots`` (e.g. ``name_changed``). The future aggregator that
+# turns a SnapshotDiff into a PublicSignal must map ``*_changed`` -> ``*_change``.
 ADAPTER_SIGNAL_TYPES = (
     "news",
     "sanctions",

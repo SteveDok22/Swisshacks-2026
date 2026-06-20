@@ -9,8 +9,8 @@ For the hackathon MVP, the customer book is the synthetic suite from
 simulator.py (deterministic, ground-truth-labeled). In production this would
 read from the bank's transaction store and registry feeds.
 
-The engine is stateless across calls but caches the generated book so the
-same customer IDs are stable within a process lifetime.
+The engine retains the generated customer book so IDs and injected scenarios
+remain stable within one process. This mutable demo state is process-local.
 """
 
 from __future__ import annotations
@@ -20,10 +20,20 @@ from typing import Any
 
 import numpy as np
 
+from app.core.config import (
+    DRIFT_CONFIRMATION_LIFT_RANGE,
+    DRIFT_CONFIRMATION_MAX_AMPLIFICATION,
+    DRIFT_INTERNAL_ACCUMULATED_WEIGHT,
+    DRIFT_INTERNAL_CONTAGION_WEIGHT,
+    DRIFT_INTERNAL_VELOCITY_WEIGHT,
+    DRIFT_PUBLIC_RISK_WEIGHT,
+)
+from app.core.logging import get_logger
 from app.drift.bocpd import BOCPD, standardize
 from app.drift.cascade import CascadeRouter, CustomerSignal, Tier
 from app.drift.causal import causal_assessment
-from app.drift.contagion import build_demo_graph, OwnershipGraph
+from app.drift.contagion import OwnershipGraph, build_demo_graph
+from app.drift.dormancy import assess_dormancy
 from app.drift.public_intel import (
     assess_public_risk,
     confirmation_lift,
@@ -31,11 +41,11 @@ from app.drift.public_intel import (
 )
 from app.drift.simulator import SyntheticCustomer, generate_book, generate_customer
 from app.drift.stability import assess_stability, cohort_volatility
-from app.drift.dormancy import assess_dormancy
 from app.drift.timetravel import replay_trajectory
 from app.drift.velocity import compute_drift_series, velocity_band
 from app.ml.base import score_to_level
 from app.schemas.drift import (
+    AsOfPointOut,
     CascadeCostReport,
     CausalVerdictOut,
     ContagionGraph,
@@ -45,13 +55,13 @@ from app.schemas.drift import (
     DriftTimelinePoint,
     LayerContribution,
     PublicSignalOut,
-    StabilityOut,
-    AsOfPointOut,
     ReplayResult,
+    StabilityOut,
 )
 from app.schemas.enums import DecisionAction
 from app.services.anthropic_client import get_anthropic_client
 
+logger = get_logger(__name__)
 
 T2_LLM_SYSTEM_MESSAGE = (
     "You are a careful AML/KYC compliance analyst. Return valid JSON only. "
@@ -147,7 +157,12 @@ class DriftEngine:
         # Internal risk 0..1: velocity (leading) + accumulated drift + contagion
         vel_norm = min(max_velocity / 3.0, 1.0)
         drift_norm = min(final_drift / 20.0, 1.0)
-        internal_risk = min(0.6 * vel_norm + 0.25 * drift_norm + 0.4 * prop_risk, 1.0)
+        internal_risk = min(
+            DRIFT_INTERNAL_VELOCITY_WEIGHT * vel_norm
+            + DRIFT_INTERNAL_ACCUMULATED_WEIGHT * drift_norm
+            + DRIFT_INTERNAL_CONTAGION_WEIGHT * prop_risk,
+            1.0,
+        )
 
         # --- PUBLIC: external signals ---
         signals = generate_signals_for_customer(
@@ -165,9 +180,12 @@ class DriftEngine:
 
         # --- Fused score 0..100 ---
         # Base from the stronger of the two layers, then amplified by lift.
-        base = max(internal_risk, pi.public_risk * 0.85)
+        base = max(internal_risk, pi.public_risk * DRIFT_PUBLIC_RISK_WEIGHT)
         # Lift in [1, ~4]; map its excess over 1 into up to +35% amplification
-        amplification = 1.0 + min((lift - 1.0) / 3.0, 1.0) * 0.35
+        amplification = 1.0 + min(
+            (lift - 1.0) / DRIFT_CONFIRMATION_LIFT_RANGE,
+            1.0,
+        ) * DRIFT_CONFIRMATION_MAX_AMPLIFICATION
         score = min(base * amplification * 100.0, 100.0)
 
         # --- CAUSAL: is this drift risk-shaped or life-shaped? ---
@@ -680,12 +698,21 @@ class DriftEngine:
         return detail
 
 
-# Process-level singleton (book is stable within a run)
+# Process-local singleton: mutable demo state (injected scenarios) is not shared
+# across worker processes. Deploy this MVP with exactly one API worker; replace
+# the in-memory state with a shared store before scaling out.
 _engine: DriftEngine | None = None
 
 
 def get_drift_engine() -> DriftEngine:
     global _engine
     if _engine is None:
+        logger.warning(
+            "drift_engine_single_worker_required",
+            reason=(
+                "DriftEngine uses process-local mutable state; configure exactly "
+                "one API worker until state is moved to a shared store."
+            ),
+        )
         _engine = DriftEngine()
     return _engine

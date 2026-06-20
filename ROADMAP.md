@@ -89,9 +89,9 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 ### P2 — Engineering cleanups
 
-- [ ] Move 6 magic-number layer weights from `service.py:104–163` to named constants in `core/config.py`
-- [ ] Add single-worker warning to `service.py:426` global `_engine` singleton (unsafe under multi-process)
-- [ ] Remove duplicate timeline endpoint — `GET /drift/customers/{id}/timeline` returns same payload as `GET /drift/customers/{id}`
+- [x] Move 6 magic-number layer weights from `service.py` to named constants in `core/config.py`
+- [x] Add single-worker warning to the global `_engine` singleton (unsafe under multi-process)
+- [x] Remove duplicate timeline endpoint — `GET /drift/customers/{id}` already returns the timeline
 - [ ] Fix `audit.py:138` — `len(list(...all()))` loads entire table; replace with `COUNT(*)` query
 - [ ] `list_customers()` recomputes all 10 customers on every request — add short-lived TTL cache
 - [ ] Qualify "real-time signals" language in README and pitch — signals are simulated for MVP; architecture is slot-swap ready
@@ -121,7 +121,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 | Time-Travel Audit | `drift/timetravel.py` | No look-ahead bias on replay |
 | Drift Engine | `drift/service.py` | All 7 layers, confirmation lift, LLM adjudication |
 | Synthetic Book | `drift/simulator.py` | 8 scenarios with ground-truth labels |
-| REST API | `api/v1/` | 28 endpoints, all functional |
+| REST API | `api/v1/` | 27 endpoints, all functional |
 | Frontend | `src/app/drift/`, `src/app/audit/` | 7 drift visualisations + audit log page |
 | XGBoost + SHAP | `ml/base.py` | Wired to case management only; drift uses per-layer LLR breakdown |
 | Audit service | `services/audit.py` | Append-only, queried by customer and event type |

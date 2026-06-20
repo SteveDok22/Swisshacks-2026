@@ -90,7 +90,7 @@ flowchart TD
     end
 
     subgraph API["api/v1/"]
-        R1["drift.py\n8 endpoints"]
+        R1["drift.py\n7 endpoints"]
         R2[cases.py]
         R3[scoring.py]
         R4["explanations.py\nSSE"]

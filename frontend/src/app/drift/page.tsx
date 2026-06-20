@@ -114,6 +114,12 @@ export default function DriftPage() {
                       −{scan.savings_pct.toFixed(0)}%
                     </span>
                   </div>
+                  <div className="mt-2 flex items-center justify-between text-2xs text-ink-muted">
+                    <span>Actual T2 adjudications</span>
+                    <span className="font-mono text-ink-soft tabular">
+                      {scan.actual_t2_llm_calls} total · {scan.real_t2_llm_calls} real · {scan.mock_t2_llm_calls} mock
+                    </span>
+                  </div>
                 </div>
               )}
 

@@ -58,14 +58,14 @@ Derived from the [AMINA Challenge 4 brief](https://github.com/SwissHacks-2026/Am
 - **BR4 — Explainable AI:** every score decomposes into named contributions with source citations.
 - **BR5 — Human-in-the-loop:** an officer confirms or overrides every consequential action with a written rationale.
 - **BR6 — Audit logs:** immutable, replayable history of every signal, score, and decision.
-- **BR7 — Cost awareness:** staged pipeline — rules first, ML second, LLM only for high-risk cases; token usage tracked per workflow.
+- **BR7 — Cost awareness:** staged pipeline — rules first, ML second, LLM only for high-risk cases; the scan report tracks actual T2 LLM adjudications separately from the LLM-on-everything counterfactual baseline.
 
 ### Judging Criteria Coverage
 
 | Criterion | Weight | Our approach |
 |---|---|---|
 | **AI Intelligence Quality** | 25% | 7-layer drift engine: BOCPD, KL velocity, PageRank contagion, causal LLR, suspicious stability |
-| **Cost Efficiency** | 20% | 3-tier cascade (rules → ML → LLM); 96% cost reduction vs LLM-on-everything |
+| **Cost Efficiency** | 20% | 3-tier cascade (rules → ML → LLM); actual T2 adjudication counts; 96% cost reduction vs LLM-on-everything |
 | **UX & Explainability** | 20% | 7 interactive visualizations; per-layer breakdown; causal evidence cards |
 | **Compliance & Safety** | 20% | Anonymizer, append-only audit log, HITL decision bar, jurisdiction rules |
 | **Engineering & Architecture** | 15% | Modular 10-file drift engine; clean API; SQLModel + FastAPI |
@@ -163,7 +163,7 @@ The Drift Engine workspace presents a verdict-first view: a recommended action u
 | **Time-Travel Audit** | As-of score replay proving early detection |
 | **Two-Layer Panel** | Public Intelligence vs Internal Bank Data + Confirmation Lift |
 | **Contagion Graph** | Ownership risk propagation from a sanctioned entity |
-| **Cost Cascade** | Live cost meter vs LLM-on-everything |
+| **Cost Cascade** | Live cost meter vs LLM-on-everything, with actual T2 real/mock adjudication counts |
 
 ---
 
@@ -209,6 +209,7 @@ What's covered:
 
 - **Unit:** BOCPD against reference behavior (changepoint on step data, none on stationary).
 - **Scenario suite:** stable / volume-creep / counterparty-migration / corridor-shift / combined / benign-expansion / suspicious-stability, each with ground truth.
+- **T2 LLM adjudication:** verifies that only T2 customers trigger AnthropicClient calls, zero-T2 scans call none, and invalid LLM JSON falls back safely.
 - **Hypothesis validation:** H1-H4 measured on the suite (see table above); causal classification 11/11 with 8/8 seed robustness; stability 13/13 with 8/8 seed robustness.
 - **Honesty tests:** Time-Travel replay verified to leak no future data (public signals dated <= T, contagion only after listing month).
 

@@ -19,6 +19,7 @@ from sqlalchemy.pool import StaticPool
 from sqlmodel import SQLModel
 
 import app.db.models  # noqa: F401 — registers all SQLModel tables in metadata
+import app.db.kyc_baseline  # noqa: F401 — registers entity_snapshots table
 from app.db.models import AuditEntryDB, CaseDB, ClientDB
 from app.db.session import get_session
 from app.main import app

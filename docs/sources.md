@@ -12,8 +12,9 @@
 
 ## Status: partial implementation
 
-Two adapters are fully implemented (real HTTP calls):
+Three adapters are fully implemented (real HTTP calls):
 - **GLEIF** — free, no key required (PR #25)
+- **ZEFIX** — FREEMIUM, free Basic-auth account; degrades gracefully (`None`/`[]`) when credentials absent (PR #23)
 - **Event Registry** — FREEMIUM, key-gated; returns `[]` when key absent (PR #24)
 
 All other adapters remain carcasses — no real network I/O yet:
@@ -57,7 +58,7 @@ status == PLANNED   <=>   cost == FREE or FREEMIUM
 
 | Source | What it provides | Cost | Key? | Decision |
 |---|---|---|---|---|
-| **ZEFIX** | Swiss commercial register: name, legal form, seat, status, purpose (Zweck), SHAB mutation log | FREEMIUM | yes⁰ | ✅ IMPLEMENT |
+| **ZEFIX** | Swiss commercial register: name, legal form, seat, status, purpose (Zweck), SHAB mutation log | FREEMIUM | yes⁰ | ✅ BUILT |
 | **GLEIF** | Global LEI: name, status, jurisdiction, parent/children ownership graph | FREE | no | ✅ BUILT |
 | **OpenSanctions** | OFAC/EU/UN sanctions + PEP screening with match scores | FREEMIUM | yes¹ | ✅ IMPLEMENT |
 | **GDELT 2.0** | Global news article lists + volume time-series (free news feed) | FREE | no | ✅ IMPLEMENT |
@@ -73,6 +74,14 @@ Basic-auth account** (verified live — `401 WWW-Authenticate: Basic` without
 credentials), so it is FREEMIUM, not FREE. The no-auth path is the daily ZEFIX
 *Open Data* bulk dump (name-index snapshot, not live detail). ZEFIX does **not**
 expose officers / board members / UBOs — those are in the cantonal registers.
+The adapter (`sources/zefix.py`) is implemented against the live OpenAPI schema
+(`POST /company/search` → `CompanyShort[]`, `GET /company/uid/{uid}` →
+`CompanyFull[]`; `legalForm` is a nested `{de,fr,it,en}` map, `status` ∈
+{ACTIVE, BEING_CANCELLED, CANCELLED}). Credentials come from
+`ZEFIX_USERNAME`/`ZEFIX_PASSWORD`; with none set the adapter degrades gracefully
+(`fetch → None`, `fetch_signals → []`) so the engine still runs. Engine wiring
+(aggregator, score floor, synthetic scenario, UI badge) is tracked separately in
+the ROADMAP use-case close-out tasks.
 ¹ OpenSanctions: hosted API needs a key and is metered; the data + the `yente`
 matcher are **free for non-commercial use** and self-hostable. Commercial use
 needs a paid bulk-data licence — flag for production.
@@ -92,11 +101,11 @@ structured sentiment.
 | OpenCorporates | 3, 4, 5, 7 | **GLEIF** entity-level ownership (parent/child LEIs) + **ZEFIX** company fields. ⚠️ Natural-person **officers/directors** are a real gap — no free source (incl. ZEFIX) exposes them; entity-level UBO only. |
 | Crunchbase | 6 | **Event Registry** (structured funding articles) + **GDELT** (free fallback) |
 
-Net: **8 adapters to build, 2 skipped.** Event Registry is fully implemented
-(key-gated FREEMIUM, primary news source). GLEIF is also built. No use case is
-fully dropped; officer/director-level resolution (part of Cases 3/5) is degraded
-to entity-level ownership only — the one capability lost by skipping the paid
-OpenCorporates.
+Net: **8 adapters to run (3 built — GLEIF, ZEFIX, Event Registry — 5 carcasses),
+2 skipped.** No use case is fully dropped; officer/director-level resolution
+(part of Cases 3/5) is degraded to entity-level ownership only — the one
+capability lost by skipping the paid OpenCorporates. Event Registry is the
+key-gated primary news source; GDELT remains the always-on free fallback.
 
 ---
 
@@ -146,7 +155,7 @@ adapter's `record_url()` supplies the click-through link.
 Mirrors the sprint plan in `source-integration-architecture.md` §12, restricted
 to the free sources:
 
-1. **Registry** — `zefix`, `gleif` (no key, highest signal) → Cases 4, 7, 8, 10, 3, 5
+1. **Registry** — `zefix` (free Basic-auth account), `gleif` (no key); highest signal → Cases 4, 7, 8, 10, 3, 5
 2. **Screening** — `opensanctions` (free non-commercial / self-host yente) → Cases 2, 5
 3. **News** — `gdelt` (free baseline) + `event_registry` (key-gated enhancement, event-level de-duplication) → Cases 1, 6, 8, 10
 4. **Web** — `firecrawl` + `wayback` + `whois` → Cases 8, 9, 10

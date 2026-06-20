@@ -26,6 +26,10 @@ services:
       - DATABASE_URL=sqlite+aiosqlite:///./data/db/risk_platform.db
       # Optional: pass your Claude key through from the host (or backend/.env)
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      # Optional: ZEFIX Basic-auth account (free; from zefix@bj.admin.ch).
+      # Absent → ZefixAdapter degrades gracefully, the engine still runs.
+      - ZEFIX_USERNAME=${ZEFIX_USERNAME:-}
+      - ZEFIX_PASSWORD=${ZEFIX_PASSWORD:-}
       # macOS bind mounts don't deliver inotify events — poll so --reload works
       - WATCHFILES_FORCE_POLLING=true
     env_file:

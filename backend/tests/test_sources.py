@@ -37,6 +37,7 @@ class TestRegistryClassification:
     def test_usable_are_the_eight_free_sources(self):
         # event_registry upgraded from SKIPPED → PLANNED: hackathon key available,
         # adapter fully implemented (fetch_signals runs; returns [] when key absent).
+        # Its cost is FREEMIUM, so the clean skipped⟺paid biconditional still holds.
         assert {a.source_name for a in usable_adapters()} == {
             "zefix", "gleif", "opensanctions", "gdelt",
             "event_registry", "firecrawl", "wayback", "whois",
@@ -111,11 +112,23 @@ class TestRegistryClassification:
 # --------------------------------------------------------------------------- #
 class TestCarcassBehaviour:
     async def test_planned_adapter_raises_not_implemented(self):
-        # Free source, simply not built yet — both entry points.
+        # Free source whose carcass is not built yet — both entry points.
+        # GDELT is a representative still-unbuilt PLANNED adapter (ZEFIX and
+        # GLEIF are now implemented; ZEFIX without credentials degrades to
+        # None/[] rather than raising — see test_zefix.py).
+        from app.sources.gdelt import GdeltAdapter
+
         with pytest.raises(NotImplementedError):
-            await ZefixAdapter().fetch("c", "Helvetia AG")
+            await GdeltAdapter().fetch("c", "Helvetia AG")
         with pytest.raises(NotImplementedError):
-            await ZefixAdapter().fetch_signals("c", "Helvetia AG")
+            await GdeltAdapter().fetch_signals("c", "Helvetia AG")
+
+    async def test_zefix_without_credentials_degrades_quietly(self):
+        # The one implemented free adapter: no account configured → graceful
+        # no-op, NOT a NotImplementedError carcass.
+        adapter = ZefixAdapter(username="", password="")
+        assert await adapter.fetch("c", "Helvetia AG") is None
+        assert await adapter.fetch_signals("c", "Helvetia AG") == []
 
     async def test_skipped_adapter_raises_source_unavailable(self):
         # Paid source, intentionally skipped — a DIFFERENT error type.

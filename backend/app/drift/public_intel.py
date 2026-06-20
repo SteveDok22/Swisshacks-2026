@@ -25,11 +25,20 @@ in production this slot takes an embedding classifier or an LLM call at T1/T2).
 
 from __future__ import annotations
 
+import asyncio
+import concurrent.futures
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
+from app.core.logging import get_logger
 from app.sources.base import PublicSignal
+
+if TYPE_CHECKING:
+    from app.sources.cost import CostMixin
+
+_logger = get_logger(__name__)
 
 # Five public-signal categories named in the AMINA brief
 SIGNAL_TYPES = (
@@ -229,6 +238,129 @@ def assess_public_risk(signals: list[PublicSignal], months: int = 18) -> PublicI
         public_risk=public_risk,
         peak_signal_month=peak_month,
     )
+
+
+# Per-adapter wall-clock cap. Bounds each adapter INDEPENDENTLY so one slow
+# source is dropped on its own (returns []) while every other source's results
+# survive — the aggregation degrades partially, never all-or-nothing.
+_PER_ADAPTER_TIMEOUT_S: float = 15.0
+
+# Backstop wall-clock cap for one full aggregation round (all adapters in
+# parallel). With per-adapter caps in place this only fires in pathological
+# cases (e.g. an adapter that ignores cancellation); it returns [] as a last
+# resort. Kept strictly above _PER_ADAPTER_TIMEOUT_S so the per-adapter path
+# is what normally trims slow sources.
+_AGGREGATE_TIMEOUT_S: float = 25.0
+
+# Ceiling for gather_public_signals_sync's thread join.  Set slightly above
+# _AGGREGATE_TIMEOUT_S so the async layer always cancels first, giving adapters
+# a chance to run their finally/aclose blocks before the thread is abandoned.
+_SYNC_TIMEOUT_S: float = 30.0
+
+
+async def gather_public_signals(
+    drift_id: str,
+    name: str,
+    **kwargs: Any,
+) -> list[PublicSignal]:
+    """
+    Dispatch fetch_signals() to all usable adapters in parallel and aggregate.
+
+    Each adapter is instantiated fresh per call and closed after use. Errors in
+    individual adapters are caught so one failing source never blocks the rest.
+    Returns a combined, time-sorted list of PublicSignals. Callers may pass
+    ``since_month`` for incremental updates (forwarded to every adapter).
+
+    A ``_AGGREGATE_TIMEOUT_S``-second wall-clock cap bounds the total call even
+    when individual adapter timeouts are bypassed (e.g. blocking GDELT calls).
+    """
+    from app.sources.registry import usable_adapters  # local import avoids circular
+
+    async def _safe_fetch(cls: type[CostMixin]) -> list[PublicSignal]:
+        # Construction is inside the guard too: an adapter __init__ that raises
+        # must not sink the whole aggregation — it degrades like a fetch error.
+        adapter: Any = None
+        try:
+            adapter = cls()
+            return await asyncio.wait_for(
+                adapter.fetch_signals(drift_id, name, **kwargs),
+                timeout=_PER_ADAPTER_TIMEOUT_S,
+            )
+        except Exception as exc:  # noqa: BLE001 — incl. TimeoutError; one source never sinks the rest
+            _logger.warning(
+                "public_intel_adapter_error",
+                adapter=cls.source_name,
+                error=str(exc),
+            )
+            return []
+        finally:
+            if adapter is not None and hasattr(adapter, "aclose"):
+                try:
+                    await adapter.aclose()
+                except Exception as exc:  # noqa: BLE001
+                    _logger.debug(
+                        "public_intel_aclose_error",
+                        adapter=cls.source_name,
+                        error=str(exc),
+                    )
+
+    try:
+        batches = await asyncio.wait_for(
+            asyncio.gather(*[_safe_fetch(cls) for cls in usable_adapters()]),
+            timeout=_AGGREGATE_TIMEOUT_S,
+        )
+    except TimeoutError:
+        _logger.warning(
+            "public_intel_aggregate_timeout",
+            timeout_s=_AGGREGATE_TIMEOUT_S,
+        )
+        return []
+
+    signals: list[PublicSignal] = [s for batch in batches for s in batch]
+    return sorted(signals, key=lambda s: s.month)
+
+
+def gather_public_signals_sync(
+    drift_id: str,
+    name: str,
+    **kwargs: Any,
+) -> list[PublicSignal]:
+    """
+    Synchronous bridge for gather_public_signals().
+
+    Runs the async aggregator in a dedicated thread with its own event loop so
+    it is safe to call from synchronous DriftEngine methods even when FastAPI's
+    own event loop is running in the current thread.
+
+    ``_SYNC_TIMEOUT_S`` (slightly above the async ``_AGGREGATE_TIMEOUT_S``) caps
+    the thread join so a completely unresponsive thread cannot block indefinitely.
+    Returns ``[]`` on timeout rather than raising, matching the graceful-degradation
+    contract of all other adapter error paths.
+
+    NOTE: the executor is shut down with ``wait=False`` so a genuinely hung worker
+    never re-blocks the caller on context-manager exit (``shutdown(wait=True)``
+    would join it). An abandoned worker unwinds on its own once the inner
+    ``_AGGREGATE_TIMEOUT_S`` cancels the aggregation.
+    """
+    pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+    future = pool.submit(asyncio.run, gather_public_signals(drift_id, name, **kwargs))
+    try:
+        return future.result(timeout=_SYNC_TIMEOUT_S)
+    except concurrent.futures.TimeoutError:
+        _logger.warning(
+            "public_intel_sync_timeout",
+            timeout_s=_SYNC_TIMEOUT_S,
+        )
+        return []
+    except Exception:  # noqa: BLE001 — honour the graceful-degradation contract
+        # future.result() re-raises anything the worker raised (e.g. a bad
+        # adapter import in usable_adapters()). The engine has no guard around
+        # this call, so a failure here must degrade to [] rather than crash the
+        # whole scan loop.
+        _logger.exception("public_intel_sync_error")
+        return []
+    finally:
+        pool.shutdown(wait=False)
 
 
 def confirmation_lift(

@@ -25,6 +25,22 @@ from app.db.session import get_session
 from app.main import app
 
 
+@pytest.fixture(autouse=True)
+def _stub_public_intel_for_engine(monkeypatch):
+    """Neutralize public-intel acquisition for every test that exercises DriftEngine.
+
+    Patches the ``_public_signals`` seam to return [] so engine scores are
+    deterministic and no public signals (live OR synthetic) perturb them — the
+    same baseline the rest of the suite was written against.
+
+    Tests that exercise the real wiring (TestEngineAggregatorWiring in
+    test_public_intel_aggregator.py) restore the real method and flip
+    ``external_apis_enabled`` themselves.
+    """
+    import app.drift.service as _service
+    monkeypatch.setattr(_service.DriftEngine, "_public_signals", lambda self, cust: [])
+
+
 @pytest.fixture
 async def db_engine():
     """

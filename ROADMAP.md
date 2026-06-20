@@ -227,7 +227,7 @@ Each adapter has two methods to implement. `fetch()` returns a current `EntitySn
 
 **5. Integration glue — wire adapters into the engine**
 
-- [ ] ⬅ **NEXT: Refactor `public_intel.py` into aggregator** — `service.py` calls `generate_signals_for_customer()` which returns synthetic templates; replace with real adapter calls dispatched through `sources/registry.py`. This is the single step that makes every adapter actually run in the engine. **Top of the Next Steps list above.**
+- [x] **Refactor `public_intel.py` into aggregator** — `gather_public_signals()` (async) dispatches `fetch_signals()` to all `usable_adapters()` in parallel via `asyncio.gather`; `gather_public_signals_sync()` bridges sync `DriftEngine._analyze_customer()` via a thread-isolated `asyncio.run()`; `service.py` now calls real adapters instead of synthetic templates. Engine tests patched via `conftest.py` autouse fixture to keep tests fast.
 - [ ] **`drift/business_model.py`** — load Wayback text + Firecrawl text for a customer; embed both with `sentence-transformers/all-MiniLM-L6-v2` (14 MB, fully offline); `cosine_distance(wayback_embed, firecrawl_embed)` ≥ 0.35 → `PublicSignal(signal_type="business_model_change")`; store embeddings in `EntitySnapshotDB.extra` to skip re-embedding on re-scan.
 - [ ] **`ml/extractors/drift.py`** — `DriftFeatureExtractor` with 20-dim feature vector; wire XGBoost to drift scoring (currently wired to case management only)
 - [ ] **Train drift XGBoost model** — `ml/training.py` has no drift training path; feed synthetic book (8 scenarios × time windows ≈ 200 samples) through `DriftFeatureExtractor` → label → `XGBClassifier.fit()`

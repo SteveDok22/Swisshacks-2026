@@ -28,30 +28,28 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
   const PAD_X = 68;
   const PAD_Y = 44;
   const explanation =
-    "Current book snapshot. X-axis is fused drift score from 0 to 100; Y-axis is drift velocity in bits per month. Higher and farther right means a customer is both risky and changing quickly.";
+    "Current book snapshot. X-axis is fused drift score (0–100); Y-axis is drift velocity in bits per month on a log scale — this keeps dormancy-break outliers visible without collapsing the rest. Higher and farther right = most urgent.";
 
   const maxScore = 100;
-  // Cap Y-axis at the 95th-percentile velocity so one dormancy-break outlier
-  // (KL divergence can reach 10k+) doesn't collapse all other dots to the floor.
-  // Customers beyond the cap are clamped to the top edge with a clip marker.
-  const sortedVel = [...customers.map((c) => c.drift_velocity)].sort((a, b) => a - b);
-  const p95idx = Math.max(0, Math.ceil(sortedVel.length * 0.95) - 1);
-  const maxVel = Math.max(4, sortedVel[p95idx] ?? 4);
+
+  // Log scale for velocity: KL divergence ranges from ~0 (stable) to 5000+
+  // (dormancy break). A linear axis collapses everything to the floor when one
+  // outlier dominates. log(1 + v) gives every entity meaningful vertical spread.
+  const logV = (v: number) => Math.log1p(Math.max(0, v));
+  const maxLogVel = Math.max(logV(1), ...customers.map((c) => logV(c.drift_velocity)));
 
   const sx = (score: number) =>
     PAD_X + (score / maxScore) * (W - PAD_X - PAD_Y);
   const sy = (vel: number) =>
-    Math.max(PAD_Y, H - PAD_Y - (Math.min(vel, maxVel) / maxVel) * (H - 2 * PAD_Y));
-  const scoreTicks = [0, 25, 50, 75, 100];
-  const velocityTicks = [0, maxVel / 2, maxVel].map((tick) =>
-    Number(tick.toFixed(1)),
-  );
-  const formatVelocityTick = (tick: number) => {
-    if (Math.abs(tick) >= 1000) {
-      return `${(tick / 1000).toFixed(Math.abs(tick) >= 10000 ? 0 : 1)}k`;
-    }
+    H - PAD_Y - (logV(vel) / maxLogVel) * (H - 2 * PAD_Y);
 
-    return Number.isInteger(tick) ? tick.toFixed(0) : tick.toFixed(1);
+  const scoreTicks = [0, 25, 50, 75, 100];
+  // Pick 3 human-readable velocity tick values on the original scale
+  const rawMax = Math.max(1, ...customers.map((c) => c.drift_velocity));
+  const velTickValues = [0, Math.sqrt(rawMax), rawMax].map((v) => Math.round(v));
+  const formatVelocityTick = (tick: number) => {
+    if (tick >= 1000) return `${(tick / 1000).toFixed(1)}k`;
+    return tick.toFixed(0);
   };
 
   const dotColor = (band: string) => {
@@ -96,7 +94,7 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
           x={sx(55)}
           y={PAD_Y}
           width={W - PAD_Y - sx(55)}
-          height={sy(maxVel * 0.5) - PAD_Y}
+          height={sy(rawMax * 0.5) - PAD_Y}
           fill="var(--risk-critical, #b91c1c)"
           opacity={0.04}
         />
@@ -123,7 +121,7 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
             </text>
           </g>
         ))}
-        {velocityTicks.map((tick) => (
+        {velTickValues.map((tick) => (
           <g key={`vel-${tick}`}>
             <line
               x1={PAD_X}
@@ -176,9 +174,9 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
         />
         <line
           x1={sx(55)}
-          y1={sy(maxVel * 0.5)}
+          y1={sy(rawMax * 0.5)}
           x2={W - PAD_Y}
-          y2={sy(maxVel * 0.5)}
+          y2={sy(rawMax * 0.5)}
           stroke="var(--ink-faint, #a1a1aa)"
           strokeWidth={1}
           strokeDasharray="3 3"

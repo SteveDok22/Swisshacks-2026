@@ -222,23 +222,24 @@ def build_demo_graph(drift_ids: list[str] | dict[str, str]) -> OwnershipGraph:
     g.add_entity("ShellCo_Beta", name="Beta Ventures Ltd", entity_type="shell")
     g.add_entity("CleanHolding", name="Helvetia Trust AG", entity_type="company")
 
-    # Customers — use real entity name, not drift_id
-    for cid, entity_name in id_name.items():
+    # Only add the three customers that actually have ownership edges — adding
+    # the whole book floods the graph with unconnected grey dots that obscure
+    # the contagion story. Unconnected entities are not in this graph at all.
+    CONNECTED = {
+        "drift-003": ("ShellCo_Alpha", 0.30),   # Alpine Logistics — 2 hops, affected
+        "drift-008": ("ShellCo_Beta",  0.25),   # Bernina Wealth   — 2 hops, affected
+        "drift-014": ("CleanHolding",  0.50),   # Toggenburg FO    — clean control
+    }
+    for cid, (shell, stake) in CONNECTED.items():
+        entity_name = id_name.get(cid, cid)
         g.add_entity(cid, name=entity_name, is_customer=True, entity_type="individual")
 
     # Ownership edges (owner -> target, stake)
     g.add_ownership("SANCTIONED_ENTITY", "ShellCo_Alpha", 0.6)
     g.add_ownership("SANCTIONED_ENTITY", "ShellCo_Beta", 0.4)
 
-    # Connect the high-drift customers through the shells (1 hop from Castor)
-    if "drift-003" in drift_ids:
-        g.add_ownership("ShellCo_Alpha", "drift-003", 0.3)
-    if "drift-008" in drift_ids:
-        g.add_ownership("ShellCo_Beta", "drift-008", 0.25)
-
-    # A clean holding owning a stable customer (control)
-    if "drift-014" in drift_ids:
-        g.add_ownership("CleanHolding", "drift-014", 0.5)
+    for cid, (shell, stake) in CONNECTED.items():
+        g.add_ownership(shell, cid, stake)
 
     return g
 

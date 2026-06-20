@@ -112,6 +112,40 @@ always-on free fallback. The two adapters complement each other — GDELT covers
 free baseline article counts; Event Registry adds event-level de-duplication and
 structured sentiment.
 
+### GDELT 2.0 — how it works and what it can't do
+
+GDELT is a free, key-less news index. We use the `gdeltdoc` client (synchronous,
+wrapped in `asyncio.to_thread`). `fetch_signals(name)` runs two modes and merges
+their signals (`fetch()` is always `None` — GDELT has no entity record):
+
+- **News-volume regime change (UC 1).** `timelinevolraw` over 12 months returns a
+  ~354-point *daily* article-count series (columns `datetime, Article Count,
+  All Articles`). We z-score it and run BOCPD; each changepoint → one signal,
+  with severity from the `timelinetone` average-tone value at that point
+  (negative tone → `adverse_media` ≥ 0.65, else `news`). Deduped to one per month.
+- **Funding + pivot (UC 6 / UC 10).** One `article_search` over the last ~3 months;
+  each headline is keyword-classified → `funding_event`, and pivot/rebrand hits
+  become a `business_model_change` *only* when ≥ 3 cluster inside a ~60-day window.
+
+**Verified live (June 2026)** against the real API on "Wirecard": the volume series
+parsed correctly and BOCPD detected changepoints; `article_search` returned the
+expected columns with `seendate` as `YYYYMMDDTHHMMSSZ`.
+
+**Limitations — GDELT is an obscure, quirky API; treat it as best-effort fallback:**
+
+1. **Rate limiting (#1 failure mode).** ~1 request / 5 s per IP; bursts raise
+   `RateLimitError`. Each `fetch_signals` makes up to 3 calls (two concurrent), so
+   under load some are throttled. Every query degrades to `[]` on any error — the
+   adapter never crashes, but it can return **partial or no** signals. Add backoff
+   at the caller if you need reliable volume signals.
+2. **Major-media bias.** Small/private KYC subjects often have near-zero coverage →
+   no signals. GDELT shines for large, news-covered entities.
+3. **Keyword match, not entity resolution.** Common names yield false positives;
+   no concept/URI disambiguation. This is precisely why Event Registry is primary
+   and GDELT is only the free fallback.
+4. **Approximate month mapping** (~30-day buckets) and `article_search` reaches back
+   only ~3 months, so funding/pivot signals cluster in recent months.
+
 ### Why each skip is safe (coverage is not lost)
 
 | Skipped (paid) | Use cases | Free source that covers it |

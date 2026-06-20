@@ -14,13 +14,60 @@ WHY IT MATTERS HERE  (Use cases 1, 6, 8, 10)
     signal is a time-series, so this adapter only implements ``fetch_signals``
     (``fetch`` returns ``None`` — GDELT has no canonical entity record).
 
-COST / ACCESS  →  FREE, no API key (PLANNED — implement now)
-    Rate-limited (429 during big news events). You MUST send a ``User-Agent``
-    header or the API returns nothing.
-
+COST / ACCESS  →  FREE, no API key
     Base URL:  https://api.gdeltproject.org/api/v2/doc/doc
-    Example:   ?query={name}&mode=artlist&format=json
-               ?query={name}&mode=timelinevol&format=json
+    We talk to it through the ``gdeltdoc`` client (synchronous; wrapped in
+    ``asyncio.to_thread``), which builds the query string, sends a User-Agent,
+    and parses the JSON into a pandas DataFrame.
+
+HOW THIS ADAPTER WORKS  (verified live against the real API, June 2026)
+    ``fetch_signals(name)`` runs two independent modes concurrently and merges
+    their signals; ``fetch()`` always returns ``None`` (no canonical record):
+
+    1. News-volume regime change (UC 1) — ``_news_volume_signals``
+         GET timeline mode ``timelinevolraw`` over ``_VOLUME_TIMESPAN`` (12m).
+         Real response columns: ``["datetime", "Article Count", "All Articles"]``
+         → ~354 *daily* points/yr. We z-score the "Article Count" series
+         (``standardize``) and run BOCPD; each detected changepoint becomes one
+         signal. We then pull ``timelinetone`` for that index and map average
+         tone (≈ −10..+10) to severity: negative tone → ``adverse_media``
+         (severity ≥ 0.65), otherwise ``news``. Deduped to one signal per month.
+    2. Funding + pivot from headlines (UC 6 / UC 10) — ``_article_signals``
+         One ``article_search`` over ``_ARTICLE_TIMESPAN`` (3m, ``_ARTICLE_RECORDS``
+         rows). Real columns: ``url, url_mobile, title, seendate, socialimage,
+         domain, language, sourcecountry``. Each title is keyword-classified:
+         a funding hit → ``funding_event``; pivot/rebrand hits → a
+         ``business_model_change`` *only* when ≥ ``_PIVOT_CLUSTER_MIN`` (3) of
+         them fall inside a ~60-day window (``_has_pivot_cluster``) — a lone
+         "pivot" headline is ignored as noise.
+
+    ``seendate`` arrives as ``YYYYMMDDTHHMMSSZ`` (e.g. ``20260614T090000Z``) and
+    each article/changepoint date is bucketed into the engine's 0..11 month
+    index (~30-day steps), clamped to ``[since_month, 11]``.
+
+LIMITATIONS — READ BEFORE RELYING ON THIS (GDELT is an obscure, quirky API)
+    * Rate limiting is the #1 failure mode. GDELT throttles to roughly
+      1 request / 5 s per IP; a burst raises ``gdeltdoc.errors.RateLimitError``
+      (a ``requests.HTTPError`` subclass). Each ``fetch_signals`` issues up to 3
+      calls (volraw + tone + article), two of them concurrently — so under load
+      one or more can be throttled. By design every query is wrapped so a
+      throttle/timeout/HTML error degrades to ``[]`` rather than raising: the
+      adapter NEVER crashes, but it can silently return PARTIAL or NO signals.
+      It is a best-effort *fallback*, not a guaranteed feed. If you need
+      reliable volume signals, space calls out or add backoff at the caller.
+    * Coverage skews to major media. GDELT indexes large/online news, so a
+      small or private KYC subject (the common case for a bank) often has
+      near-zero coverage → no signals. Tested on "Wirecard" (well covered) the
+      volume series is real but sparse now (the scandal peaked in 2020).
+    * Keyword search, not entity resolution. ``Filters(keyword=name)`` is plain
+      text matching — common names produce false positives; it does not
+      disambiguate by concept/URI the way Event Registry does. That is exactly
+      why Event Registry is the PRIMARY source and GDELT only the free fallback.
+    * Month mapping is approximate (~30-day buckets), and ``article_search``
+      reliably reaches back only ~3 months, so funding/pivot signals land in
+      recent months regardless of ``since_month``.
+    * Tone is GDELT's own average-tone metric, not a calibrated sentiment model;
+      treat the news/adverse_media split as a coarse heuristic.
 """
 
 from __future__ import annotations
@@ -260,12 +307,11 @@ class GdeltAdapter(CostMixin, RegistryAdapter):
         if not result.detected_changepoints:
             return []
 
+        # timelinevolraw and timelinetone are SEPARATE GDELT calls that can
+        # return different row counts / bucketing, so the volume changepoint
+        # index must NOT be used to index tone positionally — align by date.
         tone_df = await self._safe_timeline("timelinetone", name)
-        tone_col = (
-            _series_column(tone_df.columns)
-            if tone_df is not None and not tone_df.empty
-            else None
-        )
+        tone_by_day = _build_tone_index(tone_df)
         dates = vol_df["datetime"].tolist()
 
         signals: list[PublicSignal] = []
@@ -279,7 +325,7 @@ class GdeltAdapter(CostMixin, RegistryAdapter):
                 continue
             seen_months.add(month)
 
-            tone = _tone_value(tone_df, tone_col, cp)
+            tone = _tone_for(tone_by_day, when)
             severity = _tone_to_severity(tone)
             tone_note = f", avg_tone={tone:.1f}" if tone is not None else ""
             signals.append(
@@ -307,14 +353,13 @@ class GdeltAdapter(CostMixin, RegistryAdapter):
         funding: list[PublicSignal] = []
         pivot_articles: list[tuple[int, str, str | None, str]] = []
         for row in df.itertuples(index=False):
-            title = str(getattr(row, "title", "") or "").strip()
+            title = _clean_str(getattr(row, "title", None))
             if not title:
                 continue
             lower = title.lower()
-            url = getattr(row, "url", None)
-            url = str(url) if url else None
+            url = _clean_str(getattr(row, "url", None))
             month = _date_to_month(_parse_seendate(getattr(row, "seendate", "")), since_month)
-            source = str(getattr(row, "domain", "") or self.display_name)
+            source = _clean_str(getattr(row, "domain", None)) or self.display_name
 
             if any(kw in lower for kw in _FUNDING_KEYWORDS):
                 funding.append(
@@ -394,14 +439,53 @@ def _as_datetime(value: Any) -> datetime | None:
     return dt if dt.tzinfo else dt.replace(tzinfo=UTC)
 
 
-def _tone_value(tone_df: Any, tone_col: str | None, index: int) -> float | None:
-    """Read the average tone at ``index`` from a timelinetone DataFrame."""
-    if tone_df is None or tone_col is None:
+def _clean_str(value: Any) -> str | None:
+    """Coerce a possibly-missing pandas cell to a clean string, or ``None``.
+
+    pandas yields ``NaN`` (a *truthy* float) for empty cells, so plain
+    truthiness (``value or default``) would turn a missing url/title/domain
+    into the literal string ``"nan"``. We treat NaN and blanks as absent.
+    """
+    if value is None:
         return None
-    series = tone_df[tone_col]
-    if index < 0 or index >= len(series):
+    if isinstance(value, float) and value != value:  # NaN (only value != itself)
         return None
-    try:
-        return float(series.iloc[index])
-    except (TypeError, ValueError):
+    text = str(value).strip()
+    return text or None
+
+
+def _build_tone_index(tone_df: Any) -> dict[Any, float]:
+    """Map each ``timelinetone`` observation to its calendar day.
+
+    ``timelinevolraw`` (volume) and ``timelinetone`` are SEPARATE GDELT calls
+    that can return different row counts or bucketing, so a volume-series index
+    cannot be reused to read tone positionally. Keying by date lets the caller
+    look up the tone for the day a changepoint actually occurred; a missing day
+    simply yields no tone (severity falls back to "regime change, tone unknown").
+    """
+    if tone_df is None or getattr(tone_df, "empty", True):
+        return {}
+    if "datetime" not in tone_df.columns:
+        return {}
+    tone_col = _series_column(tone_df.columns)
+    if tone_col is None:
+        return {}
+    index: dict[Any, float] = {}
+    for dt_raw, tone_raw in zip(
+        tone_df["datetime"].tolist(), tone_df[tone_col].tolist(), strict=False
+    ):
+        when = _as_datetime(dt_raw)
+        if when is None:
+            continue
+        try:
+            index[when.date()] = float(tone_raw)
+        except (TypeError, ValueError):
+            continue
+    return index
+
+
+def _tone_for(tone_index: dict[Any, float], when: datetime | None) -> float | None:
+    """Date-aligned tone lookup for a changepoint at ``when`` (None if absent)."""
+    if when is None or not tone_index:
         return None
+    return tone_index.get(when.date())

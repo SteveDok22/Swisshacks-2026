@@ -589,6 +589,20 @@ wheels = [
 ]
 
 [[package]]
+name = "gdeltdoc"
+version = "1.12.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pandas" },
+    { name = "requests" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/1d/d6/33bea6847f8e8fb701464cdef7fadff18b7e38f7e31736e943f96f6c8723/gdeltdoc-1.12.0.tar.gz", hash = "sha256:f95f84011df577a3d6db11cea54ccca2aa7dc5ad7d184b5a0bba3908098813d2", size = 15121, upload-time = "2025-04-03T09:01:31.582Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/43/df/acb3cd71a9b8027d94d3b407312c4073423bccb1eed2a2cdcd00230a8c3d/gdeltdoc-1.12.0-py3-none-any.whl", hash = "sha256:2d87d572e14685fb1e01df75a8181102162d06faa25d0662695a08b943665545", size = 17689, upload-time = "2025-04-03T09:01:30.225Z" },
+]
+
+[[package]]
 name = "gherkin-official"
 version = "29.0.0"
 source = { registry = "https://pypi.org/simple" }
@@ -2855,6 +2869,7 @@ dependencies = [
     { name = "dice-ml" },
     { name = "email-validator" },
     { name = "fastapi" },
+    { name = "gdeltdoc" },
     { name = "greenlet" },
     { name = "httpx" },
     { name = "joblib" },
@@ -2900,6 +2915,7 @@ requires-dist = [
     { name = "dice-ml", specifier = ">=0.11" },
     { name = "email-validator", specifier = ">=2.0.0" },
     { name = "fastapi", specifier = ">=0.115.0" },
+    { name = "gdeltdoc", specifier = ">=1.5.0" },
     { name = "greenlet", specifier = ">=3.0" },
     { name = "httpx", specifier = ">=0.27.0" },
     { name = "joblib", specifier = ">=1.4.0" },

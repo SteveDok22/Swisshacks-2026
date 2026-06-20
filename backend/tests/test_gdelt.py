@@ -185,6 +185,63 @@ class TestNewsVolume:
         signals = await GdeltAdapter(client=client).fetch_signals("d", "Acme AG")
         assert signals == []
 
+    async def test_tone_aligned_by_date_not_by_position(self):
+        # Regression: timelinetone is a SEPARATE GDELT call whose rows need not
+        # line up positionally with timelinevolraw. Tone MUST be matched by date,
+        # not by the volume changepoint's positional index. The tone here is
+        # negative on the spike days (the regime change) and positive earlier,
+        # but its ROWS ARE REVERSED so positional and date order diverge: an
+        # `iloc[cp]` lookup lands on a positive (recent-first) row → "news" (the
+        # bug), while the date-aligned lookup reads the real negative tone on the
+        # changepoint day → "adverse_media".
+        end = pd.Timestamp.now().normalize()
+        vol_dates = pd.date_range(end=end, periods=len(_VOLUME_WITH_CP), freq="D")
+        vol_df = pd.DataFrame(
+            {
+                "datetime": vol_dates,
+                "Article Count": _VOLUME_WITH_CP,
+                "All Articles": _VOLUME_WITH_CP,
+            }
+        )
+        # Negative tone from a few points before the spike onward (margin for the
+        # exact changepoint index); positive before. Then reverse the row order.
+        neg_from = len(_FLAT) - 5
+        tone_vals = [3.0 if i < neg_from else -6.0 for i in range(len(vol_dates))]
+        tone_df = pd.DataFrame({"datetime": vol_dates, "Average Tone": tone_vals})
+        tone_df = tone_df.iloc[::-1].reset_index(drop=True)  # break positional alignment
+
+        client = FakeGdelt(
+            timelines={"timelinevolraw": vol_df, "timelinetone": tone_df}
+        )
+        signals = await GdeltAdapter(client=client).fetch_signals("d", "Acme AG")
+        vol_signals = [s for s in signals if s.signal_type in ("news", "adverse_media")]
+        assert vol_signals, "expected a volume regime-change signal"
+        assert all(s.signal_type == "adverse_media" for s in vol_signals)
+        assert all(s.severity >= 0.65 for s in vol_signals)
+
+    async def test_misaligned_tone_falls_back_when_day_absent(self):
+        # If the changepoint day has no tone row at all, severity must fall back
+        # to "regime change, tone unknown" (0.50 → news), never crash.
+        end = pd.Timestamp.now().normalize()
+        vol_dates = pd.date_range(end=end, periods=len(_VOLUME_WITH_CP), freq="D")
+        vol_df = pd.DataFrame(
+            {
+                "datetime": vol_dates,
+                "Article Count": _VOLUME_WITH_CP,
+                "All Articles": _VOLUME_WITH_CP,
+            }
+        )
+        # Tone covers only the most recent 3 days — the changepoint day is absent.
+        tone_dates = pd.date_range(end=end, periods=3, freq="D")
+        tone_df = pd.DataFrame({"datetime": tone_dates, "Average Tone": [-6.0] * 3})
+        client = FakeGdelt(
+            timelines={"timelinevolraw": vol_df, "timelinetone": tone_df}
+        )
+        signals = await GdeltAdapter(client=client).fetch_signals("d", "Acme AG")
+        vol_signals = [s for s in signals if s.signal_type in ("news", "adverse_media")]
+        assert vol_signals
+        assert all(s.signal_type == "news" for s in vol_signals)
+
 
 # ---------------------------------------------------------------------------
 # UC6 / UC10 — funding + pivot article classification
@@ -259,6 +316,42 @@ class TestFundingAndPivot:
         client = FakeGdelt(articles=_make_articles(rows))
         signals = await GdeltAdapter(client=client).fetch_signals("d", "Acme AG")
         assert [s for s in signals if s.signal_type == "business_model_change"] == []
+
+    async def test_nan_cells_do_not_become_string_nan(self):
+        # A partial GDELT response can carry NaN cells (a *truthy* float). A
+        # missing url/domain must become None / the display name, never "nan".
+        articles = pd.DataFrame(
+            [
+                {
+                    "title": "Acme AG raises $50M in funding",
+                    "url": float("nan"),
+                    "seendate": _recent_seendate(2),
+                    "domain": float("nan"),
+                }
+            ]
+        )
+        client = FakeGdelt(articles=articles)
+        signals = await GdeltAdapter(client=client).fetch_signals("d", "Acme AG")
+        funding = [s for s in signals if s.signal_type == "funding_event"]
+        assert len(funding) == 1
+        assert funding[0].source_url is None
+        assert funding[0].source == "GDELT 2.0 (news)"
+
+    async def test_nan_title_row_is_skipped(self):
+        # A row whose title is NaN must be dropped, not classified as "nan".
+        articles = pd.DataFrame(
+            [
+                {
+                    "title": float("nan"),
+                    "url": "https://news.example/x",
+                    "seendate": _recent_seendate(2),
+                    "domain": "example.com",
+                }
+            ]
+        )
+        client = FakeGdelt(articles=articles)
+        signals = await GdeltAdapter(client=client).fetch_signals("d", "Acme AG")
+        assert signals == []
 
 
 # ---------------------------------------------------------------------------

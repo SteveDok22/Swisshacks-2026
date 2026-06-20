@@ -65,10 +65,12 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 Decision rule: **free/free-tier sources + Event Registry** (hackathon API key provided); other paid sources remain `SKIPPED`.
 See [`docs/sources.md`](docs/sources.md) for full cost/access breakdown.
 
-*Implement these (status: `PLANNED`):*
-- [x] **`sources/event_registry.py`** — FREEMIUM, key-gated · `EVENT_REGISTRY_API_KEY` (Cases 1, 6, 8, 10) · Fully implemented; enriches GDELT with event-level de-duplication and structured sentiment when a key is present. Returns `[]` gracefully when no key is set so GDELT remains the always-on fallback.
-- [x] **`sources/zefix.py`** — Swiss commercial register (Cases 4, 7, 8, 10) · FREEMIUM (free, but needs a free registered Basic-auth account — verified live 401 without creds; no officers/UBO in the API). **`fetch` + `fetch_signals` implemented** against the live OpenAPI schema; Basic-auth from `ZEFIX_USERNAME`/`ZEFIX_PASSWORD`, graceful degradation without creds; unit tests mock the HTTP layer (`tests/test_zefix.py`). Engine wiring tracked in the UC4/UC8 close-out tasks below.
-- [ ] **`sources/gleif.py`** — Global LEI Foundation (Cases 3, 4, 5, 8, 10) · FREE
+*Implemented:*
+- [x] **`sources/event_registry.py`** — structured news events, entity-aware queries (Cases 1, 6, 8, 10) · FREEMIUM — **hackathon API key; PRIMARY news source** · adverse-media, funding, name-change/pivot modes; returns `[]` gracefully when key absent
+- [x] **`sources/zefix.py`** — Swiss commercial register (Cases 4, 7, 8, 10) · FREEMIUM · `fetch` + `fetch_signals` implemented against the live OpenAPI schema; Basic-auth from `ZEFIX_USERNAME`/`ZEFIX_PASSWORD`, graceful degradation without creds; unit tests in `tests/test_zefix.py`. Engine wiring tracked in UC4/UC8 close-out tasks below.
+- [x] **`sources/gleif.py`** — Global LEI Foundation (Cases 3, 4, 5, 8, 10) · FREE · `fetch()` fully implemented (legal name, jurisdiction, LEI status, parent + child LEIs); `fetch_signals()` returns `[]` by design — signals emitted by service layer via `diff_snapshots()`
+
+*Still to implement (carcasses exist):*
 - [ ] **`sources/opensanctions.py`** — OFAC / EU / UN sanctions + PEP screening (Cases 2, 5) · FREEMIUM
 - [ ] **`sources/gdelt.py`** — GDELT 2.0 free news feed (Cases 1, 6, 8, 10) · FREE — **fallback** when Event Registry key absent
 - [ ] **`sources/firecrawl.py`** — website-to-markdown scraping, current content (Cases 9, 10) · FREEMIUM
@@ -212,19 +214,20 @@ Each adapter has two methods to implement. `fetch()` returns a current `EntitySn
 Each task below flips one row in the Use Case Coverage table. Prerequisite: the relevant adapter(s) from section 3 must be implemented first.
 
 > **UC 1 — Negative news spike** (⚠️ PARTIAL → ✅)
-- [ ] Implement `EventRegistryAdapter.fetch_signals` news-volume + adverse-media modes (primary; see spec above); implement `GdeltAdapter.fetch_signals` volume mode as fallback
+- [x] Implement `EventRegistryAdapter.fetch_signals` — adverse-media / news-spike modes (primary; hackathon key)
+- [ ] Implement `GdeltAdapter.fetch_signals` — volume + adverse-media modes (free fallback when key absent)
 - [ ] Aggregator selects EventRegistry if `EVENT_REGISTRY_API_KEY` is set, else falls back to GDELT — single call site in `public_intel.py`
 - [ ] Run BOCPD on weekly event-count series in `service.py:_analyze_customer`; surface `news_spike_month` in the analysis dict; feed into the confirmation-lift temporal window alongside internal BOCPD changepoint
 - [ ] Add `news_spike` synthetic scenario to `simulator.py` — customer whose public_risk surges at month 9 via a news event-count spike; causal label `"risk"`
 
 > **UC 3 — Multiple entities + sudden flows** (⚠️ PARTIAL → ✅)
-- [ ] Implement `GleifAdapter.fetch` (ownership chain: parent LEI + direct children)
+- [x] Implement `GleifAdapter.fetch` (ownership chain: parent LEI + direct children)
 - [ ] In `DriftEngine.__init__`, if GLEIF is available, build `OwnershipGraph` from real LEI parent/child relationships instead of `build_demo_graph`
 - [ ] Diff GLEIF `ownership_chain` vs KYC baseline using `diff_snapshots`; emit `ownership_change` signals
 
 > **UC 4 — Jurisdiction / legal form change** (🔶 INDIRECT → ✅)
 - [x] Implement `ZefixAdapter.fetch` and `fetch_signals` (legal_form + jurisdiction diff path — see spec above)
-- [ ] Implement `GleifAdapter.fetch` jurisdiction field (already in spec above)
+- [x] Implement `GleifAdapter.fetch` jurisdiction field (already in spec above)
 - [ ] Extend `EntitySnapshotDB` with `legal_form: str | None` and `jurisdiction: str | None` columns so the diff has a persisted baseline to compare against
 - [ ] A confirmed `jurisdiction_change` or `legal_form_change` signal floors the drift score at 50 in `service.py:_analyze_customer` (mandatory re-KYC trigger)
 
@@ -234,12 +237,13 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 - [ ] Surface UBO screening results (matched entity names + scores) in `DriftSubjectDetail` API response
 
 > **UC 6 — Large funding round / expansion** (⚠️ PARTIAL → ✅)
-- [ ] Implement `EventRegistryAdapter.fetch_signals` funding-events mode (primary); implement `GdeltAdapter.fetch_signals` funding mode as fallback
+- [x] Implement `EventRegistryAdapter.fetch_signals` — funding-events mode (primary)
+- [ ] Implement `GdeltAdapter.fetch_signals` — funding mode (free fallback)
 - [ ] Compute scale-jump ratio (`active_volume / baseline_volume`) in `causal.py`; if ratio ≥ 5× and a `funding_event` signal exists in the same window, raise `causal_p_risk` (corroborating that the volume jump is acquisition-driven rather than laundering)
 
 > **UC 8 — Legal entity name change** (❌ MISSING → ✅)
 - [x] Implement `ZefixAdapter.fetch` + `fetch_signals` name-change diff path (see spec above)
-- [ ] Implement `GleifAdapter.fetch` + `fetch_signals` name-change diff path (see spec above)
+- [x] Implement `GleifAdapter.fetch` name-change diff path — `fetch()` done; `fetch_signals()` returns `[]` by design; service layer calls `diff_snapshots()` to emit signals
 - [ ] Implement `WhoisAdapter.fetch` + `fetch_signals` domain registrant diff path (see spec above)
 - [ ] Add `name_changed: bool` to the analysis dict in `service.py:_analyze_customer`; a confirmed name change floors the drift score at 60 regardless of other signals
 - [ ] Add `name_cycling` synthetic scenario to `simulator.py` — customer whose legal name changes at month 6 (Mossack Fonseca pattern); ZEFIX + WHOIS signals fire; causal label `"risk"`
@@ -254,7 +258,8 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 - [ ] Add `domain_pivot` synthetic scenario to `simulator.py` — WHOIS registrant change at month 8 + high cosine distance; causal label `"risk"`
 
 > **UC 10 — Public business model pivot** (❌ MISSING → ✅)
-- [ ] Implement `EventRegistryAdapter.fetch_signals` pivot/rebrand mode (primary; see spec above); implement `GdeltAdapter.fetch_signals` pivot mode as fallback
+- [x] Implement `EventRegistryAdapter.fetch_signals` — pivot/rebrand mode (primary)
+- [ ] Implement `GdeltAdapter.fetch_signals` — pivot mode (free fallback)
 - [ ] In the aggregator: if Event Registry reports a pivot-adjacent event cluster AND cosine distance ≥ 0.35, elevate signal severity to `"critical"` (two independent corroborating sources)
 - [ ] Add `pivot` synthetic scenario to `simulator.py` — news pivot signals fire at month 9; website cosine distance fires; causal label `"risk"` with `funding_event` co-occurrence (Centra Tech pattern)
 
@@ -298,7 +303,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | Drift Engine | `drift/service.py` | All 7 layers, confirmation lift, LLM adjudication |
 | Synthetic Book | `drift/simulator.py` | 8 scenarios with ground-truth labels |
 | KYC Baseline Store | `db/kyc_baseline.py` | `EntitySnapshotDB` — onboarding + history snapshots |
-| Source Adapter Layer | `sources/` | `RegistryAdapter` ABC + 7 planned + 3 SKIPPED carcasses |
+| Source Adapter Layer | `sources/` | `RegistryAdapter` ABC; GLEIF + EventRegistry fully implemented; 6 planned carcasses; 2 SKIPPED |
 | REST API | `api/v1/` | 27 endpoints, all functional |
 | Frontend | `src/app/drift/`, `src/app/audit/` | 8 drift panels + audit log page + dormancy-break panel |
 | XGBoost + SHAP | `ml/base.py` | Wired to case management only; drift uses per-layer LLR breakdown |
@@ -312,16 +317,15 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 
 | Source | Cases | Cost | Status |
 |---|---|---|---|
-| ZEFIX | 4, 7, 8, 10 | FREEMIUM¹ | ✅ ADAPTER DONE (engine wiring pending) |
-| GLEIF | 3, 4, 5, 8, 10 | FREE | 🔲 PLANNED |
+| ZEFIX | 4, 7, 8, 10 | FREEMIUM¹ | ✅ IMPLEMENTED (engine wiring pending) |
+| GLEIF | 3, 4, 5, 8, 10 | FREE | ✅ IMPLEMENTED — `fetch()` live; signals via `diff_snapshots()` |
 | OpenSanctions | 2, 5 | FREEMIUM | 🔲 PLANNED |
-| Event Registry / NewsAPI.ai | 1, 6, 8, 10 | PAID (hackathon key) | 🔲 PLANNED — **primary news source** |
+| Event Registry / NewsAPI.ai | 1, 6, 8, 10 | FREEMIUM (hackathon key) | ✅ IMPLEMENTED — **primary news source** |
 | GDELT | 1, 6, 8, 10 | FREE | 🔲 PLANNED — fallback when ER key absent |
 | RDAP/WHOIS | 8, 9 | FREE | 🔲 PLANNED |
 | Wayback Machine | 9, 10 | FREE | 🔲 PLANNED |
 | Firecrawl | 9, 10 | FREEMIUM | 🔲 PLANNED |
 | OpenCorporates | 3, 4, 5, 7 | PAID | ⛔ SKIPPED |
-| EventRegistry / NewsAPI.ai | 1, 6, 8, 10 | FREEMIUM (key-gated) | ✅ IMPLEMENTED |
 | Crunchbase | 6 | PAID | ⛔ SKIPPED |
 | Internal transactions | 2, 3, 7 | — | ✅ Built |
 

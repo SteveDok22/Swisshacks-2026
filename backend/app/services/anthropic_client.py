@@ -19,12 +19,11 @@ from __future__ import annotations
 import hashlib
 import json
 import time
-from collections.abc import AsyncIterator, Iterator
-from datetime import datetime, timedelta
-from typing import Any
+from collections.abc import AsyncIterator
+from datetime import UTC, datetime, timedelta
 
 import anthropic
-from anthropic.types import MessageStreamEvent
+from anthropic.types import MessageParam
 
 from app.core.config import settings
 from app.core.logging import get_logger
@@ -37,11 +36,11 @@ class _CacheEntry:
     
     def __init__(self, value: str, ttl_seconds: int = 3600):
         self.value = value
-        self.expires_at = datetime.utcnow() + timedelta(seconds=ttl_seconds)
-    
+        self.expires_at = datetime.now(UTC) + timedelta(seconds=ttl_seconds)
+
     @property
     def is_expired(self) -> bool:
-        return datetime.utcnow() > self.expires_at
+        return datetime.now(UTC) > self.expires_at
 
 
 class AnthropicClient:
@@ -141,9 +140,10 @@ class AnthropicClient:
 
         # === Mock mode ===
         if self.is_mock:
-            response = self._mock_response(prompt, system)
-            self._cache[cache_key] = _CacheEntry(response)
-            return response, False, 0
+            mock_text = self._mock_response(prompt, system)
+            if use_cache:
+                self._cache[cache_key] = _CacheEntry(mock_text)
+            return mock_text, False, 0
 
         # === Real API call ===
         if self._client is None:
@@ -153,10 +153,10 @@ class AnthropicClient:
             )
 
         start = time.perf_counter()
-        messages: list[dict[str, str]] = [{"role": "user", "content": prompt}]
+        messages: list[MessageParam] = [{"role": "user", "content": prompt}]
 
         try:
-            response = self._client.messages.create(
+            message = self._client.messages.create(
                 model=model,
                 max_tokens=max_tokens,
                 system=system or "",
@@ -164,17 +164,17 @@ class AnthropicClient:
             )
 
             text = ""
-            for block in response.content:
+            for block in message.content:
                 if block.type == "text":
                     text += block.text
 
-            tokens_used = response.usage.input_tokens + response.usage.output_tokens
+            tokens_used = message.usage.input_tokens + message.usage.output_tokens
             elapsed_ms = (time.perf_counter() - start) * 1000
             logger.info(
                 "anthropic_completion",
                 model=model,
-                input_tokens=response.usage.input_tokens,
-                output_tokens=response.usage.output_tokens,
+                input_tokens=message.usage.input_tokens,
+                output_tokens=message.usage.output_tokens,
                 tokens_used=tokens_used,
                 elapsed_ms=round(elapsed_ms),
             )
@@ -220,7 +220,7 @@ class AnthropicClient:
         # Real streaming
         assert self._async_client is not None
         
-        messages: list[dict[str, str]] = [{"role": "user", "content": prompt}]
+        messages: list[MessageParam] = [{"role": "user", "content": prompt}]
         
         try:
             async with self._async_client.messages.stream(

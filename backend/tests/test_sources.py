@@ -34,25 +34,42 @@ class TestRegistryClassification:
         assert len(ALL_ADAPTERS) == 10
         assert len(REGISTRY) == 10  # source_names are unique
 
-    def test_usable_are_the_seven_free_sources(self):
+    # Event Registry is the one documented exception to "skipped iff paid": it
+    # is PAID but PLANNED because a hackathon API key is provided (it is the
+    # primary news source, GDELT the key-less fallback). See docs/sources.md.
+    _PAID_BUT_PLANNED = {"event_registry"}
+
+    def test_usable_are_the_free_sources_plus_event_registry(self):
         assert {a.source_name for a in usable_adapters()} == {
             "zefix", "gleif", "opensanctions", "gdelt",
             "firecrawl", "wayback", "whois",
-        }
+        } | self._PAID_BUT_PLANNED
 
-    def test_skipped_are_the_three_paid_sources(self):
+    def test_skipped_are_the_remaining_paid_sources(self):
+        # Only the paid sources WITHOUT a usable key remain skipped.
         assert {a.source_name for a in skipped_adapters()} == {
-            "open_corporates", "event_registry", "crunchbase",
+            "open_corporates", "crunchbase",
         }
 
-    def test_skipped_iff_paid_invariant(self):
-        # The whole free/paid decision rests on this equivalence.
+    def test_skipped_implies_paid_with_documented_exception(self):
+        # SKIPPED still implies PAID. The converse no longer holds: the
+        # paid-but-planned sources are exactly the documented exception.
         for a in ALL_ADAPTERS:
-            assert a.is_skipped() == (a.cost is SourceCost.PAID), a.source_name
+            if a.is_skipped():
+                assert a.cost is SourceCost.PAID, a.source_name
+        paid_but_planned = {
+            a.source_name
+            for a in ALL_ADAPTERS
+            if a.cost is SourceCost.PAID and a.is_usable()
+        }
+        assert paid_but_planned == self._PAID_BUT_PLANNED
 
-    def test_planned_iff_free_or_freemium(self):
+    def test_planned_are_free_or_freemium_except_documented(self):
         for a in usable_adapters():
-            assert a.cost in (SourceCost.FREE, SourceCost.FREEMIUM)
+            if a.source_name in self._PAID_BUT_PLANNED:
+                assert a.cost is SourceCost.PAID, a.source_name
+            else:
+                assert a.cost in (SourceCost.FREE, SourceCost.FREEMIUM), a.source_name
 
     def test_key_requirement_matches_cost_tier(self):
         # Fully-free sources must not need a key; the free-tier (FREEMIUM) ones

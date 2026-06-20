@@ -43,11 +43,14 @@ Hard requirement: **only sources that are 100% free / usable right now get
 implemented.** Anything without a sustainable free tier is marked `PAID` and
 skipped — and skipped in code, not just on paper.
 
-The whole decision collapses to one invariant (enforced by a unit test):
+The whole decision collapses to one near-biconditional (enforced by a unit
+test), with a single documented exception — **Event Registry**, which is `PAID`
+but `PLANNED` because a hackathon API key is provided (it is the primary news
+source; GDELT is the key-less fallback):
 
 ```
-status == SKIPPED   <=>   cost == PAID
-status == PLANNED   <=>   cost == FREE or FREEMIUM
+status == SKIPPED   <=>   cost == PAID            (except event_registry)
+status == PLANNED   <=>   cost in {FREE, FREEMIUM} or source is event_registry
 ```
 
 ### Catalogue
@@ -62,7 +65,7 @@ status == PLANNED   <=>   cost == FREE or FREEMIUM
 | **Wayback** | Historical website snapshot at the onboarding date | FREE | no | ✅ IMPLEMENT |
 | **WHOIS / RDAP** | Domain age + registrant change | FREE | no | ✅ IMPLEMENT |
 | **OpenCorporates** | Officers / directors in non-LEI jurisdictions | PAID | yes | ⛔ SKIP |
-| **Event Registry** | News clustered into de-duplicated *events* | PAID³ | yes | ⛔ SKIP |
+| **Event Registry** | News clustered into de-duplicated *events* | PAID³ | yes | ✅ IMPLEMENT (primary news) |
 | **Crunchbase** | Funding rounds, investors, amounts | PAID | yes | ⛔ SKIP |
 
 ⁰ ZEFIX: free, but the ZefixPublicREST API requires a **free registered
@@ -82,23 +85,23 @@ the ROADMAP use-case close-out tasks.
 matcher are **free for non-commercial use** and self-hostable. Commercial use
 needs a paid bulk-data licence — flag for production.
 ² Firecrawl: cloud free tier ~1,000 pages/month (no card); self-host is AGPL-3.0.
-³ Event Registry is technically freemium, but the free allowance is a **one-time
-~2,000-token trial**, not a renewing tier — unusable for a live demo, so we treat
-it as paid.
+³ Event Registry: classified `PAID` (the public free allowance is a **one-time
+~2,000-token trial**, not a renewing tier). Implemented anyway as the **primary
+news source** because a hackathon API key is provided; without
+`EVENT_REGISTRY_API_KEY` the aggregator falls back to key-less GDELT.
 
 ### Why each skip is safe (coverage is not lost)
 
 | Skipped (paid) | Use cases | Free source that covers it |
 |---|---|---|
 | OpenCorporates | 3, 4, 5, 7 | **GLEIF** entity-level ownership (parent/child LEIs) + **ZEFIX** company fields. ⚠️ Natural-person **officers/directors** are a real gap — no free source (incl. ZEFIX) exposes them; entity-level UBO only. |
-| Event Registry | 1, 6, 8, 10 | **GDELT** (article lists + volume time-series, key-less) |
 | Crunchbase | 6 | **GDELT** (funding/expansion as news — weaker, no structured amount) |
 
-Net: **7 adapters to build, 3 skipped.** No use case is fully dropped, but
+Net: **8 adapters to build, 2 skipped.** No use case is fully dropped, but
 officer/director-level resolution (part of Cases 3/5) is degraded to entity-level
 ownership only — the one capability lost by skipping the paid OpenCorporates.
-GDELT is the new
-free addition that replaces the paid Event Registry as the news feed.
+Event Registry is the primary news feed (hackathon key); GDELT is the key-less
+fallback and still covers the news/funding use cases on its own.
 
 ---
 

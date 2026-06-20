@@ -154,3 +154,70 @@ async def test_timeline_is_available_only_on_canonical_subject_route(client):
     # because the old handler ran and reported an unknown subject.
     assert removed_response.status_code == 404
     assert removed_response.json() == {"detail": "Not Found"}
+
+
+# --- TTL cache tests for list_subjects() ---
+
+
+def test_list_subjects_cache_hit_skips_reanalysis(monkeypatch):
+    """Second call within TTL must return from cache without re-running analysis."""
+    engine = drift_service.DriftEngine()
+    call_count = 0
+    original = engine._analyze_customer
+
+    def counting_analyze(cust):
+        nonlocal call_count
+        call_count += 1
+        return original(cust)
+
+    monkeypatch.setattr(engine, "_analyze_customer", counting_analyze)
+
+    first = engine.list_subjects()
+    calls_after_first = call_count
+
+    second = engine.list_subjects()
+
+    assert second == first
+    assert call_count == calls_after_first, (
+        "list_subjects() re-ran _analyze_customer on a cache-hit call"
+    )
+
+
+def test_list_subjects_cache_returns_independent_list(monkeypatch):
+    """Mutating the returned list must not corrupt subsequent cache hits."""
+    engine = drift_service.DriftEngine()
+    first = engine.list_subjects()
+    original_len = len(first)
+
+    # Mutate the returned list
+    first.clear()
+
+    second = engine.list_subjects()
+    assert len(second) == original_len, (
+        "Mutating the returned list corrupted the internal cache"
+    )
+
+
+def test_list_subjects_cache_expires_after_ttl(monkeypatch):
+    """After TTL elapses, list_subjects() must re-run analysis."""
+    engine = drift_service.DriftEngine()
+    call_count = 0
+    original = engine._analyze_customer
+
+    def counting_analyze(cust):
+        nonlocal call_count
+        call_count += 1
+        return original(cust)
+
+    monkeypatch.setattr(engine, "_analyze_customer", counting_analyze)
+
+    engine.list_subjects()
+    calls_after_first = call_count
+
+    # Force TTL expiry by pushing the cached timestamp into the past
+    engine._list_cache_at -= engine._LIST_CACHE_TTL + 1.0
+
+    engine.list_subjects()
+    assert call_count > calls_after_first, (
+        "list_subjects() served stale cache after TTL expiry"
+    )

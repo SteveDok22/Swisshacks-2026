@@ -18,6 +18,7 @@ from datetime import datetime
 from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import func
 from sqlmodel import select
 
 from app.core.logging import get_logger
@@ -81,8 +82,8 @@ class DbStore:
         result = await self.session.execute(statement)
         cases_db = list(result.scalars().all())
         
-        # Get total (separate count query)
-        count_stmt = select(CaseDB.id)
+        # Get total (separate count query — COUNT(*) avoids loading all IDs)
+        count_stmt = select(func.count()).select_from(CaseDB)
         if case_type:
             count_stmt = count_stmt.where(CaseDB.case_type == case_type)
         if status:
@@ -90,7 +91,7 @@ class DbStore:
         if jurisdiction:
             count_stmt = count_stmt.where(CaseDB.jurisdiction == jurisdiction)
         count_result = await self.session.execute(count_stmt)
-        total = len(list(count_result.scalars().all()))
+        total = count_result.scalar_one()
         
         return [self._case_db_to_domain(c) for c in cases_db], total
     

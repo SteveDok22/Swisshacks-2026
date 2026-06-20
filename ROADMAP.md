@@ -92,9 +92,9 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 - [x] Move 6 magic-number layer weights from `service.py` to named constants in `core/config.py`
 - [x] Add single-worker warning to the global `_engine` singleton (unsafe under multi-process)
 - [x] Remove duplicate timeline endpoint — `GET /drift/subjects/{drift_id}` already returns the timeline
-- [ ] Fix `audit.py:138` — `len(list(...all()))` loads entire table; replace with `COUNT(*)` query
-- [ ] `list_subjects()` recomputes all 10 subjects on every request — add short-lived TTL cache
-- [ ] Qualify "real-time signals" language in README and pitch — signals are simulated for MVP; architecture is slot-swap ready
+- [x] Fix `db_store.py` — `len(list(...all()))` loads all case IDs for count; replaced with `COUNT(*)` query via `func.count()`
+- [x] `list_subjects()` recomputes all 10 subjects on every request — added 30 s TTL cache on `DriftEngine`
+- [x] Qualify "real-time signals" language in README and pitch — signals are simulated for MVP; architecture is slot-swap ready
 
 ---
 

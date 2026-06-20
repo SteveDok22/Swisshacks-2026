@@ -17,6 +17,7 @@ from __future__ import annotations
 
 import json
 import time
+import zlib
 from typing import Any
 
 import numpy as np
@@ -37,9 +38,11 @@ from app.drift.causal import causal_assessment
 from app.drift.contagion import OwnershipGraph, build_demo_graph
 from app.drift.dormancy import assess_dormancy
 from app.drift.public_intel import (
+    PublicSignal,
     assess_public_risk,
     confirmation_lift,
     gather_public_signals_sync,
+    generate_signals_for_customer,
 )
 from app.drift.simulator import SyntheticCustomer, generate_book, generate_customer
 from app.drift.stability import assess_stability, cohort_volatility
@@ -137,6 +140,36 @@ class DriftEngine:
         self._list_cache_at: float = 0.0
 
     # ------------------------------------------------------------------ #
+    # Public-intelligence acquisition (live vs offline)
+    # ------------------------------------------------------------------ #
+    def _public_signals(self, cust: SyntheticCustomer) -> list[PublicSignal]:
+        """Acquire public-intel signals for one customer.
+
+        Single seam controlling external-API usage:
+          - ``external_apis_enabled`` True  -> run the real source adapters in
+            parallel via the public-intel aggregator (live HTTP).
+          - ``external_apis_enabled`` False -> bypass all adapters and emit
+            deterministic, scenario-aligned synthetic signals. No network I/O.
+
+        The synthetic path reuses ``generate_signals_for_customer`` (also used by
+        the time-travel replay), seeded by ``drift_id`` so the same customer
+        always yields the same signals across requests.
+        """
+        if settings.external_apis_enabled:
+            return gather_public_signals_sync(cust.drift_id, cust.name)
+        return generate_signals_for_customer(
+            cust.drift_id,
+            cust.name,
+            cust.scenario,
+            months=cust.months,
+            drift_start_month=cust.drift_start_month,
+            # zlib.crc32 (not builtin hash) so the seed is stable across processes
+            # and restarts — builtin str hashing is salted per-process by
+            # PYTHONHASHSEED, which would make "deterministic" signals vary.
+            seed=zlib.crc32(cust.drift_id.encode()) % 10000,
+        )
+
+    # ------------------------------------------------------------------ #
     # Core per-customer analysis
     # ------------------------------------------------------------------ #
     def _analyze_customer(self, cust: SyntheticCustomer) -> dict:
@@ -184,8 +217,9 @@ class DriftEngine:
             1.0,
         )
 
-        # --- PUBLIC: real adapter signals via aggregator ---
-        signals = gather_public_signals_sync(cust.drift_id, cust.name)
+        # --- PUBLIC: real adapter signals via aggregator (live), or the
+        # deterministic synthetic generator (offline/mock). See _public_signals. ---
+        signals = self._public_signals(cust)
         pi = assess_public_risk(signals, months=cust.months)
 
         # --- Confirmation Lift: do the two worlds confirm each other? ---

@@ -290,6 +290,33 @@ class TestEntitySnapshotFields:
         )
         assert s.raw_data["lei"] == "529900T8BM49AURSDO55"
 
+    def test_legal_form_and_jurisdiction_default_to_none(self):
+        # UC 4: both structural-identity columns are optional so adapters that
+        # cannot resolve them (e.g. GLEIF has no legal_form) still persist.
+        s = EntitySnapshotDB(
+            drift_id="u4",
+            snapshot_date=date.today(),
+            name="Unknown Form Corp",
+        )
+        assert s.legal_form is None
+        assert s.jurisdiction is None
+
+    async def test_legal_form_and_jurisdiction_round_trip(self, session):
+        # UC 4: the persisted baseline must carry legal_form + jurisdiction so a
+        # later registry diff has something to compare against.
+        snap = EntitySnapshotDB(
+            drift_id="u4-rt",
+            snapshot_date=date(2023, 1, 1),
+            name="Helvetia Trading AG",
+            legal_form="AG",
+            jurisdiction="ZG",
+        )
+        await store_snapshot(session, snap, flush=True)
+        row = await load_latest_snapshot(session, "u4-rt")
+        assert row is not None
+        assert row.legal_form == "AG"
+        assert row.jurisdiction == "ZG"
+
 
 # ---------------------------------------------------------------------------
 # Seeding integration
@@ -340,6 +367,25 @@ class TestKycBaselineSeeding:
                 assert 0.0 <= snap.counterparty_risk_mean <= 1.0, cid
             if snap.corridor_risk_mean is not None:
                 assert 0.0 <= snap.corridor_risk_mean <= 1.0, cid
+
+    async def test_seeded_snapshots_carry_jurisdiction(self, engine):
+        """UC 4: every seeded baseline records a jurisdiction so the registry
+        diff has a structural anchor; AG/Holdings names also get a legal_form."""
+        from app.db.seed import _seed_kyc_baselines
+
+        factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+        async with factory() as s:
+            await _seed_kyc_baselines(s)
+            await s.commit()
+
+        async with factory() as s:
+            baselines = await load_all_baselines(s)
+
+        assert baselines, "expected seeded baselines"
+        for cid, snap in baselines.items():
+            assert snap.jurisdiction == "CH", f"{cid}: missing jurisdiction"
+            if "AG" in snap.name or "Holdings" in snap.name:
+                assert snap.legal_form == "AG", f"{cid}: expected AG legal_form"
 
     async def test_seeded_snapshot_type_is_seeded(self, engine):
         from app.db.seed import _seed_kyc_baselines

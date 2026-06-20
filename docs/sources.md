@@ -152,6 +152,41 @@ expected columns with `seendate` as `YYYYMMDDTHHMMSSZ`.
 4. **Approximate month mapping** (~30-day buckets) and `article_search` reaches back
    only ~3 months, so funding/pivot signals cluster in recent months.
 
+### Business-model drift — Wayback ↔ Firecrawl cosine comparator (UC 9, 10)
+
+`drift/business_model.py` closes the loop on the two website adapters. Neither
+Wayback nor Firecrawl emits a signal on its own (`fetch_signals()` is a no-op on
+both); the signal is the **distance between them**:
+
+1. `WaybackAdapter.fetch` recovers the onboarding-era `website_text`.
+2. `FirecrawlAdapter.fetch` recovers the current `website_text`.
+3. `compare_business_model(...)` embeds both and emits
+   `PublicSignal(signal_type="business_model_change")` when the cosine distance
+   between the two vectors is **≥ 0.35**. Severity follows the architecture-doc
+   formula `clip(0.20 + 1.30 × cosine_distance, 0, 0.95)`.
+
+**Embedder — model2vec (`minishlab/potion-base-8M`), not torch.** The ROADMAP
+named `sentence-transformers/all-MiniLM-L6-v2`; we run a **static MiniLM-class
+distillation via model2vec** instead. Inference is a pure-NumPy token-embedding
+average — no torch, no onnxruntime — so the ~30 MB model bundles into the image
+for a genuinely offline comparison and the core container stays lean (torch would
+add ~2 GB). model2vec is an **optional** dependency (`uv sync --extra
+embeddings`); when it is absent the comparator degrades to *no signal* (with a
+logged `skipped_reason="no_embedder"`) exactly as Firecrawl degrades to an empty
+snapshot. The embedder is pluggable behind a tiny `Embedder` protocol, so swapping
+in onnxruntime/MiniLM later is a one-line change.
+
+**Degrade-never-raise.** The comparator skips (no signal, machine-readable
+`skipped_reason`) when either side's text is under 50 chars (`"empty_text"`) or no
+embedder is available (`"no_embedder"`); it never raises into the scan.
+
+**Re-embedding cache.** Embedding is the only real cost. The comparator accepts
+previously-computed embeddings keyed by a SHA-256 text fingerprint and reuses them
+only while the fingerprint still matches the supplied text, and always returns the
+embeddings it used. The aggregator persists these in `EntitySnapshotDB.raw_data`
+(the column the ROADMAP calls `extra`) so a re-scan of an unchanged page skips
+re-embedding. The module itself stays DB-free, like everything under `drift/`.
+
 ### Why each skip is safe (coverage is not lost)
 
 | Skipped (paid) | Use cases | Free source that covers it |

@@ -68,6 +68,14 @@ audio = [
     "resemblyzer>=0.1.4",
 ]
 
+# Semantic website-drift detection (drift/business_model.py — UC 9, 10).
+# model2vec runs static MiniLM-distilled embeddings on pure NumPy (no torch),
+# so the comparator stays optional and the core image lean. Absent → the
+# comparator degrades to no signal; present → cosine distance fires UC 9.
+embeddings = [
+    "model2vec>=0.3.0",
+]
+
 [tool.ruff]
 line-length = 100
 target-version = "py311"

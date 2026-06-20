@@ -1,5 +1,5 @@
 """
-Database seeding — fills empty DB with mock data on first startup.
+Database seeding — fills the freshly recreated DB with mock data at startup.
 
 Uses the existing mock_data generators from services/mock_data.py.
 Idempotent: only runs if DB is empty.
@@ -7,11 +7,16 @@ Idempotent: only runs if DB is empty.
 
 from __future__ import annotations
 
+from datetime import date
+
+import numpy as np
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import select
 
 from app.core.logging import get_logger
+from app.db.kyc_baseline import EntitySnapshotDB, store_snapshot
 from app.db.models import CaseDB, ClientDB
+from app.drift.simulator import generate_book
 from app.services.mock_data import generate_mock_cases, generate_mock_clients
 
 logger = get_logger(__name__)
@@ -94,11 +99,74 @@ async def seed_if_empty(session: AsyncSession) -> bool:
         )
         session.add(case_db)
     
+    # === Seed KYC baselines from the synthetic drift book ===
+    await _seed_kyc_baselines(session)
+
     await session.commit()
-    
+
     logger.info(
         "seed_completed",
         client_count=len(mock_clients),
         case_count=len(mock_cases),
     )
     return True
+
+
+def _mean_of_windows(windows: list) -> float | None:
+    """Mean of per-window means. Returns None for an empty window list."""
+    if not windows:
+        return None
+    return float(np.mean([w.mean() for w in windows]))
+
+
+async def _seed_kyc_baselines(session: AsyncSession) -> None:
+    """
+    Populate entity_snapshots from the synthetic drift book.
+
+    For each customer we capture a single 'seeded' onboarding snapshot whose
+    behavioral baseline is computed from the pre-drift window (months before
+    drift_start_month). Stable customers (drift_start_month is None) use the
+    full history. This gives source adapters something real to diff against.
+    """
+    book = generate_book()
+    snapshot_date = date(2023, 1, 1)  # synthetic onboarding date for the demo book
+
+    for customer in book:
+        # Use `is not None` to guard correctly: drift_start_month == 0 is falsy
+        # but valid — using `or` would silently fall back to the full series.
+        if customer.drift_start_month is not None:
+            cutoff = customer.drift_start_month
+        else:
+            cutoff = len(customer.monthly_volume)
+
+        baseline_volumes = customer.monthly_volume[:cutoff]
+        baseline_cp = customer.counterparty_risk[:cutoff]
+        baseline_cr = customer.corridor_risk[:cutoff]
+        baseline_margin = customer.margin_ratio[:cutoff]
+
+        snapshot = EntitySnapshotDB(
+            customer_id=customer.customer_id,
+            snapshot_date=snapshot_date,
+            snapshot_type="seeded",
+            source="internal",
+            name=customer.name,
+            legal_form="AG" if "AG" in customer.name or "Holdings" in customer.name else None,
+            jurisdiction="CH",
+            dissolution_status="active",
+            beneficial_owners=[],
+            officers=[],
+            avg_monthly_volume_chf=_mean_of_windows(baseline_volumes),
+            counterparty_risk_mean=_mean_of_windows(baseline_cp),
+            corridor_risk_mean=_mean_of_windows(baseline_cr),
+            margin_ratio_mean=_mean_of_windows(baseline_margin),
+            raw_data={
+                "scenario": customer.scenario,
+                "months": customer.months,
+                "drift_start_month": customer.drift_start_month,
+                "sanctions_month": customer.sanctions_month,
+                "causal_truth": customer.causal_truth,
+            },
+        )
+        await store_snapshot(session, snapshot, flush=False)
+
+    logger.info("kyc_baselines_seeded", count=len(book))

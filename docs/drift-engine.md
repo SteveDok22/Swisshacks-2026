@@ -68,6 +68,8 @@ with a Normal-Inverse-Gamma conjugate model giving a Student-t posterior predict
 
 **Detection.** In practice a changepoint manifests as a sharp **drop in the MAP run length** (posterior mass jumping to short runs), not as P(r=0) crossing a threshold — the mass spreads over r = 0..k. This distinction matters: it is why the detector catches gradual drift that threshold rules structurally miss. A customer who raised average volume from 5K to 9K over six months never crosses a 10K threshold, but the distribution shift is plainly visible to the run-length posterior.
 
+**Surfacing.** BOCPD runs over the concatenated *daily* volume series, so its detected changepoint is a **day index** (`bocpd_changepoint_day`). The Drift Timeline is indexed by **month**, so `DriftEngine.get_customer` maps the day to its month window (`SyntheticCustomer.day_to_month`, i.e. `day // days_per_month`) and flags that month's timeline point with `bocpd_changepoint=True`. The UI renders it as a violet dashed **"Regime change"** marker, distinct from the (solid) alert and sanctions markers. A changepoint landing inside the baseline window — before the first timeline point — is intentionally not drawn.
+
 ---
 
 ## Layer 2 — Drift Velocity
@@ -142,6 +144,21 @@ A product, not a sum — both factors must be present. Stability is measured by 
 
 ---
 
+## Layer 6b — Dormancy Break (Suspicious Activation)
+
+The mirror image of suspicious stability. Every drift/velocity layer assumes a customer who is *doing something* the whole time; a dormant shell is the opposite — near-zero activity for a long stretch, then a sudden burst. Because the baseline is so quiet, even a large absolute jump reads as "starting from nothing" rather than a regime change, so the magnitude layers under-react. `drift/dormancy.py` detects it explicitly (pure numpy, no external API):
+
+```
+dormancy_break = dormancy_depth × activation_strength
+```
+
+- **dormancy_depth** — how quiet the baseline window was, relative to the customer's own overall level.
+- **activation_strength** — how large the later burst is versus the dormant baseline (a small floor on the baseline keeps a near-zero baseline from exploding the ratio).
+
+A product, not a sum: a company that stays dormant scores ~0, and one that was always active and merely grew scores ~0 (ordinary drift, handled elsewhere). Only the dormant → active transition scores high. A confirmed break floors the drift score upward — deliberately overriding the causal demotion — so a reactivated sleeper surfaces for review. This realises the AMINA brief's *"previously dormant company begins high transaction volume → Dormancy Break – Suspicious Activation"* use case.
+
+---
+
 ## Cost-Aware Cascade (Tier Router)
 
 Escalation is framed as information economics:
@@ -155,8 +172,8 @@ flowchart TD
     Start([Customer])
 
     T0{"Tier 0\nRule Engine\nFree — ~95% of customers"}
-    T1{"Tier 1\nML · XGBoost + SHAP\n~$0.0002 per customer"}
-    T2{"Tier 2\nLLM · Claude Sonnet\n~$0.05 per customer"}
+    T1{"Tier 1\nStatistical · LLR layer scoring\n~$0.0002 per customer"}
+    T2{"Tier 2\nLLM · Claude adjudication\n~$0.05 per customer"}
 
     Clear["Clear\nLow-risk — no action"]
     Review["Review\nScheduled re-KYC"]
@@ -165,18 +182,21 @@ flowchart TD
     Start --> T0
     T0 -->|"Deterministic rules pass\n~95% volume"| Clear
     T0 -->|Borderline| T1
-    T1 -->|Score < 40| Clear
-    T1 -->|40 ≤ Score < 70| Review
-    T1 -->|Score ≥ 70| T2
-    T2 -->|Confirms risk| EDD
-    T2 -->|Downrates| Review
+    T1 -->|Effective risk < 55| Review
+    T1 -->|Effective risk ≥ 55\nand case value clears floor| T2
+    T2 -->|Verdict: risk| EDD
+    T2 -->|Verdict: benign or ambiguous| Review
 
     style Clear fill:#16a34a,color:#fff
     style Review fill:#d97706,color:#fff
     style EDD fill:#dc2626,color:#fff
 ```
 
-**Result:** 96% cost reduction vs LLM-on-everything at equal high-risk recall (H4, validated on 1,000-customer synthetic book).
+T2 adjudication is an actual execution path in `drift/service.py`: every customer routed to `T2_LLM` is sent through the shared `AnthropicClient`. The adjudicator compares risk-shaped drift, benign business change, and ambiguous/insufficient-evidence hypotheses, and returns parsed JSON with verdict, confidence, rationale, key evidence, and a human compliance action. In development, the same client runs in mock mode when no Anthropic API key is configured.
+
+The scan response keeps `llm_on_everything_cost` as a counterfactual baseline and separately reports `actual_t2_llm_calls`, `real_t2_llm_calls`, `mock_t2_llm_calls`, and `llm_adjudications[]`.
+
+**Result:** 96% cost reduction vs LLM-on-everything at equal high-risk recall (H4, validated on the synthetic book).
 
 ---
 

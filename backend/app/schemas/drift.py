@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import BaseModel, Field
+
+from app.schemas.enums import DecisionAction
 
 
 class LayerContribution(BaseModel):
@@ -23,10 +27,7 @@ class PublicSignalOut(BaseModel):
     headline: str
     severity: float = Field(description="0-1 classifier severity")
     source: str
-    source_url: str | None = Field(
-        default=None,
-        description="Citation URL for the public signal source, synthetic in demo mode",
-    )
+    source_url: str | None = Field(default=None, description="Deep-link to the original source record")
 
 
 class CausalVerdictOut(BaseModel):
@@ -53,6 +54,18 @@ class StabilityOut(BaseModel):
     own_volatility: float = Field(description="customer coefficient of variation")
     cohort_volatility: float = Field(description="cohort median CV (reference)")
     is_suspicious: bool
+    detail: str
+
+
+class DormancyOut(BaseModel):
+    """Dormancy-break assessment: the sleeper-account reactivation detector."""
+
+    dormancy_break: float = Field(description="0-1 product of the two factors")
+    dormancy_depth: float = Field(description="0-1 how dormant the baseline was")
+    activation_strength: float = Field(description="0-1 how strong the later burst is")
+    baseline_volume: float = Field(description="mean volume in the dormant window")
+    active_volume: float = Field(description="mean volume in the active window")
+    is_dormancy_break: bool
     detail: str
 
 
@@ -97,6 +110,8 @@ class DriftCustomerSummary(BaseModel):
     causal_p_risk: float = Field(default=0.5, description="Posterior P(risk)")
     suspicion: float = Field(default=0.0, description="Suspicious-stability score 0-1")
     is_suspicious: bool = Field(default=False, description="Slow-walker flag")
+    dormancy_break: float = Field(default=0.0, description="Dormancy-break score 0-1")
+    is_dormancy_break: bool = Field(default=False, description="Suspicious-activation flag")
     scenario: str | None = Field(default=None, description="Ground-truth scenario (demo)")
 
 
@@ -119,6 +134,8 @@ class DriftCustomerDetail(BaseModel):
     drift_velocity: float
     velocity_band: str
     reached_tier: str
+    recommended_action: DecisionAction
+    risk_level: str
     escalation_reasons: list[str] = Field(default_factory=list)
     layers: list[LayerContribution] = Field(default_factory=list)
     timeline: list[DriftTimelinePoint] = Field(default_factory=list)
@@ -140,6 +157,19 @@ class DriftCustomerDetail(BaseModel):
     # Suspicious stability: the slow-walker / sleeper detector
     stability: StabilityOut | None = None
 
+    # Dormancy break: the reactivated-sleeper / suspicious-activation detector
+    dormancy: DormancyOut | None = None
+
+
+class LLMAdjudicationOut(BaseModel):
+    """One T2 LLM adjudication executed during a drift scan."""
+
+    customer_id: str
+    customer_name: str
+    llm_mode: str = Field(description="real | mock")
+    was_cached: bool = False
+    response: dict[str, Any] = Field(default_factory=dict)
+
 
 class CascadeCostReport(BaseModel):
     """Cost-cascade report for a scan pass."""
@@ -152,6 +182,10 @@ class CascadeCostReport(BaseModel):
     # Comparison baseline
     llm_on_everything_cost: float
     savings_pct: float
+    actual_t2_llm_calls: int = 0
+    real_t2_llm_calls: int = 0
+    mock_t2_llm_calls: int = 0
+    llm_adjudications: list[LLMAdjudicationOut] = Field(default_factory=list)
 
 
 class ContagionNode(BaseModel):
@@ -183,7 +217,10 @@ class InjectScenarioRequest(BaseModel):
 
     scenario: str = Field(
         default="combined",
-        description="stable | volume_creep | counterparty_migration | corridor_shift | combined",
+        description=(
+            "stable | volume_creep | counterparty_migration | corridor_shift | "
+            "combined | benign_expansion | suspicious_stability | dormancy_break"
+        ),
     )
     name: str = Field(default="Injected Test Customer")
 

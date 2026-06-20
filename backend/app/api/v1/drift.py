@@ -48,6 +48,7 @@ async def get_drift_customer(
 
     await AuditService(session).log(
         event_type="drift_customer_analyzed",
+        customer_id=customer_id,
         actor_id=actor_id,
         actor_type="compliance_officer" if actor_id else "system",
         risk_score=detail.drift_score,
@@ -99,6 +100,9 @@ async def run_cascade_scan(
             "tier_counts": report.tier_counts,
             "total_cost": report.total_cost,
             "savings_pct": report.savings_pct,
+            "actual_t2_llm_calls": report.actual_t2_llm_calls,
+            "real_t2_llm_calls": report.real_t2_llm_calls,
+            "mock_t2_llm_calls": report.mock_t2_llm_calls,
         },
     )
 
@@ -130,6 +134,7 @@ async def get_replay(
 
     await AuditService(session).log(
         event_type="drift_replay_executed",
+        customer_id=customer_id,
         actor_id=actor_id,
         actor_type="compliance_officer" if actor_id else "system",
         payload={
@@ -160,6 +165,7 @@ async def inject_scenario(
 
     await AuditService(session).log(
         event_type="drift_scenario_injected",
+        customer_id=detail.customer_id,
         actor_id=actor_id,
         actor_type="compliance_officer" if actor_id else "system",
         risk_score=detail.drift_score,
@@ -229,6 +235,7 @@ async def generate_rfi(
 
     await AuditService(session).log(
         event_type="drift_rfi_generated",
+        customer_id=customer_id,
         actor_id=actor_id,
         actor_type="compliance_officer" if actor_id else "system",
         risk_score=detail.drift_score,

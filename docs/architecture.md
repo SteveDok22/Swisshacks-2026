@@ -30,6 +30,7 @@ flowchart TB
             PI[Public Intel]
             Caus[Causal]
             Stab[Stability]
+            Dorm[Dormancy]
             Casc[Cost Cascade]
         end
 
@@ -48,10 +49,9 @@ flowchart TB
     UI --> DriftWS & CaseWS
     DriftWS & CaseWS --> APIClient
     APIClient -->|HTTP + SSE| Router
-    Router --> Svcs & DE
-    DE --> BOCPD & Vel & Con & PI & Caus & Stab
-    BOCPD & Vel & Con & PI & Caus & Stab --> Casc
-    Casc --> ML
+    Router --> Svcs & DE & ML
+    DE --> BOCPD & Vel & Con & PI & Caus & Stab & Dorm
+    BOCPD & Vel & Con & PI & Caus & Stab & Dorm --> Casc
     Casc -->|High-stakes| AnonSvc
     AnonSvc -->|Pseudonymized| Claude
     Svcs & ML --> DB
@@ -108,6 +108,7 @@ flowchart TD
         pubintel["public_intel.py\nConfirmation Lift"]
         causal["causal.py\nLikelihood Ratio"]
         stability["stability.py\nSlow-Walker"]
+        dormancy["dormancy.py\nDormancy Break"]
         cascade["cascade.py\nTier Router"]
         timetravel["timetravel.py\nAs-of Replay"]
         simulator["simulator.py\nSynthetic Book"]
@@ -131,16 +132,26 @@ flowchart TD
 
     subgraph Data["db/"]
         models["models.py\nSQLModel schemas"]
+        kyc_baseline["kyc_baseline.py\nEntitySnapshot store/load"]
         session[session.py]
         seed[seed.py]
     end
 
+    subgraph Sources["sources/"]
+        src_base["base.py\nRegistryAdapter ABC\nEntitySnapshot · PublicSignal\nSnapshotDiff · diff_snapshots"]
+        src_zefix["zefix.py (TODO)"]
+        src_gleif["gleif.py (TODO)"]
+        src_opensanc["opensanctions.py (TODO)"]
+    end
+
     Main --> API
     R1 --> service
-    service --> bocpd & velocity & contagion & pubintel & causal & stability & cascade & timetravel
+    service --> bocpd & velocity & contagion & pubintel & causal & stability & dormancy & cascade & timetravel
     cascade --> ML & claude_c
     R3 & R4 & R5 --> Svc
     Svc & API --> Data
+    src_zefix & src_gleif & src_opensanc --> src_base
+    service --> Sources
 ```
 
 ---

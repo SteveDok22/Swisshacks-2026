@@ -30,6 +30,7 @@ const EVENT_META: Record<
   case_scored:                { label: "Case Scored",              category: "case" },
   explanation_generated:      { label: "Explanation Generated",    category: "case" },
   decision_recorded:          { label: "Decision Recorded",        category: "decision" },
+  drift_decision_recorded:    { label: "Drift Decision",           category: "decision" },
   counterfactuals_generated:  { label: "Counterfactuals",          category: "case" },
   jurisdiction_compared:      { label: "Jurisdiction Compared",    category: "case" },
   data_exported:              { label: "Data Exported",            category: "export" },
@@ -117,6 +118,13 @@ function PayloadRow({ entry }: { entry: AuditEntry }) {
             <span className="text-ink-faint">—</span>
           )}
         </td>
+        <td className="px-3 py-2.5 font-mono text-2xs text-ink-muted">
+          {entry.customer_id ? (
+            <span title={entry.customer_id}>{entry.customer_id}</span>
+          ) : (
+            <span className="text-ink-faint">—</span>
+          )}
+        </td>
         <td className="px-3 py-2.5">
           {entry.risk_level ? (
             <RiskBadge level={entry.risk_level as RiskLevel} size="sm" />
@@ -131,7 +139,7 @@ function PayloadRow({ entry }: { entry: AuditEntry }) {
       {open && hasPayload && (
         <tr className="border-b border-paper-line bg-paper-sunken/40">
           <td />
-          <td colSpan={7} className="px-4 pb-3 pt-2">
+          <td colSpan={8} className="px-4 pb-3 pt-2">
             <pre className="text-2xs font-mono text-ink-soft leading-relaxed overflow-x-auto whitespace-pre-wrap break-words max-h-48">
               {JSON.stringify(entry.payload, null, 2)}
             </pre>
@@ -150,6 +158,7 @@ const EVENT_TYPE_OPTIONS = [
   { value: "case_scored", label: "Case Scored" },
   { value: "explanation_generated", label: "Explanation Generated" },
   { value: "decision_recorded", label: "Decision Recorded" },
+  { value: "drift_decision_recorded", label: "Drift Decision" },
   { value: "counterfactuals_generated", label: "Counterfactuals" },
   { value: "jurisdiction_compared", label: "Jurisdiction Compared" },
   { value: "data_exported", label: "Data Exported" },
@@ -172,6 +181,7 @@ interface Filters {
   event_type: string;
   risk_level: string;
   actor_id: string;
+  customer_id: string;
   from_date: string;
   to_date: string;
 }
@@ -180,6 +190,7 @@ const DEFAULT_FILTERS: Filters = {
   event_type: "",
   risk_level: "",
   actor_id: "",
+  customer_id: "",
   from_date: "",
   to_date: "",
 };
@@ -203,6 +214,7 @@ export default function AuditLogPage() {
         event_type: appliedFilters.event_type || undefined,
         risk_level: appliedFilters.risk_level || undefined,
         actor_id: appliedFilters.actor_id || undefined,
+        customer_id: appliedFilters.customer_id || undefined,
         from_date: appliedFilters.from_date || undefined,
         to_date: appliedFilters.to_date || undefined,
         page,
@@ -331,6 +343,19 @@ export default function AuditLogPage() {
             </div>
 
             <div className="flex flex-col gap-0.5">
+              <label className="text-2xs text-ink-faint font-medium">Customer ID</label>
+              <input
+                type="text"
+                placeholder="e.g. drift-002"
+                value={filters.customer_id}
+                onChange={(e) =>
+                  setFilters((f) => ({ ...f, customer_id: e.target.value }))
+                }
+                className="h-8 rounded border border-paper-line bg-paper text-xs text-ink px-2 min-w-[130px] placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-accent/30"
+              />
+            </div>
+
+            <div className="flex flex-col gap-0.5">
               <label className="text-2xs text-ink-faint font-medium">From</label>
               <input
                 type="datetime-local"
@@ -386,6 +411,9 @@ export default function AuditLogPage() {
               {appliedFilters.actor_id && (
                 <Chip label={`actor: ${appliedFilters.actor_id}`} />
               )}
+              {appliedFilters.customer_id && (
+                <Chip label={`customer: ${appliedFilters.customer_id}`} />
+              )}
               {appliedFilters.from_date && (
                 <Chip label={`from: ${appliedFilters.from_date}`} />
               )}
@@ -421,6 +449,9 @@ export default function AuditLogPage() {
                   </th>
                   <th className="px-3 py-2.5 text-left text-2xs font-semibold text-ink-muted uppercase tracking-wide">
                     Client ID
+                  </th>
+                  <th className="px-3 py-2.5 text-left text-2xs font-semibold text-ink-muted uppercase tracking-wide">
+                    Customer ID
                   </th>
                   <th className="px-3 py-2.5 text-left text-2xs font-semibold text-ink-muted uppercase tracking-wide">
                     Risk

@@ -44,6 +44,8 @@ const config: Config = {
           soft: "#1a5f6f",      // lighter teal for hover/active
           bg: "#e8f1f3",        // pale teal wash
         },
+        "accent-2": "#7c3aed",  // violet — BOCPD regime-change marker
+
       },
       fontFamily: {
         sans: ["Geist", "ui-sans-serif", "system-ui", "sans-serif"],

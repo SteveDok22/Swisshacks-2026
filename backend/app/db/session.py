@@ -47,20 +47,24 @@ _async_session_factory: async_sessionmaker[AsyncSession] = async_sessionmaker(
 # === Schema initialization ===
 async def init_db() -> None:
     """
-    Create all tables.
-    
-    Called once at application startup.
-    For production, replace with Alembic migrations.
+    Recreate the local SQLite schema from the current SQLModel metadata.
+
+    This project deliberately treats SQLite as disposable demo state. Every
+    backend restart drops all tables, recreates them, and lets startup seeding
+    repopulate the mock book. Do not use this lifecycle for persistent data.
     """
     # Import models so they're registered with SQLModel.metadata
     # (must happen before create_all)
     from app.db import models  # noqa: F401
+    from app.db import kyc_baseline  # noqa: F401
     
     async with _engine.begin() as conn:
+        if conn.dialect.name == "sqlite":
+            await conn.run_sync(SQLModel.metadata.drop_all)
         await conn.run_sync(SQLModel.metadata.create_all)
     
     logger.info(
-        "database_initialized",
+        "database_recreated" if _engine.dialect.name == "sqlite" else "database_initialized",
         url=settings.database_url,
         tables=list(SQLModel.metadata.tables.keys()),
     )

@@ -1,403 +1,146 @@
-# Sentinel · Drift Engine — Roadmap
-
-Current status: **core statistical engine complete; 1 use case genuinely works on synthetic data, 5 are partial/indirect, 3 are missing entirely.**
-
-> Audit verified 2026-06-20 against actual code (Sentinel_UseCase_Audit.pdf). Three groups: A — Works (case 2), B — Partial/Indirect (cases 1, 3, 4, 5, 6, 7), C — Missing (cases 8, 9, 10).
+# Sentinel · Drift Engine — Task List
 
 Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/SwissHacks-2026/Amina-BANK/blob/main/README.md)
 
 ---
 
-## Judging Criteria — Honest Self-Assessment
+## Judging Criteria
 
-| Criterion | Weight | Status | Notes |
-|---|---|---|---|
-| **AI Intelligence Quality** | 25% | ✅ Strong | 7 real algorithms, genuine causal separation, suspicious stability |
-| **Cost Efficiency** | 20% | ⚠️ Gap | Cascade well-designed; T2 LLM calls counted but never executed; no per-workflow token count |
-| **UX & Explainability** | 20% | ⚠️ Gap | 7 visualisations solid; SHAP disconnected from drift; source citations missing |
-| **Compliance & Safety** | 20% | ⚠️ Gap | Anonymizer works; ~~audit log not written from drift~~ fixed; HITL missing on drift page |
-| **Engineering & Architecture** | 15% | ✅ Good | Modular 10-file engine, clean API, async throughout; unit + BDD tests added; no CI/CD |
-
----
-
-## What Is Complete
-
-### Statistical Core
-
-| Component | File | Algorithm |
+| Criterion | Weight | Status |
 |---|---|---|
-| Bayesian Online Changepoint Detection | `drift/bocpd.py` | Adams & MacKay 2007, Normal-Inverse-Gamma priors |
-| KL Divergence + Drift Velocity | `drift/velocity.py` | Closed-form Gaussian KL, smoothed first-differencing |
-| Ownership Contagion | `drift/contagion.py` | NetworkX personalized PageRank with seed nodes |
-| Causal Drift (LLR test) | `drift/causal.py` | Neyman-Pearson likelihood-ratio, risk vs benign |
-| Suspicious Stability | `drift/stability.py` | Multiplicative CV × environmental movement |
-| Cost-Aware Cascade | `drift/cascade.py` | Cumulative-cost accounting (T2 pays T0+T1+T2) |
-| Time-Travel Audit | `drift/timetravel.py` | Truncation applied to behavioral, public, contagion sources |
-| Drift Engine Orchestrator | `drift/service.py` | All 7 layers wired, two-layer fusion, confirmation lift |
-| Synthetic Book | `drift/simulator.py` | 7 scenarios with explicit ground truth |
-
-### Platform
-
-| Area | Status |
-|---|---|
-| REST API | 27 endpoints, all functional |
-| Frontend — 7 drift visualizations | All render real API data |
-| XGBoost + SHAP | Real — wired to case management only, not drift |
-| Audit service | Append-only, SQLite-persisted |
-| Privacy / anonymizer | PII pseudonymized before Claude |
-| Claude AI integration | Works for case explanations; not connected to drift |
-| Jurisdiction rule packs | CH / EU / HK / AE all loaded |
-| Docker | Backend Dockerfile production-quality (multi-stage, non-root, healthcheck) |
-
-### Challenge Use Case Coverage
-
-Statuses from code-verified audit (2026-06-20). Legend: ✅ WORKS · ⚠️ PARTIAL · 🔶 INDIRECT · ❌ MISSING
-
-| # | Use Case | Signal | Status | What exists | Real sources needed | Demo data |
-|---|---|---|---|---|---|---|
-| 1 | Negative news spike | Reputational risk | ⚠️ PARTIAL | Lexicon classifier + confirmation lift; no live feed, no spike detection | EventRegistry / NewsAPI.ai, GDELT, Google News RSS |
-| 2 | Cross-border transfer anomaly | Behavioural anomaly | ✅ WORKS | BOCPD + velocity on synthetic data | Internal transactions, OpenSanctions (geography) |
-| 3 | Multiple entities + sudden flows | Structuring / layering | ⚠️ PARTIAL | Contagion + causal; no named layering detector | GLEIF, OpenCorporates, Companies House, internal tx graph |
-| 4 | Jurisdiction / legal form change | Structural risk | 🔶 INDIRECT | `jurisdiction.py` is rule-pack selector, not a change detector | ZEFIX, GLEIF, OpenCorporates, Companies House |
-| 5 | New shareholders / UBOs | Ownership KYC drift | ⚠️ PARTIAL | PageRank over synthetic graph; no real UBO lookup | Companies House PSC, OpenCorporates, GLEIF, OpenSanctions |
-| 6 | Large funding round / expansion | Scale risk | ⚠️ PARTIAL | `funding_event` template + causal; no live feed | EventRegistry / NewsAPI.ai, GDELT, Crunchbase, company website |
-| 7 | Dormant company activates | Suspicious activation | ⚠️ PARTIAL | Stability flags smoothness; no explicit zero→volume-jump detector | Internal transactions, ZEFIX, OpenCorporates, Companies House |
-| 8 | Legal entity name change | Re-KYC required | ❌ MISSING | Not implemented; no registry integration | ZEFIX, GLEIF, RDAP/WHOIS, EventRegistry/GDELT |
-| 9 | Domain switch / website change | Business activity change | ❌ MISSING | Not implemented; no WHOIS/Wayback/Firecrawl | RDAP/WHOIS, Wayback Machine, Firecrawl, EventRegistry |
-| 10 | Public business model pivot | Material business change | ❌ MISSING | Not implemented; no business model comparison | EventRegistry/GDELT, ZEFIX, GLEIF, Wayback Machine, Firecrawl |
+| **AI Intelligence Quality** | 25% | ✅ Strong — 7 real algorithms, causal separation, suspicious stability |
+| **Cost Efficiency** | 20% | ⚠️ Partial — T2 LLM works; no per-workflow token count yet |
+| **UX & Explainability** | 20% | ✅ Good — 7 visualisations solid; drift uses per-layer LLR contribution breakdown; signal cards include source citations |
+| **Compliance & Safety** | 20% | ✅ Good — audit log wired; DecisionBar on drift; source citations surfaced |
+| **Engineering & Architecture** | 15% | ✅ Good — modular engine, clean API, async, unit + BDD tests; no CI/CD |
 
 ---
 
-## Task List
+## Use Case Coverage
 
-Ordered by judging weight × demo impact. Check off as work is completed.
-
-### 🔴 P0 — Compliance & Safety (20%)
-
-- [x] **Wire audit log into drift pipeline** — 5 compliance-relevant endpoints now audited in `api/v1/drift.py`: `drift_customer_analyzed` · `drift_scan_completed` · `drift_replay_executed` · `drift_scenario_injected` · `drift_rfi_generated` · `_score_to_level()` maps score to risk_level · list/timeline/contagion intentionally unaudited (read-only browsing)
-- [ ] **Decision bar on drift page** — add `DecisionBar.tsx` to `frontend/src/app/drift/page.tsx`; extend `api/v1/decisions.py` to accept `customer_id: str` in addition to `case_id: UUID`
-
-### 🔴 P0 — Cost Efficiency (20%)
-
-- [ ] **At least one real T2 LLM call** — for T2 customers in `drift/service.py:scan()`, call `AnthropicClient` to adjudicate the causal vs benign hypothesis; without this the "96% savings" comparison is circular (the baseline LLM calls are also never made)
-
-### 🟠 P1 — AI Quality (25%)
-
-- [ ] **Case 7: Dormancy-break detector** — highest value-for-effort quick win (no external API needed). The stability engine + volume time-series already exist. Add explicit `near-zero baseline → volume jump` detector (~30 lines + 1 test) in `drift/stability.py` or new `drift/dormancy.py`; wire signal into `drift/service.py`. Moves Case 7 from PARTIAL → WORKS; yields a genuine new flag worth 25% of score.
-- [ ] **Fix BOCPD changepoint visual marker** — `bocpd_changepoint=False` is hardcoded at `service.py:296`; map `bocpd_changepoint_day` to the correct timeline index; add vertical dashed-line marker in `DriftTimeline.tsx`
-
-### 🟠 P1 — Compliance & Safety (20%)
-
-- [x] **Add source citations to signal cards** — `PublicSignal` / `PublicSignalOut` include `source_url`; synthetic signals emit deterministic demo source references; `TwoLayerPanel.tsx` displays source links when present. Real source adapters can populate the same field with article, registry, or sanctions-record URLs.
-
-### 🟠 P1 — Cost Efficiency (20%)
-
-- [ ] **Track token usage per workflow** — add `tokens_used: int` and `model: str` to `CascadeCostReport` in `schemas/drift.py`; populate from `anthropic_client.py` response metadata when T2 calls are made
-
-### 🟠 P1 — UX & Explainability (20%)
-
-- [ ] **Resolve SHAP / per-layer claim** — option A (fast): reword README/docs to "per-layer contribution breakdown" and remove per-variable SHAP claim; option B (correct): route T1 drift customers through `RiskEngine.score_case`, attach SHAP values to `DriftCustomerDetail`
-
-### 🟡 P2 — Engineering (15%)
-
-- [ ] **Remove dead `if/pass` block** in `drift.py` (now gone from rfi handler — already fixed in this session)
-- [ ] **Remove duplicate timeline endpoint** — `GET /drift/customers/{id}/timeline` returns identical payload to `GET /drift/customers/{id}`; differentiate or remove
-- [ ] **Move 6 magic-number weights** from `service.py:104–163` to named constants in `core/config.py`
-- [ ] **Add single-worker note** to `service.py:426` global singleton — unsafe under multi-process deployment
-- [ ] **Frontend Dockerfile + compose** — backend Docker is production-quality; frontend has no Dockerfile; wire into `docker-compose.yml`
-
-### 🟢 P3 — Engineering / Credibility
-
-- [x] **Add BOCPD unit test** — assert changepoint fires on a step-function series, does not fire on stationary noise (covered by `test_bocpd.py`)
-- [ ] **Qualify "real-time signals" language** in README and pitch — signals are simulated for MVP; architecture slots are ready for real feeds
-- [ ] **Implement OpenSanctions slot-swap** — replace `generate_signals_for_customer()` headline templates with a real OpenSanctions API call; makes BR1 genuinely true
+| # | Use Case | Status | What exists | What's needed |
+|---|---|---|---|---|
+| 1 | Negative news spike | ⚠️ PARTIAL | Lexicon classifier + confirmation lift; no live feed | EventRegistry adapter + BOCPD on event time-series |
+| 2 | Cross-border transfer anomaly | ✅ WORKS | BOCPD + velocity on synthetic data | — |
+| 3 | Multiple entities + sudden flows | ⚠️ PARTIAL | Contagion + causal; no named layering detector | GLEIF / OpenCorporates for real UBO graph |
+| 4 | Jurisdiction / legal form change | 🔶 INDIRECT | `jurisdiction.py` is rule-pack selector, not change detector | ZEFIX / GLEIF diff vs. KYC baseline |
+| 5 | New shareholders / UBOs | ⚠️ PARTIAL | PageRank over synthetic graph; no real UBO lookup | OpenCorporates / GLEIF / OpenSanctions screening |
+| 6 | Large funding round / expansion | ⚠️ PARTIAL | `funding_event` template + causal; no live feed | Crunchbase adapter + scale-jump ratio |
+| 7 | Dormant company activates | ✅ WORKS | `drift/dormancy.py` explicit detector (near-zero baseline → volume burst); wired into the drift score + surfaced in API; `dormancy_break` scenario in the book | — |
+| 8 | Legal entity name change | ❌ MISSING | Not implemented | ZEFIX + GLEIF diff; `name_changed` signal |
+| 9 | Domain switch / website change | ❌ MISSING | Not implemented | WHOIS + Wayback + Firecrawl |
+| 10 | Public business model pivot | ❌ MISSING | Not implemented | EventRegistry + Firecrawl + sentence-transformer cosine |
 
 ---
 
-## Real Source Integration — Pipeline Architecture
+## Tasks
 
-All real-source use cases follow the same pattern:
+### P0 — Already done ✅
 
-```
-Source A ──→ fetch + parse ──→ signal_A (severity 0–1) ──┐
-Source B ──→ fetch + parse ──→ signal_B (severity 0–1) ──┤──→ XGBoost fusion ──→ risk level
-Source C ──→ fetch + parse ──→ signal_C (severity 0–1) ──┘         ↓
-                                                              SHAP explains
-                                                          which source drove it
-```
-
-Each source gets its own adapter in `sources/`. Signal fusion runs through the existing `RiskEngine`. BOCPD wraps time-series sources for drift vs. one-off detection.
-
-**EventRegistry / NewsAPI.ai note**: EventRegistry groups 20–50 articles from different media into a single `Event` object. This means spike detection works on event-level aggregation, not raw article count — much more robust signal for use cases 1, 6, 10.
+- [x] Wire audit log into drift pipeline — `drift_customer_analyzed`, `drift_scan_completed`, `drift_replay_executed`, etc.
+- [x] DecisionBar on drift page — `POST /decisions` accepts `customer_id`; drift recommendations derived server-side
+- [x] T2 LLM adjudication — `AnthropicClient` called for T2 customers in `drift/service.py:scan()`
+- [x] Audit log frontend page — `GET /api/v1/audit` + `/audit` route in Next.js
+- [x] Backend Docker — multi-stage, non-root, healthcheck
+- [x] Frontend Docker + compose — `frontend/Dockerfile` + `docker-compose.yml` wired
+- [x] BOCPD unit tests — changepoint fires on step series; silent on stationary noise (`test_bocpd.py`)
+- [x] Full unit test suite — velocity, causal, stability, dormancy, cascade, contagion, t2_llm, decisions, score boundaries (16 files)
+- [x] BDD scenario tests — drift detection, contagion, audit compliance, API contract (`tests/features/`)
 
 ---
 
-## Missing & Partial Use Cases — Implementation Plan
+### P1 — High impact, do these first
 
-### Sprint 0 — Zero dependencies (~1–2 hours)
+**1. Engine (no external deps)**
+- [x] **Case 7: Dormancy-break detector** — `drift/dormancy.py` detects near-zero baseline → volume jump (`dormancy_break = dormancy_depth × activation_strength`); wired into `drift/service.py` (score floor) and surfaced via `DormancyOut` on summary/detail + T2 evidence; `dormancy_break` scenario + "Dormant Holdings AG" seeded in the book; unit + end-to-end tests. **Case 7 PARTIAL → WORKS.** (PR #10)
+- [x] **Fix BOCPD changepoint visual marker** — `bocpd_changepoint` is now derived in `DriftEngine.get_customer` by mapping `bocpd_changepoint_day` to its month window (via `SyntheticCustomer.day_to_month`); `DriftTimeline.tsx` renders a violet dashed "Regime change" marker at that month. Unit tests in `test_drift_changepoint_marker.py`. **DONE.** (PR #11)
 
-- [ ] **Case 7: Dormancy-break detector** (see P1 task above) — closes without any external API
+**2. Prerequisites (build these before adapters)**
+- [x] **`db/kyc_baseline.py`** — `EntitySnapshotDB` SQLModel table + `store_snapshot`, `load_latest_snapshot`, `load_onboarding_snapshot`, `load_snapshot_history`, `load_all_baselines` CRUD helpers; registered in `session.py` so the table is auto-created on startup; 24 unit tests covering all helpers and seeding behaviour (PR #11)
+- [x] **Seed KYC baselines** — `seed.py:_seed_kyc_baselines()` populates `entity_snapshots` from the synthetic drift book at startup; behavioral baseline (volume, counterparty/corridor risk, margin) computed from the pre-drift window so adapters have a numeric anchor to diff against (PR #11)
+- [x] **`sources/base.py`** — `RegistryAdapter` ABC + `EntitySnapshot` + `PublicSignal` diff pattern; shared by all adapters below (PR #13)
 
----
+**3. Source adapters — `backend/app/sources/` (package does not exist yet)**
+- [ ] **`sources/zefix.py`** — Swiss commercial register; name change, legal form, dissolution, dormancy (Cases 4, 7, 8, 10)
+- [ ] **`sources/gleif.py`** — Global LEI; name change, jurisdiction change, parent LEI change (Cases 3, 4, 5, 8, 10)
+- [ ] **`sources/opensanctions.py`** — OFAC / EU / UN screening (Cases 2, 5)
+- [ ] **`sources/open_corporates.py`** — directors / officers / relationships (Cases 3, 4, 5, 7)
+- [ ] **`sources/event_registry.py`** — news event aggregation; BOCPD on event-count time-series (Cases 1, 6, 8, 10)
+- [ ] **`sources/crunchbase.py`** — funding rounds; scale-jump ratio vs. customer AUM (Case 6)
+- [ ] **`sources/firecrawl.py`** — website-to-markdown scraping, current content (Cases 9, 10)
+- [ ] **`sources/wayback.py`** — historical website snapshot at onboarding date (Cases 9, 10)
+- [ ] **`sources/whois.py`** — RDAP/WHOIS domain age + registrant change (Cases 8, 9)
 
-### Sprint 1 — Registry sources: Cases 4, 5, 8 (ZEFIX / GLEIF / OpenCorporates)
+**4. Integration glue (wire adapters into the engine — without these, adapters are dead code)**
+- [ ] **Refactor `public_intel.py` into aggregator** — `service.py:148` calls `generate_signals_for_customer()` which returns fake templates; replace with real adapter calls. This one step makes every adapter actually run.
+- [ ] **`drift/business_model.py`** — sentence-transformer cosine distance between onboarding snapshot and current website (Cases 9, 10)
+- [ ] **`ml/extractors/drift.py`** — `DriftFeatureExtractor` with 20-dim feature vector; wire XGBoost to drift (currently wired to cases only)
+- [ ] **Train drift XGBoost model** — `ml/training.py` has no drift training; feed synthetic book (8 scenarios × time windows ≈ 200 samples) through `DriftFeatureExtractor` → label → `XGBClassifier.fit()`
 
-Cases 4, 5, 8 share the same fetch-diff-score pattern. Build one generic `RegistryAdapter` base class, then plug in per-source implementations.
+**5. UX / explainability**
+- [ ] **DormancyPanel.tsx** — `DormancyOut` is computed by the engine and included in `DriftCustomerDetail` (API), but the frontend has no panel for it and the TS types are stale: add `DormancyVerdict` interface to `api.ts`; add `dormancy: DormancyVerdict | null` to `DriftCustomerDetail` and `dormancy_break: number` + `is_dormancy_break: boolean` to `DriftCustomerSummary`; create `DormancyPanel.tsx` mirroring `StabilityPanel.tsx` (depth × activation-strength product, flagged banner when `is_dormancy_break`)
+- [x] **Source citations on signal cards** — `source_url` field on canonical `PublicSignal` in `sources/base.py` and `PublicSignalOut` in `schemas/drift.py`; synthetic demo signals emit deterministic source references; `PublicSignal` TS type includes `source_url`; `TwoLayerPanel.tsx` renders clickable source links.
+- [x] **Drift explainability** — option A chosen: drift attribution is a per-layer LLR contribution breakdown (7 layers × `LayerContribution.llr` + `CausalVerdictOut.contributions` per metric). Per-variable SHAP is case-scoring only; applying it to drift time-series would explain the wrong thing (transaction features ≠ behavioural drift features).
 
-- [ ] **Case 8 — Legal entity name change**
-  - Sources: ZEFIX (Swiss), GLEIF (global LEI), RDAP/WHOIS (domain), EventRegistry/GDELT (public news about rename)
-  - Detection: fetch current legal name → diff vs. KYC baseline → `name_changed` signal
-  - Implementation: `sources/zefix.py`, `sources/gleif.py`; new signal type in `public_intel.py`
-
-- [ ] **Case 5 — New shareholders / UBOs** (upgrade from PARTIAL)
-  - Sources: Companies House PSC (UK persons of significant control), OpenCorporates (directors/officers), GLEIF (parent-child), OpenSanctions (screen new owners)
-  - Detection: pull current UBO list → diff vs. stored baseline → screen each new owner → `owner_on_watchlist` signal
-  - Implementation: `sources/companies_house.py`, `sources/opensanctions.py`; replace synthetic PageRank seed with real data
-
-- [ ] **Case 4 — Jurisdiction / legal form change** (upgrade from INDIRECT)
-  - Sources: ZEFIX, GLEIF, OpenCorporates, Companies House
-  - Detection: compare current legal form + jurisdiction vs. onboarding baseline → `jurisdiction_risk_delta` signal
-  - Implementation: extend `jurisdiction.py` from rule-pack selector to change detector
-
----
-
-### Sprint 2 — News & media sources: Cases 1, 6, 10 (EventRegistry / GDELT)
-
-- [ ] **Case 1 — Negative news spike** (upgrade from PARTIAL)
-  - Sources: EventRegistry / NewsAPI.ai (primary — event-level aggregation), GDELT (open global events), Google News RSS (simple fallback)
-  - Detection: rolling window event count per entity → spike = count > baseline + 2σ over 7 days
-  - Implementation: `sources/event_registry.py`; replace `public_intel.py` headline templates with real event fetch; add `spike_score` time-series to BOCPD
-
-- [ ] **Case 6 — Large funding round / expansion** (upgrade from PARTIAL)
-  - Sources: EventRegistry / NewsAPI.ai (funding news events), GDELT, Crunchbase (funding rounds + investors), company website (official announcements)
-  - Detection: funding event detected → cross-reference amount vs. typical AUM → `scale_jump_ratio` signal
-  - Implementation: `sources/crunchbase.py`; extend `funding_event` template to real Crunchbase API call
-
-- [ ] **Case 10 — Public business model pivot**
-  - Sources: EventRegistry / GDELT (pivot/direction news), ZEFIX / GLEIF (category change), Wayback Machine (historical website), Firecrawl (current website content)
-  - Detection: embed onboarding business description vs. current website/news → cosine drift score via sentence-transformers
-  - Implementation: `sources/firecrawl.py`, `sources/wayback.py`; new `drift/business_model.py` embedding comparator
+**6. Cost tracking**
+- [ ] **Token usage per workflow** — add `tokens_used: int` and `model: str` to `CascadeCostReport` in `schemas/drift.py`; populate from `anthropic_client.py` response metadata
 
 ---
 
-### Sprint 3 — Web monitoring: Case 9 (WHOIS / Wayback / Firecrawl)
+### P2 — Engineering cleanups
 
-- [ ] **Case 9 — Domain switch / website change**
-  - Sources: RDAP/WHOIS (domain registrar + age), Wayback Machine (historical snapshots), Firecrawl (current content scrape), EventRegistry/GDELT (news about domain change)
-  - Detection: domain registrar diff + sentence-transformer similarity (onboarding snapshot vs. current) → `content_drift_score`
-  - Implementation: `sources/whois.py`, `sources/wayback.py`, `sources/firecrawl.py`; new module `drift/domain_monitor.py`
+- [ ] Move 6 magic-number layer weights from `service.py:104–163` to named constants in `core/config.py`
+- [ ] Add single-worker warning to `service.py:426` global `_engine` singleton (unsafe under multi-process)
+- [ ] Remove duplicate timeline endpoint — `GET /drift/customers/{id}/timeline` returns same payload as `GET /drift/customers/{id}`
+- [ ] Fix `audit.py:138` — `len(list(...all()))` loads entire table; replace with `COUNT(*)` query
+- [ ] `list_customers()` recomputes all 10 customers on every request — add short-lived TTL cache
+- [ ] Qualify "real-time signals" language in README and pitch — signals are simulated for MVP; architecture is slot-swap ready
 
 ---
 
-### Source → Use Case matrix
+### P3 — Nice to have
+
+- [ ] **`time_travel.feature`** BDD test — replay uses only data available at as-of date; lead time is positive
+- [ ] **`test_hypothesis_h1.py`** — BOCPD lead time ≥ 2 months on drifting scenarios; 0 false positives on stable scenario
+- [ ] **`test_hypothesis_h2.py`** — velocity alert fires earlier than absolute-threshold alert at equal false-positive rate
+- [ ] **`test_hypothesis_h3.py`** — 2-hop contagion customers elevated; 3+ hop not elevated
+- [ ] **`test_hypothesis_h4.py`** — cascade cost < 10% of LLM-on-everything; high-risk recall unchanged
+
+---
+
+## What Is Already Built (reference)
+
+| Component | File | Notes |
+|---|---|---|
+| BOCPD | `drift/bocpd.py` | Adams & MacKay 2007, Normal-Inverse-Gamma priors |
+| Drift Velocity | `drift/velocity.py` | Closed-form Gaussian KL, smoothed first-differencing |
+| Ownership Contagion | `drift/contagion.py` | NetworkX personalized PageRank |
+| Causal Drift | `drift/causal.py` | Neyman-Pearson likelihood-ratio |
+| Suspicious Stability | `drift/stability.py` | CV × environmental movement |
+| Cost-Aware Cascade | `drift/cascade.py` | T0 rules → T1 LLR layer scoring → T2 LLM |
+| Time-Travel Audit | `drift/timetravel.py` | No look-ahead bias on replay |
+| Drift Engine | `drift/service.py` | All 7 layers, confirmation lift, LLM adjudication |
+| Synthetic Book | `drift/simulator.py` | 8 scenarios with ground-truth labels |
+| REST API | `api/v1/` | 28 endpoints, all functional |
+| Frontend | `src/app/drift/`, `src/app/audit/` | 7 drift visualisations + audit log page |
+| XGBoost + SHAP | `ml/base.py` | Wired to case management only; drift uses per-layer LLR breakdown |
+| Audit service | `services/audit.py` | Append-only, queried by customer and event type |
+| Claude AI | `services/anthropic_client.py` | T2 adjudication + case explanations; mock mode works without key |
+| Jurisdiction packs | `services/jurisdiction.py` | CH / EU / HK / AE |
+
+---
+
+## Source → Use Case Matrix
 
 | Source | Cases |
 |---|---|
-| EventRegistry / NewsAPI.ai | 1, 6, 8, 10 |
-| GDELT | 1, 6, 8, 10 |
-| Google News RSS | 1 (fallback) |
 | ZEFIX | 4, 7, 8, 10 |
 | GLEIF | 3, 4, 5, 8, 10 |
 | OpenCorporates | 3, 4, 5, 7 |
-| Companies House PSC | 3, 5, 7 |
 | OpenSanctions | 2, 5 |
+| EventRegistry / NewsAPI.ai | 1, 6, 8, 10 |
 | Crunchbase | 6 |
 | RDAP/WHOIS | 8, 9 |
 | Wayback Machine | 9, 10 |
 | Firecrawl | 9, 10 |
 | Internal transactions | 2, 3, 7 |
-
----
-
-## Public Intelligence — Fundamental Limitation
-
-Every public signal is synthesized using headline templates in `public_intel.py`. No external API is called. The severity classifier is a 20-keyword lexicon.
-
-The architecture and interfaces are correct — plugging in real feeds is a slot-swap. For the submission narrative, "real-time public signals" should be qualified as "simulated for the hackathon MVP."
-
-### Challenge-specified integrations (slot-swap ready):
-
-- [ ] **EventRegistry / NewsAPI.ai** — event-level news aggregation (20–50 articles per story); primary for cases 1, 6, 8, 10
-- [ ] **GDELT Project** — free, near-real-time global news events; fallback for cases 1, 6, 10
-- [ ] **Google News RSS** — simple per-entity news feed; lightweight fallback for case 1
-- [ ] **OpenSanctions** — aggregated OFAC + EU + UN; free tier; primary for case 5 UBO screening
-- [ ] **Swiss ZEFIX** — official Swiss commercial register; cases 4, 7, 8, 10
-- [ ] **GLEIF LEI Database** — global legal entity identifiers; ownership chain lookups; cases 3, 4, 5, 8, 10
-- [ ] **OpenCorporates** — international registry aggregator; directors/officers/relationships; cases 3, 4, 5, 7
-- [ ] **Companies House PSC** — UK persons of significant control; cases 3, 5, 7
-- [ ] **Crunchbase** — funding rounds, investors, company pivots; case 6
-- [ ] **RDAP/WHOIS** — domain registrar and registration age; cases 8, 9
-- [ ] **Firecrawl** — OSS website-to-markdown scraping; cases 9, 10
-- [ ] **Wayback Machine** — free historical website snapshots; baseline for domain/content monitoring; cases 9, 10
-
----
-
-## Code Quality — Should Fix
-
-- [ ] **`service.py:104–163`** — 6 magic-number layer weights; move to named constants in `core/config.py`
-- [ ] **`service.py:426`** — global mutable `_engine` singleton; add comment warning about multi-worker deployments
-- [ ] **`service.py`** — `list_customers()` recomputes all 10 customers on every request; add short-lived TTL cache
-- [ ] **`audit.py:138`** — `len(list(...all()))` loads entire table to count; replace with `COUNT(*)` query
-
----
-
-## Tests
-
-**Stack:** plain `pytest` for unit tests + `pytest-bdd` for scenario/integration tests.  
-`pytest` and `pytest-asyncio` are already in dev deps (`pyproject.toml`). Add `pytest-bdd` for Gherkin feature files.
-
-BDD is a natural fit here: the 7 synthetic scenarios and H1–H4 hypotheses are already written in plain English, domain language is rich (KYC drift, suspicious stability), and judges / compliance officers can read Gherkin feature files directly.
-
-### Why two layers
-
-| Layer | Tool | What it covers |
-|---|---|---|
-| Unit | `pytest` | Pure functions — math, helpers, converters — no I/O |
-| Scenario / integration | `pytest-bdd` | End-to-end engine behavior, API contracts, compliance rules expressed as readable Gherkin |
-
----
-
-### 🟠 P1 — Unit tests (pure functions, no I/O)
-
-- [x] **`test_bocpd.py`** — changepoint fires on step series; silent on stationary noise; online property; `standardize` behavior — 6 tests
-- [x] **`test_velocity.py`** — KL divergence zero for identical distributions; monotonically increasing with mean shift; velocity positive after step; `velocity_band` bands; mismatched metric lengths raises — 10 tests
-- [x] **`test_causal.py`** — risk signature → `label="risk"`; benign signature → `label="benign"`; p_risk in [0,1]; contributions cover all dimensions; end-to-end with simulator — 8 tests
-- [x] **`test_stability.py`** — flat customer in volatile cohort → `is_suspicious=True`; volatile customer → not suspicious; quiet environment does not flag; `cohort_volatility` behavior — 11 tests
-- [x] **`test_cascade.py`** — score < 30 → T0; 30–55 → T1; ≥55 + value → T2; sanctions + value → T2; cumulative cost ordering — 11 tests (actual thresholds: t1=30, t2=55)
-- [x] **`test_contagion.py`** — direct neighbor elevated > 0.1; near > far; hop counts; cytoscape shape; empty seeds — 11 tests
-- [x] **`test_score_boundaries.py`** — `score_to_level` / `score_to_action` full boundary coverage incl. float regression — 15 tests (previously `test_score_to_level`)
-
----
-
-### 🟠 P1 — BDD scenario tests (Gherkin feature files)
-
-Add `pytest-bdd` to dev deps: `"pytest-bdd>=7.0.0"` in `pyproject.toml`. ✅ Added.
-Feature files live in `backend/tests/features/`; step definitions in `backend/tests/test_*_bdd.py`.
-
-- [x] **`drift_detection.feature`** — 3 scenarios with ground truth labels (benign_expansion, combined/risk, suspicious_stability slow-walker):
-
-  ```gherkin
-  Feature: KYC Drift Detection
-
-    Scenario: Volume creep raises drift score above review threshold
-      Given a customer with monthly volume growing 8% per month for 18 months
-      When the drift engine analyses the customer
-      Then the drift score exceeds 40
-      And the velocity band is "notable" or higher
-      And the causal label is "risk"
-
-    Scenario: Benign expansion is not escalated
-      Given a customer with a clean funding round and stable margins
-      When the drift engine analyses the customer
-      Then the causal label is "benign"
-      And the drift score is below 40
-
-    Scenario: Slow-walker is flagged despite low absolute drift
-      Given a customer with near-zero volume variance for 24 months
-      And the customer's cohort has high volatility
-      When the drift engine analyses the customer
-      Then is_suspicious is true
-      And the drift score is elevated above 50
-  ```
-
-- [x] **`contagion.feature`** — ownership risk propagation:
-
-  ```gherkin
-  Feature: Ownership Contagion
-
-    Scenario: Direct owner of sanctioned entity is elevated
-      Given a sanctioned seed entity
-      And a customer who directly owns the sanctioned entity
-      When contagion is propagated
-      Then the customer's propagated_risk exceeds 0.1
-
-    Scenario: Third-degree connection is not elevated
-      Given a sanctioned seed entity
-      And a customer three ownership hops away
-      When contagion is propagated
-      Then the customer's propagated_risk is below 0.05
-  ```
-
-- [ ] **`time_travel.feature`** — no look-ahead bias (not yet implemented — requires more complex fixture setup):
-
-  ```gherkin
-  Feature: Time-Travel Audit
-
-    Scenario: Replay uses only data available at the as-of date
-      Given a customer whose sanctions event occurs at month 18
-      When the engine replays the customer as-of month 12
-      Then no public signals after month 12 are included
-      And no contagion edges listed after month 12 are included
-      And the as-of score is lower than the current score
-
-    Scenario: Early detection lead time is positive
-      Given a customer flagged at month 14 with sanctions at month 18
-      When lead_time_months is computed
-      Then lead_time_months equals 4
-  ```
-
-- [x] **`audit_compliance.feature`** — compliance backbone:
-
-  ```gherkin
-  Feature: Audit Log Compliance
-
-    Scenario: Drift analysis always produces an audit entry
-      Given the drift engine is running
-      When an officer requests the full analysis for any customer
-      Then an audit entry with event_type "drift_customer_analyzed" exists
-      And the entry contains the customer's drift_score
-      And the entry contains the risk_level
-
-    Scenario: Audit log is append-only
-      Given an existing audit entry
-      When the audit service is called
-      Then no update or delete method exists on AuditService
-  ```
-
-- [x] **`api_contract.feature`** — API smoke tests using `httpx.AsyncClient`:
-
-  ```gherkin
-  Feature: API Contract
-
-    Scenario: Customer list is sorted by drift score descending
-      When I call GET /api/v1/drift/customers
-      Then the response is 200
-      And each customer's drift_score is >= the next customer's drift_score
-
-    Scenario: Unknown customer returns 404
-      When I call GET /api/v1/drift/customers/nonexistent-id
-      Then the response status is 404
-
-    Scenario: Cascade scan returns cost report
-      When I call POST /api/v1/drift/scan
-      Then the response is 200
-      And savings_pct is between 0 and 100
-      And total_customers equals 10
-  ```
-
----
-
-### 🟢 P3 — Hypothesis validation tests
-
-These are the H1–H4 claims from the README — make them machine-verifiable:
-
-- [ ] **`test_hypothesis_h1.py`** — run full engine on all 7 scenarios; assert BOCPD lead time ≥ 2 months on drifting scenarios; assert 0 false positives on `stable` scenario
-- [ ] **`test_hypothesis_h2.py`** — assert velocity alert fires earlier than absolute-threshold alert at equal false-positive rate
-- [ ] **`test_hypothesis_h3.py`** — assert 2-hop contagion customers are elevated; assert 3+ hop customers are not
-- [ ] **`test_hypothesis_h4.py`** — assert cascade cost < 10% of LLM-on-everything cost; assert high-risk recall is unchanged
-
----
-
-## Post-Hackathon
-
-- [ ] Alembic database migrations — critical before any schema change in production
-- [ ] PostgreSQL migration — one env var change + swap `aiosqlite` → `asyncpg`
-- [ ] GitHub Actions CI — lint (`ruff`), type check (`mypy`), test (`pytest --bdd`) on PRs
-- [ ] Audit log frontend page — backend `GET /api/v1/audit` exists; no `/audit` frontend route
-- [ ] Live alerts WebSocket — `ws/alerts` not implemented on either side
-- [ ] Julius Baer model — `# TODO` in `ml/registry.py`
-- [ ] Ripple XRPL model — `# TODO` in `ml/registry.py`
-- [ ] Dark mode — design tokens exist in `tailwind.config.ts`; not implemented
-- [ ] Mobile-responsive layout — desktop-only currently
-- [ ] Production Docker profile — `docker-compose.yml` uses `--reload`; needs prod profile
-- [ ] uv lockfile — `requirements.txt` uses `>=` ranges; generate `uv.lock` for reproducibility

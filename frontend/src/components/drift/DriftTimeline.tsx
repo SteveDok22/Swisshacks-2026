@@ -47,6 +47,11 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
   const alertPoint = timeline.find((p) => p.velocity >= 0.8);
   const alertMonth = alertPoint?.month ?? null;
 
+  // BOCPD regime change — the month the run-length posterior reset (the
+  // behavioral changepoint). Rendered as a dashed marker.
+  const changepointPoint = timeline.find((p) => p.bocpd_changepoint);
+  const changepointMonth = changepointPoint?.month ?? null;
+
   const leadTime =
     alertMonth !== null && sanctions_month !== null
       ? sanctions_month - alertMonth
@@ -105,6 +110,31 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
             strokeWidth={1}
             strokeDasharray="2 3"
           />
+        )}
+
+        {/* BOCPD regime-change marker (dashed) */}
+        {changepointMonth !== null && (
+          <g>
+            <line
+              x1={mx(changepointMonth)}
+              y1={PAD}
+              x2={mx(changepointMonth)}
+              y2={H - PAD}
+              stroke="var(--accent-2, #7c3aed)"
+              strokeWidth={1.5}
+              strokeDasharray="5 3"
+              opacity={0.8}
+            />
+            <text
+              x={mx(changepointMonth) + 4}
+              y={H - PAD - 4}
+              fontSize={9}
+              fill="var(--accent-2, #7c3aed)"
+              fontWeight={600}
+            >
+              Regime change
+            </text>
+          </g>
         )}
 
         {/* Drift Engine flags marker (leading) */}

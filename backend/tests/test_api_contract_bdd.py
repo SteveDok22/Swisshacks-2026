@@ -6,6 +6,8 @@ Requires pytest-bdd >= 7.0 and asyncio_mode = "auto" (already set in pyproject.t
 
 from __future__ import annotations
 
+import asyncio
+
 import pytest
 from httpx import AsyncClient
 from pytest_bdd import given, parsers, scenarios, then, when
@@ -19,13 +21,13 @@ def context() -> dict:
 
 
 @when(parsers.parse('I call GET "{url}"'))
-async def call_get(url: str, client: AsyncClient, context: dict) -> None:
-    context["response"] = await client.get(url)
+def call_get(url: str, client: AsyncClient, context: dict) -> None:
+    context["response"] = asyncio.run(client.get(url))
 
 
 @when(parsers.parse('I call POST "{url}"'))
-async def call_post(url: str, client: AsyncClient, context: dict) -> None:
-    context["response"] = await client.post(url)
+def call_post(url: str, client: AsyncClient, context: dict) -> None:
+    context["response"] = asyncio.run(client.post(url))
 
 
 @then(parsers.parse("the response status is {status:d}"))

@@ -15,10 +15,13 @@ same customer IDs are stable within a process lifetime.
 
 from __future__ import annotations
 
+import json
+from typing import Any
+
 import numpy as np
 
 from app.drift.bocpd import BOCPD, standardize
-from app.drift.cascade import CascadeRouter, CustomerSignal
+from app.drift.cascade import CascadeRouter, CustomerSignal, Tier
 from app.drift.causal import causal_assessment
 from app.drift.contagion import build_demo_graph, OwnershipGraph
 from app.drift.public_intel import (
@@ -28,12 +31,15 @@ from app.drift.public_intel import (
 )
 from app.drift.simulator import SyntheticCustomer, generate_book, generate_customer
 from app.drift.stability import assess_stability, cohort_volatility
+from app.drift.dormancy import assess_dormancy
 from app.drift.timetravel import replay_trajectory
 from app.drift.velocity import compute_drift_series, velocity_band
+from app.ml.base import score_to_level
 from app.schemas.drift import (
     CascadeCostReport,
     CausalVerdictOut,
     ContagionGraph,
+    DormancyOut,
     DriftCustomerDetail,
     DriftCustomerSummary,
     DriftTimelinePoint,
@@ -43,11 +49,46 @@ from app.schemas.drift import (
     AsOfPointOut,
     ReplayResult,
 )
+from app.schemas.enums import DecisionAction
+from app.services.anthropic_client import get_anthropic_client
+
+
+T2_LLM_SYSTEM_MESSAGE = (
+    "You are a careful AML/KYC compliance analyst. Return valid JSON only. "
+    "Do not invent facts. Use only the provided evidence. Do not recommend "
+    "automatic account blocking. Recommend human compliance actions only."
+)
+
+LLM_PARSE_FALLBACK = {
+    "verdict": "ambiguous",
+    "confidence": 0.0,
+    "rationale": "LLM response could not be parsed as valid JSON.",
+    "key_evidence": [],
+    "recommended_action": "Request information",
+}
 
 # Sanctioned seed entity for the contagion demo
 SANCTIONED_SEED = "SANCTIONED_ENTITY"
 # Customers wired into the ownership graph as contagion-affected
 CONTAGION_AFFECTED = {"drift-004", "drift-002"}
+DRIFT_ANALYSIS_VERSION = "drift-v1"
+
+
+def recommend_drift_action(
+    score: float,
+    causal_label: str,
+    is_suspicious: bool,
+) -> DecisionAction:
+    """Single authoritative mapping used by API responses and decisions."""
+    if is_suspicious:
+        return DecisionAction.ESCALATE
+    if causal_label == "benign":
+        return DecisionAction.ALLOW
+    if score >= 70 or causal_label == "risk":
+        return DecisionAction.ESCALATE
+    if score >= 40 or causal_label == "ambiguous":
+        return DecisionAction.STEP_UP_VERIFICATION
+    return DecisionAction.ALLOW
 
 
 class DriftEngine:
@@ -88,11 +129,14 @@ class DriftEngine:
         daily = standardize(cust.daily_volume_series())
         bres = BOCPD(hazard=1 / 500).run(daily)
         cp_day = bres.detected_changepoints[0] if bres.detected_changepoints else None
-        # Internal drift peak month (for temporal co-occurrence). Convert the
-        # BOCPD day index to a month via days-per-month, else use velocity peak.
-        if cp_day is not None and cust.monthly_volume:
-            days_per_month = len(cust.monthly_volume[0]) or 21
-            internal_peak_month = cp_day // days_per_month
+        # Map the BOCPD changepoint (a day index over the concatenated daily
+        # series) to its month window. Computed once here and reused for both
+        # the temporal co-occurrence signal and the timeline marker.
+        cp_month = cust.day_to_month(cp_day) if cp_day is not None else None
+        # Internal drift peak month (for temporal co-occurrence): the changepoint
+        # month if we have one, else the velocity peak.
+        if cp_month is not None:
+            internal_peak_month = cp_month
         elif ds.velocity:
             internal_peak_month = ds.windows[int(np.argmax(ds.velocity))]
         else:
@@ -142,6 +186,10 @@ class DriftEngine:
             public_risk=pi.public_risk,
         )
 
+        # --- DORMANCY BREAK: was the customer dormant, then suddenly active?
+        # (AMINA use case: "previously dormant company begins high volume") ---
+        dormancy = assess_dormancy(cust.monthly_volume)
+
         # Causal modulation — the whole point of the causal layer is to act on
         # the verdict, not just display it. A high-magnitude drift that is
         # clearly LIFE-SHAPED (benign) should NOT sit at the top of the
@@ -162,12 +210,23 @@ class DriftEngine:
         if stability.is_suspicious:
             score = max(score, 50.0 + stability.suspicion * 40.0)
 
+        # Dormancy-break ELEVATION — a reactivated sleeper starts from a quiet
+        # baseline, so drift/velocity under-react. When a genuine dormant->active
+        # burst is detected, floor the score upward so it surfaces for review.
+        # NOTE: this floor is applied AFTER the causal demotion above and will
+        # override it on purpose — a reactivated shell must surface even if the
+        # causal layer reads the new activity as (so far) benign-shaped. This is
+        # the same "cannot hide below the radar" policy as the stability floor.
+        if dormancy.is_dormancy_break:
+            score = max(score, 55.0 + dormancy.dormancy_break * 35.0)
+
         return {
             "drift_series": ds,
             "latest_velocity": latest_velocity,
             "max_velocity": max_velocity,
             "final_drift": final_drift,
             "bocpd_changepoint_day": cp_day,
+            "bocpd_changepoint_month": cp_month,
             "propagated_risk": prop_risk,
             "internal_risk": internal_risk,
             "internal_peak_month": internal_peak_month,
@@ -177,6 +236,7 @@ class DriftEngine:
             "confirmation_lift": lift,
             "causal": causal,
             "stability": stability,
+            "dormancy": dormancy,
             "drift_score": score,
         }
 
@@ -238,6 +298,153 @@ class DriftEngine:
         ]
         return layers
 
+    def _build_t2_adjudication_prompt(
+        self,
+        cust: SyntheticCustomer,
+        analysis: dict,
+    ) -> str:
+        """Build a strict JSON-only adjudication prompt for T2 cases."""
+        causal = analysis["causal"]
+        stability = analysis["stability"]
+        dormancy = analysis["dormancy"]
+        signature = causal.signature
+        context: dict[str, Any] = {
+            "customer": {
+                "id": cust.customer_id,
+                "name": cust.name,
+                "scenario": cust.scenario,
+            },
+            "risk_scores": {
+                "drift_score": round(analysis["drift_score"], 3),
+                "internal_risk": round(analysis["internal_risk"], 3),
+                "public_risk": round(analysis["public_risk"], 3),
+                "confirmation_lift": round(analysis["confirmation_lift"], 3),
+                "propagated_risk": round(analysis["propagated_risk"], 3),
+            },
+            "causal_assessment": {
+                "label": causal.label,
+                "p_risk": round(causal.p_risk, 3),
+                "causal_likelihood_ratio": round(causal.causal_llr, 3),
+                "contributions": {
+                    k: round(v, 3) for k, v in causal.contributions.items()
+                },
+            },
+            "drift_signature": {
+                "volume_change": round(signature.volume_change, 3),
+                "margin_change": round(signature.margin_change, 3),
+                "counterparty_risk_change": round(signature.counterparty_change, 3),
+                "corridor_risk_change": round(signature.corridor_change, 3),
+            },
+            "suspicious_stability": {
+                "is_suspicious": stability.is_suspicious,
+                "score": round(stability.suspicion, 3),
+                "detail": stability.detail,
+            },
+            "dormancy_break": {
+                "is_dormancy_break": dormancy.is_dormancy_break,
+                "score": round(dormancy.dormancy_break, 3),
+                "baseline_volume": round(dormancy.baseline_volume, 1),
+                "active_volume": round(dormancy.active_volume, 1),
+                "detail": dormancy.detail,
+            },
+            "public_signals": [
+                {
+                    "type": signal.signal_type,
+                    "headline": signal.headline,
+                    "severity": round(signal.severity, 3),
+                    "source": signal.source,
+                    "month": signal.month,
+                }
+                for signal in analysis["public_signals"]
+            ],
+        }
+
+        return (
+            "Adjudicate this T2 KYC drift case by comparing three hypotheses:\n"
+            "1. Risk-shaped or causal drift hypothesis.\n"
+            "2. Benign business-change hypothesis.\n"
+            "3. Ambiguous or insufficient-evidence hypothesis.\n\n"
+            "Use only the structured evidence below. Do not invent facts. "
+            "Do not recommend automatic blocking; recommend human compliance "
+            "actions such as enhanced due diligence, request for information, "
+            "monitoring, or no immediate action.\n\n"
+            "Structured evidence:\n"
+            f"{json.dumps(context, indent=2, sort_keys=True)}\n\n"
+            "Return JSON only with this exact shape:\n"
+            "{\n"
+            '  "verdict": "risk" | "benign" | "ambiguous",\n'
+            '  "confidence": number,\n'
+            '  "rationale": string,\n'
+            '  "key_evidence": string[],\n'
+            '  "recommended_action": string\n'
+            "}"
+        )
+
+    def _parse_llm_json(self, text: str) -> dict[str, Any]:
+        """Parse and normalize a T2 adjudication JSON response defensively."""
+        try:
+            payload = json.loads(text)
+        except json.JSONDecodeError:
+            start = text.find("{")
+            end = text.rfind("}")
+            if start == -1 or end == -1 or end <= start:
+                return dict(LLM_PARSE_FALLBACK)
+            try:
+                payload = json.loads(text[start : end + 1])
+            except json.JSONDecodeError:
+                return dict(LLM_PARSE_FALLBACK)
+
+        if not isinstance(payload, dict):
+            return dict(LLM_PARSE_FALLBACK)
+
+        verdict = payload.get("verdict")
+        if verdict not in {"risk", "benign", "ambiguous"}:
+            verdict = "ambiguous"
+
+        try:
+            confidence = float(payload.get("confidence", 0.0))
+        except (TypeError, ValueError):
+            confidence = 0.0
+        confidence = min(max(confidence, 0.0), 1.0)
+
+        key_evidence = payload.get("key_evidence", [])
+        if not isinstance(key_evidence, list):
+            key_evidence = []
+        key_evidence = [str(item) for item in key_evidence]
+
+        rationale = payload.get("rationale", "")
+        recommended_action = payload.get("recommended_action", "Request information")
+
+        return {
+            "verdict": verdict,
+            "confidence": confidence,
+            "rationale": str(rationale),
+            "key_evidence": key_evidence,
+            "recommended_action": str(recommended_action),
+        }
+
+    def _run_t2_llm_adjudication(
+        self,
+        cust: SyntheticCustomer,
+        analysis: dict,
+    ) -> dict[str, Any]:
+        """Execute the real or mock Anthropic T2 adjudication path."""
+        llm = get_anthropic_client()
+        llm_mode = "mock" if llm.is_mock else "real"
+        text, was_cached = llm.complete(
+            self._build_t2_adjudication_prompt(cust, analysis),
+            system=T2_LLM_SYSTEM_MESSAGE,
+            max_tokens=700,
+        )
+
+        return {
+            "customer_id": cust.customer_id,
+            "customer_name": cust.name,
+            "llm_mode": llm_mode,
+            "was_cached": was_cached,
+            "response": self._parse_llm_json(text),
+        }
+
     # ------------------------------------------------------------------ #
     # Public API methods
     # ------------------------------------------------------------------ #
@@ -267,6 +474,8 @@ class DriftEngine:
                     causal_p_risk=round(a["causal"].p_risk, 3),
                     suspicion=round(a["stability"].suspicion, 3),
                     is_suspicious=a["stability"].is_suspicious,
+                    dormancy_break=round(a["dormancy"].dormancy_break, 3),
+                    is_dormancy_break=a["dormancy"].is_dormancy_break,
                     scenario=cust.scenario,
                 )
             )
@@ -286,6 +495,17 @@ class DriftEngine:
             propagated_risk=a["propagated_risk"],
         )
         decision = self._router.route_one(signal)
+        recommended_action = recommend_drift_action(
+            a["drift_score"],
+            a["causal"].label,
+            a["stability"].is_suspicious,
+        )
+
+        # Mark the timeline point at the BOCPD changepoint month (mapped from a
+        # day index in _analyze_customer). A changepoint that lands in the
+        # baseline window — before the first timeline point — matches no point
+        # and is correctly left unmarked, as is the no-changepoint (None) case.
+        cp_month = a["bocpd_changepoint_month"]
 
         timeline = [
             DriftTimelinePoint(
@@ -293,7 +513,7 @@ class DriftEngine:
                 drift_bits=round(ds.drift_bits[i], 3),
                 velocity=round(ds.velocity[i], 3),
                 acceleration=round(ds.acceleration[i], 3),
-                bocpd_changepoint=False,
+                bocpd_changepoint=ds.windows[i] == cp_month,
             )
             for i in range(len(ds.windows))
         ]
@@ -305,6 +525,8 @@ class DriftEngine:
             drift_velocity=round(a["max_velocity"], 3),
             velocity_band=velocity_band(a["max_velocity"]),
             reached_tier=decision.reached_tier.name,
+            recommended_action=recommended_action,
+            risk_level=score_to_level(a["drift_score"]),
             escalation_reasons=decision.escalation_reasons,
             layers=self._build_layers(cust, a),
             timeline=timeline,
@@ -337,13 +559,24 @@ class DriftEngine:
                 is_suspicious=a["stability"].is_suspicious,
                 detail=a["stability"].detail,
             ),
+            dormancy=DormancyOut(
+                dormancy_break=round(a["dormancy"].dormancy_break, 3),
+                dormancy_depth=round(a["dormancy"].dormancy_depth, 3),
+                activation_strength=round(a["dormancy"].activation_strength, 3),
+                baseline_volume=round(a["dormancy"].baseline_volume, 1),
+                active_volume=round(a["dormancy"].active_volume, 1),
+                is_dormancy_break=a["dormancy"].is_dormancy_break,
+                detail=a["dormancy"].detail,
+            ),
         )
 
     def scan(self) -> CascadeCostReport:
         """Run full cascade over the book, return cost report."""
         signals = []
+        analyses: dict[str, tuple[SyntheticCustomer, dict]] = {}
         for cust in self._book:
             a = self._analyze_customer(cust)
+            analyses[cust.customer_id] = (cust, a)
             signals.append(
                 CustomerSignal(
                     customer_id=cust.customer_id,
@@ -352,16 +585,41 @@ class DriftEngine:
                 )
             )
         report = self._router.route_book(signals)
+        llm_adjudications = []
+        for decision in report.decisions:
+            if decision.reached_tier != Tier.T2_LLM:
+                continue
+            cust, analysis = analyses[decision.customer_id]
+            llm_adjudications.append(
+                self._run_t2_llm_adjudication(cust, analysis)
+            )
+
+        actual_t2_llm_calls = len(llm_adjudications)
+        real_t2_llm_calls = sum(
+            1 for item in llm_adjudications if item["llm_mode"] == "real"
+        )
+        mock_t2_llm_calls = sum(
+            1 for item in llm_adjudications if item["llm_mode"] == "mock"
+        )
         llm_all = len(signals) * 0.05
         savings = 100.0 * (1 - report.total_cost / llm_all) if llm_all > 0 else 0.0
+        summary = (
+            f"{report.summary_line()}. Actual T2 LLM adjudications: "
+            f"{actual_t2_llm_calls} total, {real_t2_llm_calls} real, "
+            f"{mock_t2_llm_calls} mock."
+        )
         return CascadeCostReport(
             total_customers=report.total_customers,
             tier_counts=report.tier_counts,
             tier_costs={k: round(v, 4) for k, v in report.tier_costs.items()},
             total_cost=round(report.total_cost, 2),
-            summary=report.summary_line(),
+            summary=summary,
             llm_on_everything_cost=round(llm_all, 2),
             savings_pct=round(savings, 1),
+            actual_t2_llm_calls=actual_t2_llm_calls,
+            real_t2_llm_calls=real_t2_llm_calls,
+            mock_t2_llm_calls=mock_t2_llm_calls,
+            llm_adjudications=llm_adjudications,
         )
 
     def contagion_graph(self) -> ContagionGraph:

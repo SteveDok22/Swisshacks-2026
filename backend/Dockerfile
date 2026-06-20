@@ -31,7 +31,7 @@ ENV VIRTUAL_ENV=/opt/venv \
     PATH="/opt/venv/bin:$PATH" \
     PYTHONPATH=/app
 RUN . /opt/venv/bin/activate && \
-    uv pip install --no-cache pytest pytest-asyncio
+    uv pip install --no-cache pytest pytest-asyncio pytest-bdd
 CMD ["pytest", "-v"]
 
 # === STAGE 2: Runtime ===

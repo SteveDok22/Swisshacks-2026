@@ -119,6 +119,8 @@ def confirmation_amplification(lift: float) -> float:
 class DriftEngine:
     """Orchestrates drift detection over the customer book."""
 
+    _LIST_CACHE_TTL: float = 30.0  # seconds — controls list_customers() hot-path cache
+
     def __init__(self) -> None:
         self._book: list[SyntheticCustomer] = generate_book()
         self._router = CascadeRouter()
@@ -480,12 +482,10 @@ class DriftEngine:
     # ------------------------------------------------------------------ #
     # Public API methods
     # ------------------------------------------------------------------ #
-    _LIST_CACHE_TTL = 30.0  # seconds
-
     def list_customers(self) -> list[DriftCustomerSummary]:
         now = time.monotonic()
         if self._list_cache is not None and now - self._list_cache_at < self._LIST_CACHE_TTL:
-            return self._list_cache
+            return list(self._list_cache)
 
         out: list[DriftCustomerSummary] = []
         for cust in self._book:
@@ -520,7 +520,7 @@ class DriftEngine:
         out.sort(key=lambda c: c.drift_score, reverse=True)
         self._list_cache = out
         self._list_cache_at = time.monotonic()
-        return out
+        return list(out)
 
     def get_customer(self, customer_id: str) -> DriftCustomerDetail | None:
         cust = next((c for c in self._book if c.customer_id == customer_id), None)

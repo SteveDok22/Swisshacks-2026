@@ -19,6 +19,7 @@ Pure NetworkX. ~140 lines.
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 
 import networkx as nx
@@ -237,9 +238,20 @@ def build_demo_graph(drift_ids: list[str]) -> OwnershipGraph:
 _GLEIF_PARENT_STAKE = 0.5
 _GLEIF_CHILD_STAKE = 0.5
 
+# Stake for the injected sanctioned-seed → affected-customer edge in a real-LEI
+# graph. GLEIF carries no flag/sanction data, so the demo seeds a known flagged
+# entity into the live graph the same way build_demo_graph does for the
+# synthetic one; a neutral mid weight lets PageRank contagion flow along it.
+_GLEIF_SEED_STAKE = 0.5
+
 
 def build_graph_from_snapshots(
     snapshots: dict[str, EntitySnapshot],
+    *,
+    sanctioned_seed: str | None = None,
+    sanctioned_seed_name: str | None = None,
+    contagion_affected: Iterable[str] = (),
+    seed_stake: float = _GLEIF_SEED_STAKE,
 ) -> OwnershipGraph | None:
     """
     Build an ownership graph from real GLEIF ``EntitySnapshot``s (Use case 3).
@@ -255,6 +267,14 @@ def build_graph_from_snapshots(
     Returns ``None`` when no snapshot carries any ownership link — the caller
     then falls back to :func:`build_demo_graph`. This is the real-LEI replacement
     for the synthetic contagion graph.
+
+    When ``sanctioned_seed`` is given, a flagged/sanctioned entity is injected
+    into the real-LEI graph and linked to each ``contagion_affected`` customer
+    that resolved to a node, so contagion can propagate over live LEIs exactly as
+    it does in :func:`build_demo_graph` (PR #45 follow-up). The seed is only added
+    when at least one affected customer is present, so it never leaves an orphan
+    node, and only after a real ownership graph has been confirmed (the
+    edge-count gate below still decides the demo fallback).
     """
     if not snapshots:
         return None
@@ -303,4 +323,23 @@ def build_graph_from_snapshots(
 
     if edge_count == 0:
         return None
+
+    # Overlay the flagged seed onto the confirmed real-LEI graph so contagion
+    # has a sanctioned origin to propagate from (mirrors build_demo_graph). Only
+    # link affected customers that actually resolved to a node, and skip the
+    # whole step when none are present so we never add an isolated seed node.
+    if sanctioned_seed is not None:
+        present_affected = [
+            cid for cid in contagion_affected if cid in g.g and cid != sanctioned_seed
+        ]
+        if present_affected:
+            g.add_entity(
+                sanctioned_seed,
+                name=sanctioned_seed_name or sanctioned_seed,
+                is_customer=False,
+                entity_type="company",
+            )
+            for cid in present_affected:
+                g.add_ownership(sanctioned_seed, cid, seed_stake)
+
     return g

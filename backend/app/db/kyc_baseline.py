@@ -29,6 +29,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlmodel import Field, SQLModel, select
 
 from app.core.logging import get_logger
+from app.sources.base import EntitySnapshot
 
 logger = get_logger(__name__)
 
@@ -145,6 +146,30 @@ class EntitySnapshotDB(SQLModel, table=True):
         default_factory=lambda: datetime.now(UTC),
         index=True,
     )
+
+    def to_entity_snapshot(self) -> EntitySnapshot:
+        """Convert this persisted row back into the pure-Python EntitySnapshot
+        the source adapters and the ownership-diff layer operate on.
+
+        Inverse of the service-layer persistence step (EntitySnapshot ->
+        EntitySnapshotDB). Only the registry/ownership fields the diff layer
+        reads are carried over; the behavioral-baseline columns (volume,
+        counterparty/corridor/margin means) have no EntitySnapshot counterpart
+        and are intentionally dropped. The list/dict fields are copied so the
+        returned domain object cannot mutate the ORM row's JSON columns.
+        """
+        return EntitySnapshot(
+            drift_id=self.drift_id,
+            name=self.name,
+            source=self.source,
+            legal_form=self.legal_form,
+            jurisdiction=self.jurisdiction,
+            registered_address=self.registered_address,
+            dissolution_status=self.dissolution_status,
+            beneficial_owners=list(self.beneficial_owners),
+            officers=list(self.officers),
+            raw_data=dict(self.raw_data),
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -265,3 +290,37 @@ async def load_all_baselines(
         )
     )
     return {row.drift_id: row for row in result.scalars().all()}
+
+
+async def load_gleif_baselines(
+    session: AsyncSession,
+) -> dict[str, EntitySnapshot]:
+    """
+    Return each customer's oldest persisted GLEIF onboarding baseline as a
+    pure ``EntitySnapshot``, keyed by drift_id.
+
+    Filters to ``source == "gleif"`` baselines (onboarding/seeded type) so the
+    drift engine can diff the *current* live GLEIF ownership chain against the
+    same-source onboarding anchor (use case 3). The same-source contract in
+    ``sources.gleif.ownership_change_signals`` requires both sides to be GLEIF —
+    which is exactly what this returns. The mapping is empty when no GLEIF
+    baseline has been persisted yet, so the ownership diff simply stays inert.
+
+    The oldest row per customer (ASC by created_at) is chosen so a later re-KYC
+    GLEIF snapshot never displaces the original onboarding anchor — mirroring
+    ``load_onboarding_snapshot``'s oldest-wins semantics.
+    """
+    result = await session.execute(
+        select(EntitySnapshotDB)
+        .where(
+            EntitySnapshotDB.source == "gleif",
+            EntitySnapshotDB.snapshot_type.in_(("onboarding", "seeded")),
+        )
+        .order_by(EntitySnapshotDB.created_at.asc())
+    )
+    baselines: dict[str, EntitySnapshot] = {}
+    for row in result.scalars().all():
+        # setdefault keeps the first (oldest) row per customer; later GLEIF
+        # snapshots for the same drift_id are ignored.
+        baselines.setdefault(row.drift_id, row.to_entity_snapshot())
+    return baselines

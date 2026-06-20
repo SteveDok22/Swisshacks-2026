@@ -59,7 +59,7 @@ flowchart TB
 flowchart LR
     subgraph DriftSchemas["Drift Schemas"]
         DS1["DriftSubjectSummary\ndrift_id · name · score · velocity\naction · risk_level"]
-        DS2["DriftSubjectDetail\n+ LayerContribution[]\n+ CausalVerdictOut\n+ StabilityOut\n+ DriftTimelinePoint[]\n+ contagion_score"]
+        DS2["DriftSubjectDetail\n+ LayerContribution[]\n+ CausalVerdictOut\n+ StabilityOut\n+ DriftTimelinePoint[]\n+ PublicSignalOut[]\n+ UboScreeningOut[] (UC5)\n+ contagion_score"]
         DS3["ReplayResult\nas_of_score · current_score\nlead_time_months"]
         DS4["CascadeCostReport\ntier_counts · costs · total_customers\n+ actual_t2_llm_calls\n+ llm_adjudications[]"]
     end

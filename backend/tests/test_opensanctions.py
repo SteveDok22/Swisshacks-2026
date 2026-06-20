@@ -9,8 +9,6 @@ with ``id``, ``caption``, ``score`` fields).
 
 from __future__ import annotations
 
-import json
-
 import httpx
 import pytest
 
@@ -394,6 +392,22 @@ class TestFetchSignalsUboScreening:
         await adapter.fetch_signals("d", "Entity", ubo_names=["", "ValidUBO"])
         assert "" not in calls
 
+    async def test_ubo_hit_meta_flows_through_fetch_signals(self):
+        def handler(request: httpx.Request) -> httpx.Response:
+            q = request.url.params.get("q", "")
+            if q == "Dirty UBO":
+                return _response({"results": [_hit(score=0.91, entity_id="un-xyz", caption="Dirty UBO Ltd")]})
+            return _response({"results": []})
+
+        adapter = _make_adapter(handler)
+        signals = await adapter.fetch_signals("d", "Clean Corp", ubo_names=["Dirty UBO"])
+        assert len(signals) == 1
+        assert signals[0].meta is not None
+        assert signals[0].meta["kind"] == "ubo_screening"
+        assert signals[0].meta["ubo_name"] == "Dirty UBO"
+        assert signals[0].meta["matched_entity"] == "Dirty UBO Ltd"
+        assert signals[0].meta["score"] == pytest.approx(0.91)
+
     async def test_ubo_and_main_entity_signals_combined(self):
         def handler(request: httpx.Request) -> httpx.Response:
             # Both the main entity and the UBO are sanctioned.
@@ -596,6 +610,43 @@ class TestSignalFactories:
         )
         assert sig.severity == pytest.approx(_SEVERITY_UBO_HIGH)
         assert "probable match" in sig.headline
+
+    def test_ubo_signal_carries_structured_meta(self):
+        """UBO signals carry structured meta so the API can surface name+score."""
+        adapter = self._adapter()
+        sig = adapter._ubo_signal(
+            ubo_name="Alice Holdings",
+            caption="Alice Holdings Ltd",
+            score=0.91,
+            entity_id="un-abc",
+            month=3,
+        )
+        assert sig.meta is not None
+        assert sig.meta["kind"] == "ubo_screening"
+        assert sig.meta["ubo_name"] == "Alice Holdings"
+        assert sig.meta["matched_entity"] == "Alice Holdings Ltd"
+        assert sig.meta["score"] == pytest.approx(0.91)
+        assert sig.meta["definitive"] is True
+
+    def test_ubo_signal_probable_meta_not_definitive(self):
+        adapter = self._adapter()
+        sig = adapter._ubo_signal(
+            ubo_name="Bob Person",
+            caption="Bob Person Jr",
+            score=0.73,
+            entity_id="eu-bob",
+            month=2,
+        )
+        assert sig.meta is not None
+        assert sig.meta["definitive"] is False
+
+    def test_sanctions_signal_has_no_ubo_meta(self):
+        """Direct sanctions hits are not UBO screening — no ubo_screening meta."""
+        adapter = self._adapter()
+        sig = adapter._sanctions_signal(
+            caption="Evil Corp", score=0.92, entity_id="ofac-abc", month=7
+        )
+        assert sig.meta is None
 
     def test_signal_headline_truncated_to_200_chars(self):
         adapter = self._adapter()

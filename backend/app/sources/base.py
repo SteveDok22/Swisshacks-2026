@@ -110,6 +110,15 @@ class PublicSignal:
     severity: float    # 0..1 from lexicon or source-provided confidence
     source: str        # human-readable source name, e.g. "Reuters" or "OFAC"
     source_url: str | None = None  # deep-link to the original record
+    # Optional structured provenance for signals whose headline is not enough on
+    # its own. Used by OpenSanctions UBO screening (Case 5) to carry the screened
+    # UBO name, the matched watchlist entity, and the match score so the API can
+    # surface them as structured fields instead of re-parsing the headline. Kept
+    # out of ``to_dict`` so the public signal-card contract is unchanged.
+    # ``compare=False``: a dict is unhashable, so excluding it from the generated
+    # ``__eq__``/``__hash__`` keeps this frozen dataclass hashable (and preserves
+    # the prior identity semantics — meta is auxiliary, not part of identity).
+    meta: dict[str, Any] | None = field(default=None, compare=False)
 
     def __post_init__(self) -> None:
         if not (0.0 <= self.severity <= 1.0):

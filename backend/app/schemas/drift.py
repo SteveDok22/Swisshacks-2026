@@ -30,6 +30,24 @@ class PublicSignalOut(BaseModel):
     source_url: str | None = Field(default=None, description="Deep-link to the original source record")
 
 
+class UboScreeningOut(BaseModel):
+    """One UBO / ownership-chain entity screened against sanctions watchlists.
+
+    Case 5 (new shareholders / UBOs): the aggregator resolves the customer's
+    GLEIF ownership chain to names and screens each through OpenSanctions. A hit
+    above the match-score floor surfaces here with the screened name, the matched
+    watchlist entity, and the match score.
+    """
+
+    screened_ubo: str = Field(description="UBO / officer name screened (resolved from the GLEIF ownership chain)")
+    matched_entity: str = Field(description="Watchlist entity the UBO matched")
+    score: float = Field(description="OpenSanctions match score 0-1")
+    severity: float = Field(description="Signal severity 0-1")
+    month: int
+    definitive: bool = Field(default=False, description="True when score >= 0.85 (definitive); False = probable, manual confirmation")
+    source_url: str | None = Field(default=None, description="Deep-link to the matched watchlist record")
+
+
 class CausalVerdictOut(BaseModel):
     """Causal hypothesis competition: is the drift risk-shaped or life-shaped?"""
 
@@ -150,6 +168,8 @@ class DriftSubjectDetail(BaseModel):
     internal_risk: float = Field(default=0.0, description="Internal bank data layer risk 0-1")
     confirmation_lift: float = Field(default=1.0, description="Temporal co-occurrence amplification")
     public_signals: list[PublicSignalOut] = Field(default_factory=list)
+    # Case 5: UBO / ownership-chain sanctions screening hits (matched names + scores).
+    ubo_screening: list[UboScreeningOut] = Field(default_factory=list)
 
     # Causal drift: risk-shaped vs life-shaped change
     causal: CausalVerdictOut | None = None

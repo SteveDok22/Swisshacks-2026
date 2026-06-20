@@ -63,6 +63,7 @@ from app.schemas.drift import (
     PublicSignalOut,
     ReplayResult,
     StabilityOut,
+    UboScreeningOut,
 )
 from app.schemas.enums import DecisionAction
 from app.services.anthropic_client import get_anthropic_client
@@ -668,6 +669,25 @@ class DriftEngine:
             for i in range(len(ds.windows))
         ]
 
+        # Case 5: UBO / ownership-chain sanctions hits. The OpenSanctions adapter
+        # tags each screened-UBO signal with structured ``meta`` (screened name,
+        # matched watchlist entity, score) so we surface them without re-parsing
+        # the headline. Synthetic ``ownership_change`` signals carry no such meta
+        # and are correctly excluded.
+        ubo_screening = [
+            UboScreeningOut(
+                screened_ubo=s.meta["ubo_name"],
+                matched_entity=s.meta["matched_entity"],
+                score=s.meta["score"],
+                severity=round(s.severity, 3),
+                month=s.month,
+                definitive=bool(s.meta.get("definitive", False)),
+                source_url=s.source_url,
+            )
+            for s in a["public_signals"]
+            if s.meta and s.meta.get("kind") == "ubo_screening"
+        ]
+
         return DriftSubjectDetail(
             drift_id=cust.drift_id,
             name=cust.name,
@@ -690,6 +710,7 @@ class DriftEngine:
             public_signals=[
                 PublicSignalOut(**s.to_dict()) for s in a["public_signals"]
             ],
+            ubo_screening=ubo_screening,
             causal=CausalVerdictOut(
                 causal_llr=round(a["causal"].causal_llr, 2),
                 p_risk=round(a["causal"].p_risk, 3),

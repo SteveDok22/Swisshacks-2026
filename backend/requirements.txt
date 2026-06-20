@@ -27,6 +27,9 @@ joblib>=1.4.0
 scipy>=1.13.0
 networkx>=3.3
 
+# Public sources — GDELT 2.0 free news feed (sources/gdelt.py, Event Registry fallback)
+gdeltdoc>=1.5.0
+
 # Counterfactuals
 dice-ml>=0.11
 

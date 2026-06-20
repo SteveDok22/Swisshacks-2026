@@ -111,17 +111,27 @@ class TestRegistryClassification:
 # Carcass behaviour — right error for the right reason. fetch is async.        #
 # --------------------------------------------------------------------------- #
 class TestCarcassBehaviour:
-    async def test_planned_adapter_raises_not_implemented(self):
-        # Free source whose carcass is not built yet — both entry points.
-        # GDELT is a representative still-unbuilt PLANNED adapter (ZEFIX and
-        # GLEIF are now implemented; ZEFIX without credentials degrades to
-        # None/[] rather than raising — see test_zefix.py).
-        from app.sources.gdelt import GdeltAdapter
+    async def test_planned_carcass_raises_not_implemented(self):
+        # Every free/PLANNED adapter is now implemented (GDELT was the last),
+        # so there is no real unbuilt carcass left to point at. We instead
+        # verify the guard mechanism itself: a PLANNED adapter whose body falls
+        # through to ``_carcass()`` must raise NotImplementedError (the
+        # "free, not built yet" signal) — NOT SourceUnavailableError.
+        class UnbuiltPlanned(CostMixin, RegistryAdapter):
+            source_name = "unbuilt_planned"
+            cost = SourceCost.FREE
+            status = AdapterStatus.PLANNED
+
+            async def fetch(self, drift_id, name, **kwargs):
+                return self._carcass()
+
+            async def fetch_signals(self, drift_id, name, since_month=0, **kwargs):
+                return self._carcass()
 
         with pytest.raises(NotImplementedError):
-            await GdeltAdapter().fetch("c", "Helvetia AG")
+            await UnbuiltPlanned().fetch("c", "Helvetia AG")
         with pytest.raises(NotImplementedError):
-            await GdeltAdapter().fetch_signals("c", "Helvetia AG")
+            await UnbuiltPlanned().fetch_signals("c", "Helvetia AG")
 
     async def test_zefix_without_credentials_degrades_quietly(self):
         # The one implemented free adapter: no account configured → graceful

@@ -57,8 +57,8 @@ export function CausalPanel({ causal }: CausalPanelProps) {
       <div className="grid grid-cols-2 gap-2 mb-3 text-2xs">
         <div
           className={cn(
-            "rounded p-2 text-center",
-            causal_llr < 0 ? "bg-risk-low-bg" : "border border-paper-line",
+            "rounded border border-paper-line p-2 text-center",
+            causal_llr < 0 && "bg-risk-low-bg",
           )}
         >
           <div className="font-medium text-ink">Benign growth</div>
@@ -66,8 +66,8 @@ export function CausalPanel({ causal }: CausalPanelProps) {
         </div>
         <div
           className={cn(
-            "rounded p-2 text-center",
-            causal_llr > 0 ? "bg-risk-critical-bg" : "border border-paper-line",
+            "rounded border border-paper-line p-2 text-center",
+            causal_llr > 0 && "bg-risk-critical-bg",
           )}
         >
           <div className="font-medium text-ink">Risk transit</div>

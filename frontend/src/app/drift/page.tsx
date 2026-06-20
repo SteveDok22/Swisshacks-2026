@@ -283,7 +283,7 @@ function CaseSummary({ detail }: { detail: DriftCustomerDetail }) {
       </div>
 
       {/* Verdict banner — single authoritative "what to do + why + KPIs" */}
-      <div className={cn("flex items-center gap-3 rounded p-3", toneClasses)}>
+      <div className={cn("flex items-center gap-3 rounded border border-paper-line p-3", toneClasses)}>
         <Icon className="h-5 w-5 shrink-0" strokeWidth={2} />
         <div className="flex-1 min-w-0">
           <div className="text-2xs uppercase tracking-wide opacity-70">

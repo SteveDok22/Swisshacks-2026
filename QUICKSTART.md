@@ -62,5 +62,5 @@ docker compose run --rm backend-tests pytest tests/test_score_boundaries.py -v
 ## What to look at first
 
 1. **Dashboard** (localhost:3000) — click "Marc Weber" case, watch the AI explanation stream in, scroll through SHAP / counterfactuals / jurisdiction toggle.
-2. **API docs** (localhost:8000/docs) — try the `drift` section: `/drift/scan`, `/drift/customers`, `/drift/contagion`.
+2. **API docs** (localhost:8000/docs) — try the `drift` section: `/drift/scan`, `/drift/subjects`, `/drift/contagion`.
 3. **The Drift Engine spec** — [`docs/drift-engine.md`](docs/drift-engine.md) explains the AMINA Challenge 4 approach, math, and validation.

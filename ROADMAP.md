@@ -28,19 +28,18 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 | 6 | Large funding round / expansion | Scale risk | ⚠️ PARTIAL | `funding_event` template + causal; no live feed | Event Registry funding-event query + scale-jump ratio; GDELT fallback | **FTX** — $900M raise at $18B valuation; transaction volumes never matched claimed revenue; scale jump was the leading AML signal |
 | 7 | Dormant company activates | Suspicious activation | ✅ WORKS | `drift/dormancy.py` explicit detector; wired into score + API; `dormancy_break` scenario in book; DormancyPanel in UI | — | **Azerbaijani Laundromat** — EU shell companies dormant for years, suddenly activated 2012–2014 to route $2.9B out of Azerbaijan |
 | 8 | Legal entity name change | Re-KYC required | ❌ MISSING | Not implemented | ZEFIX + GLEIF diff against KYC baseline; `name_changed` signal; score floor at 60 | **Mossack Fonseca shelf cycling** — systematic renaming of shelf companies every 12–18 months to reset KYC review clocks |
-| 9 | Domain switch / website change | Business activity change | ❌ MISSING | Not implemented | WHOIS registrant diff + Wayback (onboarding snapshot) + Firecrawl (current) + cosine distance | **N26** — rapid international expansion and domain/product proliferation outpaced AML monitoring; BaFin appointed a special monitor |
+| 9 | Domain switch / website change | Business activity change | ⚠️ PARTIAL | `drift/business_model.py` comparator built + unit-tested (Wayback↔Firecrawl cosine ≥ 0.35 → `business_model_change`); WHOIS/Wayback/Firecrawl adapters built | Wire comparator into `_analyze_customer` (load both website texts per customer, persist embeddings) | **N26** — rapid international expansion and domain/product proliferation outpaced AML monitoring; BaFin appointed a special monitor |
 | 10 | Public business model pivot | Material business change | ❌ MISSING | Not implemented | Event Registry pivot-event cluster + Firecrawl + sentence-transformer cosine; GDELT fallback | **Centra Tech** — pivoted from debit-card fintech to ICO in 90 days; existing AML profile captured none of the new business model risk |
 
 ---
 
 ## ▶ Next Steps (current focus)
 
-**Where we are:** all 8 free/freemium source adapters are implemented and unit-tested (GDELT is now built — the last adapter). **The blocker is now integration, not more adapters** — every shipped adapter is currently dead code from the engine's perspective: `drift/public_intel.py` still emits synthetic templates and nothing in `service.py` calls `sources/`.
+**Where we are:** all 8 free/freemium source adapters are implemented and unit-tested (GDELT is now built — the last adapter), **and the aggregator is wired**: `drift/service.py` calls `gather_public_signals_sync()` and `drift/public_intel.py` dispatches `fetch_signals()` to every usable adapter. Live adapter calls run only when `EXTERNAL_APIS_ENABLED` is set; the default-off path still uses the synthetic `generate_signals_for_customer()` templates. **The remaining work is per-use-case close-out** (business-model wiring, score floors, demo scenarios), not the core dispatch.
 
 Do these in order:
 
-1. **Aggregator refactor — `drift/public_intel.py`** _(highest leverage; unblocks UC 1, 3, 4, 5, 6, 8, 9, 10 at once)_
-   Replace `generate_signals_for_customer()` synthetic templates with real adapter dispatch through `sources/registry.py`. Aggregator picks Event Registry when `EVENT_REGISTRY_API_KEY` is set, else falls back to GDELT (now built). This is the single change that makes all 8 adapters actually run.
+1. ~~**Aggregator refactor — `drift/public_intel.py`** _(highest leverage; unblocks UC 1, 3, 4, 5, 6, 8, 9, 10 at once)_~~ ✅ **DONE** — `gather_public_signals()` dispatches to `sources/registry.py:usable_adapters()` in parallel; Event Registry is primary when `EVENT_REGISTRY_API_KEY` is set, GDELT is the free fallback. `service.py` calls it through `gather_public_signals_sync()` behind the `EXTERNAL_APIS_ENABLED` switch.
 
 2. ~~**`drift/business_model.py` — Wayback↔Firecrawl cosine comparator** _(closes UC 9 comparator)_~~ ✅ **DONE** — embeds onboarding (Wayback) vs current (Firecrawl) website text with **model2vec static embeddings (pure NumPy, no torch; `sentence-transformers` swapped to keep the image lean)**; cosine distance ≥ 0.35 → `business_model_change`. Pure DB-free module + unit tests. **Remaining for UC 9 = aggregator wiring** (load the two texts per customer, persist embeddings) — folded into item 1.
 
@@ -328,7 +327,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | Drift Engine | `drift/service.py` | All 7 layers, confirmation lift, LLM adjudication |
 | Synthetic Book | `drift/simulator.py` | 8 scenarios with ground-truth labels |
 | KYC Baseline Store | `db/kyc_baseline.py` | `EntitySnapshotDB` — onboarding + history snapshots |
-| Source Adapter Layer | `sources/` | `RegistryAdapter` ABC; GLEIF, ZEFIX, EventRegistry, OpenSanctions, Wayback, WHOIS/RDAP, Firecrawl implemented; GDELT in progress; 2 SKIPPED. **Adapters built but not yet wired into the engine — see "Next Steps" below.** |
+| Source Adapter Layer | `sources/` | `RegistryAdapter` ABC; all 8 free/freemium adapters implemented (GLEIF, ZEFIX, EventRegistry, OpenSanctions, GDELT, Wayback, WHOIS/RDAP, Firecrawl); 2 SKIPPED (paid). **Wired into the engine via `drift/public_intel.py`, gated by `EXTERNAL_APIS_ENABLED`.** |
 | REST API | `api/v1/` | 27 endpoints, all functional |
 | Frontend | `src/app/drift/`, `src/app/audit/` | 8 drift panels + audit log page + dormancy-break panel |
 | XGBoost + SHAP | `ml/base.py` | Wired to case management only; drift uses per-layer LLR breakdown |

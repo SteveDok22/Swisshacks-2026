@@ -140,9 +140,8 @@ flowchart TD
 
     subgraph Sources["sources/"]
         src_base["base.py\nRegistryAdapter ABC\nEntitySnapshot · PublicSignal\nSnapshotDiff · diff_snapshots"]
-        src_zefix["zefix.py (TODO)"]
-        src_gleif["gleif.py (TODO)"]
-        src_opensanc["opensanctions.py (TODO)"]
+        src_adapters["8 adapters\nzefix · gleif · opensanctions\nevent_registry · gdelt\nfirecrawl · wayback · whois"]
+        src_reg["registry.py\nusable_adapters()"]
     end
 
     Main --> API
@@ -151,8 +150,9 @@ flowchart TD
     cascade --> ML & claude_c
     R3 & R4 & R5 --> Svc
     Svc & API --> Data
-    src_zefix & src_gleif & src_opensanc --> src_base
-    service --> Sources
+    src_adapters --> src_base
+    src_reg --> src_adapters
+    pubintel --> src_reg
 ```
 
 ---
@@ -165,6 +165,7 @@ flowchart TD
         P1["page.tsx\nCase Queue Workspace"]
         P2["drift/page.tsx\nDrift Engine Workspace"]
         P3["about/page.tsx\nGitHub Showcase"]
+        P4["audit/page.tsx\nAudit Log"]
     end
 
     subgraph DriftComp["components/drift/"]
@@ -175,6 +176,7 @@ flowchart TD
         StabilityPanel["StabilityPanel\nSlow-walker details"]
         TimeTravelPanel["TimeTravelPanel\nAs-of replay"]
         TwoLayerPanel["TwoLayerPanel\nPublic Intel vs Bank Data"]
+        DormancyPanel["DormancyPanel\nDormancy-break details"]
     end
 
     subgraph CaseComp["components/cases/"]

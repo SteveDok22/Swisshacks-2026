@@ -75,9 +75,11 @@ See [`docs/sources.md`](docs/sources.md) for full cost/access breakdown.
 - [ ] **`sources/wayback.py`** — Internet Archive historical snapshot at onboarding date (Cases 9, 10) · FREE
 - [ ] **`sources/whois.py`** — RDAP domain age + registrant change (Cases 8, 9) · FREE
 
+- [ ] **`sources/event_registry.py`** — FREEMIUM, key-gated · `EVENT_REGISTRY_API_KEY` (Cases 1, 6, 8, 10) · Fully implemented; enriches GDELT with event-level de-duplication and structured sentiment when a key is present. Returns `[]` gracefully when no key is set so GDELT remains the always-on fallback.
+
 *Paid — skipped (carcasses exist and document the decision):*
 - [x] ~~**`sources/open_corporates.py`**~~ — PAID — SKIP (covered by GLEIF + ZEFIX)
-- [x] ~~**`sources/crunchbase.py`**~~ — PAID — SKIP (funding news covered by Event Registry)
+- [x] ~~**`sources/crunchbase.py`**~~ — PAID — SKIP (funding news covered by Event Registry + GDELT)
 
 **4. Adapter implementation specs — what each connector must fetch and return**
 
@@ -320,6 +322,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | Wayback Machine | 9, 10 | FREE | 🔲 PLANNED |
 | Firecrawl | 9, 10 | FREEMIUM | 🔲 PLANNED |
 | OpenCorporates | 3, 4, 5, 7 | PAID | ⛔ SKIPPED |
+| EventRegistry / NewsAPI.ai | 1, 6, 8, 10 | FREEMIUM (key-gated) | ✅ IMPLEMENTED |
 | Crunchbase | 6 | PAID | ⛔ SKIPPED |
 | Internal transactions | 2, 3, 7 | — | ✅ Built |
 

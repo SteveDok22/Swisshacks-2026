@@ -67,6 +67,11 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 - [ ] **`sources/wayback.py`** — historical website snapshot at onboarding date (Cases 9, 10)
 - [ ] **`sources/whois.py`** — RDAP/WHOIS domain age + registrant change (Cases 8, 9)
 
+**Integration glue — without these, adapter work is dead code**
+- [ ] **Seed KYC baselines** — populate `db/kyc_baseline.py` with onboarding `EntitySnapshot` from `drift/simulator.py` synthetic customers so adapters have a baseline to diff against
+- [ ] **Refactor `public_intel.py` into aggregator** — `service.py:148` calls `generate_signals_for_customer()` which returns headline templates; replace it with real adapter calls (`ZefixAdapter`, `GleifAdapter`, etc.); this is the single wiring step that makes every adapter actually run
+- [ ] **Train drift XGBoost model** — `ml/training.py` has no drift scenario training; feed synthetic book (7 scenarios × time windows ≈ 200 samples) through `DriftFeatureExtractor` → label → fit `XGBClassifier`; without this, `DriftFeatureExtractor` produces features nobody scores
+
 **Fusion wiring**
 - [ ] **`drift/business_model.py`** — sentence-transformer cosine distance between onboarding snapshot and current website (Cases 9, 10)
 - [ ] **`ml/extractors/drift.py`** — `DriftFeatureExtractor` with 20-dim feature vector; wire XGBoost to drift (currently wired to cases only)

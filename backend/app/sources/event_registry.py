@@ -167,7 +167,7 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
                 "Event Registry HTTP %d for %r", exc.response.status_code, name
             )
             return []
-        except (httpx.RequestError, asyncio.TimeoutError) as exc:
+        except httpx.RequestError as exc:
             logger.warning("Event Registry network error for %r: %s", name, exc)
             return []
 
@@ -272,8 +272,8 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
         self, name: str, date_from: str, date_to: str, since_month: int
     ) -> list[PublicSignal]:
         """UC 6 — funding / expansion news via article search."""
-        quoted = " OR ".join('"' + k + '"' for k in _FUNDING_KEYWORDS)
-        keyword_query = f"{name} ({quoted})"
+        quoted_keywords = " OR ".join(f'"{k}"' for k in _FUNDING_KEYWORDS)
+        keyword_query = f"{name} ({quoted_keywords})"
         payload: dict[str, Any] = {
             "action": "getArticles",
             "keyword": keyword_query,
@@ -312,8 +312,8 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
     ) -> list[PublicSignal]:
         """UC 8 / 10 — name-change / business-model-pivot via article search."""
         all_kw = _NAME_CHANGE_KEYWORDS + _PIVOT_KEYWORDS
-        quoted_kw = " OR ".join('"' + k + '"' for k in all_kw)
-        keyword_query = f"{name} ({quoted_kw})"
+        quoted_keywords = " OR ".join(f'"{k}"' for k in all_kw)
+        keyword_query = f"{name} ({quoted_keywords})"
         payload: dict[str, Any] = {
             "action": "getArticles",
             "keyword": keyword_query,

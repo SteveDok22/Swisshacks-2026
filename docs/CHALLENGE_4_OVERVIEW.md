@@ -161,8 +161,8 @@ The challenge explicitly provides these integration points. Teams are expected t
 | Firecrawl | OSS, website-to-markdown scraping |
 
 > **Which of these Sentinel actually adopts:** we implement only the free /
-> free-tier sources (ZEFIX, GLEIF, OpenSanctions, GDELT, Firecrawl, Wayback,
-> WHOIS/RDAP) and skip the paid ones (OpenCorporates, Event Registry,
+> free-tier sources (ZEFIX, GLEIF, OpenSanctions, GDELT, Event Registry,
+> Firecrawl, Wayback, WHOIS/RDAP) and skip the paid ones (OpenCorporates,
 > Crunchbase). Rationale and the adapter contract are in
 > [`sources.md`](sources.md).
 

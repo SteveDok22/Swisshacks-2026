@@ -8,13 +8,12 @@
 > For the **free-vs-paid decision per source** and the current scaffolding
 > status, see [`sources.md`](sources.md).
 
-> **Status — scaffolding (carcass).** `backend/app/sources/` now exists with the
+> **Status — partial implementation.** `backend/app/sources/` now exists with the
 > shared contract (`RegistryAdapter`, `EntitySnapshot`, generic field-diff) and a
-> carcass per source. No adapter does real network I/O yet. Of the connectors
-> below, **7 are free and will be implemented** (ZEFIX, GLEIF, OpenSanctions,
-> GDELT, Firecrawl, Wayback, WHOIS/RDAP) and **3 are paid and skipped**
-> (OpenCorporates, Event Registry, Crunchbase). GDELT is the free, key-less news
-> feed that replaces the paid Event Registry. Details + rationale in
+> connector per source. ZEFIX, GLEIF, Event Registry, and WHOIS/RDAP now do real
+> HTTP/normalization work; OpenSanctions, GDELT, Firecrawl, and Wayback remain
+> planned carcasses. OpenCorporates and Crunchbase are paid and skipped. Details
+> + rationale in
 > [`sources.md`](sources.md).
 
 ---
@@ -357,6 +356,14 @@ flowchart LR
     G -->|yes| H["domain_change · 0.70"]
 ```
 
+Implementation note: `WhoisAdapter` is built against the free `rdap.org` API.
+`fetch(domain=...)` returns an `EntitySnapshot` whose `raw_data` contains
+`domain`, `registered_at`, `last_changed`, `registrar`, `registrant_org`,
+`status`, and `rdap_handle`. `fetch_signals()` diffs a caller-injected same-source
+baseline for registrant changes and emits young-domain signals only when the
+caller provides a company-age hint showing the company claims to be older than
+two years.
+
 ---
 
 ## 5. Signal Schema and Severity Scale
@@ -671,7 +678,7 @@ gantt
 
 ```
 backend/app/
-├── sources/                        ← NEW package (carcass — scaffolding only)
+├── sources/                        ← source adapters (implemented + planned)
 │   ├── __init__.py                 ← exports contract + adapters + registry
 │   ├── base.py                     ← RegistryAdapter ABC + EntitySnapshot +
 │   │                                  PublicSignal + SnapshotDiff/diff_snapshots
@@ -684,9 +691,9 @@ backend/app/
 │   ├── gdelt.py                    ← GdeltAdapter  NEW       (FREE  · implement)
 │   ├── firecrawl.py                ← FirecrawlAdapter        (FREEMIUM · implement)
 │   ├── wayback.py                  ← WaybackAdapter          (FREE  · implement)
-│   ├── whois.py                    ← WhoisAdapter            (FREE  · implement)
+│   ├── whois.py                    ← WhoisAdapter            (FREE  · built)
 │   ├── open_corporates.py          ← OpenCorporatesAdapter   (PAID  · SKIPPED)
-│   ├── event_registry.py           ← EventRegistryAdapter    (PAID  · SKIPPED)
+│   ├── event_registry.py           ← EventRegistryAdapter    (FREEMIUM · built)
 │   └── crunchbase.py               ← CrunchbaseAdapter       (PAID  · SKIPPED)
 │
 ├── drift/
@@ -715,9 +722,9 @@ backend/app/
 | GDELT | 1, 6, 8, 10 | FREE | ✅ implement (replaces Event Registry) |
 | Firecrawl | 9, 10 | FREEMIUM | ✅ implement |
 | Wayback Machine | 9, 10 | FREE | ✅ implement |
-| RDAP / WHOIS | 8, 9 | FREE | ✅ implement |
+| RDAP / WHOIS | 8, 9 | FREE | ✅ built |
 | OpenCorporates | 3, 4, 5, 7 | PAID | ⛔ skip (covered by GLEIF + ZEFIX) |
-| EventRegistry / NewsAPI.ai | 1, 6, 8, 10 | PAID | ⛔ skip (covered by GDELT) |
+| EventRegistry / NewsAPI.ai | 1, 6, 8, 10 | FREEMIUM | ✅ built (key-gated primary news source) |
 | Crunchbase | 6 | PAID | ⛔ skip (partial via GDELT news) |
 | Internal transactions | 2, 3, 7 | — | already built |
 

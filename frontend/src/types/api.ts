@@ -265,6 +265,9 @@ export interface PublicSignal {
   severity: number;
   source: string;
   source_url: string | null;
+  // True when a business_model_change pivot was lifted to the critical band by
+  // two independent sources (news event cluster + website cosine shift, UC 10).
+  corroborated: boolean;
 }
 
 export interface LayerContribution {

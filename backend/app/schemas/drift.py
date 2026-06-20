@@ -28,6 +28,13 @@ class PublicSignalOut(BaseModel):
     severity: float = Field(description="0-1 classifier severity")
     source: str
     source_url: str | None = Field(default=None, description="Deep-link to the original source record")
+    corroborated: bool = Field(
+        default=False,
+        description=(
+            "True when a business_model_change pivot was lifted to the critical band by "
+            "two independent sources (news event cluster + website cosine shift, UC 10)"
+        ),
+    )
 
 
 class UboScreeningOut(BaseModel):

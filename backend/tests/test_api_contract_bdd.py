@@ -79,3 +79,37 @@ async def test_subject_detail_exposes_ubo_screening(client: AsyncClient) -> None
         f"ubo_screening missing from detail. Keys: {list(body.keys())}"
     )
     assert isinstance(body["ubo_screening"], list)
+
+
+# --------------------------------------------------------------------------- #
+# UC10 — PublicSignalOut exposes the corroborated-critical pivot flag          #
+# --------------------------------------------------------------------------- #
+
+def test_public_signal_out_exposes_corroborated_flag() -> None:
+    """A corroborated pivot's ``corroborated`` flag must survive the exact
+    serialization path the service uses (``PublicSignalOut(**signal.to_dict())``,
+    drift/service.py), so the signal card can give it a critical treatment (UC10).
+    """
+    from app.schemas.drift import PublicSignalOut
+    from app.sources.base import PublicSignal
+
+    corroborated = PublicSignal(
+        month=9,
+        signal_type="business_model_change",
+        headline="Website content shifted materially since onboarding",
+        severity=0.95,
+        source="website-comparison",
+        corroborated=True,
+    )
+    out = PublicSignalOut(**corroborated.to_dict())
+    assert out.corroborated is True
+
+    # The default (uncorroborated single signal) must stay False, not over-state.
+    lead = PublicSignal(
+        month=8,
+        signal_type="business_model_change",
+        headline="Acme announces strategic pivot",
+        severity=0.60,
+        source="Event Registry / NewsAPI.ai",
+    )
+    assert PublicSignalOut(**lead.to_dict()).corroborated is False

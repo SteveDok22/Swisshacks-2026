@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { driftApi } from "@/lib/api";
-import { cn, TIER_LABELS, formatCompact, llrWeight } from "@/lib/utils";
+import { cn, TIER_LABELS, ACTION_LABELS, llrWeight } from "@/lib/utils";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { DriftRadar } from "@/components/drift/DriftRadar";
 import { DriftTimeline } from "@/components/drift/DriftTimeline";
@@ -15,7 +15,7 @@ import { DormancyPanel } from "@/components/drift/DormancyPanel";
 import { TimeTravelPanel } from "@/components/drift/TimeTravelPanel";
 import { DecisionBar } from "@/components/cases/DecisionBar";
 import type { DriftCustomerDetail } from "@/types/api";
-import { Activity, Zap, DollarSign, FlaskConical, Loader2, ArrowRight, ShieldCheck, ShieldAlert, ChevronDown } from "lucide-react";
+import { DollarSign, FlaskConical, Loader2, ShieldCheck, ShieldAlert, ShieldQuestion, ChevronDown } from "lucide-react";
 
 /**
  * Drift Engine workspace — AMINA Challenge 4.
@@ -142,66 +142,8 @@ export default function DriftPage() {
       <main className="flex-1 min-w-0 bg-paper overflow-y-auto">
         {detail ? (
           <div className="p-6 space-y-5">
-            {/* Customer header */}
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <h2 className="text-base font-semibold text-ink">{detail.name}</h2>
-                <span
-                  className={cn(
-                    "text-2xs px-2 py-0.5 rounded font-medium",
-                    detail.velocity_band === "rapid" && "bg-risk-critical-bg text-risk-critical",
-                    detail.velocity_band === "structural" && "bg-risk-high-bg text-risk-high",
-                    detail.velocity_band === "notable" && "bg-risk-medium-bg text-risk-medium",
-                    detail.velocity_band === "natural" && "bg-risk-low-bg text-risk-low",
-                  )}
-                >
-                  {detail.velocity_band}
-                </span>
-                {detail.causal && (
-                  <span
-                    className={cn(
-                      "text-2xs px-2 py-0.5 rounded font-medium",
-                      detail.causal.label === "risk" && "bg-risk-critical-bg text-risk-critical",
-                      detail.causal.label === "benign" && "bg-risk-low-bg text-risk-low",
-                      detail.causal.label === "ambiguous" && "bg-risk-medium-bg text-risk-medium",
-                    )}
-                  >
-                    {detail.causal.label === "benign" ? "✓ benign" : detail.causal.label}
-                  </span>
-                )}
-                {detail.stability?.is_suspicious && (
-                  <span className="text-2xs px-2 py-0.5 rounded font-medium bg-risk-high text-white">
-                    slow-walker
-                  </span>
-                )}
-                {detail.dormancy?.is_dormancy_break && (
-                  <span className="text-2xs px-2 py-0.5 rounded font-medium bg-risk-critical text-white">
-                    dormancy
-                  </span>
-                )}
-                {detail.scenario && (
-                  <span className="text-2xs text-ink-faint">
-                    {detail.scenario.replace(/_/g, " ")}
-                  </span>
-                )}
-              </div>
-              <div className="flex items-center gap-4 text-2xs text-ink-muted">
-                <span className="flex items-center gap-1">
-                  <Activity className="h-3 w-3" /> Risk score{" "}
-                  <span className="font-mono text-ink">{Math.round(detail.drift_score)}</span>
-                  <span className="text-ink-faint">/100</span>
-                </span>
-                <span className="flex items-center gap-1">
-                  <Zap className="h-3 w-3" /> Change rate{" "}
-                  <span className="font-mono text-ink">{formatCompact(detail.drift_velocity)}</span>
-                  <span className="text-ink-faint">bits/mo</span>
-                </span>
-                <span>Reviewed by: <span className="text-ink">{TIER_LABELS[detail.reached_tier] ?? detail.reached_tier}</span></span>
-              </div>
-            </div>
-
-            {/* === VERDICT BAR — the one-line "what to do" summary === */}
-            <VerdictBar detail={detail} />
+            {/* Case summary — identity + authoritative verdict + KPIs, one block */}
+            <CaseSummary detail={detail} />
 
             {/* === DECISION BAR — officer records their compliance action === */}
             <DecisionBar
@@ -277,53 +219,102 @@ export default function DriftPage() {
   );
 }
 
-function VerdictBar({ detail }: { detail: DriftCustomerDetail }) {
-  // Derive a single recommended action from the full picture.
+function CaseSummary({ detail }: { detail: DriftCustomerDetail }) {
   const score = detail.drift_score;
-  const causal = detail.causal?.label ?? "ambiguous";
-  const suspicious = detail.stability?.is_suspicious ?? false;
+  const action = detail.recommended_action;
+  const reasons = detail.escalation_reasons ?? [];
 
-  let action: string;
-  let tone: "critical" | "high" | "medium" | "low";
-  let Icon = ShieldAlert;
-
-  if (suspicious) {
-    action = "Escalate — suspicious stability (possible slow-walker)";
-    tone = "high";
-  } else if (causal === "benign") {
-    action = "Monitor only — change matches legitimate business growth";
-    tone = "low";
-    Icon = ShieldCheck;
-  } else if (score >= 70 || causal === "risk") {
-    action = "Escalate to enhanced due diligence — risk-shaped drift";
-    tone = "critical";
-  } else if (score >= 40 || causal === "ambiguous") {
-    action = "Request information — ambiguous, needs human review";
-    tone = "medium";
-  } else {
-    action = "No action — within normal range";
-    tone = "low";
-    Icon = ShieldCheck;
-  }
-
+  // Tone follows the backend risk level; the action label follows the backend
+  // recommendation — the same value the Decision Bar highlights, so the two
+  // surfaces can never disagree.
   const toneClasses = {
     critical: "border-risk-critical/25 bg-risk-critical-bg text-risk-critical",
     high: "border-risk-high/25 bg-risk-high-bg text-risk-high",
     medium: "border-risk-medium/25 bg-risk-medium-bg text-risk-medium",
     low: "border-risk-low/25 bg-risk-low-bg text-risk-low",
-  }[tone];
+  }[detail.risk_level];
+
+  const Icon =
+    action === "allow"
+      ? ShieldCheck
+      : action === "step_up_verification"
+        ? ShieldQuestion
+        : ShieldAlert;
+
+  // One-line driver — what made this the recommendation. Prioritised so the
+  // exceptional detectors always surface, then the causal verdict.
+  const driver = (() => {
+    if (detail.dormancy?.is_dormancy_break)
+      return "Dormancy break — sudden activation after a quiet baseline";
+    if (detail.stability?.is_suspicious)
+      return "Suspicious stability — anomalously smooth while peers move";
+    switch (detail.causal?.label) {
+      case "risk":
+        return "Risk-shaped drift — margin signature points to transit";
+      case "benign":
+        return "Legitimate growth pattern — routine monitoring";
+      case "ambiguous":
+        return "Inconclusive signal — needs human review";
+      default:
+        return "Within expected range";
+    }
+  })();
+
+  const bandClasses = cn(
+    detail.velocity_band === "rapid" && "bg-risk-critical-bg text-risk-critical",
+    detail.velocity_band === "structural" && "bg-risk-high-bg text-risk-high",
+    detail.velocity_band === "notable" && "bg-risk-medium-bg text-risk-medium",
+    detail.velocity_band === "natural" && "bg-risk-low-bg text-risk-low",
+  );
 
   return (
-    <div className={cn("flex items-center gap-3 rounded border p-3", toneClasses)}>
-      <Icon className="h-5 w-5 shrink-0" strokeWidth={2} />
-      <div className="flex-1 min-w-0">
-        <div className="text-2xs uppercase tracking-wide opacity-70">Recommended action</div>
-        <div className="text-sm font-semibold">{action}</div>
+    <div className="space-y-3">
+      {/* Identity line */}
+      <div className="flex items-center gap-2 flex-wrap">
+        <h2 className="text-base font-semibold text-ink">{detail.name}</h2>
+        <span className={cn("text-2xs px-2 py-0.5 rounded font-medium capitalize", bandClasses)}>
+          {detail.velocity_band} drift
+        </span>
+        {detail.scenario && (
+          <span className="text-2xs text-ink-faint">
+            {detail.scenario.replace(/_/g, " ")}
+          </span>
+        )}
       </div>
-      <div className="flex items-center gap-2 text-2xs shrink-0">
-        <span className="font-mono font-semibold text-base tabular">{Math.round(score)}</span>
-        <ArrowRight className="h-3.5 w-3.5 opacity-50" />
-        <span className="uppercase">{TIER_LABELS[detail.reached_tier] ?? detail.reached_tier.replace("_", " ")}</span>
+
+      {/* Verdict banner — single authoritative "what to do + why + KPIs" */}
+      <div className={cn("flex items-center gap-3 rounded border p-3", toneClasses)}>
+        <Icon className="h-5 w-5 shrink-0" strokeWidth={2} />
+        <div className="flex-1 min-w-0">
+          <div className="text-2xs uppercase tracking-wide opacity-70">
+            Recommended action
+          </div>
+          <div className="text-sm font-semibold">{ACTION_LABELS[action] ?? action}</div>
+          <div className="text-2xs opacity-80">{driver}</div>
+          {reasons.length > 0 && (
+            <div className="text-2xs text-ink-muted mt-1">
+              Routing: {reasons.join(" · ")}
+            </div>
+          )}
+        </div>
+        <div className="flex items-stretch gap-4 shrink-0 text-center">
+          <div>
+            <div className="font-mono text-2xl font-semibold tabular leading-none">
+              {Math.round(score)}
+            </div>
+            <div className="text-2xs uppercase tracking-wide opacity-70 mt-1">
+              risk / 100
+            </div>
+          </div>
+          <div className="border-l border-black/10 pl-4 flex flex-col justify-center">
+            <div className="text-sm font-semibold leading-none">
+              {TIER_LABELS[detail.reached_tier] ?? detail.reached_tier}
+            </div>
+            <div className="text-2xs uppercase tracking-wide opacity-70 mt-1">
+              reviewed by
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

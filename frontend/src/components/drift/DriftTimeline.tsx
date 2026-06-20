@@ -77,11 +77,6 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
   const changepointPoint = timeline.find((p) => p.bocpd_changepoint);
   const changepointMonth = changepointPoint?.month ?? null;
 
-  const leadTime =
-    alertMonth !== null && sanctions_month !== null
-      ? sanctions_month - alertMonth
-      : null;
-
   const path = timeline
     .map((p, i) => `${i === 0 ? "M" : "L"} ${mx(p.month)} ${vy(p.velocity)}`)
     .join(" ");
@@ -93,19 +88,14 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
       className="border border-paper-line rounded bg-paper-raised p-4"
       zoomLabel="Zoom Drift Timeline"
     >
-      <div className="flex items-center justify-between mb-3 pr-10">
-        <div className="flex items-center gap-2">
+      <div className="flex items-start justify-between gap-3 mb-3 pr-10">
+        <div>
           <h3 className="text-sm font-semibold text-ink">Drift Timeline</h3>
-          <InfoHint text={explanation} />
+          <p className="text-2xs text-ink-muted mt-0.5">
+            Velocity climbs months before the sanctions list reacts
+          </p>
         </div>
-        {leadTime !== null && leadTime > 0 && (
-          <div className="text-right whitespace-nowrap">
-            <span className="font-mono text-lg font-semibold text-risk-high tabular">
-              {leadTime} mo
-            </span>
-            <span className="text-2xs text-ink-muted ml-1">advance warning</span>
-          </div>
-        )}
+        <InfoHint text={explanation} />
       </div>
 
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img">

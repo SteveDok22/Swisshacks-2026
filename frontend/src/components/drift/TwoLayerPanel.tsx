@@ -55,13 +55,13 @@ export function TwoLayerPanel({ detail }: TwoLayerPanelProps) {
         <LayerCard
           icon={Globe}
           label="Public Intelligence"
-          sublabel="news · sanctions · media · ownership · funding"
+          sublabel="external real-time signals"
           risk={public_risk}
         />
         <LayerCard
           icon={Building2}
           label="Internal Bank Data"
-          sublabel="behavioural drift · velocity · contagion"
+          sublabel="behavioural drift & contagion"
           risk={internal_risk}
         />
       </div>

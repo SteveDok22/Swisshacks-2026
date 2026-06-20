@@ -129,11 +129,14 @@ class DriftEngine:
         daily = standardize(cust.daily_volume_series())
         bres = BOCPD(hazard=1 / 500).run(daily)
         cp_day = bres.detected_changepoints[0] if bres.detected_changepoints else None
-        # Internal drift peak month (for temporal co-occurrence). Convert the
-        # BOCPD day index to a month via days-per-month, else use velocity peak.
-        if cp_day is not None and cust.monthly_volume:
-            days_per_month = len(cust.monthly_volume[0]) or 21
-            internal_peak_month = cp_day // days_per_month
+        # Map the BOCPD changepoint (a day index over the concatenated daily
+        # series) to its month window. Computed once here and reused for both
+        # the temporal co-occurrence signal and the timeline marker.
+        cp_month = cust.day_to_month(cp_day) if cp_day is not None else None
+        # Internal drift peak month (for temporal co-occurrence): the changepoint
+        # month if we have one, else the velocity peak.
+        if cp_month is not None:
+            internal_peak_month = cp_month
         elif ds.velocity:
             internal_peak_month = ds.windows[int(np.argmax(ds.velocity))]
         else:
@@ -223,6 +226,7 @@ class DriftEngine:
             "max_velocity": max_velocity,
             "final_drift": final_drift,
             "bocpd_changepoint_day": cp_day,
+            "bocpd_changepoint_month": cp_month,
             "propagated_risk": prop_risk,
             "internal_risk": internal_risk,
             "internal_peak_month": internal_peak_month,
@@ -497,13 +501,19 @@ class DriftEngine:
             a["stability"].is_suspicious,
         )
 
+        # Mark the timeline point at the BOCPD changepoint month (mapped from a
+        # day index in _analyze_customer). A changepoint that lands in the
+        # baseline window — before the first timeline point — matches no point
+        # and is correctly left unmarked, as is the no-changepoint (None) case.
+        cp_month = a["bocpd_changepoint_month"]
+
         timeline = [
             DriftTimelinePoint(
                 month=ds.windows[i],
                 drift_bits=round(ds.drift_bits[i], 3),
                 velocity=round(ds.velocity[i], 3),
                 acceleration=round(ds.acceleration[i], 3),
-                bocpd_changepoint=False,
+                bocpd_changepoint=ds.windows[i] == cp_month,
             )
             for i in range(len(ds.windows))
         ]

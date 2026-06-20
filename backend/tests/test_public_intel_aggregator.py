@@ -93,15 +93,23 @@ def _make_adapter_cls(
 class _FakeGleif:
     """Minimal GLEIF adapter stand-in for UBO-resolution tests.
 
-    ``fetch`` returns a snapshot whose ``officers`` hold direct-child LEIs when
-    called with a name, and resolves each LEI to a legal name when called with
-    the ``lei`` kwarg (mirroring the real GleifAdapter contract).
+    ``fetch`` returns a snapshot whose ``officers`` hold direct-child LEIs and
+    whose ``beneficial_owners`` hold the ultimate-parent LEI when called with a
+    name, and resolves each LEI to a legal name when called with the ``lei``
+    kwarg (mirroring the real GleifAdapter contract).
     """
 
     source_name = "gleif"
 
-    def __init__(self, *, root_officers: list[str], lei_names: dict[str, str]) -> None:
+    def __init__(
+        self,
+        *,
+        root_officers: list[str],
+        lei_names: dict[str, str],
+        root_parents: list[str] | None = None,
+    ) -> None:
         self._root_officers = root_officers
+        self._root_parents = root_parents or []
         self._lei_names = lei_names
 
     async def fetch(self, drift_id, name, **kwargs):
@@ -110,6 +118,7 @@ class _FakeGleif:
             return EntitySnapshot(
                 drift_id=drift_id, name=name, source="gleif",
                 officers=list(self._root_officers),
+                beneficial_owners=list(self._root_parents),
             )
         resolved = self._lei_names.get(lei)
         if resolved is None:
@@ -123,8 +132,10 @@ class _FakeGleif:
         return None
 
 
-def _gleif_cls(root_officers, lei_names) -> MagicMock:
-    instance = _FakeGleif(root_officers=root_officers, lei_names=lei_names)
+def _gleif_cls(root_officers, lei_names, root_parents=None) -> MagicMock:
+    instance = _FakeGleif(
+        root_officers=root_officers, lei_names=lei_names, root_parents=root_parents
+    )
     cls = MagicMock()
     cls.source_name = "gleif"
     cls.return_value = instance
@@ -152,6 +163,50 @@ class TestResolveUboNames:
     async def test_no_children_returns_empty(self):
         cls = _gleif_cls([], {})
         assert await _resolve_ubo_names("d", "Root AG", (cls,)) == []
+
+    async def test_resolves_parent_lei_in_addition_to_children(self):
+        # The ultimate parent (beneficial_owners) is screened alongside the
+        # direct children (officers). Parent is resolved first.
+        cls = _gleif_cls(
+            ["LEI-A", "LEI-B"],
+            {
+                "LEI-P": "Parent Global SA",
+                "LEI-A": "Alpha Holdings",
+                "LEI-B": "Beta Trust",
+            },
+            root_parents=["LEI-P"],
+        )
+        names = await _resolve_ubo_names("d", "Root AG", (cls,))
+        assert names == ["Parent Global SA", "Alpha Holdings", "Beta Trust"]
+
+    async def test_resolves_parent_only_when_no_children(self):
+        # A parent with no direct children must still be screened (previously the
+        # children-only guard returned [] here — the deferred follow-up).
+        cls = _gleif_cls([], {"LEI-P": "Parent Global SA"}, root_parents=["LEI-P"])
+        names = await _resolve_ubo_names("d", "Root AG", (cls,))
+        assert names == ["Parent Global SA"]
+
+    async def test_no_parent_degrades_to_children_only(self):
+        # No ultimate parent in GLEIF → screening degrades to the children.
+        cls = _gleif_cls(["LEI-A"], {"LEI-A": "Alpha Holdings"}, root_parents=[])
+        names = await _resolve_ubo_names("d", "Root AG", (cls,))
+        assert names == ["Alpha Holdings"]
+
+    async def test_parent_equal_to_child_is_deduped(self):
+        # A node appearing as both parent and child is resolved/screened once.
+        cls = _gleif_cls(
+            ["LEI-X"], {"LEI-X": "Shared Entity"}, root_parents=["LEI-X"]
+        )
+        names = await _resolve_ubo_names("d", "Root AG", (cls,))
+        assert names == ["Shared Entity"]
+
+    async def test_unresolvable_parent_dropped(self):
+        # Parent LEI that GLEIF cannot resolve is dropped; children survive.
+        cls = _gleif_cls(
+            ["LEI-A"], {"LEI-A": "Alpha Holdings"}, root_parents=["LEI-MISSING"]
+        )
+        names = await _resolve_ubo_names("d", "Root AG", (cls,))
+        assert names == ["Alpha Holdings"]
 
     async def test_entity_not_in_gleif_returns_empty(self):
         # fetch returns None for the root name (no LEI match).
@@ -202,6 +257,48 @@ class TestGatherUboScreening:
         assert captured["ubo_names"] == ["Alpha Holdings", "Beta Trust"]
         assert len(signals) == 1
         assert signals[0].meta["kind"] == "ubo_screening"
+
+    async def test_parent_lei_screened_through_opensanctions(self):
+        # The ultimate-parent name resolved from GLEIF beneficial_owners is
+        # screened by OpenSanctions alongside the direct children, and a parent
+        # hit surfaces as a UBO-tagged ownership_change signal.
+        captured: dict = {}
+
+        async def os_fetch(drift_id, name, **kwargs):
+            captured["ubo_names"] = kwargs.get("ubo_names")
+            return [
+                PublicSignal(
+                    month=3, signal_type="ownership_change",
+                    headline="UBO hit (parent)", severity=0.9, source="OpenSanctions",
+                    source_url="https://www.opensanctions.org/entities/p/",
+                    meta={
+                        "kind": "ubo_screening", "ubo_name": "Parent Global SA",
+                        "matched_entity": "Parent Global SA", "score": 0.93,
+                        "definitive": True,
+                    },
+                )
+            ]
+
+        os_instance = MagicMock()
+        os_instance.source_name = "opensanctions"
+        os_instance.aclose = AsyncMock()
+        os_instance.fetch_signals = os_fetch
+        os_cls = MagicMock()
+        os_cls.source_name = "opensanctions"
+        os_cls.return_value = os_instance
+
+        gleif_cls = _gleif_cls(
+            ["LEI-A"],
+            {"LEI-A": "Alpha Holdings", "LEI-P": "Parent Global SA"},
+            root_parents=["LEI-P"],
+        )
+
+        with patch("app.sources.registry.usable_adapters", return_value=(gleif_cls, os_cls)):
+            signals = await gather_public_signals("d", "Root AG")
+
+        assert captured["ubo_names"] == ["Parent Global SA", "Alpha Holdings"]
+        assert len(signals) == 1
+        assert signals[0].meta["ubo_name"] == "Parent Global SA"
 
     async def test_slow_ubo_resolution_does_not_block_other_adapters(self, monkeypatch):
         # A hung GLEIF resolution must not sink the aggregation: the resolution

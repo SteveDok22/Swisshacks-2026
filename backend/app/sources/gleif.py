@@ -15,7 +15,7 @@ WHY IT MATTERS HERE  (Use cases 3, 4, 5, 8, 10)
     subsidiary, i.e. real UBO/ownership drift (Cases 3, 5) feeding the contagion
     layer instead of a synthetic graph.
 
-COST / ACCESS  →  FREE, no API key  (status: IMPLEMENTED)
+COST / ACCESS  →  FREE, no API key  (status: PLANNED — adapter fully implemented)
     Fully open JSON:API. Max 200 records/request; fair-use rate limiting (429).
 
     Base URL:  https://api.gleif.org/api/v1/

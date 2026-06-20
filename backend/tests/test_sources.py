@@ -147,10 +147,10 @@ class TestCostMixin:
                 cost = SourceCost.FREE
                 status = AdapterStatus.PLANNED
 
-                async def fetch(self, customer_id, name, **kwargs):
+                async def fetch(self, drift_id, name, **kwargs):
                     return None
 
-                async def fetch_signals(self, customer_id, name, since_month=0, **kwargs):
+                async def fetch_signals(self, drift_id, name, since_month=0, **kwargs):
                     return []
 
 

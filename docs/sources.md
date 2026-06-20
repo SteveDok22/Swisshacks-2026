@@ -92,8 +92,8 @@ Each source combines `CostMixin` (cost metadata) with `RegistryAdapter` (the
 `base.py` contract) and implements two async methods:
 
 ```
-async fetch(customer_id, name, **kwargs) -> EntitySnapshot | None
-async fetch_signals(customer_id, name, since_month=0, **kwargs) -> [PublicSignal]
+async fetch(drift_id, name, **kwargs) -> EntitySnapshot | None
+async fetch_signals(drift_id, name, since_month=0, **kwargs) -> [PublicSignal]
 ```
 
 - `fetch` returns the source's current canonical `EntitySnapshot` (or `None` if

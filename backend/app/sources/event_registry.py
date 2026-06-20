@@ -42,11 +42,11 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
     signal_types = ("news", "adverse_media", "funding_event")
 
     async def fetch(
-        self, customer_id: str, name: str, **kwargs: Any
+        self, drift_id: str, name: str, **kwargs: Any
     ) -> EntitySnapshot | None:
         return self._carcass()  # raises SourceUnavailableError (paid/skipped)
 
     async def fetch_signals(
-        self, customer_id: str, name: str, since_month: int = 0, **kwargs: Any
+        self, drift_id: str, name: str, since_month: int = 0, **kwargs: Any
     ) -> list[PublicSignal]:
         return self._carcass()  # raises SourceUnavailableError (paid/skipped)

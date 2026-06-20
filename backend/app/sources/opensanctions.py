@@ -56,11 +56,11 @@ class OpenSanctionsAdapter(CostMixin, RegistryAdapter):
         return f"https://www.opensanctions.org/entities/{entity_id}/"
 
     async def fetch(
-        self, customer_id: str, name: str, **kwargs: Any
+        self, drift_id: str, name: str, **kwargs: Any
     ) -> EntitySnapshot | None:
         return self._carcass()
 
     async def fetch_signals(
-        self, customer_id: str, name: str, since_month: int = 0, **kwargs: Any
+        self, drift_id: str, name: str, since_month: int = 0, **kwargs: Any
     ) -> list[PublicSignal]:
         return self._carcass()

@@ -176,6 +176,11 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
                   slow
                 </span>
               )}
+              {c.is_dormancy_break && (
+                <span className="text-2xs px-1.5 py-0.5 rounded bg-risk-critical text-white shrink-0">
+                  dormant
+                </span>
+              )}
               <span className="font-mono text-2xs tabular text-ink-soft w-8 text-right shrink-0">
                 {c.drift_score.toFixed(0)}
               </span>

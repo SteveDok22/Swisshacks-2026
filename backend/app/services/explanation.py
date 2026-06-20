@@ -84,10 +84,10 @@ class ExplanationService:
             anonymized_context=anon_report.anonymized,
             jurisdiction=case.jurisdiction.value,
         )
-        executive_summary, exec_cached = self.llm.complete(
+        executive_summary, exec_cached, _ = self.llm.complete(
             exec_prompt, system=COMPLIANCE_OFFICER_PERSONA
         )
-        
+
         # === Risk factors ===
         risk_prompt = risk_factors_prompt(
             risk_score=ml_result.score,
@@ -95,10 +95,10 @@ class ExplanationService:
             top_features=top_features_dicts,
             anonymized_context=anon_report.anonymized,
         )
-        risk_factors, _ = self.llm.complete(
+        risk_factors, _, _ = self.llm.complete(
             risk_prompt, system=COMPLIANCE_OFFICER_PERSONA
         )
-        
+
         # === Counterfactuals (only for high/critical) ===
         alternative_outcomes: str | None = None
         if ml_result.level.value in ("high", "critical"):
@@ -109,10 +109,10 @@ class ExplanationService:
                     original_score=ml_result.score,
                     counterfactuals=cf_dicts,
                 )
-                alternative_outcomes, _ = self.llm.complete(
+                alternative_outcomes, _, _ = self.llm.complete(
                     cf_prompt, system=COMPLIANCE_OFFICER_PERSONA
                 )
-        
+
         # === Action rationale ===
         try:
             j_rules = self.jurisdiction.get_rules(case.jurisdiction)
@@ -123,7 +123,7 @@ class ExplanationService:
             j_rules_dict["applicable_rules"] = j_adjusted.applicable_rules
         except Exception:
             j_rules_dict = {}
-        
+
         action_prompt = action_rationale_prompt(
             recommended_action=ml_result.recommended_action.value,
             risk_score=ml_result.score,
@@ -131,7 +131,7 @@ class ExplanationService:
             jurisdiction=case.jurisdiction.value,
             jurisdiction_rules=j_rules_dict,
         )
-        action_rationale, _ = self.llm.complete(
+        action_rationale, _, _ = self.llm.complete(
             action_prompt, system=COMPLIANCE_OFFICER_PERSONA
         )
         

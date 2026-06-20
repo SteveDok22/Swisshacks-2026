@@ -66,7 +66,7 @@ Decision rule: **only 100%-free / free-tier sources are implemented**; paid sour
 See [`docs/sources.md`](docs/sources.md) for full cost/access breakdown.
 
 *Free — implement these (status: `PLANNED`):*
-- [ ] **`sources/zefix.py`** — Swiss commercial register (Cases 4, 7, 8, 10) · FREE
+- [ ] **`sources/zefix.py`** — Swiss commercial register (Cases 4, 7, 8, 10) · FREEMIUM (free, but needs a free registered Basic-auth account — verified live 401 without creds; no officers/UBO in the API)
 - [ ] **`sources/gleif.py`** — Global LEI Foundation (Cases 3, 4, 5, 8, 10) · FREE
 - [ ] **`sources/opensanctions.py`** — OFAC / EU / UN sanctions + PEP screening (Cases 2, 5) · FREEMIUM
 - [ ] **`sources/gdelt.py`** — GDELT 2.0 free news feed (Cases 1, 6, 8, 10) · FREE — replaces paid Event Registry
@@ -86,7 +86,7 @@ Each adapter has two methods to implement. `fetch()` returns a current `EntitySn
 ---
 
 **`ZefixAdapter`** (`sources/zefix.py`) — Swiss Commercial Register
-- **What to fetch**: company legal name, legal form (AG/GmbH/SA), registered canton (legal seat), status (ACTIVE / IN_LIQUIDATION / DELETED), last mutation date.
+- **What to fetch**: company legal name, legal form (AG/GmbH/SA), registered canton (legal seat), status (ACTIVE / IN_LIQUIDATION / DELETED), last mutation date, `purpose` (Zweck) and SHAB publications. NOT available: officers / board members / UBOs (cantonal-register data only).
 - **`fetch(drift_id, name)`**
   - `POST https://www.zefix.admin.ch/ZefixPublicREST/api/v1/company/search` with `{"name": name, "maxEntries": 5, "languageKey": "en"}` → pick best name-match by Levenshtein distance
   - `GET /api/v1/company/uid/{uid}` → parse `legalName`, `legalForm`, `legalSeat`, `status`, `mutationDate`
@@ -97,7 +97,7 @@ Each adapter has two methods to implement. `fetch()` returns a current `EntitySn
   - `legal_form` changed → `signal_type="legal_form_change"`, severity=`"medium"`
   - `jurisdiction` changed → `signal_type="jurisdiction_change"`, severity=`"high"`
   - `status` is `IN_LIQUIDATION` or `DELETED` → `signal_type="status_change"`, severity=`"critical"`
-- **Auth**: none. Add `User-Agent: Sentinel/1.0` header. Respect 429 with exponential backoff.
+- **Auth**: **free registered Basic-auth account** required (verified live — `401 WWW-Authenticate: Basic` without credentials; request one from the Federal Office of Justice, zefix@bj.admin.ch). Add `User-Agent: Sentinel/1.0` header. Respect 429 with exponential backoff.
 
 ---
 
@@ -296,7 +296,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 
 | Source | Cases | Cost | Status |
 |---|---|---|---|
-| ZEFIX | 4, 7, 8, 10 | FREE | 🔲 PLANNED |
+| ZEFIX | 4, 7, 8, 10 | FREEMIUM¹ | 🔲 PLANNED |
 | GLEIF | 3, 4, 5, 8, 10 | FREE | 🔲 PLANNED |
 | OpenSanctions | 2, 5 | FREEMIUM | 🔲 PLANNED |
 | GDELT | 1, 6, 8, 10 | FREE | 🔲 PLANNED |
@@ -307,3 +307,5 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | EventRegistry / NewsAPI.ai | 1, 6, 8, 10 | PAID | ⛔ SKIPPED |
 | Crunchbase | 6 | PAID | ⛔ SKIPPED |
 | Internal transactions | 2, 3, 7 | — | ✅ Built |
+
+¹ ZEFIX: free, but the REST API needs a free registered Basic-auth account (verified live — `401` without credentials). All cost tiers above were verified live against each API in June 2026.

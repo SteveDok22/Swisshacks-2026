@@ -12,16 +12,26 @@ WHY IT MATTERS HERE  (Use cases 4, 7, 8, 10)
     against the KYC-onboarding baseline catches a *secret* legal-name change
     (Case 8), a legal-form or seat change that shifts jurisdiction/regulatory
     exposure (Case 4), a dissolution (adverse), and a mutation after a long
-    dormant stretch (Case 7 corroboration).
+    dormant stretch (Case 7 corroboration). The detail record also carries
+    ``purpose`` (Zweck — business-activity text → Case 10 corroboration) and
+    SHAB/SOGC publications (a dated mutation log → change *timing*).
 
-COST / ACCESS  →  FREE, no API key (PLANNED — implement now)
-    Public read API; the name index is published as Swiss Open Data. Fair-use
-    rate limiting; a registered account (email zefix@bj.admin.ch) is expected
-    only for heavy automated polling.
+    NOT available: officers / board members / beneficial owners are NOT in the
+    ZEFIX PublicREST API (they live in the cantonal registers). Case 5
+    (new shareholders/UBOs) therefore stays GLEIF's job, not ZEFIX's.
 
-    Base URL:  https://www.zefix.admin.ch/ZefixPublicREST/
+COST / ACCESS  →  FREEMIUM: free, but a (free) registered account is required.
+    Verified live (2026-06): the ZefixPublicREST API returns
+    ``401 WWW-Authenticate: Basic realm="ZefixPublicREST"`` without credentials.
+    Access is HTTP Basic auth with a free account requested from the Federal
+    Office of Justice (email zefix@bj.admin.ch). No payment, fair-use limits.
+    (The daily ZEFIX *Open Data* bulk dump is the only no-auth path, but it is a
+    snapshot of the name index, not live per-entity detail.)
+
+    Base URL:  https://www.zefix.admin.ch/ZefixPublicREST/   (HTTP Basic auth)
     Endpoints: POST /api/v1/company/search        (by name / UID)
-               GET  /api/v1/company/uid/{uid}     (full record)
+               GET  /api/v1/company/uid/{uid}     (records for a UID)
+               GET  /api/v1/firm/{ehraid}         (full detail + purpose + SHAB)
 
 Carcass: ``fetch``/``fetch_signals`` are unimplemented (raise via ``_carcass``).
 """
@@ -41,9 +51,11 @@ class ZefixAdapter(CostMixin, RegistryAdapter):
     display_name = "ZEFIX (Swiss Commercial Register)"
     base_url = "https://www.zefix.admin.ch/ZefixPublicREST"
     docs_url = "https://www.zefix.admin.ch/ZefixPublicREST/swagger-ui/index.html"
-    cost = SourceCost.FREE
+    # FREEMIUM, not FREE: the REST API needs a free registered Basic-auth
+    # account (verified live — 401 without credentials). No payment involved.
+    cost = SourceCost.FREEMIUM
     status = AdapterStatus.PLANNED
-    requires_api_key = False
+    requires_api_key = True
     use_cases = (4, 7, 8, 10)
     signal_types = (
         "name_change",

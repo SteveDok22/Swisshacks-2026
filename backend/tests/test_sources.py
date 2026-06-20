@@ -90,10 +90,18 @@ class TestRegistryClassification:
     def test_catalogue_is_serializable_and_complete(self):
         cat = catalogue()
         assert len(cat) == 10
+        # GLEIF is the canonical FREE / no-key source.
+        gleif = next(c for c in cat if c["source_name"] == "gleif")
+        assert gleif["is_free"] is True
+        assert gleif["cost"] == "free"
+        assert gleif["status"] == "planned"
+        assert gleif["requires_api_key"] is False
+        # ZEFIX is FREEMIUM: free but needs a registered Basic-auth account
+        # (verified live — 401 without credentials), so is_free is False.
         zefix = next(c for c in cat if c["source_name"] == "zefix")
-        assert zefix["is_free"] is True
-        assert zefix["cost"] == "free"
-        assert zefix["status"] == "planned"
+        assert zefix["cost"] == "freemium"
+        assert zefix["requires_api_key"] is True
+        assert zefix["is_free"] is False
 
 
 # --------------------------------------------------------------------------- #

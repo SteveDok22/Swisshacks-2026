@@ -54,7 +54,7 @@ status == PLANNED   <=>   cost == FREE or FREEMIUM
 
 | Source | What it provides | Cost | Key? | Decision |
 |---|---|---|---|---|
-| **ZEFIX** | Swiss commercial register: name, legal form, seat, status, mutation date | FREE | no | ✅ IMPLEMENT |
+| **ZEFIX** | Swiss commercial register: name, legal form, seat, status, purpose (Zweck), SHAB mutation log | FREEMIUM | yes⁰ | ✅ IMPLEMENT |
 | **GLEIF** | Global LEI: name, status, jurisdiction, parent/children ownership graph | FREE | no | ✅ IMPLEMENT |
 | **OpenSanctions** | OFAC/EU/UN sanctions + PEP screening with match scores | FREEMIUM | yes¹ | ✅ IMPLEMENT |
 | **GDELT 2.0** | Global news article lists + volume time-series (free news feed) | FREE | no | ✅ IMPLEMENT |
@@ -65,6 +65,11 @@ status == PLANNED   <=>   cost == FREE or FREEMIUM
 | **Event Registry** | News clustered into de-duplicated *events* | PAID³ | yes | ⛔ SKIP |
 | **Crunchbase** | Funding rounds, investors, amounts | PAID | yes | ⛔ SKIP |
 
+⁰ ZEFIX: free, but the ZefixPublicREST API requires a **free registered
+Basic-auth account** (verified live — `401 WWW-Authenticate: Basic` without
+credentials), so it is FREEMIUM, not FREE. The no-auth path is the daily ZEFIX
+*Open Data* bulk dump (name-index snapshot, not live detail). ZEFIX does **not**
+expose officers / board members / UBOs — those are in the cantonal registers.
 ¹ OpenSanctions: hosted API needs a key and is metered; the data + the `yente`
 matcher are **free for non-commercial use** and self-hostable. Commercial use
 needs a paid bulk-data licence — flag for production.
@@ -77,11 +82,14 @@ it as paid.
 
 | Skipped (paid) | Use cases | Free source that covers it |
 |---|---|---|
-| OpenCorporates | 3, 4, 5, 7 | **GLEIF** (ownership/parent-child) + **ZEFIX** (Swiss officers) |
+| OpenCorporates | 3, 4, 5, 7 | **GLEIF** entity-level ownership (parent/child LEIs) + **ZEFIX** company fields. ⚠️ Natural-person **officers/directors** are a real gap — no free source (incl. ZEFIX) exposes them; entity-level UBO only. |
 | Event Registry | 1, 6, 8, 10 | **GDELT** (article lists + volume time-series, key-less) |
 | Crunchbase | 6 | **GDELT** (funding/expansion as news — weaker, no structured amount) |
 
-Net: **7 adapters to build, 3 skipped, 0 use cases dropped.** GDELT is the new
+Net: **7 adapters to build, 3 skipped.** No use case is fully dropped, but
+officer/director-level resolution (part of Cases 3/5) is degraded to entity-level
+ownership only — the one capability lost by skipping the paid OpenCorporates.
+GDELT is the new
 free addition that replaces the paid Event Registry as the news feed.
 
 ---

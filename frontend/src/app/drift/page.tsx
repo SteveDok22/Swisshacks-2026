@@ -96,7 +96,7 @@ export default function DriftPage() {
                   <div className="grid grid-cols-3 gap-3 mb-2">
                     <CostStat label="T0 rules" value={scan.tier_counts.T0_RULES ?? 0} sub="free" />
                     <CostStat label="T1 ML" value={scan.tier_counts.T1_ML ?? 0} sub={`$${(scan.tier_costs.T1_ML ?? 0).toFixed(4)}`} />
-                    <CostStat label="T2 Claude" value={scan.tier_counts.T2_LLM ?? 0} sub={`$${(scan.tier_costs.T2_LLM ?? 0).toFixed(2)}`} />
+                    <CostStat label="T2 AI" value={scan.tier_counts.T2_LLM ?? 0} sub={`$${(scan.tier_costs.T2_LLM ?? 0).toFixed(2)}`} />
                   </div>
                   <div className="flex items-baseline justify-between pt-2 border-t border-paper-line">
                     <span className="text-xs text-ink-soft">
@@ -106,12 +106,6 @@ export default function DriftPage() {
                     </span>
                     <span className="font-mono text-sm font-semibold text-risk-low tabular">
                       −{scan.savings_pct.toFixed(0)}%
-                    </span>
-                  </div>
-                  <div className="mt-2 flex items-center justify-between text-2xs text-ink-muted">
-                    <span>Actual T2 adjudications</span>
-                    <span className="font-mono text-ink-soft tabular">
-                      {scan.actual_t2_llm_calls} total · {scan.real_t2_llm_calls} real · {scan.mock_t2_llm_calls} mock
                     </span>
                   </div>
                 </div>

@@ -135,7 +135,7 @@ export function CausalPanel({ causal }: CausalPanelProps) {
         <span />
         <div className="grid grid-cols-3">
           <span>benign</span>
-          <span className="text-center">LLR 0</span>
+          <span className="text-center">neutral</span>
           <span className="text-right">risk</span>
         </div>
         <span className="text-right">score</span>

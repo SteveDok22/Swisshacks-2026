@@ -61,7 +61,7 @@ export function TwoLayerPanel({ detail }: TwoLayerPanelProps) {
         <LayerCard
           icon={Building2}
           label="Internal Bank Data"
-          sublabel="BOCPD drift · velocity · contagion"
+          sublabel="behavioural drift · velocity · contagion"
           risk={internal_risk}
         />
       </div>

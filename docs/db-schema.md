@@ -70,6 +70,31 @@ erDiagram
         datetime occurred_at
     }
 
+    ENTITY_SNAPSHOT {
+        uuid id PK
+        string customer_id
+        date snapshot_date
+        string snapshot_type "onboarding|annual_review|triggered|seeded"
+        string source "internal|zefix|gleif|open_corporates|..."
+        string name
+        string legal_form
+        string jurisdiction
+        string registered_address
+        string dissolution_status
+        json beneficial_owners
+        json officers
+        string risk_tolerance
+        float aum_chf
+        bool is_pep
+        bool sanctions_check_passed
+        float avg_monthly_volume_chf
+        float counterparty_risk_mean
+        float corridor_risk_mean
+        float margin_ratio_mean
+        json raw_data
+        datetime created_at
+    }
+
     CLIENT ||--o{ CASE : "has"
     CASE |o--o{ DECISION : "receives (nullable — drift decisions have no case)"
     CASE |o--o{ AUDIT_LOG : "soft ref"
@@ -141,6 +166,39 @@ Both paths enforce the same override rule: if `action ≠ ai_recommended_action`
 
 The SQLite schema is disposable and is dropped/recreated on every backend
 startup before mock data is seeded.
+
+---
+
+## EntitySnapshot — KYC Baseline Store
+
+`entity_snapshots` is an **append-only** table that records the KYC profile of
+a customer at a point in time. Source adapters (ZEFIX, GLEIF, OpenCorporates,
+…) write a new row whenever they detect a registry change; the drift engine
+diffs the current snapshot against the onboarding baseline to flag structural
+drift (name change, legal form change, UBO change, etc.).
+
+**Lookup patterns supported:**
+
+| Query | Function |
+|---|---|
+| Latest snapshot for a customer | `load_latest_snapshot(session, customer_id)` |
+| Onboarding baseline | `load_onboarding_snapshot(session, customer_id)` |
+| Full change history | `load_snapshot_history(session, customer_id)` |
+| Book-wide latest baselines | `load_all_baselines(session)` |
+
+**Snapshot types:**
+
+| Type | When written |
+|---|---|
+| `onboarding` | At KYC onboarding (real adapter) |
+| `annual_review` | During periodic re-KYC |
+| `triggered` | On event (sanctions hit, news spike, etc.) |
+| `seeded` | Startup seed from synthetic book (demo) |
+
+**Behavioral baseline fields** (`avg_monthly_volume_chf`, `counterparty_risk_mean`,
+`corridor_risk_mean`, `margin_ratio_mean`) are computed from the pre-drift
+transaction window at seeding time and serve as numeric anchors for the drift
+velocity and causal layers.
 
 ---
 

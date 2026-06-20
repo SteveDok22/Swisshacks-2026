@@ -336,6 +336,9 @@ def generate_drift_training_data(
     from app.drift.simulator import SCENARIOS, generate_customer
     from app.drift.stability import cohort_volatility
 
+    unknown = _DRIFT_RISK_SCENARIOS - set(SCENARIOS)
+    assert not unknown, f"_DRIFT_RISK_SCENARIOS names not in SCENARIOS: {unknown}"
+
     extractor = DriftFeatureExtractor()
 
     # Build a reference cohort once for a stable cohort_cv estimate
@@ -403,6 +406,11 @@ def train_drift_model(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
+    # 6 of 8 scenarios are labeled risk → positives are the MAJORITY (75%).
+    # scale_pos_weight = neg_count / pos_count = 0.333 — this DOWN-weights
+    # each positive instance so both classes carry equal effective weight.
+    # Note: this is the opposite direction from the typical minority-class
+    # use-case; here it corrects for an over-represented positive set.
     pos_weight = float((y_train == 0).sum() / max((y_train == 1).sum(), 1))
     model = xgb.XGBClassifier(
         n_estimators=200,

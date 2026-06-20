@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { driftApi } from "@/lib/api";
-import { cn } from "@/lib/utils";
+import { cn, TIER_LABELS, formatCompact, llrWeight } from "@/lib/utils";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { DriftRadar } from "@/components/drift/DriftRadar";
 import { DriftTimeline } from "@/components/drift/DriftTimeline";
@@ -15,7 +15,7 @@ import { DormancyPanel } from "@/components/drift/DormancyPanel";
 import { TimeTravelPanel } from "@/components/drift/TimeTravelPanel";
 import { DecisionBar } from "@/components/cases/DecisionBar";
 import type { DriftCustomerDetail } from "@/types/api";
-import { Activity, Zap, DollarSign, FlaskConical, Loader2, ArrowRight, ShieldCheck, ShieldAlert } from "lucide-react";
+import { Activity, Zap, DollarSign, FlaskConical, Loader2, ArrowRight, ShieldCheck, ShieldAlert, ChevronDown } from "lucide-react";
 
 /**
  * Drift Engine workspace — AMINA Challenge 4.
@@ -186,21 +186,23 @@ export default function DriftPage() {
                   </span>
                 )}
                 {detail.scenario && (
-                  <span className="text-2xs text-ink-faint font-mono">
-                    [{detail.scenario}]
+                  <span className="text-2xs text-ink-faint">
+                    {detail.scenario.replace(/_/g, " ")}
                   </span>
                 )}
               </div>
               <div className="flex items-center gap-4 text-2xs text-ink-muted">
                 <span className="flex items-center gap-1">
-                  <Activity className="h-3 w-3" /> Score{" "}
-                  <span className="font-mono text-ink">{detail.drift_score}</span>
+                  <Activity className="h-3 w-3" /> Risk score{" "}
+                  <span className="font-mono text-ink">{Math.round(detail.drift_score)}</span>
+                  <span className="text-ink-faint">/100</span>
                 </span>
                 <span className="flex items-center gap-1">
-                  <Zap className="h-3 w-3" /> Velocity{" "}
-                  <span className="font-mono text-ink">{detail.drift_velocity}</span>
+                  <Zap className="h-3 w-3" /> Change rate{" "}
+                  <span className="font-mono text-ink">{formatCompact(detail.drift_velocity)}</span>
+                  <span className="text-ink-faint">bits/mo</span>
                 </span>
-                <span>Tier: <span className="font-mono text-ink">{detail.reached_tier}</span></span>
+                <span>Reviewed by: <span className="text-ink">{TIER_LABELS[detail.reached_tier] ?? detail.reached_tier}</span></span>
               </div>
             </div>
 
@@ -230,29 +232,42 @@ export default function DriftPage() {
                 <TimeTravelPanel driftId={detail.drift_id} />
 
                 {/* Signal Layers */}
-                <div className="border border-paper-line rounded bg-paper-raised p-4">
-                  <h3 className="text-2xs font-semibold uppercase tracking-wide text-ink-muted mb-3">
-                    Signal Layers
-                  </h3>
-                  <div className="space-y-2">
-                    {detail.layers.map((l) => (
-                      <div key={l.layer} className="flex items-start gap-3 py-1.5 border-b border-paper-line/50 last:border-0">
-                        <span className="font-mono text-2xs text-ink-faint w-5 shrink-0">L{l.layer}</span>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-xs text-ink font-medium">{l.name}</span>
-                            <span className="font-mono text-2xs tabular text-ink-soft">
-                              LLR {l.llr.toFixed(2)}
-                            </span>
+                <details className="group border border-paper-line rounded bg-paper-raised">
+                  <summary className="flex items-center justify-between gap-2 px-4 py-3 cursor-pointer list-none select-none">
+                    <h3 className="text-2xs font-semibold uppercase tracking-wide text-ink-muted">
+                      Signal Layers
+                      <span className="ml-2 font-normal normal-case tracking-normal text-ink-faint">
+                        technical breakdown
+                      </span>
+                    </h3>
+                    <ChevronDown className="h-4 w-4 text-ink-faint transition-transform group-open:rotate-180" strokeWidth={2} />
+                  </summary>
+                  <div className="px-4 pb-4 space-y-2">
+                    {detail.layers.map((l) => {
+                      const w = llrWeight(l.llr);
+                      return (
+                        <div
+                          key={l.layer}
+                          className="flex items-start gap-3 py-1.5 border-b border-paper-line/50 last:border-0"
+                          title={`Log-likelihood ratio: ${l.llr.toFixed(2)} · status: ${l.status}`}
+                        >
+                          <span className="font-mono text-2xs text-ink-faint w-5 shrink-0">L{l.layer}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-xs text-ink font-medium">{l.name}</span>
+                              <span className={cn("text-2xs font-medium shrink-0", w.color)}>
+                                {w.label}
+                              </span>
+                            </div>
+                            {l.detail && (
+                              <p className="text-2xs text-ink-muted mt-0.5">{l.detail}</p>
+                            )}
                           </div>
-                          {l.detail && (
-                            <p className="text-2xs text-ink-muted mt-0.5">{l.detail}</p>
-                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
-                </div>
+                </details>
 
                 {contagion && <ContagionGraph data={contagion} />}
               </div>
@@ -314,7 +329,7 @@ function VerdictBar({ detail }: { detail: DriftCustomerDetail }) {
       <div className="flex items-center gap-2 text-2xs shrink-0">
         <span className="font-mono font-semibold text-base tabular">{Math.round(score)}</span>
         <ArrowRight className="h-3.5 w-3.5 opacity-50" />
-        <span className="font-mono uppercase">{detail.reached_tier.replace("_", " ")}</span>
+        <span className="uppercase">{TIER_LABELS[detail.reached_tier] ?? detail.reached_tier.replace("_", " ")}</span>
       </div>
     </div>
   );

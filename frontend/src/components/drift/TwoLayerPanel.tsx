@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, scoreSeverity } from "@/lib/utils";
 import type { DriftCustomerDetail } from "@/types/api";
 import { Globe, Building2, Link2, Newspaper, ShieldAlert, TrendingUp, Network, ExternalLink } from "lucide-react";
 
@@ -136,8 +136,11 @@ export function TwoLayerPanel({ detail }: TwoLayerPanelProps) {
                         </>
                       )}
                       <span>·</span>
-                      <span className={cn("shrink-0 font-mono tabular", sevColor(s.severity))}>
-                        severity {s.severity.toFixed(2)}
+                      <span
+                        className={cn("shrink-0 font-medium", sevColor(s.severity))}
+                        title={`Severity score: ${s.severity.toFixed(2)}`}
+                      >
+                        {scoreSeverity(s.severity).label}
                       </span>
                     </div>
                   </div>

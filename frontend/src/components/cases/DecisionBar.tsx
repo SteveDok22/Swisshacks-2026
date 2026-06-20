@@ -82,8 +82,8 @@ export function DecisionBar(props: DecisionBarProps) {
     queryKey: decisionsKey,
     queryFn: () =>
       isDrift
-        ? decisionsApi.forCustomer(props.driftId)
-        : decisionsApi.forCase(props.caseId),
+        ? decisionsApi.forCustomer(props.driftId!)
+        : decisionsApi.forCase(props.caseId!),
     enabled: !!subjectId,
   });
 

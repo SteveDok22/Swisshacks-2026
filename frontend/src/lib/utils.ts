@@ -120,3 +120,49 @@ export const ACTION_LABELS: Record<string, string> = {
   escalate: "Escalate",
   block: "Block",
 };
+
+/** Plain-language labels for the cost-aware cascade tiers. */
+export const TIER_LABELS: Record<string, string> = {
+  T0_RULES: "Rules check",
+  T1_ML: "ML model",
+  T2_LLM: "AI review",
+};
+
+/** Compact number for dashboards: 15885.238 → "15.9k", 922.4 → "922". */
+export function formatCompact(n: number): string {
+  const abs = Math.abs(n);
+  if (abs >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (abs >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
+  return Math.round(n).toString();
+}
+
+/** Map a 0–1 internal score to a plain-language severity + colour class. */
+export function scoreSeverity(value: number): { label: string; color: string } {
+  if (value >= 0.7) return { label: "Critical", color: "text-risk-critical" };
+  if (value >= 0.4) return { label: "High", color: "text-risk-high" };
+  if (value >= 0.2) return { label: "Elevated", color: "text-risk-medium" };
+  return { label: "Low", color: "text-risk-low" };
+}
+
+/**
+ * Translate a log-likelihood ratio into a plain-language evidence weight.
+ * Positive pushes toward risk, negative toward benign. Magnitude → strength.
+ */
+export function llrWeight(llr: number): {
+  label: string;
+  color: string;
+  toward: "risk" | "benign" | "neutral";
+} {
+  const abs = Math.abs(llr);
+  const toward = abs < 0.2 ? "neutral" : llr > 0 ? "risk" : "benign";
+  const strength =
+    abs >= 2 ? "Strong" : abs >= 0.75 ? "Moderate" : abs >= 0.2 ? "Weak" : "Negligible";
+  const color =
+    toward === "risk"
+      ? "text-risk-critical"
+      : toward === "benign"
+        ? "text-risk-low"
+        : "text-ink-muted";
+  const arrow = toward === "risk" ? "↑ risk" : toward === "benign" ? "↓ benign" : "neutral";
+  return { label: toward === "neutral" ? "Neutral" : `${strength} ${arrow}`, color, toward };
+}

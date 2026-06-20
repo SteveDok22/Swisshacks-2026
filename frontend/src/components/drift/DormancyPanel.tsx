@@ -1,9 +1,8 @@
 "use client";
 
-import { cn } from "@/lib/utils";
+import { cn, formatCompact, scoreSeverity } from "@/lib/utils";
 import type { DormancyVerdict } from "@/types/api";
 import { Activity, Moon, Power, X } from "lucide-react";
-
 interface DormancyPanelProps {
   dormancy: DormancyVerdict;
 }
@@ -29,6 +28,8 @@ export function DormancyPanel({ dormancy }: DormancyPanelProps) {
   if (dormancy_break < 0.05 && !is_dormancy_break) {
     return null;
   }
+
+  const sev = scoreSeverity(dormancy_break);
 
   return (
     <div
@@ -69,13 +70,15 @@ export function DormancyPanel({ dormancy }: DormancyPanelProps) {
         <div className="text-center shrink-0">
           <div
             className={cn(
-              "font-mono text-xl font-semibold tabular",
-              is_dormancy_break ? "text-risk-critical" : "text-ink",
+              "text-sm font-semibold",
+              is_dormancy_break ? "text-risk-critical" : sev.color,
             )}
           >
-            {dormancy_break.toFixed(2)}
+            {is_dormancy_break ? "Critical" : sev.label}
           </div>
-          <div className="text-2xs text-ink-muted">break score</div>
+          <div className="text-2xs text-ink-muted font-mono tabular">
+            {dormancy_break.toFixed(2)} break score
+          </div>
         </div>
       </div>
 
@@ -83,13 +86,13 @@ export function DormancyPanel({ dormancy }: DormancyPanelProps) {
         <span className="min-w-0">
           Baseline volume{" "}
           <span className="font-mono text-ink tabular">
-            {baseline_volume.toFixed(1)}
+            {formatCompact(baseline_volume)}
           </span>
         </span>
         <span className="min-w-0 text-right">
           Active volume{" "}
           <span className="font-mono text-ink tabular">
-            {active_volume.toFixed(1)}
+            {formatCompact(active_volume)}
           </span>
         </span>
       </div>

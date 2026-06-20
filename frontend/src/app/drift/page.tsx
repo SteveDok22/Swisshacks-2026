@@ -12,6 +12,7 @@ import { TwoLayerPanel } from "@/components/drift/TwoLayerPanel";
 import { CausalPanel } from "@/components/drift/CausalPanel";
 import { StabilityPanel } from "@/components/drift/StabilityPanel";
 import { TimeTravelPanel } from "@/components/drift/TimeTravelPanel";
+import { DecisionBar } from "@/components/cases/DecisionBar";
 import type { DriftCustomerDetail } from "@/types/api";
 import { Activity, Zap, DollarSign, FlaskConical, Loader2, ArrowRight, ShieldCheck, ShieldAlert } from "lucide-react";
 
@@ -206,6 +207,13 @@ export default function DriftPage() {
 
             {/* === VERDICT BAR — the one-line "what to do" summary === */}
             <VerdictBar detail={detail} />
+
+            {/* === DECISION BAR — officer records their compliance action === */}
+            <DecisionBar
+              key={detail.customer_id}
+              customerId={detail.customer_id}
+              aiRecommendedAction={detail.recommended_action}
+            />
 
             {/* === Two-column analysis grid (was a long vertical scroll) === */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 items-start">

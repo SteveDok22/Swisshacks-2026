@@ -166,8 +166,33 @@ class BOCPD:
         return BOCPDResult(
             changepoint_probs=changepoint_probs,
             map_run_lengths=map_run_lengths,
-            detected_changepoints=detected,
+            detected_changepoints=self._confirmed_changepoints(x, detected),
         )
+
+    @staticmethod
+    def _confirmed_changepoints(
+        series: np.ndarray,
+        candidates: list[int],
+        confirmation_window: int = 5,
+        min_effect_size: float = 1.5,
+    ) -> list[int]:
+        """Reject isolated outliers by requiring a short sustained level shift.
+
+        Confirmation adds a five-observation detection delay while preserving
+        causal behavior: only observations immediately following the candidate
+        are used, never the remainder of the series.
+        """
+        confirmed: list[int] = []
+        for cp in candidates:
+            before = series[max(0, cp - 20):cp]
+            after = series[cp:cp + confirmation_window]
+            if len(before) < confirmation_window or len(after) < confirmation_window:
+                continue
+            pooled_scale = max(float(np.std(np.concatenate([before, after]))), 1e-6)
+            effect_size = abs(float(np.mean(after) - np.mean(before))) / pooled_scale
+            if effect_size >= min_effect_size:
+                confirmed.append(int(cp))
+        return confirmed
 
 
 def standardize(series: np.ndarray, baseline_window: int = 30) -> np.ndarray:

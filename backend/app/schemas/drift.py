@@ -6,6 +6,8 @@ from typing import Any
 
 from pydantic import BaseModel, Field
 
+from app.schemas.enums import DecisionAction
+
 
 class LayerContribution(BaseModel):
     """One signal layer's contribution to the drift score."""
@@ -117,6 +119,8 @@ class DriftCustomerDetail(BaseModel):
     drift_velocity: float
     velocity_band: str
     reached_tier: str
+    recommended_action: DecisionAction
+    risk_level: str
     escalation_reasons: list[str] = Field(default_factory=list)
     layers: list[LayerContribution] = Field(default_factory=list)
     timeline: list[DriftTimelinePoint] = Field(default_factory=list)

@@ -189,8 +189,9 @@ One command with Docker. Full setup in **[QUICKSTART.md](QUICKSTART.md)**.
 docker compose up --build
 ```
 
-Builds and starts both containers (frontend + backend) with hot reload; the
-database is SQLite, auto-seeded on first start. Open
+Builds and starts both containers (frontend + backend) with hot reload. SQLite
+is disposable: the schema is recreated and mock data is seeded on every backend
+startup. Open
 <http://localhost:3000/drift> for the Drift Engine, or
 <http://localhost:8000/docs> for the API.
 

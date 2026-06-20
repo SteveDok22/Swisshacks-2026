@@ -4,7 +4,7 @@
 #
 #   frontend (Next.js dev server, HMR) -> http://localhost:3000
 #   backend  (uvicorn --reload)        -> http://localhost:8000/docs
-#   database -> SQLite, persisted in the backend_data volume (no DB container)
+#   database -> disposable SQLite, recreated on backend startup (no DB container)
 #
 # Docker Compose has no built-in --dev/--prod switch and volume mounts can't be
 # toggled by env vars, so this single file is tuned for local development.
@@ -37,8 +37,8 @@ services:
     volumes:
       # Live backend code (overlays the copy baked into the image)
       - ./backend/app:/home/app/app
-      # Persist only the SQLite DB. ML models stay baked into the image
-      # at /home/app/data/models, so they are not shadowed by this volume.
+      # Keep SQLite files outside the source bind mount. The application drops
+      # and recreates the schema on every backend startup.
       - backend_data:/home/app/data/db
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]

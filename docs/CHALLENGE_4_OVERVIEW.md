@@ -95,7 +95,7 @@ The challenge explicitly requires all three layers:
 ### Layer 3 — Decision Governance
 - Risk approval workflows
 - Compliance review checkpoints
-- Manual validation capability
+- Manual validation capability — **implemented**: `DecisionBar` in both the case-review panel and the Drift Engine workspace lets officers record Allow / Step-up / Escalate / Block with an immutable audit trail; override of the AI's recommendation requires a written rationale
 - Escalation processes with approval checkpoints
 
 ---

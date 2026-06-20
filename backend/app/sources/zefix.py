@@ -261,11 +261,12 @@ class ZefixAdapter(CostMixin, RegistryAdapter):
         canton = full.get("canton")
 
         sogc_pubs = full.get("sogcPub") or []
-        mutation_date = (
-            sogc_pubs[0].get("sogcDate") if sogc_pubs else full.get("sogcDate")
-        )
+        first_pub = sogc_pubs[0] if sogc_pubs and isinstance(sogc_pubs[0], dict) else None
+        mutation_date = first_pub.get("sogcDate") if first_pub else full.get("sogcDate")
         old_names = [
-            n.get("name") for n in (full.get("oldNames") or []) if n.get("name")
+            n["name"]
+            for n in (full.get("oldNames") or [])
+            if isinstance(n, dict) and n.get("name")
         ]
 
         return EntitySnapshot(
@@ -391,8 +392,23 @@ class ZefixAdapter(CostMixin, RegistryAdapter):
         source_url = self.record_url(uid) if uid else None
         signals: list[PublicSignal] = []
 
-        if baseline is not None:
-            for change in diff_snapshots(baseline, snapshot):
+        # Enforce the same-source contract at runtime: ``jurisdiction`` holds a
+        # canton (not an ISO country) and name/legal-form formatting differs per
+        # source, so a cross-source diff would emit spurious signals. A mismatched
+        # baseline is treated as "no usable baseline" — the diff is skipped, but
+        # an absolute adverse status below still fires.
+        usable_baseline = baseline
+        if baseline is not None and baseline.source != snapshot.source:
+            logger.warning(
+                "zefix_baseline_source_mismatch",
+                drift_id=drift_id,
+                baseline_source=baseline.source,
+                current_source=snapshot.source,
+            )
+            usable_baseline = None
+
+        if usable_baseline is not None:
+            for change in diff_snapshots(usable_baseline, snapshot):
                 signal_type = _DIFF_TO_SIGNAL.get(change.drift_signal_type)
                 if signal_type is None:
                     continue

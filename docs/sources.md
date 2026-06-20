@@ -95,7 +95,8 @@ implemented); GDELT serves as a free, key-less news fallback in the meantime.
 | OpenCorporates | 3, 4, 5, 7 | **GLEIF** entity-level ownership (parent/child LEIs) + **ZEFIX** company fields. ⚠️ Natural-person **officers/directors** are a real gap — no free source (incl. ZEFIX) exposes them; entity-level UBO only. |
 | Crunchbase | 6 | **GDELT** (funding/expansion as news — weaker, no structured amount) |
 
-Net: **8 adapters to build, 2 skipped.** No use case is fully dropped, but
+Net: **8 adapters to run (2 built — GLEIF, ZEFIX — 6 carcasses), 2 skipped.**
+No use case is fully dropped, but
 officer/director-level resolution (part of Cases 3/5) is degraded to entity-level
 ownership only — the one capability lost by skipping the paid OpenCorporates.
 Event Registry is now PLANNED (hackathon key available); GDELT remains its free
@@ -149,7 +150,7 @@ adapter's `record_url()` supplies the click-through link.
 Mirrors the sprint plan in `source-integration-architecture.md` §12, restricted
 to the free sources:
 
-1. **Registry** — `zefix`, `gleif` (no key, highest signal) → Cases 4, 7, 8, 10, 3, 5
+1. **Registry** — `zefix` (free Basic-auth account), `gleif` (no key); highest signal → Cases 4, 7, 8, 10, 3, 5
 2. **Screening** — `opensanctions` (free non-commercial / self-host yente) → Cases 2, 5
 3. **News** — `gdelt` + BOCPD on the article time-series → Cases 1, 6
 4. **Web** — `firecrawl` + `wayback` + `whois` → Cases 8, 9, 10

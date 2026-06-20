@@ -353,6 +353,45 @@ class TestFetchSignals:
         )
         assert [s.signal_type for s in signals] == ["status_change"]
 
+    async def test_address_only_change_emits_no_signals(self):
+        # ZEFIX intentionally drops address moves (municipality-level, low signal):
+        # a baseline/current differing ONLY in registered_address must be silent.
+        adapter = ZefixAdapter(username="u", password="p")
+        signals = await adapter.fetch_signals(
+            "d", "Helvetia",
+            baseline=_current(registered_address="Old St 1"),
+            current=_current(registered_address="New St 5"),
+        )
+        assert signals == []
+
+    async def test_cross_source_baseline_skips_diff(self):
+        # A baseline from another source (e.g. the internal onboarding snapshot)
+        # must NOT be diffed — jurisdiction holds a canton, name formats differ —
+        # so no spurious signals are emitted.
+        internal_baseline = EntitySnapshot(
+            drift_id="drift-001", name="Helvetia Holdings AG", source="internal",
+            jurisdiction="CH", legal_form="GmbH",
+        )
+        adapter = ZefixAdapter(username="u", password="p")
+        signals = await adapter.fetch_signals(
+            "drift-001", "Helvetia", baseline=internal_baseline, current=_current()
+        )
+        assert signals == []
+
+    async def test_cross_source_baseline_still_flags_terminal_status(self):
+        # The diff is skipped, but an absolute adverse status is source-independent
+        # and must still fire.
+        internal_baseline = EntitySnapshot(
+            drift_id="d", name="X", source="internal", jurisdiction="CH",
+        )
+        adapter = ZefixAdapter(username="u", password="p")
+        signals = await adapter.fetch_signals(
+            "d", "Helvetia",
+            baseline=internal_baseline,
+            current=_current(dissolution_status="struck_off"),
+        )
+        assert [s.signal_type for s in signals] == ["status_change"]
+
     async def test_fetches_current_when_not_injected(self):
         adapter = _make_adapter(_standard_handler)
         # No `current=` → adapter calls fetch() itself; no baseline, active status

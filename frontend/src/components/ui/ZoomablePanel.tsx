@@ -33,7 +33,7 @@ export function ZoomablePanel({
 
       {zoomed && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-ink/45 p-4"
+          className="fixed inset-0 z-50 flex items-start justify-center bg-ink/45 p-4 overflow-y-auto"
           role="dialog"
           aria-modal="true"
           onClick={() => setZoomed(false)}

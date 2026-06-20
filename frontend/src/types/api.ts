@@ -270,6 +270,17 @@ export interface PublicSignal {
   corroborated: boolean;
 }
 
+// Case 5: one UBO / ownership-chain entity screened against sanctions watchlists.
+export interface UboScreening {
+  screened_ubo: string;
+  matched_entity: string;
+  score: number;
+  severity: number;
+  month: number;
+  definitive: boolean;
+  source_url: string | null;
+}
+
 export interface LayerContribution {
   layer: number;
   name: string;
@@ -327,6 +338,8 @@ export interface DriftCustomerDetail {
   internal_risk: number;
   confirmation_lift: number;
   public_signals: PublicSignal[];
+  // Case 5: UBO / ownership-chain sanctions screening hits.
+  ubo_screening: UboScreening[];
   // Business-model drift (UC 9): silent website/domain pivot since onboarding.
   is_business_model_change: boolean;
   business_model_distance: number;

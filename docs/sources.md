@@ -12,7 +12,8 @@
 
 ## Status: partial implementation
 
-Five adapters are fully implemented (real HTTP calls):
+Six adapters are fully implemented (real HTTP calls):
+- **WHOIS / RDAP** — free, no key required; returns RDAP domain metadata and domain-change signals from injected baselines
 - **GLEIF** — free, no key required (PR #25)
 - **ZEFIX** — FREEMIUM, free Basic-auth account; degrades gracefully (`None`/`[]`) when credentials absent (PR #23)
 - **Event Registry** — FREEMIUM, key-gated; returns `[]` when key absent (PR #24)
@@ -27,7 +28,7 @@ Remaining carcasses — no real network I/O yet:
 - `cost.py` — the free-vs-paid layer on top: `SourceCost` / `AdapterStatus`
   enums, `SourceUnavailableError`, and the `CostMixin` every adapter combines
   with `RegistryAdapter`.
-- one carcass module per source — full metadata + docstring; the async
+- one carcass module per still-unbuilt source — full metadata + docstring; the async
   `fetch` / `fetch_signals` are unimplemented.
 - `registry.py` — the single catalogue (`REGISTRY`, `usable_adapters()`,
   `skipped_adapters()`, `catalogue()`).
@@ -67,7 +68,7 @@ status == PLANNED   <=>   cost == FREE or FREEMIUM
 | **Event Registry** | News clustered into de-duplicated *events*, primary news source (hackathon key) | FREEMIUM³ | yes | ✅ BUILT (key-gated) |
 | **Firecrawl** | Live website → markdown (current page content) | FREEMIUM | yes² | ✅ IMPLEMENT |
 | **Wayback** | Historical website snapshot at the onboarding date | FREE | no | ✅ BUILT |
-| **WHOIS / RDAP** | Domain age + registrant change | FREE | no | ✅ IMPLEMENT |
+| **WHOIS / RDAP** | Domain age + registrant change | FREE | no | ✅ BUILT |
 | **OpenCorporates** | Officers / directors in non-LEI jurisdictions | PAID | yes | ⛔ SKIP |
 | **Crunchbase** | Funding rounds, investors, amounts | PAID | yes | ⛔ SKIP |
 
@@ -106,7 +107,7 @@ structured sentiment.
 | OpenCorporates | 3, 4, 5, 7 | **GLEIF** entity-level ownership (parent/child LEIs) + **ZEFIX** company fields. ⚠️ Natural-person **officers/directors** are a real gap — no free source (incl. ZEFIX) exposes them; entity-level UBO only. |
 | Crunchbase | 6 | **Event Registry** (structured funding articles) + **GDELT** (free fallback) |
 
-Net: **8 adapters to run (5 built — GLEIF, ZEFIX, Event Registry, OpenSanctions, Wayback — 3 carcasses),
+Net: **8 adapters to run (6 built — GLEIF, ZEFIX, Event Registry, OpenSanctions, Wayback, WHOIS/RDAP — 2 carcasses),
 2 skipped.** No use case is fully dropped; officer/director-level resolution
 (part of Cases 3/5) is degraded to entity-level ownership only — the one
 capability lost by skipping the paid OpenCorporates. Event Registry is the
@@ -163,7 +164,7 @@ to the free sources:
 1. **Registry** — `zefix` (free Basic-auth account), `gleif` (no key); highest signal → Cases 4, 7, 8, 10, 3, 5
 2. **Screening** — `opensanctions` (free non-commercial / self-host yente) → Cases 2, 5
 3. **News** — `gdelt` (free baseline) + `event_registry` (key-gated enhancement, event-level de-duplication) → Cases 1, 6, 8, 10
-4. **Web** — `firecrawl` + `wayback` + `whois` → Cases 8, 9, 10
+4. **Web** — `whois` is built; `firecrawl` + `wayback` remain to implement → Cases 8, 9, 10
 
 Prerequisite for all of them: `db/kyc_baseline.py` to store/load the
 `EntitySnapshot` baseline each adapter diffs against (see ROADMAP P1 §2).

@@ -51,37 +51,37 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 ### P1 — High impact, do these first
 
-**Engine**
-- [ ] **Case 7: Dormancy-break detector** — add `drift/dormancy.py`; detect near-zero baseline → volume jump; wire signal into `drift/service.py`. No external API needed. Moves Case 7 from PARTIAL → WORKS.
-- [ ] **Fix BOCPD changepoint visual marker** — `bocpd_changepoint=False` is hardcoded at `service.py:296`; map `bocpd_changepoint_day` to timeline index; add dashed-line marker in `DriftTimeline.tsx`
+**1. Engine (no external deps)**
+- [ ] **Case 7: Dormancy-break detector** — add `drift/dormancy.py`; detect near-zero baseline → volume jump; wire into `drift/service.py`. No external API needed. Moves Case 7 PARTIAL → WORKS.
+- [ ] **Fix BOCPD changepoint visual marker** — `bocpd_changepoint=False` hardcoded at `service.py:296`; map `bocpd_changepoint_day` to timeline index; add dashed-line marker in `DriftTimeline.tsx`
 
-**Source adapters — `backend/app/sources/` (does not exist yet)**
-- [ ] **`sources/base.py`** — `RegistryAdapter` ABC + `EntitySnapshot` + `PublicSignal` diff pattern (shared by all adapters below)
-- [ ] **`sources/zefix.py`** — Swiss commercial register; detects name change, legal form change, dissolution, dormancy break (Cases 4, 7, 8, 10)
-- [ ] **`sources/gleif.py`** — Global LEI; detects name change, jurisdiction change, parent LEI change (Cases 3, 4, 5, 8, 10)
-- [ ] **`sources/opensanctions.py`** — OFAC / EU / UN screening; replaces headline templates in `public_intel.py` (Cases 2, 5)
+**2. Prerequisites (build these before adapters)**
+- [ ] **`db/kyc_baseline.py`** — store/load `EntitySnapshot` per customer
+- [ ] **Seed KYC baselines** — populate from `drift/simulator.py` synthetic onboarding snapshots so adapters have something to diff against
+- [ ] **`sources/base.py`** — `RegistryAdapter` ABC + `EntitySnapshot` + `PublicSignal` diff pattern; shared by all adapters below
+
+**3. Source adapters — `backend/app/sources/` (package does not exist yet)**
+- [ ] **`sources/zefix.py`** — Swiss commercial register; name change, legal form, dissolution, dormancy (Cases 4, 7, 8, 10)
+- [ ] **`sources/gleif.py`** — Global LEI; name change, jurisdiction change, parent LEI change (Cases 3, 4, 5, 8, 10)
+- [ ] **`sources/opensanctions.py`** — OFAC / EU / UN screening (Cases 2, 5)
 - [ ] **`sources/open_corporates.py`** — directors / officers / relationships (Cases 3, 4, 5, 7)
 - [ ] **`sources/event_registry.py`** — news event aggregation; BOCPD on event-count time-series (Cases 1, 6, 8, 10)
-- [ ] **`sources/crunchbase.py`** — funding rounds; scale-jump ratio vs. customer AUM baseline (Case 6)
-- [ ] **`sources/firecrawl.py`** — website-to-markdown scraping for current content (Cases 9, 10)
+- [ ] **`sources/crunchbase.py`** — funding rounds; scale-jump ratio vs. customer AUM (Case 6)
+- [ ] **`sources/firecrawl.py`** — website-to-markdown scraping, current content (Cases 9, 10)
 - [ ] **`sources/wayback.py`** — historical website snapshot at onboarding date (Cases 9, 10)
 - [ ] **`sources/whois.py`** — RDAP/WHOIS domain age + registrant change (Cases 8, 9)
 
-**Integration glue — without these, adapter work is dead code**
-- [ ] **Seed KYC baselines** — populate `db/kyc_baseline.py` with onboarding `EntitySnapshot` from `drift/simulator.py` synthetic customers so adapters have a baseline to diff against
-- [ ] **Refactor `public_intel.py` into aggregator** — `service.py:148` calls `generate_signals_for_customer()` which returns headline templates; replace it with real adapter calls (`ZefixAdapter`, `GleifAdapter`, etc.); this is the single wiring step that makes every adapter actually run
-- [ ] **Train drift XGBoost model** — `ml/training.py` has no drift scenario training; feed synthetic book (7 scenarios × time windows ≈ 200 samples) through `DriftFeatureExtractor` → label → fit `XGBClassifier`; without this, `DriftFeatureExtractor` produces features nobody scores
-
-**Fusion wiring**
+**4. Integration glue (wire adapters into the engine — without these, adapters are dead code)**
+- [ ] **Refactor `public_intel.py` into aggregator** — `service.py:148` calls `generate_signals_for_customer()` which returns fake templates; replace with real adapter calls. This one step makes every adapter actually run.
 - [ ] **`drift/business_model.py`** — sentence-transformer cosine distance between onboarding snapshot and current website (Cases 9, 10)
 - [ ] **`ml/extractors/drift.py`** — `DriftFeatureExtractor` with 20-dim feature vector; wire XGBoost to drift (currently wired to cases only)
-- [ ] **`db/kyc_baseline.py`** — store/load `EntitySnapshot` per customer so adapters can diff vs. onboarding state
+- [ ] **Train drift XGBoost model** — `ml/training.py` has no drift training; feed synthetic book (7 scenarios × time windows ≈ 200 samples) through `DriftFeatureExtractor` → label → `XGBClassifier.fit()`
 
-**UX / explainability**
+**5. UX / explainability**
 - [ ] **Source citations on signal cards** — add `source_url` field to `PublicSignalOut` in `public_intel.py`; display in `TwoLayerPanel.tsx`
-- [ ] **SHAP wired to drift** — option A (fast): reword README/docs to "per-layer contribution breakdown", remove per-variable SHAP claim; option B (correct): route T1 drift customers through `RiskEngine.score_case`, attach SHAP values to `DriftCustomerDetail`
+- [ ] **SHAP wired to drift** — option A (fast): reword docs to "per-layer contribution breakdown", drop per-variable SHAP claim; option B (correct): route T1 drift customers through `RiskEngine.score_case`, attach SHAP values to `DriftCustomerDetail`
 
-**Cost tracking**
+**6. Cost tracking**
 - [ ] **Token usage per workflow** — add `tokens_used: int` and `model: str` to `CascadeCostReport` in `schemas/drift.py`; populate from `anthropic_client.py` response metadata
 
 ---

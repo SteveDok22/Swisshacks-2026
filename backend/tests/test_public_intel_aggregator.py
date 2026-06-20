@@ -616,3 +616,96 @@ class TestEngineAggregatorWiring:
         analysis = engine._analyze_customer(cust)
 
         assert analysis["public_signals"], "offline synthetic path should emit signals"
+
+
+# ---------------------------------------------------------------------------
+# Use case 3 — real GLEIF ownership graph + ownership_change diff wiring
+# ---------------------------------------------------------------------------
+
+def _gleif_snapshot(drift_id, name, *, parents=None, lei="L1"):
+    from app.sources.base import EntitySnapshot
+
+    return EntitySnapshot(
+        drift_id=drift_id, name=name, source="gleif",
+        beneficial_owners=list(parents or []), raw_data={"lei": lei},
+    )
+
+
+class TestEngineOwnershipGraph:
+    def test_offline_uses_demo_graph(self, monkeypatch):
+        from app.drift import service
+
+        monkeypatch.setattr(service.settings, "external_apis_enabled", False)
+        engine = service.DriftEngine()
+        assert "SANCTIONED_ENTITY" in engine._graph.g  # synthetic demo topology
+
+    def test_live_builds_graph_from_gleif(self, monkeypatch):
+        from app.drift import service
+
+        monkeypatch.setattr(service.settings, "external_apis_enabled", True)
+
+        async def _fake_gather(entities, **kw):
+            return {"drift-001": _gleif_snapshot("drift-001", "Cust One", parents=["PARENTLEI"])}
+
+        monkeypatch.setattr(service, "gather_ownership_snapshots", _fake_gather)
+        engine = service.DriftEngine()
+        assert "PARENTLEI" in engine._graph.g            # built from real LEI links
+        assert "SANCTIONED_ENTITY" not in engine._graph.g  # NOT the demo graph
+
+    def test_live_falls_back_to_demo_when_no_snapshots(self, monkeypatch):
+        from app.drift import service
+
+        monkeypatch.setattr(service.settings, "external_apis_enabled", True)
+
+        async def _empty(entities, **kw):
+            return {}
+
+        monkeypatch.setattr(service, "gather_ownership_snapshots", _empty)
+        engine = service.DriftEngine()
+        assert "SANCTIONED_ENTITY" in engine._graph.g
+
+    def test_gleif_ownership_signals_emitted(self, monkeypatch):
+        from app.drift import service
+
+        monkeypatch.setattr(service.settings, "external_apis_enabled", False)
+        engine = service.DriftEngine()
+        cust = engine._book[0]
+        engine._gleif_baselines = {cust.drift_id: _gleif_snapshot(cust.drift_id, cust.name)}
+        engine._gleif_snapshots = {
+            cust.drift_id: _gleif_snapshot(cust.drift_id, cust.name, parents=["NEWPARENTLEI"])
+        }
+        signals = engine._gleif_ownership_signals(cust)
+        assert [s.signal_type for s in signals] == ["ownership_change"]
+
+    def test_no_baseline_means_no_ownership_signals(self, monkeypatch):
+        from app.drift import service
+
+        monkeypatch.setattr(service.settings, "external_apis_enabled", False)
+        engine = service.DriftEngine()
+        cust = engine._book[0]
+        # Current snapshot present but no GLEIF baseline → nothing to diff.
+        engine._gleif_snapshots = {
+            cust.drift_id: _gleif_snapshot(cust.drift_id, cust.name, parents=["P"])
+        }
+        assert engine._gleif_ownership_signals(cust) == []
+
+    def test_public_signals_layers_in_gleif_diff(self, monkeypatch):
+        from app.drift import service
+
+        monkeypatch.setattr(service.DriftEngine, "_public_signals", _REAL_PUBLIC_SIGNALS)
+        monkeypatch.setattr(service.settings, "external_apis_enabled", True)
+
+        async def _empty(entities, **kw):
+            return {}
+
+        monkeypatch.setattr(service, "gather_ownership_snapshots", _empty)
+        # No aggregator adapters, so only the GLEIF ownership diff contributes.
+        monkeypatch.setattr("app.sources.registry.usable_adapters", lambda: ())
+        engine = service.DriftEngine()
+        cust = engine._book[0]
+        engine._gleif_baselines = {cust.drift_id: _gleif_snapshot(cust.drift_id, cust.name)}
+        engine._gleif_snapshots = {
+            cust.drift_id: _gleif_snapshot(cust.drift_id, cust.name, parents=["NEWPARENTLEI"])
+        }
+        signals = engine._public_signals(cust)
+        assert [s.signal_type for s in signals] == ["ownership_change"]

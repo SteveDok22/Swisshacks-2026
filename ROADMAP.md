@@ -22,7 +22,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 |---|---|---|---|---|---|---|
 | 1 | Negative news spike | Reputational risk | ⚠️ PARTIAL | Lexicon classifier + confirmation lift; no live feed | Event Registry adapter (primary) + BOCPD on weekly event-count series; GDELT as fallback | **Wirecard** — adverse media, whistle-blower allegations, and accounting red flags accumulated in public signals 2 years before collapse |
 | 2 | Cross-border transfer anomaly | Behavioural anomaly | ✅ WORKS | BOCPD + velocity on synthetic data | — | **Deutsche Bank mirror trades** — $10B moved Russia→UK via back-to-back exchange orders, evading cross-border transfer controls (2011–2015) |
-| 3 | Multiple entities + sudden flows | Structuring / layering | ⚠️ PARTIAL | Contagion + causal; no named layering detector | GLEIF for real UBO graph to replace synthetic contagion graph | **Danske Estonia** — 15,000 non-resident shell-company customers, hidden UBO chains, €200B in suspicious cross-border flows |
+| 3 | Multiple entities + sudden flows | Structuring / layering | ✅ WORKS | Contagion + causal; real GLEIF LEI parent/child graph (`build_graph_from_snapshots`) with synthetic-demo fallback; `ownership_change` diff signals wired into the engine | — | **Danske Estonia** — 15,000 non-resident shell-company customers, hidden UBO chains, €200B in suspicious cross-border flows |
 | 4 | Jurisdiction / legal form change | Structural risk | 🔶 INDIRECT | `jurisdiction.py` is rule-pack selector, not change detector | ZEFIX / GLEIF diff vs. KYC baseline → `jurisdiction_change` signal | **Long Blockchain Corp** — Long Island Iced Tea rebranded to exploit crypto hype; name change triggered mandatory re-KYC across its banking relationships |
 | 5 | New shareholders / UBOs | Ownership KYC drift | ✅ WORKS | PageRank over synthetic graph **plus** real UBO screening: GLEIF ownership chain (direct-child LEIs → names) → OpenSanctions screening of each UBO; hits surfaced as `ownership_change` signals + `DriftSubjectDetail.ubo_screening` | — | **1MDB** — beneficial ownership routed through multiple layers of Cayman/BVI shells; each UBO change further obscured the true principal |
 | 6 | Large funding round / expansion | Scale risk | ✅ | `funding_event` (ER/GDELT) + causal scale-jump corroboration | Event Registry funding-event query + scale-jump ratio; GDELT fallback | **FTX** — $900M raise at $18B valuation; transaction volumes never matched claimed revenue; scale jump was the leading AML signal |
@@ -88,7 +88,7 @@ See [`docs/sources.md`](docs/sources.md) for full cost/access breakdown.
 *Implemented:*
 - [x] **`sources/event_registry.py`** — structured news events, entity-aware queries (Cases 1, 6, 8, 10) · FREEMIUM — **hackathon API key; PRIMARY news source** · adverse-media, funding, name-change/pivot modes; returns `[]` gracefully when key absent
 - [x] **`sources/zefix.py`** — Swiss commercial register (Cases 4, 7, 8, 10) · FREEMIUM · `fetch` + `fetch_signals` implemented against the live OpenAPI schema; Basic-auth from `ZEFIX_USERNAME`/`ZEFIX_PASSWORD`, graceful degradation without creds; unit tests in `tests/test_zefix.py`. Engine wiring tracked in UC4/UC8 close-out tasks below.
-- [x] **`sources/gleif.py`** — Global LEI Foundation (Cases 3, 4, 5, 8, 10) · FREE · `fetch()` fully implemented (legal name, jurisdiction, LEI status, parent + child LEIs); `fetch_signals()` returns `[]` by design — signals emitted by service layer via `diff_snapshots()`
+- [x] **`sources/gleif.py`** — Global LEI Foundation (Cases 3, 4, 5, 8, 10) · FREE · `fetch()` fully implemented (legal name, jurisdiction, LEI status, parent + child LEIs); `fetch_signals(baseline, current)` and the `ownership_change_signals()` helper diff the ownership chain via `diff_snapshots()` → `ownership_change` signals (no network in the diff path; `[]` when no snapshot pair is supplied)
 - [x] **`sources/whois.py`** — RDAP domain age + registrant change (Cases 8, 9) · FREE · `fetch()` + `fetch_signals()` implemented against `rdap.org`; no key required; unit tests in `tests/test_whois.py`.
 
 *All free / free-tier adapters implemented:*
@@ -245,8 +245,8 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 
 > **UC 3 — Multiple entities + sudden flows** (⚠️ PARTIAL → ✅)
 - [x] Implement `GleifAdapter.fetch` (ownership chain: parent LEI + direct children)
-- [ ] In `DriftEngine.__init__`, if GLEIF is available, build `OwnershipGraph` from real LEI parent/child relationships instead of `build_demo_graph`
-- [ ] Diff GLEIF `ownership_chain` vs KYC baseline using `diff_snapshots`; emit `ownership_change` signals
+- [x] In `DriftEngine.__init__`, if GLEIF is available, build `OwnershipGraph` from real LEI parent/child relationships instead of `build_demo_graph` (`DriftEngine._build_ownership_graph` → `contagion.build_graph_from_snapshots`; degrades to `build_demo_graph` when GLEIF is offline/unreachable or resolves no ownership links)
+- [x] Diff GLEIF `ownership_chain` vs KYC baseline using `diff_snapshots`; emit `ownership_change` signals (`gleif.ownership_change_signals` + `GleifAdapter.fetch_signals`, layered into the engine via `DriftEngine._gleif_ownership_signals`). Follow-up: persist GLEIF-source onboarding baselines so the live demo diff fires (the seed currently writes `internal`-source baselines, which the same-source contract excludes); seed a flagged entity into the real graph so contagion propagates over live LEIs.
 
 > **UC 4 — Jurisdiction / legal form change** (🔶 INDIRECT → ✅)
 - [x] Implement `ZefixAdapter.fetch` and `fetch_signals` (legal_form + jurisdiction diff path — see spec above)
@@ -342,7 +342,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | Source | Cases | Cost | Status |
 |---|---|---|---|
 | ZEFIX | 4, 7, 8, 10 | FREEMIUM¹ | ✅ IMPLEMENTED (engine wiring pending) |
-| GLEIF | 3, 4, 5, 8, 10 | FREE | ✅ IMPLEMENTED — `fetch()` live; signals via `diff_snapshots()` |
+| GLEIF | 3, 4, 5, 8, 10 | FREE | ✅ IMPLEMENTED — `fetch()` live; ownership graph via `build_graph_from_snapshots`; `ownership_change` signals via `diff_snapshots()` |
 | OpenSanctions | 2, 5 | FREEMIUM | ✅ IMPLEMENTED — `fetch_signals` live; key optional (non-commercial free tier) |
 | Event Registry / NewsAPI.ai | 1, 6, 8, 10 | FREEMIUM (hackathon key) | ✅ IMPLEMENTED — **primary news source** |
 | GDELT | 1, 6, 8, 10 | FREE | ✅ IMPLEMENTED — `fetch_signals` live (BOCPD volume + funding/pivot title classification); free fallback when ER key absent |

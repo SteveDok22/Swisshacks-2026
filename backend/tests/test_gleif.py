@@ -20,7 +20,7 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-from app.sources.base import EntitySnapshot, SnapshotDiff, diff_snapshots
+from app.sources.base import EntitySnapshot, diff_snapshots
 from app.sources.cost import AdapterStatus, SourceCost
 from app.sources.gleif import (
     GleifAdapter,
@@ -28,8 +28,9 @@ from app.sources.gleif import (
     _extract_legal_form,
     _extract_name,
     _extract_status,
+    gather_ownership_snapshots,
+    ownership_change_signals,
 )
-
 
 # ---------------------------------------------------------------------------
 # Shared sample data — representative GLEIF API payloads
@@ -471,18 +472,20 @@ class TestGleifFetch:
 
 
 # ---------------------------------------------------------------------------
-# GleifAdapter.fetch_signals() — registry diff adapter, returns []
+# GleifAdapter.fetch_signals() — registry diff adapter: [] unless given a
+# baseline+current snapshot pair to diff; never does network I/O.
 # ---------------------------------------------------------------------------
 
 class TestGleifFetchSignals:
-    async def test_returns_empty_list_always(self):
+    async def test_returns_empty_without_snapshot_pair(self):
         adapter = GleifAdapter()
         result = await adapter.fetch_signals("drift-001", "Test Corp", lei=_LEI)
         assert result == []
 
-    async def test_returns_empty_list_with_since_month(self):
+    async def test_returns_empty_with_only_current(self):
         adapter = GleifAdapter()
-        result = await adapter.fetch_signals("drift-001", "Test Corp", since_month=6, lei=_LEI)
+        current = adapter._normalize("d", _LEI, _LEI_RECORD_ACTIVE, _PARENT_LEI, [])
+        result = await adapter.fetch_signals("d", "Test Corp", current=current)
         assert result == []
 
     async def test_no_network_calls_made(self):
@@ -491,6 +494,108 @@ class TestGleifFetchSignals:
         result = await adapter.fetch_signals("drift-001", "Test Corp", lei=_LEI)
         assert result == []
         mock_client.get.assert_not_called()
+
+    async def test_diffs_snapshot_pair_into_ownership_change(self):
+        adapter = GleifAdapter()
+        current = adapter._normalize("d", _LEI, _LEI_RECORD_ACTIVE, _PARENT_LEI, [])
+        baseline = _baseline(beneficial_owners=[])
+        result = await adapter.fetch_signals(
+            "d", "Test Corp", since_month=7, baseline=baseline, current=current
+        )
+        assert [s.signal_type for s in result] == ["ownership_change"]
+        assert result[0].month == 7
+
+    async def test_diff_path_does_no_network(self):
+        mock_client = MagicMock(spec=httpx.AsyncClient)
+        adapter = GleifAdapter(http_client=mock_client)
+        current = adapter._normalize("d", _LEI, _LEI_RECORD_ACTIVE, _PARENT_LEI, [])
+        baseline = _baseline(beneficial_owners=[])
+        await adapter.fetch_signals("d", "Test Corp", baseline=baseline, current=current)
+        mock_client.get.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# ownership_change_signals() — pure diff → PublicSignal (use case 3)
+# ---------------------------------------------------------------------------
+
+class TestOwnershipChangeSignals:
+    def setup_method(self):
+        self.adapter = GleifAdapter()
+
+    def _current(self, parent=_PARENT_LEI, children=None):
+        return self.adapter._normalize("d", _LEI, _LEI_RECORD_ACTIVE, parent, children or [])
+
+    def test_new_parent_emits_ownership_change(self):
+        signals = ownership_change_signals(_baseline(beneficial_owners=[]), self._current())
+        assert [s.signal_type for s in signals] == ["ownership_change"]
+        assert _PARENT_LEI in signals[0].headline
+        assert signals[0].severity == pytest.approx(0.60)
+        assert signals[0].source == "GLEIF (Global LEI)"
+        assert _LEI in (signals[0].source_url or "")
+
+    def test_parent_removed_emits_ownership_change(self):
+        current = self._current(parent=None)
+        signals = ownership_change_signals(_baseline(beneficial_owners=[_PARENT_LEI]), current)
+        assert [s.signal_type for s in signals] == ["ownership_change"]
+        assert _PARENT_LEI in signals[0].headline
+
+    def test_new_child_emits_ownership_change(self):
+        current = self._current(parent=None, children=[_CHILD_LEI_A])
+        baseline = _baseline(beneficial_owners=[])
+        baseline.officers = []
+        signals = ownership_change_signals(baseline, current)
+        assert [s.signal_type for s in signals] == ["ownership_change"]
+        assert _CHILD_LEI_A in signals[0].headline
+
+    def test_name_change_is_not_emitted(self):
+        # Name/jurisdiction/status diffs belong to UC 4 / UC 8 — filtered out here.
+        current = self._current(parent=None)
+        baseline = _baseline(name="Old Corp AG", beneficial_owners=[])
+        assert ownership_change_signals(baseline, current) == []
+
+    def test_no_change_emits_nothing(self):
+        current = self._current(parent=None)
+        baseline = _baseline(beneficial_owners=[])
+        assert ownership_change_signals(baseline, current) == []
+
+    def test_source_mismatch_returns_empty(self):
+        current = self._current()
+        baseline = _baseline(beneficial_owners=[])
+        baseline.source = "internal"  # cross-source pair → rejected
+        assert ownership_change_signals(baseline, current) == []
+
+    def test_month_passed_through(self):
+        signals = ownership_change_signals(
+            _baseline(beneficial_owners=[]), self._current(), month=11
+        )
+        assert all(s.month == 11 for s in signals)
+
+
+# ---------------------------------------------------------------------------
+# gather_ownership_snapshots() — parallel fetch for the contagion graph
+# ---------------------------------------------------------------------------
+
+class TestGatherOwnershipSnapshots:
+    async def test_empty_entities_returns_empty(self):
+        assert await gather_ownership_snapshots([]) == {}
+
+    async def test_collects_only_resolved_snapshots(self):
+        snap = EntitySnapshot(drift_id="drift-001", name="Cust One", source="gleif")
+        adapter = MagicMock()
+        adapter.fetch = AsyncMock(side_effect=[snap, None, RuntimeError("boom")])
+        out = await gather_ownership_snapshots(
+            [("drift-001", "A"), ("drift-002", "B"), ("drift-003", "C")],
+            adapter=adapter,
+        )
+        assert set(out) == {"drift-001"}
+        assert out["drift-001"] is snap
+
+    async def test_injected_adapter_not_closed(self):
+        adapter = MagicMock()
+        adapter.fetch = AsyncMock(return_value=None)
+        adapter.aclose = AsyncMock()
+        await gather_ownership_snapshots([("drift-001", "A")], adapter=adapter)
+        adapter.aclose.assert_not_called()
 
 
 # ---------------------------------------------------------------------------

@@ -97,6 +97,8 @@ risk_prop(i) = PPR(i | personalization = S, alpha = 0.85)
 
 computed over an undirected, stake-weighted view so risk flows both ways (an owner contaminates what it owns, and owning a flagged entity contaminates the owner). Customers two ownership hops from a newly sanctioned entity receive elevated risk **before** any list contains their name.
 
+**Graph source (use case 3).** In live mode (`EXTERNAL_APIS_ENABLED`) `DriftEngine._build_ownership_graph` fetches each customer's current GLEIF ownership chain (ultimate-parent + direct-child LEIs) and builds a real graph via `contagion.build_graph_from_snapshots` — shared LEIs link customers into one topology. Offline/mock mode, or any case where GLEIF resolves no ownership links, degrades to the synthetic `build_demo_graph`. Separately, the GLEIF chain is diffed against the customer's GLEIF KYC baseline (`gleif.ownership_change_signals`, same-source) to emit `ownership_change` public signals, layered into the per-customer signal set in `_public_signals`.
+
 ---
 
 ## Layer 4 — Public Intelligence + Confirmation Lift

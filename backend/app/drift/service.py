@@ -40,8 +40,8 @@ from app.schemas.drift import (
     CausalVerdictOut,
     ContagionGraph,
     DormancyOut,
-    DriftCustomerDetail,
-    DriftCustomerSummary,
+    DriftSubjectDetail,
+    DriftSubjectSummary,
     DriftTimelinePoint,
     LayerContribution,
     PublicSignalOut,
@@ -448,8 +448,8 @@ class DriftEngine:
     # ------------------------------------------------------------------ #
     # Public API methods
     # ------------------------------------------------------------------ #
-    def list_customers(self) -> list[DriftCustomerSummary]:
-        out: list[DriftCustomerSummary] = []
+    def list_customers(self) -> list[DriftSubjectSummary]:
+        out: list[DriftSubjectSummary] = []
         for cust in self._book:
             a = self._analyze_customer(cust)
             signal = CustomerSignal(
@@ -459,7 +459,7 @@ class DriftEngine:
             )
             decision = self._router.route_one(signal)
             out.append(
-                DriftCustomerSummary(
+                DriftSubjectSummary(
                     drift_id=cust.drift_id,
                     name=cust.name,
                     drift_score=round(a["drift_score"], 1),
@@ -482,7 +482,7 @@ class DriftEngine:
         out.sort(key=lambda c: c.drift_score, reverse=True)
         return out
 
-    def get_customer(self, drift_id: str) -> DriftCustomerDetail | None:
+    def get_customer(self, drift_id: str) -> DriftSubjectDetail | None:
         cust = next((c for c in self._book if c.drift_id == drift_id), None)
         if cust is None:
             return None
@@ -518,7 +518,7 @@ class DriftEngine:
             for i in range(len(ds.windows))
         ]
 
-        return DriftCustomerDetail(
+        return DriftSubjectDetail(
             drift_id=cust.drift_id,
             name=cust.name,
             drift_score=round(a["drift_score"], 1),
@@ -667,7 +667,7 @@ class DriftEngine:
             alert_threshold=traj["alert_threshold"],
         )
 
-    def inject_scenario(self, scenario: str, name: str) -> DriftCustomerDetail:
+    def inject_scenario(self, scenario: str, name: str) -> DriftSubjectDetail:
         """Red-team: add a synthetic customer with a chosen drift scenario."""
         new_id = f"injected-{len(self._book) + 1:03d}"
         cust = generate_customer(

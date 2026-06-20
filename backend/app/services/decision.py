@@ -238,7 +238,7 @@ class DecisionService:
             created_at=decision.created_at,
         )
     
-    async def list_decisions_for_customer(
+    async def list_decisions_for_subject(
         self, drift_id: str
     ) -> list[DecisionDB]:
         """Get all drift-engine decisions for a customer (chronological)."""

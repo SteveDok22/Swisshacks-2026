@@ -59,7 +59,7 @@ class EntitySnapshotDB(SQLModel, table=True):
         # Composite index covers the two most common access patterns:
         #   load_latest_snapshot  → ORDER BY created_at DESC LIMIT 1
         #   load_onboarding_snapshot → WHERE snapshot_type = 'onboarding' ORDER BY created_at ASC
-        Index("ix_entity_snapshots_customer_created", "drift_id", "created_at"),
+        Index("ix_entity_snapshots_drift_created", "drift_id", "created_at"),
         CheckConstraint(
             f"snapshot_type IN {_VALID_SNAPSHOT_TYPES}",
             name="ck_entity_snapshots_snapshot_type",

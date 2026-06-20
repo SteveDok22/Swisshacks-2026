@@ -78,7 +78,7 @@ async def list_case_decisions(
 
 
 @router.get("/subject/{drift_id}", response_model=list[DecisionRead])
-async def list_customer_decisions(
+async def list_subject_decisions(
     drift_id: str,
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> list[DecisionRead]:
@@ -92,5 +92,5 @@ async def list_customer_decisions(
             detail=f"No drift customer {drift_id!r}",
         )
     service = DecisionService(session)
-    decisions = await service.list_decisions_for_customer(drift_id)
+    decisions = await service.list_decisions_for_subject(drift_id)
     return [_to_read(d) for d in decisions]

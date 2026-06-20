@@ -86,10 +86,10 @@ class DecisionCreate(BaseModel):
     @model_validator(mode="after")
     def _exactly_one_id(self) -> "DecisionCreate":
         has_case = self.case_id is not None
-        has_customer = self.drift_id is not None
-        if not has_case and not has_customer:
+        has_drift = self.drift_id is not None
+        if not has_case and not has_drift:
             raise ValueError("Provide either case_id or drift_id")
-        if has_case and has_customer:
+        if has_case and has_drift:
             raise ValueError("Provide either case_id or drift_id, not both")
         return self
 

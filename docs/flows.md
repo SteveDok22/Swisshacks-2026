@@ -92,14 +92,14 @@ sequenceDiagram
     O->>FE: Open Drift Dashboard
     FE->>API: GET /api/v1/drift/subjects
     API->>DE: scan_all_customers()
-    DE-->>API: DriftCustomerSummary[] sorted by score
+    DE-->>API: DriftSubjectSummary[] sorted by score
     API-->>FE: Risk-ranked list
     FE-->>O: Radar + priority queue
 
     O->>FE: Click high-risk customer
     FE->>API: GET /api/v1/drift/subjects/{id}
     API->>DE: full_analysis(drift_id)
-    DE-->>API: DriftCustomerDetail + all 7 layers
+    DE-->>API: DriftSubjectDetail + all 7 layers
     API-->>FE: Full breakdown + causal evidence
     FE-->>O: Verdict bar · DecisionBar · Evidence panels · Score timeline
 
@@ -140,8 +140,8 @@ flowchart TD
     end
 
     subgraph Output["Output"]
-        Summary["DriftCustomerSummary\nscore · velocity · action"]
-        Detail["DriftCustomerDetail\nper-layer breakdown\ncausal evidence"]
+        Summary["DriftSubjectSummary\nscore · velocity · action"]
+        Detail["DriftSubjectDetail\nper-layer breakdown\ncausal evidence"]
     end
 
     Action{Recommended Action?}

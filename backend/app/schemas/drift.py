@@ -92,7 +92,7 @@ class ReplayResult(BaseModel):
     alert_threshold: float
 
 
-class DriftCustomerSummary(BaseModel):
+class DriftSubjectSummary(BaseModel):
     """Book-overview row: one customer's drift snapshot."""
 
     drift_id: str
@@ -124,7 +124,7 @@ class DriftTimelinePoint(BaseModel):
     bocpd_changepoint: bool = False
 
 
-class DriftCustomerDetail(BaseModel):
+class DriftSubjectDetail(BaseModel):
     """Full drift analysis for one customer."""
 
     drift_id: str

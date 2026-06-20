@@ -127,7 +127,7 @@ async def test_drift_decision_override_without_rationale_rejected(
 
 
 @pytest.mark.asyncio
-async def test_list_customer_decisions_empty(client: AsyncClient, cid: str) -> None:
+async def test_list_subject_decisions_empty(client: AsyncClient, cid: str) -> None:
     resp = await client.get(f"/api/v1/decisions/subject/{cid}")
     assert resp.status_code == 200, resp.text
     assert resp.json() == []
@@ -140,7 +140,7 @@ async def test_list_unknown_customer_returns_404(client: AsyncClient) -> None:
 
 
 @pytest.mark.asyncio
-async def test_list_customer_decisions_chronological(
+async def test_list_subject_decisions_chronological(
     client: AsyncClient, cid: str
 ) -> None:
     """Multiple decisions for the same customer are returned in creation order."""
@@ -161,7 +161,7 @@ async def test_list_customer_decisions_chronological(
 
 
 @pytest.mark.asyncio
-async def test_list_customer_decisions_isolated_by_customer(
+async def test_list_subject_decisions_isolated_by_subject(
     client: AsyncClient, cid: str
 ) -> None:
     """Decisions for one customer don't appear under another."""

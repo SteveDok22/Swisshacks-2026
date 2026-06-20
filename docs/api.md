@@ -59,8 +59,8 @@ flowchart TB
 ```mermaid
 flowchart LR
     subgraph DriftSchemas["Drift Schemas"]
-        DS1["DriftCustomerSummary\ndrift_id · name · score · velocity\naction · risk_level"]
-        DS2["DriftCustomerDetail\n+ LayerContribution[]\n+ CausalVerdictOut\n+ StabilityOut\n+ contagion_score"]
+        DS1["DriftSubjectSummary\ndrift_id · name · score · velocity\naction · risk_level"]
+        DS2["DriftSubjectDetail\n+ LayerContribution[]\n+ CausalVerdictOut\n+ StabilityOut\n+ contagion_score"]
         DS3["ReplayResult\nas_of_score · current_score\nlead_time_months"]
         DS4["CascadeCostReport\ntier_counts · costs · total_customers\n+ actual_t2_llm_calls\n+ llm_adjudications[]"]
     end
@@ -100,4 +100,4 @@ Case-explanation LLM calls pass through `anonymizer.py` so raw names and exact a
 - `actual_t2_llm_calls`
 - `real_t2_llm_calls`
 - `mock_t2_llm_calls`
-- `llm_adjudications[]` with customer id, customer name, mode, cache flag, and parsed JSON adjudication.
+- `llm_adjudications[]` with `drift_id`, `drift_name`, mode, cache flag, and parsed JSON adjudication.

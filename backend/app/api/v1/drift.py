@@ -15,8 +15,8 @@ from app.ml.base import score_to_level
 from app.schemas.drift import (
     CascadeCostReport,
     ContagionGraph,
-    DriftCustomerDetail,
-    DriftCustomerSummary,
+    DriftSubjectDetail,
+    DriftSubjectSummary,
     InjectScenarioRequest,
     ReplayResult,
     RFIResponse,
@@ -26,18 +26,18 @@ from app.services.audit import AuditService
 router = APIRouter(prefix="/drift", tags=["drift"])
 
 
-@router.get("/subjects", response_model=list[DriftCustomerSummary])
-async def list_drift_customers() -> list[DriftCustomerSummary]:
+@router.get("/subjects", response_model=list[DriftSubjectSummary])
+async def list_drift_subjects() -> list[DriftSubjectSummary]:
     """Book overview: drift score + velocity per customer, sorted by risk."""
     return get_drift_engine().list_customers()
 
 
-@router.get("/subjects/{drift_id}", response_model=DriftCustomerDetail)
-async def get_drift_customer(
+@router.get("/subjects/{drift_id}", response_model=DriftSubjectDetail)
+async def get_drift_subject(
     drift_id: str,
     session: Annotated[AsyncSession, Depends(get_session)],
     actor_id: str | None = Query(None, description="ID of the officer viewing the customer"),
-) -> DriftCustomerDetail:
+) -> DriftSubjectDetail:
     """Full layer breakdown + timeline for one customer."""
     detail = get_drift_engine().get_customer(drift_id)
     if detail is None:
@@ -68,8 +68,8 @@ async def get_drift_customer(
     return detail
 
 
-@router.get("/subjects/{drift_id}/timeline", response_model=DriftCustomerDetail)
-async def get_drift_timeline(drift_id: str) -> DriftCustomerDetail:
+@router.get("/subjects/{drift_id}/timeline", response_model=DriftSubjectDetail)
+async def get_drift_timeline(drift_id: str) -> DriftSubjectDetail:
     """
     Timeline-focused view (same payload as detail; the frontend scrubber
     reads the `timeline` array). Kept as a separate route for clarity.
@@ -149,12 +149,12 @@ async def get_replay(
     return result
 
 
-@router.post("/inject", response_model=DriftCustomerDetail)
+@router.post("/inject", response_model=DriftSubjectDetail)
 async def inject_scenario(
     req: InjectScenarioRequest,
     session: Annotated[AsyncSession, Depends(get_session)],
     actor_id: str | None = Query(None, description="ID of the officer injecting the scenario"),
-) -> DriftCustomerDetail:
+) -> DriftSubjectDetail:
     """Red-team: inject a synthetic drift scenario and return its analysis."""
     try:
         detail = get_drift_engine().inject_scenario(req.scenario, req.name)

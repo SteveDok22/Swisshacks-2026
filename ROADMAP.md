@@ -29,7 +29,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 | 7 | Dormant company activates | Suspicious activation | ✅ WORKS | `drift/dormancy.py` explicit detector; wired into score + API; `dormancy_break` scenario in book; DormancyPanel in UI | — | **Azerbaijani Laundromat** — EU shell companies dormant for years, suddenly activated 2012–2014 to route $2.9B out of Azerbaijan |
 | 8 | Legal entity name change | Re-KYC required | ❌ MISSING | Not implemented | ZEFIX + GLEIF diff against KYC baseline; `name_changed` signal; score floor at 60 | **Mossack Fonseca shelf cycling** — systematic renaming of shelf companies every 12–18 months to reset KYC review clocks |
 | 9 | Domain switch / website change | Business activity change | ⚠️ PARTIAL | `drift/business_model.py` comparator built + unit-tested (Wayback↔Firecrawl cosine ≥ 0.35 → `business_model_change`); WHOIS/Wayback/Firecrawl adapters built | Wire comparator into `_analyze_customer` (load both website texts per customer, persist embeddings) | **N26** — rapid international expansion and domain/product proliferation outpaced AML monitoring; BaFin appointed a special monitor |
-| 10 | Public business model pivot | Material business change | ❌ MISSING | Not implemented | Event Registry pivot-event cluster + Firecrawl + sentence-transformer cosine; GDELT fallback | **Centra Tech** — pivoted from debit-card fintech to ICO in 90 days; existing AML profile captured none of the new business model risk |
+| 10 | Public business model pivot | Material business change | ✅ WORKS | Event Registry + GDELT pivot/rebrand `business_model_change` signals; `drift/business_model.py` cosine comparator; aggregator corroboration (`elevate_corroborated_pivots`) lifts a news-cluster + website-cosine pivot to critical; `pivot` synthetic scenario in `simulator.py` (Centra Tech pattern) | Live website-text wiring shares UC 9's pending `_analyze_customer` injection (load Wayback+Firecrawl texts) | **Centra Tech** — pivoted from debit-card fintech to ICO in 90 days; existing AML profile captured none of the new business model risk |
 
 ---
 
@@ -283,8 +283,8 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 > **UC 10 — Public business model pivot** (❌ MISSING → ✅)
 - [x] Implement `EventRegistryAdapter.fetch_signals` — pivot/rebrand mode (primary)
 - [x] Implement `GdeltAdapter.fetch_signals` — pivot mode (free fallback)
-- [ ] In the aggregator: if Event Registry reports a pivot-adjacent event cluster AND cosine distance ≥ 0.35, elevate signal severity to `"critical"` (two independent corroborating sources)
-- [ ] Add `pivot` synthetic scenario to `simulator.py` — news pivot signals fire at month 9; website cosine distance fires; causal label `"risk"` with `funding_event` co-occurrence (Centra Tech pattern)
+- [x] In the aggregator: if Event Registry reports a pivot-adjacent event cluster AND cosine distance ≥ 0.35, elevate signal severity to `"critical"` (two independent corroborating sources) — `public_intel.elevate_corroborated_pivots`, applied in `gather_public_signals` (live) and the synthetic generator (offline). The website-derived `business_model_change` signal only exists when distance ≥ 0.35, so its presence *is* that condition; "critical" = the top 0.90–1.00 severity band
+- [x] Add `pivot` synthetic scenario to `simulator.py` — news pivot signals fire at month 9; website cosine distance fires; causal label `"risk"` with `funding_event` co-occurrence (Centra Tech pattern). Transaction signature is risk-shaped (volume up, margin collapse); public signals emitted by `generate_signals_for_customer`
 
 ---
 

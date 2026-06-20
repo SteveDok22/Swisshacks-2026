@@ -1,6 +1,7 @@
 "use client";
 
 import { cn, formatCompact, scoreSeverity } from "@/lib/utils";
+import { InfoHint } from "@/components/ui/InfoHint";
 import type { DormancyVerdict } from "@/types/api";
 import { Activity, Moon, Power, X } from "lucide-react";
 interface DormancyPanelProps {
@@ -54,6 +55,10 @@ export function DormancyPanel({ dormancy }: DormancyPanelProps) {
             FLAGGED
           </span>
         )}
+        <InfoHint
+          className="ml-auto"
+          text="Sleeper-account reactivation detector. Flags a previously dormant account (near-zero baseline) that suddenly bursts into high volume. Score = dormancy depth × activation strength — a product, so a still-dormant account or ordinary steady growth both score near zero; only the dormant-to-active jump scores high."
+        />
       </div>
 
       <div className="flex items-center gap-2 mb-3">

@@ -158,7 +158,7 @@ export function DecisionBar(props: DecisionBarProps) {
 
   if (latestDecision && !reopened) {
     return (
-      <div className="rounded border border-paper-line bg-risk-low-bg px-6 py-4 flex items-center gap-3 animate-fade-in">
+      <div className="rounded bg-risk-low-bg px-6 py-4 flex items-center gap-3 animate-fade-in">
         <div className="h-6 w-6 rounded-full bg-risk-low flex items-center justify-center shrink-0">
           <Check className="h-3.5 w-3.5 text-paper-raised" strokeWidth={3} />
         </div>

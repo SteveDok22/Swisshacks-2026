@@ -188,7 +188,13 @@ def compute_drift_analysis(
     score = min(base * amplification * 100.0, 100.0)
 
     # --- CAUSAL / SUSPICIOUS STABILITY / DORMANCY ---
-    causal = causal_assessment(cust.causal_windows())
+    # UC6: surface public funding_event months so the causal layer can corroborate
+    # a >= 5x scale jump as acquisition/funding-driven (scale risk) rather than
+    # an unexplained volume jump.
+    funding_event_months = [s.month for s in signals if s.signal_type == "funding_event"]
+    causal = causal_assessment(
+        cust.causal_windows(), funding_event_months=funding_event_months
+    )
     stability = assess_stability(
         cust.monthly_volume,
         cohort_cv,

@@ -50,7 +50,7 @@ class StabilityOut(BaseModel):
     suspicion: float = Field(description="0-1 product of the two factors")
     stability_anomaly: float = Field(description="0-1 how unnaturally smooth")
     environmental_movement: float = Field(description="0-1 how much surroundings move")
-    own_volatility: float = Field(description="customer coefficient of variation")
+    own_volatility: float = Field(description="subject coefficient of variation")
     cohort_volatility: float = Field(description="cohort median CV (reference)")
     is_suspicious: bool
     detail: str
@@ -93,7 +93,7 @@ class ReplayResult(BaseModel):
 
 
 class DriftSubjectSummary(BaseModel):
-    """Book-overview row: one customer's drift snapshot."""
+    """Book-overview row: one drift subject's snapshot."""
 
     drift_id: str
     name: str
@@ -115,7 +115,7 @@ class DriftSubjectSummary(BaseModel):
 
 
 class DriftTimelinePoint(BaseModel):
-    """One month in a customer's drift timeline (the scrubber data)."""
+    """One month in a drift subject's timeline (the scrubber data)."""
 
     month: int
     drift_bits: float
@@ -125,7 +125,7 @@ class DriftTimelinePoint(BaseModel):
 
 
 class DriftSubjectDetail(BaseModel):
-    """Full drift analysis for one customer."""
+    """Full drift analysis for one drift subject."""
 
     drift_id: str
     name: str

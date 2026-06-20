@@ -29,25 +29,25 @@ router = APIRouter(prefix="/drift", tags=["drift"])
 @router.get("/subjects", response_model=list[DriftSubjectSummary])
 async def list_drift_subjects() -> list[DriftSubjectSummary]:
     """Book overview: drift score + velocity per customer, sorted by risk."""
-    return get_drift_engine().list_customers()
+    return get_drift_engine().list_subjects()
 
 
 @router.get("/subjects/{drift_id}", response_model=DriftSubjectDetail)
 async def get_drift_subject(
     drift_id: str,
     session: Annotated[AsyncSession, Depends(get_session)],
-    actor_id: str | None = Query(None, description="ID of the officer viewing the customer"),
+    actor_id: str | None = Query(None, description="ID of the officer viewing the subject"),
 ) -> DriftSubjectDetail:
-    """Full layer breakdown + timeline for one customer."""
-    detail = get_drift_engine().get_customer(drift_id)
+    """Full layer breakdown + timeline for one drift subject."""
+    detail = get_drift_engine().get_subject(drift_id)
     if detail is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No drift customer {drift_id!r}",
+            detail=f"No drift subject {drift_id!r}",
         )
 
     await AuditService(session).log(
-        event_type="drift_customer_analyzed",
+        event_type="drift_subject_analyzed",
         drift_id=drift_id,
         actor_id=actor_id,
         actor_type="compliance_officer" if actor_id else "system",
@@ -74,11 +74,11 @@ async def get_drift_timeline(drift_id: str) -> DriftSubjectDetail:
     Timeline-focused view (same payload as detail; the frontend scrubber
     reads the `timeline` array). Kept as a separate route for clarity.
     """
-    detail = get_drift_engine().get_customer(drift_id)
+    detail = get_drift_engine().get_subject(drift_id)
     if detail is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No drift customer {drift_id!r}",
+            detail=f"No drift subject {drift_id!r}",
         )
     return detail
 
@@ -129,7 +129,7 @@ async def get_replay(
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No drift customer {drift_id!r}",
+            detail=f"No drift subject {drift_id!r}",
         )
 
     await AuditService(session).log(
@@ -193,11 +193,11 @@ async def generate_rfi(
     drift signal, ordered by expected information gain.
     """
     engine = get_drift_engine()
-    detail = engine.get_customer(drift_id)
+    detail = engine.get_subject(drift_id)
     if detail is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No drift customer {drift_id!r}",
+            detail=f"No drift subject {drift_id!r}",
         )
 
     questions: list[str] = []

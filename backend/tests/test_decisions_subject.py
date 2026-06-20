@@ -31,7 +31,7 @@ OFFICER = "test.officer@amina.ch"
 
 @pytest.fixture
 async def drift_subject(client: AsyncClient) -> dict:
-    """Use a real server-side drift customer with an escalation recommendation."""
+    """Use a real server-side drift subject with an escalation recommendation."""
     customers = (await client.get("/api/v1/drift/subjects")).json()
     for customer in customers:
         detail = (
@@ -39,7 +39,7 @@ async def drift_subject(client: AsyncClient) -> dict:
         ).json()
         if detail["recommended_action"] == "escalate":
             return detail
-    raise AssertionError("Expected at least one drift customer recommended for escalation")
+    raise AssertionError("Expected at least one drift subject recommended for escalation")
 
 
 @pytest.fixture
@@ -311,7 +311,7 @@ async def test_short_override_rationale_rejected(
 async def test_drift_decisions_not_mixed_with_case_decisions(
     client: AsyncClient, cid: str, seed_case: dict
 ) -> None:
-    """A drift decision for a customer does not appear in the case decision list."""
+    """A drift decision for a subject does not appear in the case decision list."""
     r = await post_drift_decision(client, cid, action="escalate")
     assert r.status_code == 201, r.text
 

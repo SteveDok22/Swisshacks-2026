@@ -92,7 +92,7 @@ def audit_query(db_engine):
     Returns an async callable that queries audit entries from the test DB.
 
     Usage in tests:
-        entries = await audit_query("drift_customer_analyzed")
+        entries = await audit_query("drift_subject_analyzed")
     """
     from sqlalchemy import select
 

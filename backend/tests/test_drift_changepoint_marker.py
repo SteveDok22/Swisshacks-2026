@@ -41,7 +41,7 @@ class TestChangepointTimelineMarker:
         maps to — and there must be at most one such point."""
         engine = DriftEngine()
         for cust in engine._book:
-            detail = engine.get_customer(cust.drift_id)
+            detail = engine.get_subject(cust.drift_id)
             assert detail is not None
 
             marked = [p for p in detail.timeline if p.bocpd_changepoint]
@@ -72,7 +72,7 @@ class TestChangepointTimelineMarker:
         dormant = next(
             c for c in engine._book if c.scenario == "dormancy_break"
         )
-        detail = engine.get_customer(dormant.drift_id)
+        detail = engine.get_subject(dormant.drift_id)
         assert detail is not None
         assert detail.bocpd_changepoint_day is not None
 
@@ -91,7 +91,7 @@ class TestChangepointTimelineMarker:
         (the baseline window) must produce no marker — the subtlest branch of
         the mapping, pinned deterministically.
 
-        get_customer flags point i iff `ds.windows[i] == cp_month`; the timeline
+        get_subject flags point i iff `ds.windows[i] == cp_month`; the timeline
         windows start at baseline_windows (3), so a baseline-range changepoint
         matches no window and stays unmarked.
         """
@@ -110,6 +110,6 @@ class TestChangepointTimelineMarker:
     def test_stable_customer_has_no_marker(self) -> None:
         engine = DriftEngine()
         stable = next(c for c in engine._book if c.scenario == "stable")
-        detail = engine.get_customer(stable.drift_id)
+        detail = engine.get_subject(stable.drift_id)
         assert detail is not None
         assert all(not p.bocpd_changepoint for p in detail.timeline)

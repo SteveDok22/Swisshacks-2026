@@ -144,15 +144,15 @@ class DecisionService:
         )
 
     async def _record_drift_decision(self, payload: DecisionCreate) -> DecisionRead:
-        """Drift path — validate the customer and snapshot server analysis."""
+        """Drift path — validate the subject and snapshot server analysis."""
         from app.drift.service import DRIFT_ANALYSIS_VERSION, get_drift_engine
 
         drift_id = payload.drift_id
         assert drift_id is not None
 
-        detail = get_drift_engine().get_customer(drift_id)
+        detail = get_drift_engine().get_subject(drift_id)
         if detail is None:
-            raise ValueError(f"Drift customer {drift_id!r} not found")
+            raise ValueError(f"Drift subject {drift_id!r} not found")
 
         ai_recommended = detail.recommended_action
         overrode_ai = ai_recommended != payload.action
@@ -241,7 +241,7 @@ class DecisionService:
     async def list_decisions_for_subject(
         self, drift_id: str
     ) -> list[DecisionDB]:
-        """Get all drift-engine decisions for a customer (chronological)."""
+        """Get all drift-engine decisions for a subject (chronological)."""
         statement = (
             select(DecisionDB)
             .where(DecisionDB.drift_id == drift_id)

@@ -24,11 +24,11 @@ from app.schemas.enums import RiskLevel
 # ---------------------------------------------------------------------------
 
 async def _first_drift_id(client: AsyncClient) -> str:
-    """Return the drift_id of the highest-risk customer in the synthetic book."""
+    """Return the drift_id of the highest-risk subject in the synthetic book."""
     response = await client.get("/api/v1/drift/subjects")
     assert response.status_code == 200, response.text
     customers = response.json()
-    assert customers, "Drift engine returned an empty book — check simulator.py"
+    assert customers, "Drift engine returned an empty subject book — check simulator.py"
     return customers[0]["drift_id"]
 
 
@@ -41,17 +41,17 @@ _VALID_RISK_LEVELS = {r.value for r in RiskLevel}
 
 class TestAuditDriftEndpoints:
 
-    async def test_customer_detail_writes_audit_entry(self, client, audit_query):
+    async def test_subject_detail_writes_audit_entry(self, client, audit_query):
         drift_id = await _first_drift_id(client)
 
         response = await client.get(f"/api/v1/drift/subjects/{drift_id}")
         assert response.status_code == 200
 
-        entries = await audit_query("drift_customer_analyzed")
+        entries = await audit_query("drift_subject_analyzed")
         assert len(entries) == 1, "Expected exactly one audit entry"
 
         entry = entries[0]
-        assert entry.event_type == "drift_customer_analyzed"
+        assert entry.event_type == "drift_subject_analyzed"
         assert entry.risk_score is not None
         assert entry.risk_level in _VALID_RISK_LEVELS
         assert entry.payload["drift_id"] == drift_id
@@ -149,7 +149,7 @@ class TestDriftActorCapture:
             params={"actor_id": "anna.mueller"},
         )
 
-        entries = await audit_query("drift_customer_analyzed")
+        entries = await audit_query("drift_subject_analyzed")
         assert entries[0].actor_id == "anna.mueller"
         assert entries[0].actor_type == "compliance_officer"
 
@@ -158,7 +158,7 @@ class TestDriftActorCapture:
 
         await client.get(f"/api/v1/drift/subjects/{drift_id}")
 
-        entries = await audit_query("drift_customer_analyzed")
+        entries = await audit_query("drift_subject_analyzed")
         assert entries[0].actor_id is None
         assert entries[0].actor_type == "system"
 
@@ -212,7 +212,7 @@ class TestAuditNotWrittenOnError:
         response = await client.get("/api/v1/drift/subjects/nonexistent-id-xyz")
         assert response.status_code == 404
 
-        entries = await audit_query("drift_customer_analyzed")
+        entries = await audit_query("drift_subject_analyzed")
         assert len(entries) == 0, "Audit must not be written for failed requests"
 
     async def test_404_replay_writes_no_audit(self, client, audit_query):
@@ -248,7 +248,7 @@ class TestAuditRiskLevelConsistency:
         drift_id = await _first_drift_id(client)
         await client.get(f"/api/v1/drift/subjects/{drift_id}")
 
-        entries = await audit_query("drift_customer_analyzed")
+        entries = await audit_query("drift_subject_analyzed")
         assert entries
 
         entry = entries[0]
@@ -276,7 +276,7 @@ class TestAuditRiskLevelConsistency:
         for customer in customers:
             await client.get(f"/api/v1/drift/subjects/{customer['drift_id']}")
 
-        entries = await audit_query("drift_customer_analyzed")
+        entries = await audit_query("drift_subject_analyzed")
         assert len(entries) == len(customers)
 
         for entry in entries:

@@ -82,14 +82,14 @@ async def list_subject_decisions(
     drift_id: str,
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> list[DecisionRead]:
-    """Get all drift-engine decisions ever made on a customer (chronological).
+    """Get all drift-engine decisions ever made on a subject (chronological).
 
-    Returns an empty list when the customer exists but has no decisions.
+    Returns an empty list when the subject exists but has no decisions.
     """
-    if get_drift_engine().get_customer(drift_id) is None:
+    if get_drift_engine().get_subject(drift_id) is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No drift customer {drift_id!r}",
+            detail=f"No drift subject {drift_id!r}",
         )
     service = DecisionService(session)
     decisions = await service.list_decisions_for_subject(drift_id)

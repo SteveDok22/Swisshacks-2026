@@ -448,7 +448,7 @@ class DriftEngine:
     # ------------------------------------------------------------------ #
     # Public API methods
     # ------------------------------------------------------------------ #
-    def list_customers(self) -> list[DriftSubjectSummary]:
+    def list_subjects(self) -> list[DriftSubjectSummary]:
         out: list[DriftSubjectSummary] = []
         for cust in self._book:
             a = self._analyze_customer(cust)
@@ -482,7 +482,7 @@ class DriftEngine:
         out.sort(key=lambda c: c.drift_score, reverse=True)
         return out
 
-    def get_customer(self, drift_id: str) -> DriftSubjectDetail | None:
+    def get_subject(self, drift_id: str) -> DriftSubjectDetail | None:
         cust = next((c for c in self._book if c.drift_id == drift_id), None)
         if cust is None:
             return None
@@ -675,7 +675,7 @@ class DriftEngine:
             seed=hash(new_id) % 10000,
         )
         self._book.append(cust)
-        detail = self.get_customer(new_id)
+        detail = self.get_subject(new_id)
         assert detail is not None
         return detail
 

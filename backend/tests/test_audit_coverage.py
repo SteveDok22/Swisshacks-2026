@@ -325,7 +325,7 @@ class TestAuditCountQueryCorrectness:
         # Query the audit API with actor filter
         resp = await client.get(
             "/api/v1/audit",
-            params={"event_type": "drift_customer_analyzed", "actor_id": "anna.mueller"},
+            params={"event_type": "drift_subject_analyzed", "actor_id": "anna.mueller"},
         )
         assert resp.status_code == 200
         data = resp.json()

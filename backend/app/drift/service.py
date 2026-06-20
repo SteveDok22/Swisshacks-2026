@@ -49,6 +49,7 @@ from app.drift.stability import assess_stability, cohort_volatility
 from app.drift.timetravel import replay_trajectory
 from app.drift.velocity import compute_drift_series, velocity_band
 from app.ml.base import score_to_level
+from app.ml.extractors import DriftFeatureExtractor
 from app.schemas.drift import (
     AsOfPointOut,
     CascadeCostReport,
@@ -138,6 +139,21 @@ class DriftEngine:
         self._cohort_cv = cohort_volatility([c.monthly_volume for c in self._book])
         self._list_cache: list[DriftSubjectSummary] | None = None
         self._list_cache_at: float = 0.0
+        # Optional XGBoost drift model — loaded lazily; absent = heuristic-only.
+        self._drift_extractor = DriftFeatureExtractor()
+        self._drift_model = self._load_drift_model()
+
+    @staticmethod
+    def _load_drift_model():
+        """Load the drift XGBoost model if available; return None otherwise."""
+        try:
+            from app.ml.registry import get_registry
+            from app.schemas.enums import CaseType
+
+            registry = get_registry()
+            return registry.get(CaseType.KYC_DRIFT)
+        except Exception:
+            return None
 
     # ------------------------------------------------------------------ #
     # Public-intelligence acquisition (live vs offline)
@@ -268,6 +284,35 @@ class DriftEngine:
         causal_factor = 0.45 + 0.55 * causal.p_risk
         score = min(score * causal_factor, 100.0)
 
+        # XGBoost ML blend — applied BEFORE the regulatory floors below.
+        # The floors enforce "cannot hide below the radar" invariants for
+        # suspicious-stability and dormancy-break customers; blending after
+        # the floors would silently lower the floored score when the ML model
+        # disagrees, violating those invariants.
+        ml_score: float | None = None
+        if self._drift_model is not None:
+            try:
+                partial_analysis = {
+                    "latest_velocity": latest_velocity,
+                    "max_velocity": max_velocity,
+                    "final_drift": final_drift,
+                    "bocpd_changepoint_day": cp_day,
+                    "internal_risk": internal_risk,
+                    "propagated_risk": prop_risk,
+                    "public_risk": pi.public_risk,
+                    "confirmation_lift": lift,
+                    "causal": causal,
+                    "stability": stability,
+                    "dormancy": dormancy,
+                }
+                features = self._drift_extractor.extract(partial_analysis)
+                feat_df = self._drift_extractor.to_dataframe(features)
+                ml_prob = float(self._drift_model.model.predict_proba(feat_df)[0][1])
+                ml_score = ml_prob * 100.0
+                score = 0.60 * score + 0.40 * ml_score
+            except Exception:
+                pass  # ML blend is best-effort; fall through to heuristic score
+
         # Suspicious-stability ELEVATION — the slow-walker keeps drift low ON
         # PURPOSE, so it would otherwise slip through with a near-zero score.
         # When suspicion is high we floor the score upward: a flagged
@@ -303,6 +348,7 @@ class DriftEngine:
             "stability": stability,
             "dormancy": dormancy,
             "drift_score": score,
+            "ml_score": ml_score,
         }
 
     def _build_layers(self, cust: SyntheticCustomer, analysis: dict) -> list[LayerContribution]:

@@ -272,7 +272,8 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
         self, name: str, date_from: str, date_to: str, since_month: int
     ) -> list[PublicSignal]:
         """UC 6 — funding / expansion news via article search."""
-        keyword_query = f"{name} ({' OR '.join(f'\"{k}\"' for k in _FUNDING_KEYWORDS)})"
+        quoted = " OR ".join('"' + k + '"' for k in _FUNDING_KEYWORDS)
+        keyword_query = f"{name} ({quoted})"
         payload: dict[str, Any] = {
             "action": "getArticles",
             "keyword": keyword_query,
@@ -311,7 +312,8 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
     ) -> list[PublicSignal]:
         """UC 8 / 10 — name-change / business-model-pivot via article search."""
         all_kw = _NAME_CHANGE_KEYWORDS + _PIVOT_KEYWORDS
-        keyword_query = f"{name} ({' OR '.join(f'\"{k}\"' for k in all_kw)})"
+        quoted_kw = " OR ".join('"' + k + '"' for k in all_kw)
+        keyword_query = f"{name} ({quoted_kw})"
         payload: dict[str, Any] = {
             "action": "getArticles",
             "keyword": keyword_query,

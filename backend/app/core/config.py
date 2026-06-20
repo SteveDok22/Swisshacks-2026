@@ -59,6 +59,11 @@ class Settings(BaseSettings):
     anthropic_model_fast: str = "claude-haiku-4-5"
     anthropic_max_tokens: int = 1024
 
+    # === External news sources ===
+    # Optional paid enhancement alongside free GDELT. When absent the adapter
+    # returns [] and GDELT remains the always-on fallback.
+    event_registry_api_key: str = ""
+
     # === ML ===
     model_dir: str = "./data/models"
     enable_dice_counterfactuals: bool = True

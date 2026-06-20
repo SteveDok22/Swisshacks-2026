@@ -30,7 +30,7 @@ export function InfoHint({ text, className }: InfoHintProps) {
             side="top"
             align="center"
             collisionPadding={12}
-            className="z-[80] w-[min(20rem,calc(100vw-2rem))] rounded border border-paper-line bg-ink px-3 py-2 text-left text-2xs font-normal leading-relaxed text-paper shadow-raised data-[state=delayed-open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=delayed-open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=delayed-open]:zoom-in-95"
+            className="z-[110] w-[min(20rem,calc(100vw-2rem))] rounded border border-paper-line bg-ink px-3 py-2 text-left text-2xs font-normal leading-relaxed text-paper shadow-raised data-[state=delayed-open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=delayed-open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=delayed-open]:zoom-in-95"
           >
             {text}
           </TooltipPrimitive.Content>

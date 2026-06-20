@@ -8,10 +8,11 @@ WHAT IT PROVIDES
     in liquidation / deleted), and the mutation (last-change) date.
 
 WHY IT MATTERS HERE  (Use cases 4, 7, 8, 10)
-    Diffing a current ZEFIX record against the KYC-onboarding baseline catches a
-    *secret* legal-name change (Case 8), a legal-form or seat change that shifts
-    jurisdiction/regulatory exposure (Case 4), a dissolution/liquidation
-    (adverse), and a mutation after a long dormant stretch (Case 7 corroboration).
+    Fetching a current ZEFIX snapshot and diffing it (``base.diff_snapshots``)
+    against the KYC-onboarding baseline catches a *secret* legal-name change
+    (Case 8), a legal-form or seat change that shifts jurisdiction/regulatory
+    exposure (Case 4), a dissolution (adverse), and a mutation after a long
+    dormant stretch (Case 7 corroboration).
 
 COST / ACCESS  →  FREE, no API key (PLANNED — implement now)
     Public read API; the name index is published as Swiss Open Data. Fair-use
@@ -22,19 +23,21 @@ COST / ACCESS  →  FREE, no API key (PLANNED — implement now)
     Endpoints: POST /api/v1/company/search        (by name / UID)
                GET  /api/v1/company/uid/{uid}     (full record)
 
-This is a carcass: ``fetch``/``normalize`` are unimplemented. The field-level
-:meth:`RegistryAdapter.diff` already turns a normalized snapshot into signals.
+Carcass: ``fetch``/``fetch_signals`` are unimplemented (raise via ``_carcass``).
 """
 
 from __future__ import annotations
 
-from app.sources.base import AdapterStatus, EntitySnapshot, RawRecord, RegistryAdapter, SourceCost
+from typing import Any
+
+from app.sources.base import EntitySnapshot, PublicSignal, RegistryAdapter
+from app.sources.cost import AdapterStatus, CostMixin, SourceCost
 
 
-class ZefixAdapter(RegistryAdapter):
+class ZefixAdapter(CostMixin, RegistryAdapter):
     """Swiss commercial register connector (carcass)."""
 
-    source_id = "zefix"
+    source_name = "zefix"
     display_name = "ZEFIX (Swiss Commercial Register)"
     base_url = "https://www.zefix.admin.ch/ZefixPublicREST"
     docs_url = "https://www.zefix.admin.ch/ZefixPublicREST/swagger-ui/index.html"
@@ -50,12 +53,16 @@ class ZefixAdapter(RegistryAdapter):
         "adverse_media",
     )
 
-    def entity_url(self, entity_id: str) -> str | None:
+    def record_url(self, entity_id: str) -> str | None:
         # entity_id is the Swiss UID, e.g. "CHE-123.456.789".
         return f"https://www.zefix.admin.ch/en/search/entity/list?name={entity_id}"
 
-    def fetch(self, entity_id: str) -> RawRecord:
+    async def fetch(
+        self, customer_id: str, name: str, **kwargs: Any
+    ) -> EntitySnapshot | None:
         return self._carcass()
 
-    def normalize(self, raw: RawRecord) -> EntitySnapshot:
+    async def fetch_signals(
+        self, customer_id: str, name: str, since_month: int = 0, **kwargs: Any
+    ) -> list[PublicSignal]:
         return self._carcass()

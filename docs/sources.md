@@ -15,16 +15,20 @@
 This package currently ships the **contract and skeletons only** — no adapter
 performs real network I/O yet:
 
-- `base.py` — `RegistryAdapter` ABC, `EntitySnapshot`, the generic field-diff,
-  the `SourceCost` / `AdapterStatus` enums, and `SourceUnavailableError`.
-- one carcass module per source — full metadata + docstring; `fetch`/`normalize`
-  are unimplemented.
+- `base.py` — the shared contract: `RegistryAdapter` ABC, `EntitySnapshot`,
+  the canonical `PublicSignal`, and the `SnapshotDiff` / `diff_snapshots()`
+  pattern. (Built in PR #14.)
+- `cost.py` — the free-vs-paid layer on top: `SourceCost` / `AdapterStatus`
+  enums, `SourceUnavailableError`, and the `CostMixin` every adapter combines
+  with `RegistryAdapter`.
+- one carcass module per source — full metadata + docstring; the async
+  `fetch` / `fetch_signals` are unimplemented.
 - `registry.py` — the single catalogue (`REGISTRY`, `usable_adapters()`,
   `skipped_adapters()`, `catalogue()`).
 
 A carcass fails loudly and *differently* depending on intent:
 
-| Source kind | `fetch()` raises | Meaning |
+| Source kind | `fetch()` / `fetch_signals()` raises | Meaning |
 |---|---|---|
 | Free / free-tier (`PLANNED`) | `NotImplementedError` | to be built |
 | Paid / restricted (`SKIPPED`) | `SourceUnavailableError` | will **not** be built |
@@ -84,36 +88,32 @@ free addition that replaces the paid Event Registry as the news feed.
 
 ## The adapter contract
 
-Every source is a `RegistryAdapter` and follows **fetch → normalize → diff**:
+Each source combines `CostMixin` (cost metadata) with `RegistryAdapter` (the
+`base.py` contract) and implements two async methods:
 
 ```
-fetch(entity_id) -> raw dict
-    normalize(raw) -> EntitySnapshot        # canonical, comparable view
-        diff(baseline, current) -> [PublicSignal]   # only what changed
+async fetch(customer_id, name, **kwargs) -> EntitySnapshot | None
+async fetch_signals(customer_id, name, since_month=0, **kwargs) -> [PublicSignal]
 ```
 
-`fetch_and_diff(entity_id, baseline)` chains all three against the stored KYC
-baseline, so the engine asks one question per source: *"what changed since
-onboarding?"*
+- `fetch` returns the source's current canonical `EntitySnapshot` (or `None` if
+  the entity isn't in that source). The service layer stores it via
+  `db.kyc_baseline.store_snapshot` and compares it to the onboarding baseline
+  with the module-level **`diff_snapshots(baseline, current)`** → `[SnapshotDiff]`
+  (each carrying a `drift_signal_type` and `severity` routed to a use case:
+  `name_changed`, `jurisdiction_changed`, `dissolution_status_changed`,
+  `ubo_added`/`ubo_removed`, …).
+- `fetch_signals` returns `PublicSignal`s directly — used by sources whose output
+  isn't a registry diff: **OpenSanctions** (match-score hit), **GDELT** (BOCPD
+  over the per-month article count), **Firecrawl + Wayback** (embedding cosine
+  distance, via `drift/business_model.py`).
 
-`EntitySnapshot` is the canonical shape (`legal_name`, `legal_form`,
-`jurisdiction`, `registered_address`, `status`, `owners`, `domain`, …). Every
-field except the ids is optional — `None` means *"this source does not report
-this field"* and is never counted as a change.
-
-The base class ships a **generic field diff**: it walks `field_rules`, emits a
-`PublicSignal` for each changed canonical field, and treats `owners` as a set
-(a newly added owner → `ownership_change`). Sources whose signal is not a field
-comparison override `diff`:
-
-- **OpenSanctions** — screens a name, returns a match-score hit (not a diff).
-- **GDELT** — runs BOCPD over the per-month article count (a time-series).
-- **Firecrawl + Wayback** — embedding cosine distance between onboarding and
-  current website text (handled by `drift/business_model.py`).
-
-`PublicSignal` (defined in `drift/public_intel.py`, shared with the existing
-synthetic generator) now also carries `source_url` (citation for the officer UI)
-and `raw_evidence` (the changed fields / match score behind the signal).
+`EntitySnapshot` is the canonical shape (`legal_form`, `jurisdiction`,
+`registered_address`, `dissolution_status`, `beneficial_owners`, `officers`,
+`raw_data`, …). Scalar fields are optional — `None` means *"this source does not
+report this field"* and two `None`s are never a change; the list fields are
+set-diffed. `PublicSignal` carries `source_url` for the officer-UI citation; an
+adapter's `record_url()` supplies the click-through link.
 
 ---
 

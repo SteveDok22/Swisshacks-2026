@@ -22,17 +22,20 @@ COST / ACCESS  →  FREEMIUM, API key for cloud (PLANNED — implement now)
 
 from __future__ import annotations
 
-from app.sources.base import AdapterStatus, EntitySnapshot, RawRecord, RegistryAdapter, SourceCost
+from typing import Any
+
+from app.sources.base import EntitySnapshot, PublicSignal, RegistryAdapter
+from app.sources.cost import AdapterStatus, CostMixin, SourceCost
 
 
-class FirecrawlAdapter(RegistryAdapter):
+class FirecrawlAdapter(CostMixin, RegistryAdapter):
     """Live website-content scraper (carcass).
 
-    Like Wayback, this supplies content rather than canonical registry fields;
-    the real diff is embedding-distance in the business-model comparator.
+    Supplies page content rather than canonical registry fields; the real diff
+    is embedding-distance in the business-model comparator.
     """
 
-    source_id = "firecrawl"
+    source_name = "firecrawl"
     display_name = "Firecrawl (website scrape)"
     base_url = "https://api.firecrawl.dev/v1"
     docs_url = "https://docs.firecrawl.dev/"
@@ -42,8 +45,12 @@ class FirecrawlAdapter(RegistryAdapter):
     use_cases = (9, 10)
     signal_types = ("business_model_change",)
 
-    def fetch(self, entity_id: str) -> RawRecord:
+    async def fetch(
+        self, customer_id: str, name: str, **kwargs: Any
+    ) -> EntitySnapshot | None:
         return self._carcass()
 
-    def normalize(self, raw: RawRecord) -> EntitySnapshot:
+    async def fetch_signals(
+        self, customer_id: str, name: str, since_month: int = 0, **kwargs: Any
+    ) -> list[PublicSignal]:
         return self._carcass()

@@ -26,15 +26,12 @@ in production this slot takes an embedding classifier or an LLM call at T1/T2).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
 
 import numpy as np
 
-# Five public-signal categories named in the AMINA brief. NOTE: the source
-# adapters emit a SUPERSET of these — ``app.sources.base.ADAPTER_SIGNAL_TYPES``
-# adds registry/web change types (name_change, address_change, domain_change,
-# ...). When this module becomes the adapter aggregator, the fusion code must
-# accept the superset, not just these five, or those signals get dropped.
+from app.sources.base import PublicSignal
+
+# Five public-signal categories named in the AMINA brief
 SIGNAL_TYPES = (
     "news",
     "sanctions",
@@ -59,43 +56,9 @@ _SEVERITY_LEXICON = {
 }
 
 
-@dataclass
-class PublicSignal:
-    """One external signal about a customer at a point in time.
-
-    This is the unified signal type emitted by both the (current) synthetic
-    generator below and the (future) real source adapters in ``app.sources``.
-    The two trailing fields are optional so existing positional construction
-    keeps working while adapters can attach a citation URL and the raw evidence
-    that produced the signal.
-    """
-
-    month: int
-    signal_type: str
-    headline: str
-    severity: float          # 0..1 from the classifier
-    source: str
-    # Citation link for the officer UI (e.g. the ZEFIX/GLEIF record URL).
-    source_url: str | None = None
-    # Adapter-specific raw evidence behind the signal (the changed fields,
-    # match score, article ids, ...). Kept opaque; surfaced in audit/debug.
-    raw_evidence: dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self) -> dict[str, Any]:
-        out: dict[str, Any] = {
-            "month": self.month,
-            "signal_type": self.signal_type,
-            "headline": self.headline,
-            "severity": round(self.severity, 2),
-            "source": self.source,
-        }
-        # Truthy checks (not ``is not None``) so an empty URL/evidence — never a
-        # useful citation — is omitted, consistently for both optional fields.
-        if self.source_url:
-            out["source_url"] = self.source_url
-        if self.raw_evidence:
-            out["raw_evidence"] = self.raw_evidence
-        return out
+# PublicSignal is now defined in sources/base.py (canonical location) and
+# imported above. The re-export keeps existing imports from this module working.
+__all__ = ["PublicSignal"]
 
 
 def classify_severity(headline: str) -> float:

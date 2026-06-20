@@ -6,7 +6,7 @@ WHAT IT PROVIDES
     registration status (ISSUED / LAPSED / RETIRED / ANNULLED), legal
     jurisdiction, headquarters/legal address, and — crucially — the
     relationship graph: ``ultimate-parent``, ``direct-parent`` and
-    ``direct-children`` LEIs. This is the closest thing to a free, global,
+    ``direct-children`` LEIs. The closest thing to a free, global,
     machine-readable ownership tree.
 
 WHY IT MATTERS HERE  (Use cases 3, 4, 5, 8, 10)
@@ -28,13 +28,16 @@ COST / ACCESS  →  FREE, no API key (PLANNED — implement now)
 
 from __future__ import annotations
 
-from app.sources.base import AdapterStatus, EntitySnapshot, RawRecord, RegistryAdapter, SourceCost
+from typing import Any
+
+from app.sources.base import EntitySnapshot, PublicSignal, RegistryAdapter
+from app.sources.cost import AdapterStatus, CostMixin, SourceCost
 
 
-class GleifAdapter(RegistryAdapter):
+class GleifAdapter(CostMixin, RegistryAdapter):
     """Global LEI connector (carcass)."""
 
-    source_id = "gleif"
+    source_name = "gleif"
     display_name = "GLEIF (Global LEI)"
     base_url = "https://api.gleif.org/api/v1"
     docs_url = "https://www.gleif.org/en/lei-data/gleif-api"
@@ -50,12 +53,16 @@ class GleifAdapter(RegistryAdapter):
         "adverse_media",
     )
 
-    def entity_url(self, entity_id: str) -> str | None:
+    def record_url(self, entity_id: str) -> str | None:
         # entity_id is the 20-char LEI.
         return f"https://search.gleif.org/#/record/{entity_id}"
 
-    def fetch(self, entity_id: str) -> RawRecord:
+    async def fetch(
+        self, customer_id: str, name: str, **kwargs: Any
+    ) -> EntitySnapshot | None:
         return self._carcass()
 
-    def normalize(self, raw: RawRecord) -> EntitySnapshot:
+    async def fetch_signals(
+        self, customer_id: str, name: str, since_month: int = 0, **kwargs: Any
+    ) -> list[PublicSignal]:
         return self._carcass()

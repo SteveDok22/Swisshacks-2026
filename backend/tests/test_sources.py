@@ -1,9 +1,10 @@
 """
-Unit tests for the source-adapter scaffolding (``app.sources``).
+Tests for the source-adapter cost layer and carcasses (``app.sources``).
 
-These cover the *carcass* contract, not real network behaviour (there is none
-yet): the shared diff fundamentals, the canonical snapshot, the free-vs-paid
-registry classification, and that carcass bodies fail with the right error so a
+The shared contract (EntitySnapshot, PublicSignal, SnapshotDiff, diff_snapshots,
+the RegistryAdapter ABC) is covered by ``test_sources_base.py``. THESE tests
+cover the carcass layer added on top: the free-vs-paid registry classification,
+the CostMixin metadata, and that carcass bodies fail with the right error so a
 "paid, skipped on purpose" source is never mistaken for "free, not built yet".
 """
 
@@ -11,36 +12,18 @@ from __future__ import annotations
 
 import pytest
 
-from app.drift.public_intel import PublicSignal
 from app.sources import (
     ALL_ADAPTERS,
     REGISTRY,
-    EntitySnapshot,
     SourceUnavailableError,
     catalogue,
     get_adapter,
     skipped_adapters,
     usable_adapters,
 )
-from app.sources.base import AdapterStatus, RegistryAdapter, SourceCost
+from app.sources.base import RegistryAdapter
+from app.sources.cost import ADAPTER_SIGNAL_TYPES, AdapterStatus, CostMixin, SourceCost
 from app.sources.zefix import ZefixAdapter
-
-
-def _snapshot(**overrides) -> EntitySnapshot:
-    """A baseline Swiss-company snapshot; override fields to model a change."""
-    base = {
-        "entity_id": "CHE-123.456.789",
-        "source_id": "zefix",
-        "legal_name": "Helvetia Trading AG",
-        "legal_form": "AG",
-        "jurisdiction": "CH-ZH",
-        "registered_address": "Bahnhofstrasse 1, 8001 Zürich",
-        "status": "ACTIVE",
-        "owners": ["Anna Muster"],
-        "domain": "helvetia-trading.ch",
-    }
-    base.update(overrides)
-    return EntitySnapshot(**base)
 
 
 # --------------------------------------------------------------------------- #
@@ -49,25 +32,23 @@ def _snapshot(**overrides) -> EntitySnapshot:
 class TestRegistryClassification:
     def test_ten_adapters_registered(self):
         assert len(ALL_ADAPTERS) == 10
-        assert len(REGISTRY) == 10  # source_ids are unique
+        assert len(REGISTRY) == 10  # source_names are unique
 
     def test_usable_are_the_seven_free_sources(self):
-        assert {a.source_id for a in usable_adapters()} == {
+        assert {a.source_name for a in usable_adapters()} == {
             "zefix", "gleif", "opensanctions", "gdelt",
             "firecrawl", "wayback", "whois",
         }
 
     def test_skipped_are_the_three_paid_sources(self):
-        assert {a.source_id for a in skipped_adapters()} == {
+        assert {a.source_name for a in skipped_adapters()} == {
             "open_corporates", "event_registry", "crunchbase",
         }
 
     def test_skipped_iff_paid_invariant(self):
         # The whole free/paid decision rests on this equivalence.
         for a in ALL_ADAPTERS:
-            assert (a.status is AdapterStatus.SKIPPED) == (a.cost is SourceCost.PAID), (
-                a.source_id
-            )
+            assert a.is_skipped() == (a.cost is SourceCost.PAID), a.source_name
 
     def test_planned_iff_free_or_freemium(self):
         for a in usable_adapters():
@@ -78,30 +59,26 @@ class TestRegistryClassification:
         # — OpenSanctions (hosted) and Firecrawl (cloud) — do.
         for a in ALL_ADAPTERS:
             if a.cost is SourceCost.FREE:
-                assert a.requires_api_key is False, a.source_id
+                assert a.requires_api_key is False, a.source_name
             elif a.cost is SourceCost.FREEMIUM:
-                assert a.requires_api_key is True, a.source_id
+                assert a.requires_api_key is True, a.source_name
 
     def test_every_adapter_has_complete_metadata(self):
         for a in ALL_ADAPTERS:
-            assert a.source_id and a.display_name and a.base_url
-            assert a.use_cases, a.source_id
-            assert a.signal_types, a.source_id
+            assert a.source_name and a.display_name and a.base_url
+            assert a.use_cases, a.source_name
+            assert a.signal_types, a.source_name
 
     def test_declared_signal_types_are_known(self):
         # Every docstring claims signal_types is a subset of ADAPTER_SIGNAL_TYPES;
         # guard it so a future typo can't drift undetected.
-        from app.sources.base import ADAPTER_SIGNAL_TYPES
-
         known = set(ADAPTER_SIGNAL_TYPES)
         for a in ALL_ADAPTERS:
-            assert set(a.signal_types) <= known, (a.source_id, a.signal_types)
+            assert set(a.signal_types) <= known, (a.source_name, a.signal_types)
 
     def test_adapter_signal_types_superset_of_brief_five(self):
-        # ADAPTER_SIGNAL_TYPES must stay a superset of the AMINA brief's five
-        # (base.py documents this); keep the two lists from drifting apart.
+        # ADAPTER_SIGNAL_TYPES must stay a superset of the AMINA brief's five.
         from app.drift.public_intel import SIGNAL_TYPES
-        from app.sources.base import ADAPTER_SIGNAL_TYPES
 
         assert set(SIGNAL_TYPES) <= set(ADAPTER_SIGNAL_TYPES)
 
@@ -113,194 +90,68 @@ class TestRegistryClassification:
     def test_catalogue_is_serializable_and_complete(self):
         cat = catalogue()
         assert len(cat) == 10
-        zefix = next(c for c in cat if c["source_id"] == "zefix")
+        zefix = next(c for c in cat if c["source_name"] == "zefix")
         assert zefix["is_free"] is True
         assert zefix["cost"] == "free"
         assert zefix["status"] == "planned"
 
 
 # --------------------------------------------------------------------------- #
-# Carcass behaviour — right error for the right reason.                        #
+# Carcass behaviour — right error for the right reason. fetch is async.        #
 # --------------------------------------------------------------------------- #
 class TestCarcassBehaviour:
-    def test_planned_adapter_fetch_raises_not_implemented(self):
-        # Free source, simply not built yet.
+    async def test_planned_adapter_raises_not_implemented(self):
+        # Free source, simply not built yet — both entry points.
         with pytest.raises(NotImplementedError):
-            ZefixAdapter().fetch("CHE-123.456.789")
+            await ZefixAdapter().fetch("c", "Helvetia AG")
+        with pytest.raises(NotImplementedError):
+            await ZefixAdapter().fetch_signals("c", "Helvetia AG")
 
-    def test_skipped_adapter_fetch_raises_source_unavailable(self):
+    async def test_skipped_adapter_raises_source_unavailable(self):
         # Paid source, intentionally skipped — a DIFFERENT error type.
         for cls in skipped_adapters():
             with pytest.raises(SourceUnavailableError):
-                cls().fetch("anything")
+                await cls().fetch("c", "x")
+            with pytest.raises(SourceUnavailableError):
+                await cls().fetch_signals("c", "x")
 
     def test_skipped_source_unavailable_is_not_notimplemented(self):
         # Guard the distinction explicitly: SourceUnavailableError must not be a
         # NotImplementedError, or callers could not tell skip from to-do.
         assert not issubclass(SourceUnavailableError, NotImplementedError)
 
-    def test_fetch_and_diff_on_skipped_fails_fast(self):
-        cls = get_adapter("crunchbase")
-        with pytest.raises(SourceUnavailableError):
-            cls().fetch_and_diff("x", _snapshot())
-
-    def test_fetch_and_diff_on_planned_raises_not_implemented(self):
-        # Free source: the orchestration reaches the unbuilt fetch and surfaces
-        # NotImplementedError (not SourceUnavailableError).
-        with pytest.raises(NotImplementedError):
-            ZefixAdapter().fetch_and_diff("CHE-1", _snapshot())
-
 
 # --------------------------------------------------------------------------- #
-# Generic diff fundamentals — base-class behaviour, no network.               #
+# CostMixin wiring.                                                            #
 # --------------------------------------------------------------------------- #
-class TestGenericDiff:
-    def test_no_change_yields_no_signals(self):
-        a = ZefixAdapter()
-        assert a.diff(_snapshot(), _snapshot()) == []
+class TestCostMixin:
+    def test_all_adapters_are_cost_aware_registry_adapters(self):
+        for cls in ALL_ADAPTERS:
+            assert issubclass(cls, CostMixin)
+            assert issubclass(cls, RegistryAdapter)
 
-    def test_name_change_emits_name_change_signal(self):
-        a = ZefixAdapter()
-        signals = a.diff(_snapshot(), _snapshot(legal_name="Helvetia Capital AG"))
-        assert len(signals) == 1
-        sig = signals[0]
-        assert isinstance(sig, PublicSignal)
-        assert sig.signal_type == "name_change"
-        assert sig.severity == 0.85
-        assert sig.raw_evidence == {
-            "field": "legal_name",
-            "old": "Helvetia Trading AG",
-            "new": "Helvetia Capital AG",
-        }
-        # Citation URL is filled from the adapter's entity_url().
-        assert sig.source_url and "CHE-123.456.789" in sig.source_url
+    def test_record_url_defaults_to_none_then_overridable(self):
+        from app.sources.firecrawl import FirecrawlAdapter
 
-    def test_multiple_field_changes_each_emit_a_signal(self):
-        a = ZefixAdapter()
-        current = _snapshot(
-            legal_form="GmbH",
-            jurisdiction="CH-ZG",
-            status="IN_LIQUIDATION",
-        )
-        types = {s.signal_type for s in a.diff(_snapshot(), current)}
-        assert types == {"legal_form_change", "jurisdiction_change", "status_change"}
+        # Firecrawl scrapes an arbitrary URL — no canonical record link.
+        assert FirecrawlAdapter().record_url("x") is None
+        # ZEFIX cites the company record.
+        assert "CHE-9" in ZefixAdapter().record_url("CHE-9")
 
-    def test_none_field_is_never_a_change(self):
-        # A source that does not report a field (None) must not fabricate a diff.
-        a = ZefixAdapter()
-        baseline = _snapshot(domain=None)
-        current = _snapshot(domain="new-domain.ch")  # None -> value is not a change
-        assert all(s.signal_type != "domain_change" for s in a.diff(baseline, current))
+    def test_source_name_enforcement_still_applies_through_mixin(self):
+        # The mixin must NOT bypass the base class's source_name requirement:
+        # a concrete adapter that forgets source_name still fails at class
+        # creation time.
+        with pytest.raises(TypeError):
+            class Broken(CostMixin, RegistryAdapter):
+                cost = SourceCost.FREE
+                status = AdapterStatus.PLANNED
 
-    def test_added_owner_emits_ownership_change(self):
-        a = ZefixAdapter()
-        current = _snapshot(owners=["Anna Muster", "Boris Newman"])
-        signals = a.diff(_snapshot(), current)
-        assert len(signals) == 1
-        assert signals[0].signal_type == "ownership_change"
-        assert signals[0].raw_evidence["added"] == "Boris Newman"
+                async def fetch(self, customer_id, name, **kwargs):
+                    return None
 
-    def test_removed_owner_emits_ownership_change(self):
-        # A departing UBO/officer is as AML-relevant as a new one.
-        a = ZefixAdapter()
-        current = _snapshot(owners=[])  # the sole owner is gone
-        signals = a.diff(_snapshot(), current)
-        assert len(signals) == 1
-        assert signals[0].signal_type == "ownership_change"
-        assert signals[0].raw_evidence == {"field": "owners", "removed": "Anna Muster"}
-
-    def test_owner_swap_emits_one_add_and_one_remove(self):
-        a = ZefixAdapter()
-        current = _snapshot(owners=["Boris Newman"])  # Anna out, Boris in
-        evidence = {tuple(s.raw_evidence.items()) for s in a.diff(_snapshot(), current)}
-        assert evidence == {
-            (("field", "owners"), ("added", "Boris Newman")),
-            (("field", "owners"), ("removed", "Anna Muster")),
-        }
-
-    def test_duplicate_owner_does_not_duplicate_signal(self):
-        # A normalize() that yields a repeated owner must emit only one signal.
-        a = ZefixAdapter()
-        current = _snapshot(owners=["Anna Muster", "Boris Newman", "Boris Newman"])
-        signals = a.diff(_snapshot(), current)
-        assert len(signals) == 1
-        assert signals[0].raw_evidence == {"field": "owners", "added": "Boris Newman"}
-
-    def test_registered_address_change_is_address_not_jurisdiction(self):
-        # An office move within the same country must NOT read as a jurisdiction
-        # change — it has its own signal type.
-        a = ZefixAdapter()
-        current = _snapshot(registered_address="Paradeplatz 2, 8001 Zürich")
-        signals = a.diff(_snapshot(), current)
-        assert [s.signal_type for s in signals] == ["address_change"]
-
-    def test_explicit_source_url_on_snapshot_wins_over_entity_url(self):
-        # current.source_url takes precedence over the adapter's entity_url().
-        a = ZefixAdapter()
-        current = _snapshot(legal_name="X AG", source_url="https://example.test/cited")
-        assert a.diff(_snapshot(), current)[0].source_url == "https://example.test/cited"
-
-    def test_unknown_field_rule_fails_loudly(self):
-        # A typo'd FieldRule.field must raise, not silently drop the signal.
-        from app.sources.base import FieldRule
-
-        class BrokenAdapter(ZefixAdapter):
-            field_rules = (FieldRule("not_a_field", "name_change", 0.5, "{old}->{new}"),)
-
-        with pytest.raises(AttributeError):
-            BrokenAdapter().diff(_snapshot(), _snapshot())
-
-    def test_month_is_propagated_to_signals(self):
-        a = ZefixAdapter()
-        signals = a.diff(_snapshot(), _snapshot(legal_name="X AG"), month=7)
-        assert signals[0].month == 7
-
-
-# --------------------------------------------------------------------------- #
-# Snapshot model.                                                             #
-# --------------------------------------------------------------------------- #
-class TestEntitySnapshot:
-    def test_to_dict_roundtrips_core_fields(self):
-        snap = _snapshot()
-        d = snap.to_dict()
-        assert d["entity_id"] == "CHE-123.456.789"
-        assert d["legal_form"] == "AG"
-        assert d["owners"] == ["Anna Muster"]
-        assert "fetched_at" in d  # ISO timestamp present
-
-    def test_defaults_are_safe(self):
-        snap = EntitySnapshot(entity_id="x", source_id="gleif")
-        assert snap.owners == []
-        assert snap.raw == {}
-        assert snap.legal_name is None
-
-
-class TestPublicSignalSerialization:
-    """The adapter-facing PublicSignal fields (source_url / raw_evidence) are
-    omitted from to_dict when empty and present when set."""
-
-    def test_to_dict_omits_empty_optional_fields(self):
-        sig = PublicSignal(month=1, signal_type="news", headline="h",
-                           severity=0.3, source="src")
-        d = sig.to_dict()
-        assert "source_url" not in d
-        assert "raw_evidence" not in d
-
-    def test_to_dict_includes_set_optional_fields(self):
-        sig = PublicSignal(
-            month=1, signal_type="name_change", headline="h", severity=0.85,
-            source="ZEFIX", source_url="https://z/abc",
-            raw_evidence={"field": "legal_name"},
-        )
-        d = sig.to_dict()
-        assert d["source_url"] == "https://z/abc"
-        assert d["raw_evidence"] == {"field": "legal_name"}
-
-    def test_to_dict_omits_empty_string_source_url(self):
-        # Parity: a falsy URL is not a useful citation, so it is dropped.
-        sig = PublicSignal(month=1, signal_type="news", headline="h",
-                           severity=0.3, source="src", source_url="")
-        assert "source_url" not in sig.to_dict()
+                async def fetch_signals(self, customer_id, name, since_month=0, **kwargs):
+                    return []
 
 
 def test_registry_adapter_is_abstract():

@@ -17,18 +17,21 @@ WHY WE SKIP IT  →  PAID (status = SKIPPED)
     round amount. We accept the reduced fidelity to stay 100% free.
 
     Would-be base URL: https://api.crunchbase.com/api/v4/
-    ``fetch`` raises :class:`SourceUnavailableError` via ``_carcass``.
+    ``fetch``/``fetch_signals`` raise :class:`SourceUnavailableError`.
 """
 
 from __future__ import annotations
 
-from app.sources.base import AdapterStatus, EntitySnapshot, RawRecord, RegistryAdapter, SourceCost
+from typing import Any
+
+from app.sources.base import EntitySnapshot, PublicSignal, RegistryAdapter
+from app.sources.cost import AdapterStatus, CostMixin, SourceCost
 
 
-class CrunchbaseAdapter(RegistryAdapter):
+class CrunchbaseAdapter(CostMixin, RegistryAdapter):
     """Funding-rounds connector — SKIPPED (paid, free tier removed 2025)."""
 
-    source_id = "crunchbase"
+    source_name = "crunchbase"
     display_name = "Crunchbase (funding)"
     base_url = "https://api.crunchbase.com/api/v4"
     docs_url = "https://data.crunchbase.com/docs"
@@ -38,8 +41,12 @@ class CrunchbaseAdapter(RegistryAdapter):
     use_cases = (6,)
     signal_types = ("funding_event", "ownership_change")
 
-    def fetch(self, entity_id: str) -> RawRecord:
+    async def fetch(
+        self, customer_id: str, name: str, **kwargs: Any
+    ) -> EntitySnapshot | None:
         return self._carcass()  # raises SourceUnavailableError (paid/skipped)
 
-    def normalize(self, raw: RawRecord) -> EntitySnapshot:
-        return self._carcass()
+    async def fetch_signals(
+        self, customer_id: str, name: str, since_month: int = 0, **kwargs: Any
+    ) -> list[PublicSignal]:
+        return self._carcass()  # raises SourceUnavailableError (paid/skipped)

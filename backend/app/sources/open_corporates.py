@@ -19,18 +19,21 @@ WHY WE SKIP IT  →  PAID / approval-gated (status = SKIPPED)
     for the MVP.
 
     Would-be base URL: https://api.opencorporates.com/v0.4/
-    ``fetch`` raises :class:`SourceUnavailableError` via ``_carcass``.
+    ``fetch``/``fetch_signals`` raise :class:`SourceUnavailableError`.
 """
 
 from __future__ import annotations
 
-from app.sources.base import AdapterStatus, EntitySnapshot, RawRecord, RegistryAdapter, SourceCost
+from typing import Any
+
+from app.sources.base import EntitySnapshot, PublicSignal, RegistryAdapter
+from app.sources.cost import AdapterStatus, CostMixin, SourceCost
 
 
-class OpenCorporatesAdapter(RegistryAdapter):
+class OpenCorporatesAdapter(CostMixin, RegistryAdapter):
     """Officers/directors connector — SKIPPED (paid, no usable free tier)."""
 
-    source_id = "open_corporates"
+    source_name = "open_corporates"
     display_name = "OpenCorporates (officers)"
     base_url = "https://api.opencorporates.com/v0.4"
     docs_url = "https://api.opencorporates.com/documentation/API-Reference"
@@ -40,8 +43,12 @@ class OpenCorporatesAdapter(RegistryAdapter):
     use_cases = (3, 4, 5, 7)
     signal_types = ("ownership_change", "name_change", "jurisdiction_change")
 
-    def fetch(self, entity_id: str) -> RawRecord:
+    async def fetch(
+        self, customer_id: str, name: str, **kwargs: Any
+    ) -> EntitySnapshot | None:
         return self._carcass()  # raises SourceUnavailableError (paid/skipped)
 
-    def normalize(self, raw: RawRecord) -> EntitySnapshot:
-        return self._carcass()
+    async def fetch_signals(
+        self, customer_id: str, name: str, since_month: int = 0, **kwargs: Any
+    ) -> list[PublicSignal]:
+        return self._carcass()  # raises SourceUnavailableError (paid/skipped)

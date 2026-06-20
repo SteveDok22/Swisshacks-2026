@@ -1,11 +1,11 @@
 """
 app.sources — external source adapters for the Public Intelligence layer.
 
-Status: SCAFFOLDING (carcass). This package defines the shared adapter contract
-(:class:`RegistryAdapter`, :class:`EntitySnapshot`, the generic field diff) and a
-carcass class per source. No adapter performs real network I/O yet — ``fetch``/
-``normalize`` raise ``NotImplementedError`` (free, to-be-built) or
-:class:`SourceUnavailableError` (paid, intentionally skipped).
+Status: SCAFFOLDING (carcass). ``base.py`` (the shared contract — EntitySnapshot,
+PublicSignal, SnapshotDiff/diff_snapshots, the RegistryAdapter ABC) is built out;
+``cost.py`` layers the free-vs-paid classification on top; and there is a carcass
+class per source whose ``fetch``/``fetch_signals`` raise ``NotImplementedError``
+(free, to-be-built) or ``SourceUnavailableError`` (paid, intentionally skipped).
 
 Which sources are free and usable vs. paid-and-skipped is decided once, in
 :mod:`app.sources.registry`; see ``docs/sources.md`` for the rationale.
@@ -15,15 +15,17 @@ Which sources are free and usable vs. paid-and-skipped is decided once, in
     SKIP (paid / restricted):     open_corporates, event_registry, crunchbase
 """
 
-from __future__ import annotations
-
 from app.sources.base import (
-    ADAPTER_SIGNAL_TYPES,
-    AdapterStatus,
     EntitySnapshot,
-    FieldRule,
     PublicSignal,
     RegistryAdapter,
+    SnapshotDiff,
+    diff_snapshots,
+)
+from app.sources.cost import (
+    ADAPTER_SIGNAL_TYPES,
+    AdapterStatus,
+    CostMixin,
     SourceCost,
     SourceUnavailableError,
 )
@@ -47,11 +49,14 @@ from app.sources.whois import WhoisAdapter
 from app.sources.zefix import ZefixAdapter
 
 __all__ = [
-    # Contract
+    # Contract (base.py)
     "RegistryAdapter",
     "EntitySnapshot",
     "PublicSignal",
-    "FieldRule",
+    "SnapshotDiff",
+    "diff_snapshots",
+    # Cost layer (cost.py)
+    "CostMixin",
     "SourceCost",
     "AdapterStatus",
     "SourceUnavailableError",

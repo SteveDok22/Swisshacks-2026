@@ -2,8 +2,8 @@
 WHOIS / RDAP — domain registration metadata.
 
 WHAT IT PROVIDES
-    Registration data for a customer's domain via RDAP (the structured,
-    JSON successor to WHOIS that ICANN mandated as WHOIS sunset on 2025-01-28):
+    Registration data for a customer's domain via RDAP (the structured, JSON
+    successor to WHOIS that ICANN mandated as WHOIS sunset on 2025-01-28):
     creation/registration date, last-changed date, registrar, and registrant
     contact (where not redacted).
 
@@ -24,18 +24,16 @@ COST / ACCESS  →  FREE, no API key (PLANNED — implement now)
 
 from __future__ import annotations
 
-from app.sources.base import AdapterStatus, EntitySnapshot, RawRecord, RegistryAdapter, SourceCost
+from typing import Any
+
+from app.sources.base import EntitySnapshot, PublicSignal, RegistryAdapter
+from app.sources.cost import AdapterStatus, CostMixin, SourceCost
 
 
-class WhoisAdapter(RegistryAdapter):
-    """RDAP/WHOIS domain-registration connector (carcass).
+class WhoisAdapter(CostMixin, RegistryAdapter):
+    """RDAP/WHOIS domain-registration connector (carcass)."""
 
-    Populates ``EntitySnapshot.domain`` and registrant (carried in ``raw``);
-    the real adapter adds the domain-age severity formula on top of the generic
-    registrant diff.
-    """
-
-    source_id = "whois"
+    source_name = "whois"
     display_name = "WHOIS / RDAP (domain)"
     base_url = "https://rdap.org"
     docs_url = "https://about.rdap.org/"
@@ -45,11 +43,15 @@ class WhoisAdapter(RegistryAdapter):
     use_cases = (8, 9)
     signal_types = ("domain_change",)
 
-    def entity_url(self, entity_id: str) -> str | None:
+    def record_url(self, entity_id: str) -> str | None:
         return f"https://rdap.org/domain/{entity_id}"
 
-    def fetch(self, entity_id: str) -> RawRecord:
+    async def fetch(
+        self, customer_id: str, name: str, **kwargs: Any
+    ) -> EntitySnapshot | None:
         return self._carcass()
 
-    def normalize(self, raw: RawRecord) -> EntitySnapshot:
+    async def fetch_signals(
+        self, customer_id: str, name: str, since_month: int = 0, **kwargs: Any
+    ) -> list[PublicSignal]:
         return self._carcass()

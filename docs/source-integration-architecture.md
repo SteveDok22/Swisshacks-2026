@@ -666,7 +666,9 @@ backend/app/
 ├── sources/                        ← NEW package (carcass — scaffolding only)
 │   ├── __init__.py                 ← exports contract + adapters + registry
 │   ├── base.py                     ← RegistryAdapter ABC + EntitySnapshot +
-│   │                                  SourceCost/AdapterStatus + generic diff
+│   │                                  PublicSignal + SnapshotDiff/diff_snapshots
+│   ├── cost.py                     ← SourceCost/AdapterStatus + CostMixin +
+│   │                                  SourceUnavailableError (free-vs-paid layer)
 │   ├── registry.py                 ← REGISTRY catalogue + usable/skipped helpers
 │   ├── zefix.py                    ← ZefixAdapter            (FREE  · implement)
 │   ├── gleif.py                    ← GleifAdapter            (FREE  · implement)

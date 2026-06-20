@@ -5,17 +5,14 @@ WHAT IT PROVIDES
     A consolidated, de-duplicated database of OFAC SDN, EU, UN, UK (and many
     more) sanctions lists, plus PEPs and crime/adverse-entity datasets, with a
     built-in name-matching engine that returns a match *score* per candidate.
-    Screening is entity-centric (Company / Person / Organization schemas).
 
 WHY IT MATTERS HERE  (Use cases 2, 5)
-    Not a field-diff source — a *screening* source. Given a customer name (or a
-    UBO/owner pulled from GLEIF), it answers "is this entity, or anyone in its
-    ownership chain, on a watchlist?" A high-score hit is a near-certain
-    escalation trigger; a UBO hit drives the ``ownership_change`` signal.
-
-    Because it screens rather than diffs, the concrete adapter overrides
-    :meth:`RegistryAdapter.diff` (or adds a ``screen(name)`` method) instead of
-    using the generic field comparison.
+    A *screening* source, not a registry-diff source. Given a customer name (or
+    a UBO/officer pulled from GLEIF), it answers "is this entity, or anyone in
+    its ownership chain, on a watchlist?" A high-score hit is a near-certain
+    escalation trigger; a UBO hit drives an ``ownership_change`` signal. The hits
+    surface through ``fetch_signals`` (as ``sanctions`` PublicSignals) rather
+    than through a snapshot diff.
 
 COST / ACCESS  →  FREEMIUM, API key for hosted (PLANNED — implement now)
     Hosted SaaS API is metered with a small free testing allowance and needs a
@@ -31,18 +28,21 @@ COST / ACCESS  →  FREEMIUM, API key for hosted (PLANNED — implement now)
 
 from __future__ import annotations
 
-from app.sources.base import AdapterStatus, EntitySnapshot, RawRecord, RegistryAdapter, SourceCost
+from typing import Any
+
+from app.sources.base import EntitySnapshot, PublicSignal, RegistryAdapter
+from app.sources.cost import AdapterStatus, CostMixin, SourceCost
 
 
-class OpenSanctionsAdapter(RegistryAdapter):
+class OpenSanctionsAdapter(CostMixin, RegistryAdapter):
     """Sanctions / PEP screening connector (carcass).
 
-    NOTE: this source *screens* a name rather than diffing two snapshots, so the
-    real implementation will override ``diff`` and expose a ``screen`` entry
-    point. The metadata and free/paid classification still apply.
+    Screens a name rather than fetching a registry snapshot: the real ``fetch``
+    will return ``None`` (no canonical entity record) and the signal lives in
+    ``fetch_signals``.
     """
 
-    source_id = "opensanctions"
+    source_name = "opensanctions"
     display_name = "OpenSanctions (OFAC / EU / UN)"
     base_url = "https://api.opensanctions.org"
     docs_url = "https://www.opensanctions.org/docs/api/"
@@ -52,11 +52,15 @@ class OpenSanctionsAdapter(RegistryAdapter):
     use_cases = (2, 5)
     signal_types = ("sanctions", "ownership_change", "adverse_media")
 
-    def entity_url(self, entity_id: str) -> str | None:
+    def record_url(self, entity_id: str) -> str | None:
         return f"https://www.opensanctions.org/entities/{entity_id}/"
 
-    def fetch(self, entity_id: str) -> RawRecord:
+    async def fetch(
+        self, customer_id: str, name: str, **kwargs: Any
+    ) -> EntitySnapshot | None:
         return self._carcass()
 
-    def normalize(self, raw: RawRecord) -> EntitySnapshot:
+    async def fetch_signals(
+        self, customer_id: str, name: str, since_month: int = 0, **kwargs: Any
+    ) -> list[PublicSignal]:
         return self._carcass()

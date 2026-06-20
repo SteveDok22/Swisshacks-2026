@@ -56,11 +56,11 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 - [x] **Fix BOCPD changepoint visual marker** — `bocpd_changepoint` is now derived in `DriftEngine.get_customer` by mapping `bocpd_changepoint_day` to its month window (via `SyntheticCustomer.day_to_month`); `DriftTimeline.tsx` renders a violet dashed "Regime change" marker at that month. Unit tests in `test_drift_changepoint_marker.py`. **DONE.** (PR #11)
 
 **2. Prerequisites (build these before adapters)**
-- [ ] **`db/kyc_baseline.py`** — store/load `EntitySnapshot` per customer
-- [ ] **Seed KYC baselines** — populate from `drift/simulator.py` synthetic onboarding snapshots so adapters have something to diff against
-- [x] **`sources/base.py`** — `RegistryAdapter` ABC + `EntitySnapshot` + `SourceCost`/`AdapterStatus` enums + generic field-diff + `SourceUnavailableError`; `PublicSignal` extended with `source_url`/`raw_evidence`; shared by all adapters below. Plus `sources/registry.py` (free-vs-paid catalogue) + tests (`test_sources.py`). **CARCASS DONE.**
+- [x] **`db/kyc_baseline.py`** — `EntitySnapshotDB` SQLModel table + `store_snapshot`, `load_latest_snapshot`, `load_onboarding_snapshot`, `load_snapshot_history`, `load_all_baselines` CRUD helpers; registered in `session.py` so the table is auto-created on startup; 24 unit tests covering all helpers and seeding behaviour (PR #12)
+- [x] **Seed KYC baselines** — `seed.py:_seed_kyc_baselines()` populates `entity_snapshots` from the synthetic drift book at startup; behavioral baseline (volume, counterparty/corridor risk, margin) computed from the pre-drift window so adapters have a numeric anchor to diff against (PR #12)
+- [x] **`sources/base.py`** — `RegistryAdapter` ABC + `EntitySnapshot` + canonical `PublicSignal` + `SnapshotDiff`/`diff_snapshots` pattern; shared contract (PR #14). **This PR adds the cost layer on top:** `sources/cost.py` (`SourceCost`/`AdapterStatus` enums, `SourceUnavailableError`, `CostMixin`) + `sources/registry.py` (free-vs-paid catalogue) + `test_sources.py`. **CARCASS DONE.**
 
-**3. Source adapters — `backend/app/sources/` (carcass built; `fetch`/`normalize` are stubs)**
+**3. Source adapters — `backend/app/sources/` (carcass built; `fetch`/`fetch_signals` are stubs)**
 
 Decision rule: **only 100%-free / free-tier sources are implemented**; paid
 sources are marked `SKIPPED` and their `fetch` raises `SourceUnavailableError`.

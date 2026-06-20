@@ -133,8 +133,16 @@ flowchart TD
 
     subgraph Data["db/"]
         models["models.py\nSQLModel schemas"]
+        kyc_baseline["kyc_baseline.py\nEntitySnapshot store/load"]
         session[session.py]
         seed[seed.py]
+    end
+
+    subgraph Sources["sources/"]
+        src_base["base.py\nRegistryAdapter ABC\nEntitySnapshot · PublicSignal\nSnapshotDiff · diff_snapshots"]
+        src_zefix["zefix.py (TODO)"]
+        src_gleif["gleif.py (TODO)"]
+        src_opensanc["opensanctions.py (TODO)"]
     end
 
     Main --> API
@@ -143,6 +151,8 @@ flowchart TD
     cascade --> ML & claude_c
     R3 & R4 & R5 --> Svc
     Svc & API --> Data
+    src_zefix & src_gleif & src_opensanc --> src_base
+    service --> Sources
 ```
 
 ---

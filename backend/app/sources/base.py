@@ -1,27 +1,38 @@
 """
-Source-adapter foundations — the carcass every external connector builds on.
+sources/base.py — shared foundation for all external registry adapters.
 
-AMINA Challenge 4 asks the Public Intelligence layer (Layer 2) to draw on
-*real* external sources — commercial registers, the global LEI system, sanctions
-lists, news, funding feeds, website history — and turn each observed change into
-a ``PublicSignal`` the drift engine can fuse with internal bank data.
+This module defines three things:
 
-This module defines the **shared contract**, not any single source. Every
-connector in ``app.sources`` is a :class:`RegistryAdapter` and follows the same
-four-step pipeline:
+1. EntitySnapshot — pure-Python domain object returned by adapters.
+   One point-in-time capture of an entity's KYC state fetched from a
+   registry. Decoupled from SQLAlchemy so adapters have no DB dependency;
+   the service layer converts to EntitySnapshotDB for persistence.
 
-    fetch(entity_id) -> raw dict
-        normalize(raw) -> EntitySnapshot          (a comparable, canonical view)
-            diff(baseline, current) -> [PublicSignal]   (only what changed)
+2. PublicSignal — canonical definition of one external intelligence signal.
+   Moved here from drift/public_intel.py so every adapter produces the same
+   type. Adds source_url (the P1 "source citations" gap listed in ROADMAP).
+   public_intel.py now imports from here.
 
-``fetch_and_diff`` chains the three against a stored KYC baseline so the engine
-can ask one question per source: *"what is different now versus onboarding?"*
+3. SnapshotDiff + diff_snapshots() — the diff pattern.
+   Compares a baseline EntitySnapshot against a current one and returns a
+   list of structured changes, each carrying a drift_signal_type and severity
+   so the engine can route them to the right use-case handler:
 
-Scope of THIS file: interfaces and the generic field-diff fundamentals only.
-The concrete adapters are carcasses — their ``fetch``/``normalize`` raise until
-implemented (free sources) or are intentionally skipped (paid sources). See
-:data:`app.sources.registry.REGISTRY` for the free-vs-paid decision per source
-and ``docs/sources.md`` for the rationale.
+       name_changed          → Case 8  (legal entity name change)
+       legal_form_changed    → Case 4  (jurisdiction / legal form change)
+       jurisdiction_changed  → Case 4
+       address_changed       → Case 4
+       dissolution_status_changed → Cases 4, 7
+       ubo_added / ubo_removed    → Case 5  (new shareholders / UBOs)
+       officer_added / officer_removed → Case 5
+
+4. RegistryAdapter — ABC every concrete adapter must implement.
+   Enforces the two-method contract (fetch + fetch_signals) and declares
+   source_name as a required class variable so the diff layer can tag every
+   EntitySnapshot with its provenance.
+
+Dependency rule: this file must NOT import from app.db or app.drift so that
+adapters remain independent of the ORM and the drift engine.
 """
 
 from __future__ import annotations
@@ -29,333 +40,321 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import StrEnum
-from typing import Any, NoReturn
-
-from app.drift.public_intel import PublicSignal
-
-__all__ = [
-    "SourceCost",
-    "AdapterStatus",
-    "SourceUnavailableError",
-    "EntitySnapshot",
-    "FieldRule",
-    "RegistryAdapter",
-    "RawRecord",
-    "ADAPTER_SIGNAL_TYPES",
-    "PublicSignal",
-]
-
-# A raw upstream payload as returned by ``fetch`` (JSON object, RDAP record, ...).
-RawRecord = dict[str, Any]
-
-# Signal types the adapter layer can emit. A superset of the five named in the
-# AMINA brief (kept in ``public_intel.SIGNAL_TYPES``) plus the registry/web
-# change types the source adapters introduce.
-ADAPTER_SIGNAL_TYPES = (
-    "news",
-    "sanctions",
-    "adverse_media",
-    "ownership_change",
-    "funding_event",
-    "name_change",
-    "legal_form_change",
-    "jurisdiction_change",
-    "address_change",
-    "status_change",
-    "domain_change",
-    "business_model_change",
-    "dormancy_break",
-)
+from typing import Any, ClassVar
 
 
-class SourceCost(StrEnum):
-    """How much a source costs to use in production.
-
-    FREE      — open API/data, no key, usable for real (ZEFIX, GLEIF, RDAP, ...).
-    FREEMIUM  — free tier or free self-host, but a key and/or limits apply
-                (OpenSanctions hosted API, Firecrawl).
-    PAID      — no usable free tier; requires a paid plan or approval-gated
-                access (OpenCorporates, Event Registry, Crunchbase).
-    """
-
-    FREE = "free"
-    FREEMIUM = "freemium"
-    PAID = "paid"
-
-
-class AdapterStatus(StrEnum):
-    """Whether we intend to actually implement this adapter for the MVP.
-
-    PLANNED — free or free-tier usable today; carcass now, real fetch later.
-    SKIPPED — paid/restricted; the carcass documents it but it will NOT be
-              implemented. ``fetch`` raises :class:`SourceUnavailableError`.
-    """
-
-    PLANNED = "planned"
-    SKIPPED = "skipped"
-
-
-class SourceUnavailableError(RuntimeError):
-    """Raised when a source is intentionally not implemented (paid/restricted).
-
-    Distinct from ``NotImplementedError`` (a free source whose carcass simply
-    hasn't been filled in yet) so callers can tell *"skipped on purpose"* from
-    *"not built yet"*.
-    """
-
+# ---------------------------------------------------------------------------
+# EntitySnapshot — pure-Python domain object
+# ---------------------------------------------------------------------------
 
 @dataclass
 class EntitySnapshot:
-    """A canonical, comparable view of one entity at one point in time.
+    """
+    One point-in-time KYC state for a customer, as fetched from an external
+    registry (or the internal bank record).
 
-    Adapters normalize wildly different upstream payloads (ZEFIX XML-ish JSON,
-    GLEIF JSON:API, RDAP, ...) into this single shape so :meth:`RegistryAdapter.diff`
-    can compare onboarding-baseline against current with one code path.
-
-    Every field except ``entity_id``/``source_id`` is optional: no single source
-    populates all of them (RDAP has a domain but no legal form; ZEFIX has a legal
-    form but no domain). ``None`` means "this source does not report this field"
-    and is never treated as a change.
+    Adapters return this type; the service layer persists it via
+    db.kyc_baseline.store_snapshot() after converting to EntitySnapshotDB.
+    Keeping the two types separate means adapters need no SQLAlchemy import.
     """
 
-    entity_id: str
-    source_id: str
-    legal_name: str | None = None
-    legal_form: str | None = None
-    jurisdiction: str | None = None
-    registered_address: str | None = None
-    status: str | None = None
-    owners: list[str] = field(default_factory=list)
-    domain: str | None = None
+    customer_id: str
+    name: str
+    source: str  # adapter source_name value, e.g. "zefix"
     fetched_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    # Citation URL for the human-readable record on the source's own site.
-    source_url: str | None = None
-    # Untouched upstream payload, for audit/debug and adapter-specific diffing.
-    raw: dict[str, Any] = field(default_factory=dict)
+
+    # === Legal identity ===
+    legal_form: str | None = None
+    jurisdiction: str | None = None       # ISO 3166-1 alpha-2
+    registered_address: str | None = None
+    # "active" | "dissolved" | "dormant" | "struck_off" | None
+    dissolution_status: str | None = None
+
+    # === Ownership & control ===
+    # Free-text names, LEI codes, or UUID strings. The contagion layer links
+    # these to graph nodes; the diff layer compares them as sets.
+    beneficial_owners: list[str] = field(default_factory=list)
+    officers: list[str] = field(default_factory=list)
+
+    # === Raw source payload ===
+    # Full adapter response — nothing is discarded. Structure varies per source.
+    raw_data: dict[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        # Deduplicate while preserving order (first occurrence wins).
+        # Adapters may return dirty data with repeated names; set-diff in
+        # diff_snapshots would otherwise silently drop genuine removals.
+        self.beneficial_owners = list(dict.fromkeys(self.beneficial_owners))
+        self.officers = list(dict.fromkeys(self.officers))
+
+
+# ---------------------------------------------------------------------------
+# PublicSignal — canonical external signal definition
+# ---------------------------------------------------------------------------
+
+@dataclass(frozen=True)
+class PublicSignal:
+    """
+    One external public-intelligence signal about a customer at a point in time.
+
+    Canonical definition shared by all adapters and by drift/public_intel.py.
+    source_url is the P1 gap noted in ROADMAP ("Source citations on signal cards").
+    """
+
+    month: int
+    signal_type: str   # "news" | "sanctions" | "adverse_media" | "ownership_change" | "funding_event"
+    headline: str
+    severity: float    # 0..1 from lexicon or source-provided confidence
+    source: str        # human-readable source name, e.g. "Reuters" or "OFAC"
+    source_url: str | None = None  # deep-link to the original record
+
+    def __post_init__(self) -> None:
+        if not (0.0 <= self.severity <= 1.0):
+            raise ValueError(f"severity must be in [0, 1], got {self.severity}")
 
     def to_dict(self) -> dict[str, Any]:
         return {
-            "entity_id": self.entity_id,
-            "source_id": self.source_id,
-            "legal_name": self.legal_name,
-            "legal_form": self.legal_form,
-            "jurisdiction": self.jurisdiction,
-            "registered_address": self.registered_address,
-            "status": self.status,
-            "owners": list(self.owners),
-            "domain": self.domain,
-            "fetched_at": self.fetched_at.isoformat(),
+            "month": self.month,
+            "signal_type": self.signal_type,
+            "headline": self.headline,
+            "severity": round(self.severity, 2),
+            "source": self.source,
             "source_url": self.source_url,
         }
 
 
-@dataclass(frozen=True)
-class FieldRule:
-    """Maps a changed :class:`EntitySnapshot` field to a ``PublicSignal``.
+# ---------------------------------------------------------------------------
+# SnapshotDiff — one detected change between two snapshots
+# ---------------------------------------------------------------------------
 
-    The generic diff walks these rules: if ``getattr(baseline, field)`` differs
-    from ``getattr(current, field)`` (and neither side is ``None``), it emits a
-    signal of ``signal_type`` at ``severity``. Subclasses override
-    :attr:`RegistryAdapter.field_rules` (or :meth:`RegistryAdapter.diff` whole)
-    to apply source-specific severity formulas.
+# Severity weights per field — higher means more operationally significant.
+# These map directly to AMINA use cases (see module docstring).
+_FIELD_SEVERITY: dict[str, float] = {
+    "dissolution_status": 0.90,   # dissolution or reactivation (Cases 4, 7)
+    "jurisdiction": 0.80,         # legal jurisdiction shift (Case 4)
+    "name": 0.70,                 # entity renamed (Case 8)
+    "legal_form": 0.65,           # structural change (Case 4)
+    "registered_address": 0.40,   # address move (Case 4)
+}
+
+# Severity for ownership list changes
+_UBO_ADDED_SEVERITY = 0.60      # new UBO added (Case 5)
+_UBO_REMOVED_SEVERITY = 0.55    # UBO disappeared (Case 5)
+_OFFICER_ADDED_SEVERITY = 0.45  # new officer (Case 5)
+_OFFICER_REMOVED_SEVERITY = 0.40  # officer left (Case 5)
+
+# Ordered list of (field_name, drift_signal_type) for scalar diff.
+# Order is arbitrary — callers sort output by severity if priority matters.
+# Must stay aligned with _FIELD_SEVERITY keys above.
+_SCALAR_CHECKS: tuple[tuple[str, str], ...] = (
+    ("name",               "name_changed"),
+    ("legal_form",         "legal_form_changed"),
+    ("jurisdiction",       "jurisdiction_changed"),
+    ("registered_address", "address_changed"),
+    ("dissolution_status", "dissolution_status_changed"),
+)
+
+
+@dataclass
+class SnapshotDiff:
+    """
+    One structural change detected between two EntitySnapshots.
+
+    drift_signal_type maps to a use case so the engine can route it:
+        name_changed, legal_form_changed, jurisdiction_changed,
+        address_changed, dissolution_status_changed,
+        ubo_added, ubo_removed, officer_added, officer_removed
     """
 
-    field: str
-    signal_type: str
-    severity: float
-    headline: str  # ``str.format`` template; gets ``old=`` and ``new=`` kwargs
+    field: str                 # which attribute changed
+    old_value: Any             # value in the baseline (None for list additions)
+    new_value: Any             # value in the current snapshot (None for removals)
+    drift_signal_type: str     # machine-readable change category
+    severity: float            # 0..1 operational significance
 
+    def __post_init__(self) -> None:
+        if not (0.0 <= self.severity <= 1.0):
+            raise ValueError(f"severity must be in [0, 1], got {self.severity}")
+
+
+def diff_snapshots(
+    baseline: EntitySnapshot,
+    current: EntitySnapshot,
+) -> list[SnapshotDiff]:
+    """
+    Compare two EntitySnapshots and return every detected structural change.
+
+    Rules:
+    - Scalar fields: any value change (including None ↔ value) is reported.
+      Two None values produce no diff — the field was unknown in both states
+      and nothing changed.
+    - List fields (beneficial_owners, officers): set-diffed so order changes
+      are ignored; only genuine additions and removals are reported.
+
+    The list is unordered; callers that need priority ordering should sort by
+    severity descending.
+    """
+    diffs: list[SnapshotDiff] = []
+
+    # --- Scalar fields ---
+    for attr, signal_type in _SCALAR_CHECKS:
+        old_val = getattr(baseline, attr)
+        new_val = getattr(current, attr)
+        if old_val == new_val:  # covers None == None
+            continue
+        diffs.append(
+            SnapshotDiff(
+                field=attr,
+                old_value=old_val,
+                new_value=new_val,
+                drift_signal_type=signal_type,
+                severity=_FIELD_SEVERITY[attr],
+            )
+        )
+
+    # --- Beneficial owners (UBOs) ---
+    old_ubos = set(baseline.beneficial_owners)
+    new_ubos = set(current.beneficial_owners)
+    for added in sorted(new_ubos - old_ubos):
+        diffs.append(
+            SnapshotDiff(
+                field="beneficial_owners",
+                old_value=None,
+                new_value=added,
+                drift_signal_type="ubo_added",
+                severity=_UBO_ADDED_SEVERITY,
+            )
+        )
+    for removed in sorted(old_ubos - new_ubos):
+        diffs.append(
+            SnapshotDiff(
+                field="beneficial_owners",
+                old_value=removed,
+                new_value=None,
+                drift_signal_type="ubo_removed",
+                severity=_UBO_REMOVED_SEVERITY,
+            )
+        )
+
+    # --- Officers ---
+    old_officers = set(baseline.officers)
+    new_officers = set(current.officers)
+    for added in sorted(new_officers - old_officers):
+        diffs.append(
+            SnapshotDiff(
+                field="officers",
+                old_value=None,
+                new_value=added,
+                drift_signal_type="officer_added",
+                severity=_OFFICER_ADDED_SEVERITY,
+            )
+        )
+    for removed in sorted(old_officers - new_officers):
+        diffs.append(
+            SnapshotDiff(
+                field="officers",
+                old_value=removed,
+                new_value=None,
+                drift_signal_type="officer_removed",
+                severity=_OFFICER_REMOVED_SEVERITY,
+            )
+        )
+
+    return diffs
+
+
+# ---------------------------------------------------------------------------
+# RegistryAdapter — ABC for all external source adapters
+# ---------------------------------------------------------------------------
 
 class RegistryAdapter(ABC):
-    """Abstract base for every external source connector.
+    """
+    Abstract base class for every external registry adapter.
 
-    Subclasses declare metadata (``source_id``, ``base_url``, :attr:`cost`,
-    :attr:`status`, ``use_cases``) and implement :meth:`fetch` + :meth:`normalize`.
-    They inherit a generic field-level :meth:`diff` and the :meth:`fetch_and_diff`
-    orchestration; either can be overridden when a source needs bespoke logic
-    (e.g. embedding-distance for website drift, match-score for sanctions).
+    Concrete adapters (zefix.py, gleif.py, …) inherit from this class and
+    implement two methods:
+
+        fetch()         — retrieve the current EntitySnapshot from the source
+        fetch_signals() — retrieve recent PublicSignals for the entity
+
+    The class variable source_name MUST be set on each concrete subclass so
+    the provenance of every snapshot and signal is unambiguous.
+
+    Lifecycle: adapters are stateless (no session state); the service layer
+    instantiates one per request or reuses a shared instance. HTTP sessions,
+    API keys, and rate-limiter state are set up in __init__ by each adapter.
     """
 
-    # --- Metadata (override in every subclass) ---
-    source_id: str = ""
-    display_name: str = ""
-    base_url: str = ""
-    docs_url: str = ""
-    cost: SourceCost = SourceCost.FREE
-    status: AdapterStatus = AdapterStatus.PLANNED
-    requires_api_key: bool = False
-    # AMINA use-case numbers this source contributes to (see ROADMAP matrix).
-    use_cases: tuple[int, ...] = ()
-    # Signal types this source can emit (subset of ADAPTER_SIGNAL_TYPES).
-    signal_types: tuple[str, ...] = ()
+    source_name: ClassVar[str]  # subclasses MUST set this, e.g. "zefix"
 
-    # Default generic diff rules. ``owners`` is handled separately (set diff).
-    field_rules: tuple[FieldRule, ...] = (
-        FieldRule("legal_name", "name_change", 0.85,
-                  "Legal name changed: '{old}' -> '{new}'"),
-        FieldRule("legal_form", "legal_form_change", 0.70,
-                  "Legal form changed: '{old}' -> '{new}'"),
-        FieldRule("jurisdiction", "jurisdiction_change", 0.70,
-                  "Jurisdiction changed: '{old}' -> '{new}'"),
-        FieldRule("registered_address", "address_change", 0.55,
-                  "Registered address changed: '{old}' -> '{new}'"),
-        FieldRule("status", "status_change", 0.60,
-                  "Status changed: '{old}' -> '{new}'"),
-        FieldRule("domain", "domain_change", 0.70,
-                  "Primary domain changed: '{old}' -> '{new}'"),
-    )
+    def __init_subclass__(cls, **kwargs: Any) -> None:
+        super().__init_subclass__(**kwargs)
+        # Enforce source_name on every non-abstract subclass.
+        # Check cls.__dict__ first (set on this class), then fall back to
+        # inherited value (concrete parent set it, child can omit it).
+        # hasattr() is intentionally avoided — it finds the ClassVar annotation
+        # on RegistryAdapter itself and returns True even for subclasses that
+        # never assigned the variable, masking the missing-value error.
+        if not getattr(cls, "__abstractmethods__", None):
+            source_name = cls.__dict__.get("source_name") or getattr(cls, "source_name", None)
+            if not (source_name and str(source_name).strip()):
+                raise TypeError(
+                    f"{cls.__name__} must define a non-empty class variable "
+                    f"`source_name` (e.g. source_name = 'zefix')"
+                )
 
-    # --- Convenience predicates ---
-    # Classmethods (not properties) because ``cost``/``status`` are class
-    # attributes — this lets both instances AND the registry's class-level
-    # filters (usable_adapters/skipped_adapters) share one implementation.
-    @classmethod
-    def is_free(cls) -> bool:
-        return cls.cost is SourceCost.FREE
-
-    @classmethod
-    def is_skipped(cls) -> bool:
-        return cls.status is AdapterStatus.SKIPPED
-
-    @classmethod
-    def is_usable(cls) -> bool:
-        """True when we intend to run this source (free or free-tier)."""
-        return cls.status is AdapterStatus.PLANNED
-
-    # --- The contract every concrete adapter implements ---
     @abstractmethod
-    def fetch(self, entity_id: str) -> RawRecord:
-        """Fetch the current raw record for ``entity_id`` from the source.
+    async def fetch(
+        self,
+        customer_id: str,
+        name: str,
+        **kwargs: Any,
+    ) -> EntitySnapshot | None:
+        """
+        Fetch the current entity state from this registry.
 
-        Carcasses raise: ``NotImplementedError`` for a planned (free) source,
-        or :class:`SourceUnavailableError` for a skipped (paid) one.
+        Returns None if the entity is not found in this source — callers must
+        handle the None case (the entity may simply not be registered with this
+        particular authority).
+
+        Parameters
+        ----------
+        customer_id:
+            Internal identifier for the customer (drift engine ID or UUID).
+        name:
+            Entity name used for registry lookup when no structured ID is
+            available (e.g. company name for ZEFIX full-text search).
+        **kwargs:
+            Adapter-specific lookup parameters, e.g.:
+              lei=       for GLEIF
+              uid=       for ZEFIX (Swiss company UID)
+              jurisdiction= for OpenCorporates
         """
 
     @abstractmethod
-    def normalize(self, raw: RawRecord) -> EntitySnapshot:
-        """Map a raw upstream payload onto the canonical :class:`EntitySnapshot`."""
-
-    # --- Shared, overridable fundamentals ---
-    def entity_url(self, entity_id: str) -> str | None:
-        """Human-readable citation URL for ``entity_id`` on the source's site.
-
-        Default: ``None``. Adapters override to give the officer a click-through
-        (e.g. ``https://www.zefix.admin.ch/.../{uid}``).
-        """
-        return None
-
-    def diff(
+    async def fetch_signals(
         self,
-        baseline: EntitySnapshot,
-        current: EntitySnapshot,
-        *,
-        month: int = 0,
+        customer_id: str,
+        name: str,
+        since_month: int = 0,
+        **kwargs: Any,
     ) -> list[PublicSignal]:
-        """Generic field-by-field diff: emit one ``PublicSignal`` per change.
-
-        Compares the canonical fields named in :attr:`field_rules` plus the
-        ``owners`` set. A field is "changed" only when both sides are non-``None``
-        and unequal — a source that does not report a field never fabricates a
-        change. ``month`` is the customer-window index the integration layer
-        assigns; carcass/unit use defaults to 0.
         """
-        signals: list[PublicSignal] = []
-        url = current.source_url or self.entity_url(current.entity_id)
-        source = self.display_name or self.source_id
+        Fetch recent public signals for this entity from the registry.
 
-        for rule in self.field_rules:
-            # No getattr default: ``rule.field`` must be a real EntitySnapshot
-            # attribute. A typo'd/stale field should fail loudly here, not
-            # silently disable a whole signal class.
-            old = getattr(baseline, rule.field)
-            new = getattr(current, rule.field)
-            if old is None or new is None or old == new:
-                continue
-            signals.append(
-                PublicSignal(
-                    month=month,
-                    signal_type=rule.signal_type,
-                    headline=rule.headline.format(old=old, new=new),
-                    severity=rule.severity,
-                    source=source,
-                    source_url=url,
-                    raw_evidence={"field": rule.field, "old": old, "new": new},
-                )
-            )
+        Returns an empty list if no signals are available (never raises for
+        absence of data — only raises for network / auth errors).
 
-        # Ownership is a set, not a scalar. Both directions are AML-relevant:
-        # a NEW beneficial owner/officer and a DEPARTING one each signal control
-        # drift. Hoist the membership sets out of the loops (O(n+m), not O(n*m)).
-        # ``dict.fromkeys`` dedups (a normalize() that yields a repeated owner
-        # must not produce duplicate signals) while preserving first-seen order.
-        baseline_owners = set(baseline.owners)
-        current_owners = set(current.owners)
-        added = dict.fromkeys(o for o in current.owners if o not in baseline_owners)
-        removed = dict.fromkeys(o for o in baseline.owners if o not in current_owners)
-        for owner in added:
-            signals.append(
-                PublicSignal(
-                    month=month, signal_type="ownership_change",
-                    headline=f"New owner/officer recorded: {owner}",
-                    severity=0.50, source=source, source_url=url,
-                    raw_evidence={"field": "owners", "added": owner},
-                )
-            )
-        for owner in removed:
-            signals.append(
-                PublicSignal(
-                    month=month, signal_type="ownership_change",
-                    headline=f"Owner/officer no longer recorded: {owner}",
-                    severity=0.50, source=source, source_url=url,
-                    raw_evidence={"field": "owners", "removed": owner},
-                )
-            )
-
-        return signals
-
-    def fetch_and_diff(
-        self,
-        entity_id: str,
-        baseline: EntitySnapshot,
-        *,
-        month: int = 0,
-    ) -> list[PublicSignal]:
-        """fetch -> normalize -> diff against ``baseline``. The engine entry point.
-
-        Skipped (paid) sources fail fast with :class:`SourceUnavailableError`
-        before any network call.
+        Parameters
+        ----------
+        customer_id:
+            Internal customer identifier.
+        name:
+            Entity name used for news / event lookup.
+        since_month:
+            Zero-indexed month floor; only signals at or after this month are
+            returned. Lets the aggregator request incremental updates without
+            re-fetching the full history on every scan.
+        **kwargs:
+            Adapter-specific parameters.
         """
-        if self.is_skipped():
-            raise SourceUnavailableError(
-                f"{self.source_id}: paid/restricted source, skipped for the MVP"
-            )
-        raw = self.fetch(entity_id)
-        current = self.normalize(raw)
-        return self.diff(baseline, current, month=month)
-
-    # --- Carcass helpers ---
-    def _carcass(self) -> NoReturn:
-        """Guard for unimplemented adapter bodies — always raises.
-
-        Skipped (paid) sources raise :class:`SourceUnavailableError`; planned
-        (free) sources raise ``NotImplementedError``. Concrete ``fetch``/
-        ``normalize`` carcasses ``return self._carcass()`` so the free-vs-paid
-        intent is explicit and uniform; the ``NoReturn`` type tells the checker
-        the method never falls through, so no unreachable filler is needed.
-        """
-        if self.is_skipped():
-            raise SourceUnavailableError(
-                f"{self.source_id}: paid/restricted source, intentionally not "
-                f"implemented (cost={self.cost.value}). See docs/sources.md."
-            )
-        raise NotImplementedError(
-            f"{self.source_id}: adapter carcass — fetch/normalize not yet "
-            f"implemented (cost={self.cost.value}, use_cases={self.use_cases})."
-        )
-
-    def __repr__(self) -> str:  # pragma: no cover - cosmetic
-        return (
-            f"<{type(self).__name__} source_id={self.source_id!r} "
-            f"cost={self.cost.value} status={self.status.value}>"
-        )

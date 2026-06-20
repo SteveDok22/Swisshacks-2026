@@ -7,12 +7,12 @@ WHAT IT PROVIDES
     by entity/keyword, language and tone. No key, no cost.
 
 WHY IT MATTERS HERE  (Use cases 1, 6, 8, 10)
-    This is the sustainable, free replacement for the (paid) Event Registry
-    adapter. The article/volume time-series per customer feeds BOCPD on the news
-    count (Case 1 negative-news spike); article tone seeds the ``news`` /
-    ``adverse_media`` severity; coverage of a funding/expansion event corroborates
-    Case 6. Because the signal is a time-series, the real adapter overrides
-    ``diff`` to run BOCPD rather than field comparison.
+    The sustainable, free replacement for the (paid) Event Registry adapter. The
+    article/volume time-series per customer feeds BOCPD on the news count (Case 1
+    negative-news spike); article tone seeds the ``news`` / ``adverse_media``
+    severity; coverage of a funding/expansion event corroborates Case 6. The
+    signal is a time-series, so this adapter only implements ``fetch_signals``
+    (``fetch`` returns ``None`` — GDELT has no canonical entity record).
 
 COST / ACCESS  →  FREE, no API key (PLANNED — implement now)
     Rate-limited (429 during big news events). You MUST send a ``User-Agent``
@@ -25,18 +25,16 @@ COST / ACCESS  →  FREE, no API key (PLANNED — implement now)
 
 from __future__ import annotations
 
-from app.sources.base import AdapterStatus, EntitySnapshot, RawRecord, RegistryAdapter, SourceCost
+from typing import Any
+
+from app.sources.base import EntitySnapshot, PublicSignal, RegistryAdapter
+from app.sources.cost import AdapterStatus, CostMixin, SourceCost
 
 
-class GdeltAdapter(RegistryAdapter):
-    """GDELT news-monitoring connector (carcass).
+class GdeltAdapter(CostMixin, RegistryAdapter):
+    """GDELT news-monitoring connector (carcass)."""
 
-    A *news time-series* source, not a field-diff source: the real implementation
-    overrides ``diff`` to run BOCPD over the per-month article count and classify
-    tone, emitting ``news`` / ``adverse_media`` signals.
-    """
-
-    source_id = "gdelt"
+    source_name = "gdelt"
     display_name = "GDELT 2.0 (news)"
     base_url = "https://api.gdeltproject.org/api/v2/doc/doc"
     docs_url = "https://blog.gdeltproject.org/gdelt-doc-2-0-api-debuts/"
@@ -46,8 +44,12 @@ class GdeltAdapter(RegistryAdapter):
     use_cases = (1, 6, 8, 10)
     signal_types = ("news", "adverse_media", "funding_event")
 
-    def fetch(self, entity_id: str) -> RawRecord:
+    async def fetch(
+        self, customer_id: str, name: str, **kwargs: Any
+    ) -> EntitySnapshot | None:
         return self._carcass()
 
-    def normalize(self, raw: RawRecord) -> EntitySnapshot:
+    async def fetch_signals(
+        self, customer_id: str, name: str, since_month: int = 0, **kwargs: Any
+    ) -> list[PublicSignal]:
         return self._carcass()

@@ -35,11 +35,11 @@ class TestRegistryClassification:
         assert len(REGISTRY) == 10  # source_names are unique
 
     def test_usable_are_the_eight_free_sources(self):
-        # event_registry was upgraded from SKIPPED → PLANNED when the hackathon
-        # API key became available (commit d8606a3).
+        # event_registry upgraded from SKIPPED → PLANNED: hackathon key available,
+        # adapter fully implemented (fetch_signals runs; returns [] when key absent).
         assert {a.source_name for a in usable_adapters()} == {
             "zefix", "gleif", "opensanctions", "gdelt",
-            "firecrawl", "wayback", "whois", "event_registry",
+            "event_registry", "firecrawl", "wayback", "whois",
         }
 
     def test_skipped_are_the_two_paid_sources(self):

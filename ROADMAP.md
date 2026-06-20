@@ -15,7 +15,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 | **AI Intelligence Quality** | 25% | ✅ Strong | 7 real algorithms, genuine causal separation, suspicious stability |
 | **Cost Efficiency** | 20% | ⚠️ Partial | Cascade executes T2 LLM adjudications and reports actual real/mock calls; no per-workflow token count |
 | **UX & Explainability** | 20% | ⚠️ Gap | 7 visualisations solid; SHAP disconnected from drift; source citations missing |
-| **Compliance & Safety** | 20% | ⚠️ Gap | Anonymizer works; ~~audit log not written from drift~~ fixed; HITL missing on drift page |
+| **Compliance & Safety** | 20% | ✅ Good | Anonymizer works; ~~audit log not written from drift~~ fixed; ~~HITL missing on drift page~~ fixed — DecisionBar now in drift workspace; source citations still missing |
 | **Engineering & Architecture** | 15% | ✅ Good | Modular 10-file engine, clean API, async throughout; unit + BDD tests added; no CI/CD |
 
 ---
@@ -40,10 +40,10 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 | Area | Status |
 |---|---|
-| REST API | 27 endpoints, all functional |
+| REST API | 28 endpoints, all functional |
 | Frontend — 7 drift visualizations | All render real API data |
 | XGBoost + SHAP | Real — wired to case management only, not drift |
-| Audit service | Append-only, SQLite-persisted |
+| Audit service | Append-only within each disposable SQLite runtime |
 | Privacy / anonymizer | PII pseudonymized before Claude |
 | Claude AI integration | Works for case explanations and T2 drift adjudication; mock mode works without an API key |
 | Jurisdiction rule packs | CH / EU / HK / AE all loaded |
@@ -75,7 +75,7 @@ Ordered by judging weight × demo impact. Check off as work is completed.
 ### 🔴 P0 — Compliance & Safety (20%)
 
 - [x] **Wire audit log into drift pipeline** — 5 compliance-relevant endpoints now audited in `api/v1/drift.py`: `drift_customer_analyzed` · `drift_scan_completed` · `drift_replay_executed` · `drift_scenario_injected` · `drift_rfi_generated` · `_score_to_level()` maps score to risk_level · list/timeline/contagion intentionally unaudited (read-only browsing)
-- [ ] **Decision bar on drift page** — add `DecisionBar.tsx` to `frontend/src/app/drift/page.tsx`; extend `api/v1/decisions.py` to accept `customer_id: str` in addition to `case_id: UUID`
+- [x] **Decision bar on drift page** — `DecisionBar.tsx` renders below `VerdictBar`; `POST /decisions` accepts `customer_id` or `case_id`; drift recommendations are derived server-side, customer existence is validated, analysis state is snapshotted, and `drift_decision_recorded` is queryable by customer.
 
 ### 🔴 P0 — Cost Efficiency (20%)
 
@@ -267,12 +267,13 @@ BDD is a natural fit here: the 7 synthetic scenarios and H1–H4 hypotheses are 
 - [x] **`test_drift_t2_llm.py`** — scan calls LLM only for T2 customers; zero-T2 scan performs zero calls; invalid LLM JSON returns safe fallback.
 - [x] **`test_contagion.py`** — direct neighbor elevated > 0.1; near > far; hop counts; cytoscape shape; empty seeds — 11 tests
 - [x] **`test_score_boundaries.py`** — `score_to_level` / `score_to_action` full boundary coverage incl. float regression — 15 tests (previously `test_score_to_level`)
+- [x] **`test_decisions_customer.py`** — drift decisions, server recommendation integrity, customer validation, rationale enforcement, chronological listing, path isolation, analysis snapshots, and audit events.
 
 ---
 
 ### 🟠 P1 — BDD scenario tests (Gherkin feature files)
 
-Add `pytest-bdd` to dev deps: `"pytest-bdd>=7.0.0"` in `pyproject.toml`. ✅ Added.
+`pytest-bdd` is installed in the Docker test stage (`backend/Dockerfile`). ✅ Wired.
 Feature files live in `backend/tests/features/`; step definitions in `backend/tests/test_*_bdd.py`.
 
 - [x] **`drift_detection.feature`** — 3 scenarios with ground truth labels (benign_expansion, combined/risk, suspicious_stability slow-walker):

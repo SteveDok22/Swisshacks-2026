@@ -27,8 +27,10 @@ That single command builds and starts **both** containers with **hot reload**:
 - edits in `backend/app/**` restart the API via uvicorn `--reload`
 - edits in `frontend/src/**` refresh the dashboard via Next.js HMR
 
-The SQLite database lives in the `backend_data` volume and is auto-seeded with
-mock data on first start — no separate database container. Stop everything with:
+The SQLite database lives in the `backend_data` volume, but is intentionally
+disposable: every backend startup drops and recreates the schema, then seeds
+fresh mock data. No migration step or separate database container is required.
+Stop everything with:
 
 ```bash
 docker compose down

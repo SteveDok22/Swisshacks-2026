@@ -57,7 +57,7 @@ flowchart LR
         UC4[Review causal evidence]
         UC5[Time-travel audit replay]
         UC6[Generate Request for Information]
-        UC7[Log decision & rationale]
+        UC7["Log decision & rationale\n(from case panel OR drift workspace)"]
         UC8[Export immutable audit log]
         UC9["Switch jurisdiction rules\nCH / EU / HK / AE"]
         UC10[Explore contagion graph]
@@ -102,7 +102,7 @@ sequenceDiagram
     API->>DE: full_analysis(customer_id)
     DE-->>API: DriftCustomerDetail + all 7 layers
     API-->>FE: Full breakdown + causal evidence
-    FE-->>O: Verdict bar · Evidence panels · Score timeline
+    FE-->>O: Verdict bar · DecisionBar · Evidence panels · Score timeline
 
     O->>FE: Request AI explanation (SSE)
     FE->>API: GET /api/v1/explanations/{case_id}/stream
@@ -112,12 +112,13 @@ sequenceDiagram
     API-->>FE: Server-Sent Events
     FE-->>O: Typing animation
 
-    O->>FE: Log decision
-    FE->>API: POST /api/v1/decisions
-    API->>DB: INSERT (action, rationale, officer_id, timestamp)
+    O->>FE: Log decision (drift workspace — no linked case)
+    FE->>API: POST /api/v1/decisions\n{customer_id, action, officer_id, rationale?}
+    API->>DE: Validate customer + derive recommendation
+    API->>DB: INSERT decision + immutable analysis snapshot
     DB-->>API: 201 Created
     API-->>FE: Confirmed
-    FE-->>O: Decision recorded in audit log
+    FE-->>O: Decision recorded — audit event drift_decision_recorded
 ```
 
 ---

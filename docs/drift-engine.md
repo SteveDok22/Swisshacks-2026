@@ -175,6 +175,14 @@ A product, not a sum: a company that stays dormant scores ~0, and one that was a
 
 ---
 
+## Layer 6c — Structural Re-KYC Floor (Jurisdiction / Legal Form change)
+
+UC 4. A jurisdiction or legal-form change is a *registry* fact, not a behavioral one: ZEFIX/GLEIF `fetch_signals` diffs the current snapshot against the persisted KYC baseline (`entity_snapshots.legal_form` / `jurisdiction`) and emits a `jurisdiction_change` or `legal_form_change` `PublicSignal`. Behavioral layers cannot see this — the transaction stream may be perfectly smooth while a company quietly redomiciles offshore — so the score floors independently.
+
+When `requires_re_kyc_floor` finds either signal type, `_analyze_customer` floors the drift score at `RE_KYC_SCORE_FLOOR` (50), the same "cannot hide below the radar" policy as the stability/dormancy floors and applied after the ML blend so the model can never lower a regulatory floor. The synthetic offline feed never emits these types, so the floor only fires on live registry data. This realises the brief's *Long Blockchain Corp* rebrand-to-exploit-hype scenario, where a legal identity change mandated re-KYC across banking relationships.
+
+---
+
 ## Cost-Aware Cascade (Tier Router)
 
 Escalation is framed as information economics:

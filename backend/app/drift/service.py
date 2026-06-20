@@ -20,6 +20,7 @@ import concurrent.futures
 import json
 import time
 import zlib
+from collections.abc import Iterable
 from typing import Any
 
 import numpy as np
@@ -100,6 +101,27 @@ _GLEIF_FETCH_TIMEOUT_S = 30.0
 # Customers wired into the ownership graph as contagion-affected
 CONTAGION_AFFECTED = {"drift-004", "drift-002"}
 DRIFT_ANALYSIS_VERSION = "drift-v1"
+
+# UC 4 — structural-change signal types that mandate a re-KYC review. A
+# confirmed jurisdiction or legal-form change is a hard regulatory trigger, so
+# its presence floors the drift score regardless of behavioral signal strength.
+# These noun-form types are emitted by the ZEFIX/GLEIF diff path
+# (sources/base.diff_snapshots -> adapter.fetch_signals); the offline synthetic
+# feed never produces them, so this floor only fires on live registry data.
+RE_KYC_FLOOR_SIGNAL_TYPES = frozenset({"jurisdiction_change", "legal_form_change"})
+# Mandatory re-KYC drift-score floor (0..100) for a confirmed structural change.
+RE_KYC_SCORE_FLOOR = 50.0
+
+
+def requires_re_kyc_floor(public_signals: Iterable[PublicSignal]) -> bool:
+    """Return True if any public signal is a confirmed structural change that
+    mandates re-KYC (UC 4 — jurisdiction or legal-form change).
+
+    Pure predicate over the signal list so the floor policy can be unit-tested
+    without constructing the engine — the offline synthetic feed never emits
+    these registry-sourced types.
+    """
+    return any(s.signal_type in RE_KYC_FLOOR_SIGNAL_TYPES for s in public_signals)
 
 
 def recommend_drift_action(
@@ -470,6 +492,16 @@ class DriftEngine:
         dormancy = analysis["dormancy"]
         if dormancy.is_dormancy_break:
             score = max(score, 55.0 + dormancy.dormancy_break * 35.0)
+
+        # Structural re-KYC ELEVATION (UC 4) — a confirmed jurisdiction or
+        # legal-form change is a mandatory re-KYC trigger under structural-risk
+        # rules, so floor the score at RE_KYC_SCORE_FLOOR however weak the
+        # behavioral signal is. Same "cannot hide below the radar" policy as the
+        # stability/dormancy floors above, applied to registry-sourced structural
+        # change rather than transaction behaviour. Applied AFTER the ML blend so
+        # the model can never lower a regulatory floor (see the note above it).
+        if requires_re_kyc_floor(analysis["public_signals"]):
+            score = max(score, RE_KYC_SCORE_FLOOR)
 
         analysis["drift_score"] = score
         analysis["ml_score"] = ml_score

@@ -392,3 +392,47 @@ class TestNoExtraAuditEntries:
 
         entries = await audit_query("counterfactuals_generated")
         assert len(entries) == 2
+
+
+# ---------------------------------------------------------------------------
+# Cases list COUNT(*) correctness (db_store.py refactor)
+# ---------------------------------------------------------------------------
+
+class TestCasesCountQueryCorrectness:
+    """Verify that GET /cases returns a `total` that reflects the real DB count.
+
+    Prior to this refactor, the count was computed via
+    ``len(list(count_result.scalars().all()))`` which loaded all matching IDs
+    into Python. The fix uses ``func.count().select_from(CaseDB)`` with
+    ``scalar_one()``. These tests guard against regressions in both the value
+    and the filter-pushdown behaviour.
+    """
+
+    async def test_total_equals_seeded_case_count(self, client, seed_case):
+        resp = await client.get("/api/v1/cases")
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["total"] >= 1, "total must count the seeded case"
+        assert data["total"] == len(data["items"]), (
+            f"total {data['total']} != items on page {len(data['items'])}"
+        )
+
+    async def test_total_respects_active_filter(self, client, seed_case):
+        """COUNT(*) must apply the same WHERE clauses as the row query."""
+        # The seeded case is always social_engineering / CH / open
+        resp_filtered = await client.get(
+            "/api/v1/cases", params={"case_type": "social_engineering"}
+        )
+        assert resp_filtered.status_code == 200
+        filtered = resp_filtered.json()
+
+        resp_all = await client.get("/api/v1/cases")
+        assert resp_all.status_code == 200
+        all_cases = resp_all.json()
+
+        assert filtered["total"] <= all_cases["total"], (
+            "Filtered total must not exceed unfiltered total"
+        )
+        assert filtered["total"] == len(filtered["items"]), (
+            "Filtered total must match items returned on this page"
+        )

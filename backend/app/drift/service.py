@@ -16,6 +16,7 @@ remain stable within one process. This mutable demo state is process-local.
 from __future__ import annotations
 
 import json
+import time
 from typing import Any
 
 import numpy as np
@@ -118,6 +119,8 @@ def confirmation_amplification(lift: float) -> float:
 class DriftEngine:
     """Orchestrates drift detection over the customer book."""
 
+    _LIST_CACHE_TTL: float = 30.0  # seconds — controls list_customers() hot-path cache
+
     def __init__(self) -> None:
         self._book: list[SyntheticCustomer] = generate_book()
         self._router = CascadeRouter()
@@ -129,6 +132,8 @@ class DriftEngine:
         # Cohort volatility reference for Suspicious Stability (computed once
         # over the whole book — the norm against which smoothness is judged).
         self._cohort_cv = cohort_volatility([c.monthly_volume for c in self._book])
+        self._list_cache: list[DriftCustomerSummary] | None = None
+        self._list_cache_at: float = 0.0
 
     # ------------------------------------------------------------------ #
     # Core per-customer analysis
@@ -478,6 +483,10 @@ class DriftEngine:
     # Public API methods
     # ------------------------------------------------------------------ #
     def list_customers(self) -> list[DriftCustomerSummary]:
+        now = time.monotonic()
+        if self._list_cache is not None and now - self._list_cache_at < self._LIST_CACHE_TTL:
+            return list(self._list_cache)
+
         out: list[DriftCustomerSummary] = []
         for cust in self._book:
             a = self._analyze_customer(cust)
@@ -509,7 +518,9 @@ class DriftEngine:
                 )
             )
         out.sort(key=lambda c: c.drift_score, reverse=True)
-        return out
+        self._list_cache = out
+        self._list_cache_at = time.monotonic()
+        return list(out)
 
     def get_customer(self, customer_id: str) -> DriftCustomerDetail | None:
         cust = next((c for c in self._book if c.customer_id == customer_id), None)

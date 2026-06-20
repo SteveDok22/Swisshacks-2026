@@ -10,10 +10,10 @@
 
 ---
 
-## Status: scaffolding (carcass)
+## Status: partial implementation
 
-This package currently ships the **contract and skeletons only** — no adapter
-performs real network I/O yet:
+GLEIF is **fully implemented** (real HTTP calls, no key required). All other
+adapters remain carcasses — no real network I/O yet:
 
 - `base.py` — the shared contract: `RegistryAdapter` ABC, `EntitySnapshot`,
   the canonical `PublicSignal`, and the `SnapshotDiff` / `diff_snapshots()`
@@ -55,7 +55,7 @@ status == PLANNED   <=>   cost == FREE or FREEMIUM
 | Source | What it provides | Cost | Key? | Decision |
 |---|---|---|---|---|
 | **ZEFIX** | Swiss commercial register: name, legal form, seat, status, purpose (Zweck), SHAB mutation log | FREEMIUM | yes⁰ | ✅ IMPLEMENT |
-| **GLEIF** | Global LEI: name, status, jurisdiction, parent/children ownership graph | FREE | no | ✅ IMPLEMENT |
+| **GLEIF** | Global LEI: name, status, jurisdiction, parent/children ownership graph | FREE | no | ✅ IMPLEMENTED |
 | **OpenSanctions** | OFAC/EU/UN sanctions + PEP screening with match scores | FREEMIUM | yes¹ | ✅ IMPLEMENT |
 | **GDELT 2.0** | Global news article lists + volume time-series (free news feed) | FREE | no | ✅ IMPLEMENT |
 | **Firecrawl** | Live website → markdown (current page content) | FREEMIUM | yes² | ✅ IMPLEMENT |

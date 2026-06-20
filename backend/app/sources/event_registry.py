@@ -8,10 +8,11 @@ WHAT IT PROVIDES
     simple keyword matches. Each result carries a relevance score, event
     sentiment, and article-level source quality rating.
 
-WHY WE NOW IMPLEMENT IT  →  hackathon API key provided
+WHY WE NOW PLAN TO IMPLEMENT IT  →  hackathon API key provided
     Previously skipped as trial-only. SwissHacks 2026 hackathon provides an
-    API key with full access. This is now the PRIMARY news source for Cases 1,
-    6, 8, 10; :class:`app.sources.gdelt.GdeltAdapter` remains as a free
+    API key with full access. This adapter is still a CARCASS (fetch /
+    fetch_signals are not yet implemented); once built it will be the PRIMARY
+    news source for Cases 1, 6, 8, 10. GdeltAdapter remains as a free
     fallback when the key is absent.
 
     Base URL:   https://eventregistry.org/api/v1/  (a.k.a. newsapi.ai)
@@ -41,7 +42,7 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
     display_name = "Event Registry / NewsAPI.ai"
     base_url = "https://eventregistry.org/api/v1"
     docs_url = "https://newsapi.ai/documentation"
-    cost = SourceCost.PAID
+    cost = SourceCost.FREEMIUM
     status = AdapterStatus.PLANNED
     requires_api_key = True
     use_cases = (1, 6, 8, 10)

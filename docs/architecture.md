@@ -49,10 +49,9 @@ flowchart TB
     UI --> DriftWS & CaseWS
     DriftWS & CaseWS --> APIClient
     APIClient -->|HTTP + SSE| Router
-    Router --> Svcs & DE
+    Router --> Svcs & DE & ML
     DE --> BOCPD & Vel & Con & PI & Caus & Stab & Dorm
     BOCPD & Vel & Con & PI & Caus & Stab & Dorm --> Casc
-    Casc --> ML
     Casc -->|High-stakes| AnonSvc
     AnonSvc -->|Pseudonymized| Claude
     Svcs & ML --> DB

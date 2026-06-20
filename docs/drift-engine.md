@@ -170,7 +170,7 @@ flowchart TD
     Start([Customer])
 
     T0{"Tier 0\nRule Engine\nFree — ~95% of customers"}
-    T1{"Tier 1\nML · XGBoost + SHAP\n~$0.0002 per customer"}
+    T1{"Tier 1\nStatistical · LLR layer scoring\n~$0.0002 per customer"}
     T2{"Tier 2\nLLM · Claude adjudication\n~$0.05 per customer"}
 
     Clear["Clear\nLow-risk — no action"]

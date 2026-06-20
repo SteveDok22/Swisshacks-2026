@@ -34,42 +34,28 @@ class TestRegistryClassification:
         assert len(ALL_ADAPTERS) == 10
         assert len(REGISTRY) == 10  # source_names are unique
 
-    # Event Registry is the one documented exception to "skipped iff paid": it
-    # is PAID but PLANNED because a hackathon API key is provided (it is the
-    # primary news source, GDELT the key-less fallback). See docs/sources.md.
-    _PAID_BUT_PLANNED = {"event_registry"}
-
-    def test_usable_are_the_free_sources_plus_event_registry(self):
+    def test_usable_are_the_eight_free_sources(self):
+        # event_registry was upgraded from SKIPPED → PLANNED when the hackathon
+        # API key became available (commit d8606a3); its cost is FREEMIUM, so the
+        # clean skipped⟺paid biconditional below still holds (no exception).
         assert {a.source_name for a in usable_adapters()} == {
             "zefix", "gleif", "opensanctions", "gdelt",
-            "firecrawl", "wayback", "whois",
-        } | self._PAID_BUT_PLANNED
+            "firecrawl", "wayback", "whois", "event_registry",
+        }
 
-    def test_skipped_are_the_remaining_paid_sources(self):
-        # Only the paid sources WITHOUT a usable key remain skipped.
+    def test_skipped_are_the_two_paid_sources(self):
         assert {a.source_name for a in skipped_adapters()} == {
             "open_corporates", "crunchbase",
         }
 
-    def test_skipped_implies_paid_with_documented_exception(self):
-        # SKIPPED still implies PAID. The converse no longer holds: the
-        # paid-but-planned sources are exactly the documented exception.
+    def test_skipped_iff_paid_invariant(self):
+        # The whole free/paid decision rests on this equivalence.
         for a in ALL_ADAPTERS:
-            if a.is_skipped():
-                assert a.cost is SourceCost.PAID, a.source_name
-        paid_but_planned = {
-            a.source_name
-            for a in ALL_ADAPTERS
-            if a.cost is SourceCost.PAID and a.is_usable()
-        }
-        assert paid_but_planned == self._PAID_BUT_PLANNED
+            assert a.is_skipped() == (a.cost is SourceCost.PAID), a.source_name
 
-    def test_planned_are_free_or_freemium_except_documented(self):
+    def test_planned_iff_free_or_freemium(self):
         for a in usable_adapters():
-            if a.source_name in self._PAID_BUT_PLANNED:
-                assert a.cost is SourceCost.PAID, a.source_name
-            else:
-                assert a.cost in (SourceCost.FREE, SourceCost.FREEMIUM), a.source_name
+            assert a.cost in (SourceCost.FREE, SourceCost.FREEMIUM)
 
     def test_key_requirement_matches_cost_tier(self):
         # Fully-free sources must not need a key; the free-tier (FREEMIUM) ones
@@ -127,15 +113,15 @@ class TestRegistryClassification:
 class TestCarcassBehaviour:
     async def test_planned_adapter_raises_not_implemented(self):
         # Free source whose carcass is not built yet — both entry points.
-        # GLEIF is the representative still-unbuilt PLANNED adapter (ZEFIX is
-        # now implemented; without credentials it degrades to None/[], it does
-        # not raise — see test_zefix.py).
-        from app.sources.gleif import GleifAdapter
+        # GDELT is a representative still-unbuilt PLANNED adapter (ZEFIX and
+        # GLEIF are now implemented; ZEFIX without credentials degrades to
+        # None/[] rather than raising — see test_zefix.py).
+        from app.sources.gdelt import GdeltAdapter
 
         with pytest.raises(NotImplementedError):
-            await GleifAdapter().fetch("c", "Helvetia AG")
+            await GdeltAdapter().fetch("c", "Helvetia AG")
         with pytest.raises(NotImplementedError):
-            await GleifAdapter().fetch_signals("c", "Helvetia AG")
+            await GdeltAdapter().fetch_signals("c", "Helvetia AG")
 
     async def test_zefix_without_credentials_degrades_quietly(self):
         # The one implemented free adapter: no account configured → graceful

@@ -11,8 +11,8 @@ Which sources are free and usable vs. paid-and-skipped is decided once, in
 :mod:`app.sources.registry`; see ``docs/sources.md`` for the rationale.
 
     IMPLEMENT (free / free-tier): zefix, gleif, opensanctions, gdelt,
-                                  firecrawl, wayback, whois
-    SKIP (paid / restricted):     open_corporates, event_registry, crunchbase
+                                  firecrawl, wayback, whois, event_registry
+    SKIP (paid / restricted):     open_corporates, crunchbase
 """
 
 from app.sources.base import (

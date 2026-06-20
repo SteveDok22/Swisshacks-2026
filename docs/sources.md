@@ -10,10 +10,11 @@
 
 ---
 
-## Status: scaffolding (carcass)
+## Status: partial implementation
 
-This package currently ships the **contract and skeletons only** — no adapter
-performs real network I/O yet:
+GLEIF (real HTTP, no key) and ZEFIX (real HTTP, free Basic-auth account; degrades
+gracefully without credentials) are **implemented**. All other adapters remain
+carcasses — no real network I/O yet:
 
 - `base.py` — the shared contract: `RegistryAdapter` ABC, `EntitySnapshot`,
   the canonical `PublicSignal`, and the `SnapshotDiff` / `diff_snapshots()`
@@ -43,29 +44,26 @@ Hard requirement: **only sources that are 100% free / usable right now get
 implemented.** Anything without a sustainable free tier is marked `PAID` and
 skipped — and skipped in code, not just on paper.
 
-The whole decision collapses to one near-biconditional (enforced by a unit
-test), with a single documented exception — **Event Registry**, which is `PAID`
-but `PLANNED` because a hackathon API key is provided (it is the primary news
-source; GDELT is the key-less fallback):
+The whole decision collapses to one invariant (enforced by a unit test):
 
 ```
-status == SKIPPED   <=>   cost == PAID            (except event_registry)
-status == PLANNED   <=>   cost in {FREE, FREEMIUM} or source is event_registry
+status == SKIPPED   <=>   cost == PAID
+status == PLANNED   <=>   cost == FREE or FREEMIUM
 ```
 
 ### Catalogue
 
 | Source | What it provides | Cost | Key? | Decision |
 |---|---|---|---|---|
-| **ZEFIX** | Swiss commercial register: name, legal form, seat, status, purpose (Zweck), SHAB mutation log | FREEMIUM | yes⁰ | ✅ IMPLEMENTED |
-| **GLEIF** | Global LEI: name, status, jurisdiction, parent/children ownership graph | FREE | no | ✅ IMPLEMENT |
+| **ZEFIX** | Swiss commercial register: name, legal form, seat, status, purpose (Zweck), SHAB mutation log | FREEMIUM | yes⁰ | ✅ BUILT |
+| **GLEIF** | Global LEI: name, status, jurisdiction, parent/children ownership graph | FREE | no | ✅ BUILT |
 | **OpenSanctions** | OFAC/EU/UN sanctions + PEP screening with match scores | FREEMIUM | yes¹ | ✅ IMPLEMENT |
 | **GDELT 2.0** | Global news article lists + volume time-series (free news feed) | FREE | no | ✅ IMPLEMENT |
 | **Firecrawl** | Live website → markdown (current page content) | FREEMIUM | yes² | ✅ IMPLEMENT |
 | **Wayback** | Historical website snapshot at the onboarding date | FREE | no | ✅ IMPLEMENT |
 | **WHOIS / RDAP** | Domain age + registrant change | FREE | no | ✅ IMPLEMENT |
+| **Event Registry** | News clustered into de-duplicated *events* | FREEMIUM³ | yes | ✅ IMPLEMENT (carcass, hackathon key) |
 | **OpenCorporates** | Officers / directors in non-LEI jurisdictions | PAID | yes | ⛔ SKIP |
-| **Event Registry** | News clustered into de-duplicated *events* | PAID³ | yes | ✅ IMPLEMENT (primary news) |
 | **Crunchbase** | Funding rounds, investors, amounts | PAID | yes | ⛔ SKIP |
 
 ⁰ ZEFIX: free, but the ZefixPublicREST API requires a **free registered
@@ -85,10 +83,10 @@ the ROADMAP use-case close-out tasks.
 matcher are **free for non-commercial use** and self-hostable. Commercial use
 needs a paid bulk-data licence — flag for production.
 ² Firecrawl: cloud free tier ~1,000 pages/month (no card); self-host is AGPL-3.0.
-³ Event Registry: classified `PAID` (the public free allowance is a **one-time
-~2,000-token trial**, not a renewing tier). Implemented anyway as the **primary
-news source** because a hackathon API key is provided; without
-`EVENT_REGISTRY_API_KEY` the aggregator falls back to key-less GDELT.
+³ Event Registry: previously treated as paid (one-time trial allowance only). The
+SwissHacks 2026 hackathon provides a full-access API key, making it FREEMIUM and
+usable. The adapter remains a carcass (`fetch`/`fetch_signals` not yet
+implemented); GDELT serves as a free, key-less news fallback in the meantime.
 
 ### Why each skip is safe (coverage is not lost)
 
@@ -100,8 +98,8 @@ news source** because a hackathon API key is provided; without
 Net: **8 adapters to build, 2 skipped.** No use case is fully dropped, but
 officer/director-level resolution (part of Cases 3/5) is degraded to entity-level
 ownership only — the one capability lost by skipping the paid OpenCorporates.
-Event Registry is the primary news feed (hackathon key); GDELT is the key-less
-fallback and still covers the news/funding use cases on its own.
+Event Registry is now PLANNED (hackathon key available); GDELT remains its free
+fallback when the key is absent.
 
 ---
 

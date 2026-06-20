@@ -10,7 +10,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 |---|---|---|
 | **AI Intelligence Quality** | 25% | ✅ Strong — 7 real algorithms, causal separation, suspicious stability |
 | **Cost Efficiency** | 20% | ⚠️ Partial — T2 LLM works; no per-workflow token count yet |
-| **UX & Explainability** | 20% | ⚠️ Gap — 7 visualisations solid; SHAP disconnected from drift; source citations missing |
+| **UX & Explainability** | 20% | ⚠️ Gap — 7 visualisations solid; drift uses per-layer LLR contribution breakdown (no per-variable SHAP, by design); source citations missing |
 | **Compliance & Safety** | 20% | ✅ Good — audit log wired; DecisionBar on drift; source citations still missing |
 | **Engineering & Architecture** | 15% | ✅ Good — modular engine, clean API, async, unit + BDD tests; no CI/CD |
 
@@ -80,7 +80,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 **5. UX / explainability**
 - [ ] **DormancyPanel.tsx** — `DormancyOut` is computed by the engine and included in `DriftCustomerDetail` (API), but the frontend has no panel for it and the TS types are stale: add `DormancyVerdict` interface to `api.ts`; add `dormancy: DormancyVerdict | null` to `DriftCustomerDetail` and `dormancy_break: number` + `is_dormancy_break: boolean` to `DriftCustomerSummary`; create `DormancyPanel.tsx` mirroring `StabilityPanel.tsx` (depth × activation-strength product, flagged banner when `is_dormancy_break`)
 - [ ] **Source citations on signal cards** — backend done (`source_url` field on `PublicSignal` in `sources/base.py` and on `PublicSignalOut` in `schemas/drift.py`); remaining: add `source_url: string | null` to `PublicSignal` TS type in `api.ts`; render as a clickable link in `TwoLayerPanel.tsx` signal rows
-- [ ] **SHAP wired to drift** — option A (fast): reword docs to "per-layer contribution breakdown", drop per-variable SHAP claim; option B (correct): route T1 drift customers through `RiskEngine.score_case`, attach SHAP values to `DriftCustomerDetail`
+- [x] **Drift explainability** — option A chosen: drift attribution is a per-layer LLR contribution breakdown (7 layers × `LayerContribution.llr` + `CausalVerdictOut.contributions` per metric). Per-variable SHAP is case-scoring only; applying it to drift time-series would explain the wrong thing (transaction features ≠ behavioural drift features).
 
 **6. Cost tracking**
 - [ ] **Token usage per workflow** — add `tokens_used: int` and `model: str` to `CascadeCostReport` in `schemas/drift.py`; populate from `anthropic_client.py` response metadata
@@ -117,13 +117,13 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 | Ownership Contagion | `drift/contagion.py` | NetworkX personalized PageRank |
 | Causal Drift | `drift/causal.py` | Neyman-Pearson likelihood-ratio |
 | Suspicious Stability | `drift/stability.py` | CV × environmental movement |
-| Cost-Aware Cascade | `drift/cascade.py` | T0 rules → T1 XGBoost → T2 LLM |
+| Cost-Aware Cascade | `drift/cascade.py` | T0 rules → T1 LLR layer scoring → T2 LLM |
 | Time-Travel Audit | `drift/timetravel.py` | No look-ahead bias on replay |
 | Drift Engine | `drift/service.py` | All 7 layers, confirmation lift, LLM adjudication |
 | Synthetic Book | `drift/simulator.py` | 8 scenarios with ground-truth labels |
 | REST API | `api/v1/` | 28 endpoints, all functional |
 | Frontend | `src/app/drift/`, `src/app/audit/` | 7 drift visualisations + audit log page |
-| XGBoost + SHAP | `ml/base.py` | Wired to case management only — not drift yet |
+| XGBoost + SHAP | `ml/base.py` | Wired to case management only; drift uses per-layer LLR breakdown |
 | Audit service | `services/audit.py` | Append-only, queried by customer and event type |
 | Claude AI | `services/anthropic_client.py` | T2 adjudication + case explanations; mock mode works without key |
 | Jurisdiction packs | `services/jurisdiction.py` | CH / EU / HK / AE |

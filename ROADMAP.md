@@ -55,15 +55,15 @@ Statuses from code-verified audit (2026-06-20). Legend: ✅ WORKS · ⚠️ PART
 
 | # | Use Case | Signal | Status | What exists | Real sources needed | Demo data |
 |---|---|---|---|---|---|---|
-| 1 | Negative news spike | Reputational risk | ⚠️ PARTIAL | Lexicon classifier + confirmation lift; no live feed, no spike detection | EventRegistry / NewsAPI.ai, GDELT, Google News RSS |
-| 2 | Cross-border transfer anomaly | Behavioural anomaly | ✅ WORKS | BOCPD + velocity on synthetic data | Internal transactions, OpenSanctions (geography) |
-| 3 | Multiple entities + sudden flows | Structuring / layering | ⚠️ PARTIAL | Contagion + causal; no named layering detector | GLEIF, OpenCorporates, Companies House, internal tx graph |
-| 4 | Jurisdiction / legal form change | Structural risk | 🔶 INDIRECT | `jurisdiction.py` is rule-pack selector, not a change detector | ZEFIX, GLEIF, OpenCorporates, Companies House |
+| 1 | Negative news spike | Reputational risk | ⚠️ PARTIAL | Lexicon classifier + confirmation lift; no live feed, no spike detection | EventRegistry / NewsAPI.ai, GDELT, Google News RSS | Wirecard: adverse media, whistle-blower allegations, accounting concerns, and AML red flags accumulate before collapse |
+| 2 | Cross-border transfer anomaly | Behavioural anomaly | ✅ WORKS | BOCPD + velocity on synthetic data | Internal transactions, OpenSanctions (geography) ||
+| 3 | Multiple entities + sudden flows | Structuring / layering | ⚠️ PARTIAL | Contagion + causal; no named layering detector | GLEIF, OpenCorporates, Companies House, internal tx graph | Danske Estonia: linked shell-company customers, weak documentation, hidden beneficial ownership, and large suspicious flows |
+| 4 | Jurisdiction / legal form change | Structural risk | 🔶 INDIRECT | `jurisdiction.py` is rule-pack selector, not a change detector | ZEFIX, GLEIF, OpenCorporates, Companies House | Long Blockchain: Long Island Iced Tea changed its name to Long Blockchain, triggering a clear re-KYC and identity-change signal |
 | 5 | New shareholders / UBOs | Ownership KYC drift | ⚠️ PARTIAL | PageRank over synthetic graph; no real UBO lookup | Companies House PSC, OpenCorporates, GLEIF, OpenSanctions |
-| 6 | Large funding round / expansion | Scale risk | ⚠️ PARTIAL | `funding_event` template + causal; no live feed | EventRegistry / NewsAPI.ai, GDELT, Crunchbase, company website |
-| 7 | Dormant company activates | Suspicious activation | ⚠️ PARTIAL | Stability flags smoothness; no explicit zero→volume-jump detector | Internal transactions, ZEFIX, OpenCorporates, Companies House |
-| 8 | Legal entity name change | Re-KYC required | ❌ MISSING | Not implemented; no registry integration | ZEFIX, GLEIF, RDAP/WHOIS, EventRegistry/GDELT |
-| 9 | Domain switch / website change | Business activity change | ❌ MISSING | Not implemented; no WHOIS/Wayback/Firecrawl | RDAP/WHOIS, Wayback Machine, Firecrawl, EventRegistry |
+| 6 | Large funding round / expansion | Scale risk | ⚠️ PARTIAL | `funding_event` template + causal; no live feed | EventRegistry / NewsAPI.ai, GDELT, Crunchbase, company website | 
+| 7 | Dormant company activates | Suspicious activation | ⚠️ PARTIAL | Stability flags smoothness; no explicit zero→volume-jump detector | Internal transactions, ZEFIX, OpenCorporates, Companies House | 
+| 8 | Legal entity name change | Re-KYC required | ❌ MISSING | Not implemented; no registry integration | ZEFIX, GLEIF, RDAP/WHOIS, EventRegistry/GDELT | 
+| 9 | Domain switch / website change | Business activity change | ❌ MISSING | Not implemented; no WHOIS/Wayback/Firecrawl | RDAP/WHOIS, Wayback Machine, Firecrawl, EventRegistry | N26 scale-risk change: rapid funding, customer growth, international expansion, and monitoring deficiencies made the original risk profile outdated |
 | 10 | Public business model pivot | Material business change | ❌ MISSING | Not implemented; no business model comparison | EventRegistry/GDELT, ZEFIX, GLEIF, Wayback Machine, Firecrawl |
 
 ---

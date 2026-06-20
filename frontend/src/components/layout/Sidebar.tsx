@@ -30,7 +30,7 @@ const NAV_ITEMS: NavItem[] = [
     icon: LayoutGrid,
     active: false,
     enabled: true,
-    href: "/",
+    href: "/cases",
   },
   {
     id: "drift",
@@ -38,7 +38,7 @@ const NAV_ITEMS: NavItem[] = [
     icon: Activity,
     active: false,
     enabled: true,
-    href: "/drift",
+    href: "/",
   },
   {
     id: "audit",

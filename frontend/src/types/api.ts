@@ -5,6 +5,14 @@
  * These give us full autocomplete + type safety against the API.
  */
 
+// === Config mode ===
+export interface ConfigMode {
+  mode: "synthetic" | "live";
+  external_apis_enabled: boolean;
+  llm_mode: "mock" | "live";
+  active_adapters: string[];
+}
+
 // === Enums ===
 export type Jurisdiction = "CH" | "EU" | "HK" | "AE";
 
@@ -348,6 +356,9 @@ export interface DriftCustomerDetail {
   // Business-model drift (UC 9): silent website/domain pivot since onboarding.
   is_business_model_change: boolean;
   business_model_distance: number;
+  // Wayback↔Firecrawl website text snapshots for the diff panel.
+  onboarding_website_text?: string | null;
+  current_website_text?: string | null;
   causal: CausalVerdict | null;
   stability: StabilityVerdict | null;
   dormancy: DormancyVerdict | null;

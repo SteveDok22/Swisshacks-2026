@@ -10,6 +10,7 @@ import { DriftRadar } from "@/components/drift/DriftRadar";
 import { DriftTimeline } from "@/components/drift/DriftTimeline";
 import { ContagionGraph } from "@/components/drift/ContagionGraph";
 import { TwoLayerPanel } from "@/components/drift/TwoLayerPanel";
+import { WebsiteDiffPanel } from "@/components/drift/WebsiteDiffPanel";
 import { UboScreeningPanel } from "@/components/drift/UboScreeningPanel";
 import { CausalPanel } from "@/components/drift/CausalPanel";
 import { StabilityPanel } from "@/components/drift/StabilityPanel";
@@ -18,6 +19,7 @@ import { TimeTravelPanel } from "@/components/drift/TimeTravelPanel";
 import { DecisionBar } from "@/components/cases/DecisionBar";
 import type { DriftCustomerDetail } from "@/types/api";
 import { DollarSign, FlaskConical, Loader2, ShieldCheck, ShieldAlert, ShieldQuestion, ChevronDown } from "lucide-react";
+import { DemoModeBadge } from "@/components/DemoModeBadge";
 
 /**
  * Drift Engine workspace — AMINA Challenge 4.
@@ -74,6 +76,7 @@ export function DriftWorkspace() {
 
   return (
     <div className="flex h-screen overflow-hidden relative z-10">
+      <DemoModeBadge />
       <Sidebar />
 
       {/* Left work column */}
@@ -167,6 +170,7 @@ export function DriftWorkspace() {
                 {detail.causal && <CausalPanel causal={detail.causal} />}
                 <DriftTimeline detail={detail} />
                 <TwoLayerPanel detail={detail} />
+                <WebsiteDiffPanel detail={detail} />
                 <UboScreeningPanel hits={detail.ubo_screening} />
               </div>
 

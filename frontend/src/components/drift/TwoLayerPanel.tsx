@@ -212,7 +212,20 @@ export function TwoLayerPanel({ detail }: TwoLayerPanelProps) {
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-xs text-ink leading-snug">{s.headline}</p>
+                      <p className="text-xs text-ink leading-snug">
+                        {s.headline}
+                        {s.source_url && (
+                          <a
+                            href={s.source_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center text-2xs text-accent hover:text-accent/80 transition-colors ml-1"
+                            title="View source"
+                          >
+                            ↗
+                          </a>
+                        )}
+                      </p>
                       {corroborated && (
                         <span className="inline-flex shrink-0 items-center gap-1 rounded-sm bg-risk-critical/15 px-1.5 py-0.5 text-2xs font-semibold uppercase tracking-wide text-risk-critical">
                           <Link2 className="h-2.5 w-2.5" strokeWidth={2.5} />

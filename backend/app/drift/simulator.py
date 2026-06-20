@@ -55,6 +55,8 @@ SCENARIOS = (
     "pivot",
     "name_cycling",
     "domain_pivot",
+    "jurisdiction_shift",
+    "ownership_shift",
 )
 
 # Synthetic onboarding vs current website text for the domain_pivot scenario.
@@ -81,10 +83,23 @@ DOMAIN_PIVOT_CURRENT_TEXT = (
 # floors the drift score on the resulting `name_change` signal.
 NAME_CHANGE_MONTH = 6
 
+# The jurisdiction_shift scenario (UC7) injects a jurisdiction/legal-form change
+# at this month. Public signals fire at this point and the engine floors the
+# drift score on `jurisdiction_change` / `legal_form_change` signals (re-KYC=50).
+JURISDICTION_CHANGE_MONTH = 6
+
+# The ownership_shift scenario (UC8) injects a new beneficial owner at this month.
+OWNERSHIP_CHANGE_MONTH = 7
+
 # Must match `assess_dormancy`'s `baseline_fraction` default (drift/dormancy.py):
 # the dormancy_break scenario activates exactly on this split so the dormant
 # baseline window stays clean.
 DORMANCY_BASELINE_FRACTION = 0.5
+
+# Dormancy noise floor: pre-dormancy window uses this fraction of base_volume
+# instead of near-zero so the dormant baseline is a realistic low-activity
+# profile rather than a degenerate empty series.
+DORMANCY_FLOOR_VOLUME = 0.05
 
 # Country risk weights reused conceptually from the social-engineering extractor
 CORRIDOR_RISK = {"CH": 0.05, "DE": 0.1, "IT": 0.15, "SG": 0.35, "HK": 0.4, "AE": 0.5, "RU": 0.95, "IR": 1.0}
@@ -119,6 +134,14 @@ class SyntheticCustomer:
     # every other scenario, where no website comparison runs.
     onboarding_website_text: str | None = None
     current_website_text: str | None = None
+    # Month at which the jurisdiction/legal-form change fires (jurisdiction_shift)
+    jurisdiction_change_month: int | None = None
+    # Month at which a new beneficial owner appears (ownership_shift)
+    ownership_change_month: int | None = None
+    # Public-facing domain for the live Wayback/Firecrawl/WHOIS path.
+    domain: str | None = None
+    # Sanctioned UBO name for the ownership_shift and combo scenarios.
+    sanctioned_ubo_name: str | None = None
 
     def metric_windows(self) -> dict[str, list[np.ndarray]]:
         """Behavioral metrics for velocity/BOCPD (magnitude of drift)."""
@@ -209,6 +232,17 @@ def generate_customer(
         # listing, demonstrating the early-warning lead time. An earlier explicit
         # value would only shorten that lead time without any domain rationale.
 
+    # The jurisdiction change is a fixed-month structural event (UC7). Pin it to
+    # JURISDICTION_CHANGE_MONTH so the public signals and the re-KYC floor fire
+    # at a consistent, reproducible point regardless of the caller's drift_start_month.
+    if scenario == "jurisdiction_shift":
+        drift_start_month = min(JURISDICTION_CHANGE_MONTH, months - 2)
+
+    # The ownership change is a fixed-month structural event (UC8 new UBO). Pin
+    # to OWNERSHIP_CHANGE_MONTH so public signals fire consistently.
+    if scenario == "ownership_shift":
+        drift_start_month = min(OWNERSHIP_CHANGE_MONTH, months - 2)
+
     rng = np.random.default_rng(seed)
     # Causal ground-truth label: benign_expansion is the only benign drift;
     # suspicious_stability is its own category (the slow-walker / sleeper);
@@ -221,7 +255,8 @@ def generate_customer(
         causal_truth = "suspicious"
     else:
         # volume_creep / counterparty_migration / corridor_shift / combined /
-        # dormancy_break / news_spike / pivot / name_cycling / domain_pivot are all risk-shaped.
+        # dormancy_break / news_spike / pivot / name_cycling / domain_pivot /
+        # jurisdiction_shift / ownership_shift are all risk-shaped.
         causal_truth = "risk"
 
     cust = SyntheticCustomer(
@@ -232,6 +267,12 @@ def generate_customer(
         drift_start_month=None if scenario == "stable" else drift_start_month,
         sanctions_month=None if scenario in ("stable", "benign_expansion") else months - 1,
         causal_truth=causal_truth,
+        jurisdiction_change_month=(
+            drift_start_month if scenario == "jurisdiction_shift" else None
+        ),
+        ownership_change_month=(
+            drift_start_month if scenario == "ownership_shift" else None
+        ),
     )
 
     for month in range(months):
@@ -244,11 +285,14 @@ def generate_customer(
 
         # --- Volume ---
         if scenario == "dormancy_break":
-            # The reactivated sleeper: near-floor volume for the whole dormant
-            # baseline, then a HARD burst at activation (a step, not a creep) —
-            # exactly the pattern the drift/velocity layers under-react to.
+            # The reactivated sleeper: low-activity baseline (DORMANCY_FLOOR_VOLUME
+            # of base_volume) for the whole dormant window, then a HARD burst at
+            # activation (a step, not a creep) — exactly the pattern the
+            # drift/velocity layers under-react to. Using a realistic noise floor
+            # instead of near-zero keeps the dormant baseline non-degenerate.
             if month < drift_start_month:
-                vol_mean, vol_sd = 150.0, 30.0                 # dormant: quiet
+                vol_mean = base_volume * DORMANCY_FLOOR_VOLUME
+                vol_sd = vol_mean * 0.2  # tight noise on a quiet profile
             else:
                 vol_mean, vol_sd = base_volume * 1.6, base_volume * 0.08  # surge
             volumes = rng.normal(vol_mean, vol_sd, days_per_month)
@@ -256,6 +300,9 @@ def generate_customer(
             # Both volume_creep (risk) AND benign_expansion move volume up by the
             # SAME magnitude — so velocity alone cannot tell them apart. The
             # causal layer distinguishes them by OTHER metrics (margin, etc.).
+            # jurisdiction_shift and ownership_shift are STRUCTURAL changes only —
+            # transaction profile stays normal; the drift is in the registry/UBO
+            # data, surfaced by public signals.
             vol_mult = 1.0
             if scenario in ("volume_creep", "combined", "benign_expansion", "news_spike", "pivot"):
                 vol_mult = 1.0 + 1.2 * intensity  # up to +120% by the end
@@ -317,6 +364,12 @@ def generate_customer(
             # is the only transactional tell; volume/counterparty/corridor stay at
             # baseline, so the public website/WHOIS change is what actually surfaces it.
             margin_mean = base_margin * (1.0 - 0.9 * intensity)
+        elif scenario in ("jurisdiction_shift", "ownership_shift"):
+            # Structural-change scenarios: transactions stay normal — the drift is
+            # purely in the registry/UBO data. Margin holds close to baseline;
+            # only the public structural signals (jurisdiction_change,
+            # ownership_change) and the re-KYC score floor identify the risk.
+            margin_mean = base_margin * (1.0 - 0.05 * intensity)
         elif scenario == "benign_expansion":
             # Benign: margin holds (tiny dip from growth costs, then recovers)
             margin_mean = base_margin * (1.0 - 0.1 * intensity)
@@ -342,98 +395,49 @@ def generate_customer(
 
 
 def generate_book(
-    n_stable: int = 6,
     seed: int = 42,
 ) -> list[SyntheticCustomer]:
     """
-    Generate the demo book: one customer per drift scenario plus a control
-    group of stable customers. Deterministic via seed.
+    Generate the demo book: exactly 15 named entities covering all 10 AMINA use
+    cases, plus 3 stable controls. Deterministic via seed.
+
+    The cast is fixed (not parameterised by n_stable) so drift IDs are stable
+    and all downstream references (contagion graph, test fixtures, seed.py) can
+    rely on the 1-15 numbering without re-computing.
     """
-    names_drift = {
-        "volume_creep": "Viktor Antonov",
-        "counterparty_migration": "Helena Krause",
-        "corridor_shift": "Tomas Lindqvist",
-        "combined": "Sergei Mikhailov",
-        "benign_expansion": "Maria Steiner",
-        "suspicious_stability": "Pavel Novak",
-        # UC 1 — reputational risk. Kept LAST so the contagion-wired IDs
-        # (drift-002, drift-004, drift-005) stay pinned to their scenarios.
-        "news_spike": "Wirecard Holdings AG",
-    }
-    stable_names = [
-        "Anna Keller", "Luca Moretti", "Sophie Brunner",
-        "David Meier", "Nina Forster", "Jan Vogel",
+    # fmt: off
+    _CAST = [
+        # (drift_id, name, scenario, domain, sanctioned_ubo_name, seed_offset)
+        # --- flagged entities ---
+        ("drift-001", "Helvetia Pharma Holding AG",    "news_spike",        "helvetia-pharma.ch",        None,                      1),
+        ("drift-002", "Léman FX Trading SA",           "corridor_shift",    "leman-fx.ch",               None,                      2),
+        ("drift-003", "Alpine Logistics Group AG",     "combined",          "alpine-logistics.ch",       None,                      3),
+        ("drift-004", "Glarnisch Holding AG",          "name_cycling",      "glarnisch-holding.ch",      None,                      4),
+        ("drift-005", "HelvetiaX",                     "domain_pivot",      "helvetiax.io",              None,                      5),
+        ("drift-006", "Lattice Labs AG",               "pivot",             "lattice-labs.ch",           None,                      6),
+        ("drift-007", "Rhône Capital GmbH",            "jurisdiction_shift","rhone-capital.ch",          None,                      7),
+        ("drift-008", "Bernina Wealth Partners AG",    "ownership_shift",   "bernina-wealth.ch",         "ROSNEFT TRADING S.A.",    8),
+        ("drift-009", "Nimbus Mobility AG",            "benign_expansion",  "nimbus-mobility.ch",        None,                      9),
+        ("drift-010", "Säntis Import-Export AG",       "dormancy_break",    "saentis-import.ch",         None,                      10),
+        ("drift-011", "Castor Trade Finance AG",       "combined",          "castor-trade.ch",           "ROSNEFT TRADING S.A.",    11),
+        ("drift-012", "Engadin Capital SA",            "suspicious_stability","engadin-capital.ch",      None,                      12),
+        # --- stable controls ---
+        ("drift-013", "Zürisee Renewables AG",        "benign_expansion",  "zuerisee-renewables.ch",    None,                      13),
+        ("drift-014", "Toggenburg Family Office",      "stable",            "toggenburg-fo.ch",          None,                      14),
+        ("drift-015", "Vaud AgriTech SA",              "stable",            "vaud-agritech.ch",          None,                      15),
     ]
+    # fmt: on
 
     book: list[SyntheticCustomer] = []
-    idx = 1
-    for scenario, name in names_drift.items():
-        book.append(
-            generate_customer(
-                drift_id=f"drift-{idx:03d}",
-                name=name,
-                scenario=scenario,
-                seed=seed + idx,
-            )
+    for drift_id, name, scenario, domain, sanctioned_ubo, offset in _CAST:
+        cust = generate_customer(
+            drift_id=drift_id,
+            name=name,
+            scenario=scenario,
+            seed=seed + offset,
         )
-        idx += 1
-    # A second suspicious_stability customer (the "sleeper") — public signals
-    # appear about him, but his transactions stay unnaturally calm. Shows a
-    # different face of the same idea: reaction that doesn't match the world.
-    book.append(
-        generate_customer(
-            drift_id=f"drift-{idx:03d}",
-            name="Irina Volkova",
-            scenario="suspicious_stability",
-            seed=seed + 200,
-        )
-    )
-    idx += 1
-    # The reactivated sleeper (Case 7): a previously dormant shell that suddenly
-    # begins high transaction volume. generate_customer snaps the activation to
-    # the dormancy detector's baseline/active split, so it always flags.
-    book.append(
-        generate_customer(
-            drift_id=f"drift-{idx:03d}",
-            name="Dormant Holdings AG",
-            scenario="dormancy_break",
-            seed=seed + 300,
-        )
-    )
-    idx += 1
-    # The shelf-company cycler (Case 8): a legal entity that changes its name at
-    # NAME_CHANGE_MONTH to reset its KYC review clock (Mossack Fonseca pattern).
-    # ZEFIX + WHOIS public signals fire; the engine floors the drift score on the
-    # resulting name_change signal so the identity reset surfaces for re-KYC.
-    book.append(
-        generate_customer(
-            drift_id=f"drift-{idx:03d}",
-            name="Meridian Trust Reg.",
-            scenario="name_cycling",
-            seed=seed + 400,
-        )
-    )
-    idx += 1
-    # The silent business-model pivot (Case 9): a boutique advisory whose website
-    # and WHOIS registrant change into a crypto exchange while its transactions
-    # look superficially normal — the Centra Tech pattern the AML profile misses.
-    book.append(
-        generate_customer(
-            drift_id=f"drift-{idx:03d}",
-            name="Helvetia Advisory AG",
-            scenario="domain_pivot",
-            seed=seed + 400,
-        )
-    )
-    idx += 1
-    for i in range(n_stable):
-        book.append(
-            generate_customer(
-                drift_id=f"drift-{idx:03d}",
-                name=stable_names[i % len(stable_names)],
-                scenario="stable",
-                seed=seed + idx,
-            )
-        )
-        idx += 1
+        cust.domain = domain
+        cust.sanctioned_ubo_name = sanctioned_ubo
+        book.append(cust)
+
     return book

@@ -120,7 +120,14 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
             Velocity climbs months before the sanctions list reacts
           </p>
         </div>
-        <InfoHint text={explanation} />
+        <div className="flex items-center gap-2 shrink-0">
+          {detail.scenario && (
+            <span className="font-mono text-2xs px-1.5 py-0.5 rounded border border-paper-line bg-paper-sunken text-ink-muted">
+              {detail.scenario}
+            </span>
+          )}
+          <InfoHint text={explanation} />
+        </div>
       </div>
 
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full" role="img">

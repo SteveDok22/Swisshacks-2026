@@ -53,9 +53,11 @@ class TestNewsSpikeSimulator:
         by_id = {c.drift_id: c.scenario for c in book}
         assert any(c.scenario == "news_spike" for c in book)
         # Contagion-wired IDs must keep their scenarios (build_demo_graph pins them).
-        assert by_id["drift-002"] == "counterparty_migration"
-        assert by_id["drift-004"] == "combined"
-        assert by_id["drift-005"] == "benign_expansion"
+        # drift-001 = news_spike (Helvetia Pharma), drift-003 = combined (Alpine Logistics,
+        # 1-hop from Castor), drift-008 = ownership_shift (Bernina Wealth, 1-hop from Castor).
+        assert by_id["drift-001"] == "news_spike"
+        assert by_id["drift-003"] == "combined"
+        assert by_id["drift-008"] == "ownership_shift"
 
 
 class TestNewsSpikeEndToEnd:

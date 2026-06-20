@@ -31,12 +31,17 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
     "Current book snapshot. X-axis is fused drift score from 0 to 100; Y-axis is drift velocity in bits per month. Higher and farther right means a customer is both risky and changing quickly.";
 
   const maxScore = 100;
-  const maxVel = Math.max(4, ...customers.map((c) => c.drift_velocity));
+  // Cap Y-axis at the 95th-percentile velocity so one dormancy-break outlier
+  // (KL divergence can reach 10k+) doesn't collapse all other dots to the floor.
+  // Customers beyond the cap are clamped to the top edge with a clip marker.
+  const sortedVel = [...customers.map((c) => c.drift_velocity)].sort((a, b) => a - b);
+  const p95idx = Math.max(0, Math.ceil(sortedVel.length * 0.95) - 1);
+  const maxVel = Math.max(4, sortedVel[p95idx] ?? 4);
 
   const sx = (score: number) =>
     PAD_X + (score / maxScore) * (W - PAD_X - PAD_Y);
   const sy = (vel: number) =>
-    H - PAD_Y - (vel / maxVel) * (H - 2 * PAD_Y);
+    Math.max(PAD_Y, H - PAD_Y - (Math.min(vel, maxVel) / maxVel) * (H - 2 * PAD_Y));
   const scoreTicks = [0, 25, 50, 75, 100];
   const velocityTicks = [0, maxVel / 2, maxVel].map((tick) =>
     Number(tick.toFixed(1)),

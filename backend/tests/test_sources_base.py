@@ -509,7 +509,8 @@ class TestPublicIntelIntegration:
         for s in signals:
             assert hasattr(s, "source_url")
             assert s.source_url is not None
-            assert "drift-002" in s.source_url
+            # Real provenance URLs are deep-links to open data sources, not demo slugs.
+            assert s.source_url.startswith("https://")
 
     def test_to_dict_includes_source_url_key(self):
         from app.drift.public_intel import generate_signals_for_customer

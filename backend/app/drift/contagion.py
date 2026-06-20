@@ -182,7 +182,7 @@ class OwnershipGraph:
         return {"nodes": nodes, "edges": edges}
 
 
-def build_demo_graph(drift_ids: list[str]) -> OwnershipGraph:
+def build_demo_graph(drift_ids: list[str] | dict[str, str]) -> OwnershipGraph:
     """
     Construct a demo ownership graph that connects some bank customers to a
     shell-company structure, which in turn connects to an entity that will
@@ -190,43 +190,55 @@ def build_demo_graph(drift_ids: list[str]) -> OwnershipGraph:
 
     Topology (designed for the contagion demo):
 
-        SANCTIONED_ENTITY  (the seed, flagged at month 0)
+        SANCTIONED_ENTITY  (the seed = Castor Trade Finance AG, drift-011)
               |
-        ShellCo_Alpha  ---- owns ---->  drift-004 (Sergei, combined drift)
+        ShellCo_Alpha  ---- owns ---->  drift-003 (Alpine Logistics, combined)
               |
-        ShellCo_Beta   ---- owns ---->  drift-002 (Helena, counterparty)
+        ShellCo_Beta   ---- owns ---->  drift-008 (Bernina Wealth, ownership_shift)
               |
-        CleanHolding   ---- owns ---->  drift-005 (stable, should stay low)
+        CleanHolding   ---- owns ---->  drift-014 (Toggenburg, stable control)
 
-    So when SANCTIONED_ENTITY is flagged, Sergei and Helena light up via
-    propagation (2 hops), while distant stable customers do not.
+    So when SANCTIONED_ENTITY is flagged, Alpine Logistics and Bernina Wealth
+    light up via propagation (2 hops), while the stable control does not.
+
+    Args:
+        drift_ids: either a list of drift_id strings (name falls back to the id)
+            or a dict mapping drift_id → display name so customer nodes carry
+            their real entity names in the graph response.
     """
+    # Normalise: accept list[str] (legacy) or dict[str, str] (preferred)
+    if isinstance(drift_ids, dict):
+        id_name: dict[str, str] = drift_ids
+    else:
+        id_name = {cid: cid for cid in drift_ids}
+
     g = OwnershipGraph()
 
-    # The entity that gets sanctioned
-    g.add_entity("SANCTIONED_ENTITY", name="Orion Capital Partners", entity_type="company")
+    # The entity that gets sanctioned (Castor Trade Finance AG — the flagship combo)
+    g.add_entity("SANCTIONED_ENTITY", name="Castor Trade Finance AG", entity_type="company")
 
     # Shell layer
     g.add_entity("ShellCo_Alpha", name="Alpha Holdings SA", entity_type="shell")
     g.add_entity("ShellCo_Beta", name="Beta Ventures Ltd", entity_type="shell")
     g.add_entity("CleanHolding", name="Helvetia Trust AG", entity_type="company")
 
-    # Customers (link a few of our synthetic drift customers)
-    for cid in drift_ids:
-        g.add_entity(cid, name=cid, is_customer=True, entity_type="individual")
+    # Customers — use real entity name, not drift_id
+    for cid, entity_name in id_name.items():
+        g.add_entity(cid, name=entity_name, is_customer=True, entity_type="individual")
 
     # Ownership edges (owner -> target, stake)
     g.add_ownership("SANCTIONED_ENTITY", "ShellCo_Alpha", 0.6)
     g.add_ownership("SANCTIONED_ENTITY", "ShellCo_Beta", 0.4)
 
-    # Connect the high-drift customers through the shells
-    if "drift-004" in drift_ids:
-        g.add_ownership("ShellCo_Alpha", "drift-004", 0.3)
-    if "drift-002" in drift_ids:
-        g.add_ownership("ShellCo_Beta", "drift-002", 0.25)
+    # Connect the high-drift customers through the shells (1 hop from Castor)
+    if "drift-003" in drift_ids:
+        g.add_ownership("ShellCo_Alpha", "drift-003", 0.3)
+    if "drift-008" in drift_ids:
+        g.add_ownership("ShellCo_Beta", "drift-008", 0.25)
 
     # A clean holding owning a stable customer (control)
-    g.add_ownership("CleanHolding", "drift-005", 0.5) if "drift-005" in drift_ids else None
+    if "drift-014" in drift_ids:
+        g.add_ownership("CleanHolding", "drift-014", 0.5)
 
     return g
 

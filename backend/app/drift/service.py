@@ -113,12 +113,15 @@ LLM_PARSE_FALLBACK = {
 SANCTIONED_SEED = "SANCTIONED_ENTITY"
 # Display name for the sanctioned seed node (kept in sync with build_demo_graph
 # so the live-LEI and synthetic graphs label the flagged entity identically).
-SANCTIONED_SEED_NAME = "Orion Capital Partners"
+# drift-011 (Castor Trade Finance AG) is the flagship combo entity that anchors
+# the contagion graph; it is the sanctioned node from which risk propagates.
+SANCTIONED_SEED_NAME = "Castor Trade Finance AG"
 # Wall-clock cap for the startup GLEIF ownership fetch (live mode only). On any
 # timeout or failure the engine falls back to the synthetic demo graph.
 _GLEIF_FETCH_TIMEOUT_S = 30.0
-# Customers wired into the ownership graph as contagion-affected
-CONTAGION_AFFECTED = {"drift-004", "drift-002"}
+# Customers wired into the ownership graph as contagion-affected (1 hop from Castor).
+# drift-003 = Alpine Logistics Group AG (combined), drift-008 = Bernina Wealth Partners AG.
+CONTAGION_AFFECTED = {"drift-003", "drift-008"}
 DRIFT_ANALYSIS_VERSION = "drift-v1"
 
 # Wall-clock cap for the live business-model website fetch (Wayback + Firecrawl)
@@ -366,9 +369,9 @@ class DriftEngine:
         synthetic :func:`build_demo_graph` so the contagion demo always has a
         topology to propagate over.
         """
-        drift_ids = [c.drift_id for c in self._book]
+        drift_id_names = {c.drift_id: c.name for c in self._book}
         if not settings.external_apis_enabled:
-            return build_demo_graph(drift_ids)
+            return build_demo_graph(drift_id_names)
 
         self._gleif_snapshots = self._fetch_gleif_snapshots(
             [(c.drift_id, c.name) for c in self._book]
@@ -386,7 +389,7 @@ class DriftEngine:
                 "ownership_graph_fallback_demo",
                 reason="gleif_returned_no_ownership_links",
             )
-            return build_demo_graph(drift_ids)
+            return build_demo_graph(drift_id_names)
         logger.info(
             "ownership_graph_from_gleif", customers=len(self._gleif_snapshots)
         )

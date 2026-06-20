@@ -186,6 +186,20 @@ class TestDegradation:
         assert result.wayback_embedding is None
         assert result.current_embedding is None
 
+    def test_zero_norm_embedding_skips_no_false_positive(self):
+        # An all-zero (finite) embedding — e.g. empty/OOV text — would slip past a
+        # bare isfinite() guard and let cosine_distance return its 1.0 sentinel,
+        # firing a max-severity false positive. It must degrade to a skip.
+        embedder = FakeEmbedder({_ONBOARDING: [0.0, 0.0], _PIVOTED: [1.0, 2.0]})
+        result = compare_business_model(
+            "drift-009", "Helvetia Trading AG", _ONBOARDING, _PIVOTED, embedder=embedder,
+        )
+        assert result.skipped is True
+        assert result.skipped_reason == "degenerate_embedding"
+        assert result.signal is None
+        assert result.wayback_embedding is None
+        assert result.current_embedding is None
+
     def test_no_embedder_available_skips(self, monkeypatch):
         # Default backend unavailable (model2vec missing) and none injected.
         monkeypatch.setattr(bm, "_get_default_embedder", lambda: None)

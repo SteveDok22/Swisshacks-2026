@@ -8,12 +8,14 @@
 > For the **free-vs-paid decision per source** and the current scaffolding
 > status, see [`sources.md`](sources.md).
 
-> **Status — partial implementation.** `backend/app/sources/` now exists with the
-> shared contract (`RegistryAdapter`, `EntitySnapshot`, generic field-diff) and a
-> connector per source. ZEFIX, GLEIF, Event Registry, and WHOIS/RDAP now do real
-> HTTP/normalization work; OpenSanctions, GDELT, Firecrawl, and Wayback remain
-> planned carcasses. OpenCorporates and Crunchbase are paid and skipped. Details
-> + rationale in
+> **Status — adapters implemented, wiring in progress.** `backend/app/sources/`
+> holds the shared contract (`RegistryAdapter`, `EntitySnapshot`, generic
+> field-diff) and a connector per source. All eight free/freemium adapters —
+> ZEFIX, GLEIF, Event Registry, WHOIS/RDAP, OpenSanctions, GDELT, Firecrawl, and
+> Wayback — do real HTTP/normalization work and are unit-tested. The aggregator
+> (`drift/public_intel.py`) dispatches to them, but live calls run only when
+> `EXTERNAL_APIS_ENABLED` is set (default off → synthetic signals). OpenCorporates
+> and Crunchbase are paid and skipped. Details + rationale in
 > [`sources.md`](sources.md).
 
 ---
@@ -195,7 +197,7 @@ sequenceDiagram
 
 ### 4a. ZEFIX — Swiss Commercial Register (Cases 4, 7, 8, 10)
 
-API base: `https://www.zefix.admin.ch/ZefixPublicREST/api/v1` (free, no key)
+API base: `https://www.zefix.admin.ch/ZefixPublicREST/api/v1` (FREEMIUM — free registered account; HTTP Basic auth required, returns `401` without credentials)
 
 ```mermaid
 flowchart LR
@@ -696,12 +698,12 @@ backend/app/
 │   ├── cost.py                     ← SourceCost/AdapterStatus + CostMixin +
 │   │                                  SourceUnavailableError (free-vs-paid layer)
 │   ├── registry.py                 ← REGISTRY catalogue + usable/skipped helpers
-│   ├── zefix.py                    ← ZefixAdapter            (FREE  · implement)
-│   ├── gleif.py                    ← GleifAdapter            (FREE  · implement)
-│   ├── opensanctions.py            ← OpenSanctionsAdapter    (FREEMIUM · implement)
-│   ├── gdelt.py                    ← GdeltAdapter  NEW       (FREE  · implement)
-│   ├── firecrawl.py                ← FirecrawlAdapter        (FREEMIUM · implement)
-│   ├── wayback.py                  ← WaybackAdapter          (FREE  · implement)
+│   ├── zefix.py                    ← ZefixAdapter            (FREEMIUM · built)
+│   ├── gleif.py                    ← GleifAdapter            (FREE  · built)
+│   ├── opensanctions.py            ← OpenSanctionsAdapter    (FREEMIUM · built)
+│   ├── gdelt.py                    ← GdeltAdapter            (FREE  · built)
+│   ├── firecrawl.py                ← FirecrawlAdapter        (FREEMIUM · built)
+│   ├── wayback.py                  ← WaybackAdapter          (FREE  · built)
 │   ├── whois.py                    ← WhoisAdapter            (FREE  · built)
 │   ├── open_corporates.py          ← OpenCorporatesAdapter   (PAID  · SKIPPED)
 │   ├── event_registry.py           ← EventRegistryAdapter    (FREEMIUM · built)
@@ -727,17 +729,19 @@ backend/app/
 
 | Source | Use Cases | Cost | Decision |
 |---|---|---|---|
-| ZEFIX | 4, 7, 8, 10 | FREE | ✅ implement |
-| GLEIF | 3, 4, 5, 8, 10 | FREE | ✅ implement |
-| OpenSanctions | 2, 5 | FREEMIUM | ✅ implement |
-| GDELT | 1, 6, 8, 10 | FREE | ✅ implement (replaces Event Registry) |
-| Firecrawl | 9, 10 | FREEMIUM | ✅ implement |
-| Wayback Machine | 9, 10 | FREE | ✅ implement |
+| ZEFIX | 4, 7, 8, 10 | FREEMIUM | ✅ built |
+| GLEIF | 3, 4, 5, 8, 10 | FREE | ✅ built |
+| OpenSanctions | 2, 5 | FREEMIUM | ✅ built |
+| GDELT | 1, 6, 8, 10 | FREE | ✅ built (free news fallback for Event Registry) |
+| Firecrawl | 9, 10 | FREEMIUM | ✅ built |
+| Wayback Machine | 9, 10 | FREE | ✅ built |
 | RDAP / WHOIS | 8, 9 | FREE | ✅ built |
 | OpenCorporates | 3, 4, 5, 7 | PAID | ⛔ skip (covered by GLEIF + ZEFIX) |
 | EventRegistry / NewsAPI.ai | 1, 6, 8, 10 | FREEMIUM | ✅ built (key-gated primary news source) |
 | Crunchbase | 6 | PAID | ⛔ skip (partial via GDELT news) |
 | Internal transactions | 2, 3, 7 | — | already built |
 
-After the free sprints: **10/10 use cases covered with 7 free adapters** (no paid
-dependency), up from 1 fully working today.
+After the free sprints: **10/10 use cases covered with 8 free/freemium adapters**
+(no paid dependency). All eight are now built and wired into the aggregator; the
+remaining work is per-use-case close-out (score floors, demo scenarios, business-
+model wiring), not the adapters themselves.

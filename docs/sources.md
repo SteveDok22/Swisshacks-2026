@@ -12,22 +12,26 @@
 
 ## Status: all adapters wired into the engine
 
-All eight free/free-tier adapters are fully implemented **and** wired into the live
+All eight free/free-tier adapters are fully implemented **and** wired into the
 drift engine via `drift/public_intel.py`'s aggregator (`gather_public_signals` /
-`gather_public_signals_sync`). The engine now calls real adapters on every
-`_analyze_customer()` run; the synthetic-template fallback is retained only for the
-time-travel audit replay path (`drift/timetravel.py`).
+`gather_public_signals_sync`). Live adapter dispatch is gated by the
+`EXTERNAL_APIS_ENABLED` master switch (`config.py`): when it is **on**, every
+`_analyze_customer()` run calls the real adapters; when it is **off** (the default),
+the engine uses the synthetic-template generator (`generate_signals_for_customer`)
+for the whole book. The synthetic path also backs the time-travel audit replay
+(`drift/timetravel.py`).
 
-Seven adapters are fully implemented (real HTTP calls):
+Eight adapters are fully implemented (real HTTP calls):
 - **WHOIS / RDAP** — free, no key required; returns RDAP domain metadata and domain-change signals from injected baselines (PR #29)
 - **GLEIF** — free, no key required (PR #25)
 - **ZEFIX** — FREEMIUM, free Basic-auth account; degrades gracefully (`None`/`[]`) when credentials absent (PR #23)
 - **Event Registry** — FREEMIUM, key-gated; returns `[]` when key absent (PR #24)
 - **OpenSanctions** — FREEMIUM, key optional; unauthenticated non-commercial free tier works without a key (PR #27)
 - **Wayback Machine** — free, no key required; `fetch_signals()` returns `[]` by design (signals via `drift/business_model.py`) (PR #26)
-- **Firecrawl** — FREEMIUM, key optional; cloud `/scrape` with key, else a zero-cost plain-HTTP + HTML-strip fallback (this PR)
+- **Firecrawl** — FREEMIUM, key optional; cloud `/scrape` with key, else a zero-cost plain-HTTP + HTML-strip fallback (PR #28)
+- **GDELT** — free, no key required; GDELT 2.0 Doc API as the news fallback when Event Registry is unavailable (PR #30)
 
-Remaining carcasses — no real network I/O yet:
+Shared infrastructure (no source-specific I/O):
 
 - `base.py` — the shared contract: `RegistryAdapter` ABC, `EntitySnapshot`,
   the canonical `PublicSignal`, and the `SnapshotDiff` / `diff_snapshots()`
@@ -35,10 +39,11 @@ Remaining carcasses — no real network I/O yet:
 - `cost.py` — the free-vs-paid layer on top: `SourceCost` / `AdapterStatus`
   enums, `SourceUnavailableError`, and the `CostMixin` every adapter combines
   with `RegistryAdapter`.
-- one carcass module per still-unbuilt source — full metadata + docstring; the async
-  `fetch` / `fetch_signals` are unimplemented.
 - `registry.py` — the single catalogue (`REGISTRY`, `usable_adapters()`,
   `skipped_adapters()`, `catalogue()`).
+
+OpenCorporates and Crunchbase remain deliberately skipped (paid) — metadata-only
+carcasses whose `fetch` / `fetch_signals` raise `SourceUnavailableError`.
 
 A carcass fails loudly and *differently* depending on intent:
 

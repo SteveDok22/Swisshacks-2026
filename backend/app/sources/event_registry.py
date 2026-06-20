@@ -29,12 +29,12 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import os
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import httpx
 
+from app.core.config import settings
 from app.sources.base import EntitySnapshot, PublicSignal, RegistryAdapter
 from app.sources.cost import AdapterStatus, CostMixin, SourceCost
 
@@ -115,7 +115,7 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
     )
 
     def __init__(self) -> None:
-        self._api_key: str = os.environ.get("EVENT_REGISTRY_API_KEY", "")
+        self._api_key: str = settings.event_registry_api_key
 
     @property
     def _is_configured(self) -> bool:

@@ -195,11 +195,10 @@ def build_demo_graph(drift_ids: list[str] | dict[str, str]) -> OwnershipGraph:
         ShellCo_Alpha  ---- owns ---->  drift-003 (Alpine Logistics, combined)
               |
         ShellCo_Beta   ---- owns ---->  drift-008 (Bernina Wealth, ownership_shift)
-              |
-        CleanHolding   ---- owns ---->  drift-014 (Toggenburg, stable control)
 
-    So when SANCTIONED_ENTITY is flagged, Alpine Logistics and Bernina Wealth
-    light up via propagation (2 hops), while the stable control does not.
+    When SANCTIONED_ENTITY is flagged, risk propagates via PageRank to Alpine
+    Logistics and Bernina Wealth (2 hops each) — customers who appear on no
+    list but are connected through this shell structure.
 
     Args:
         drift_ids: either a list of drift_id strings (name falls back to the id)
@@ -220,15 +219,12 @@ def build_demo_graph(drift_ids: list[str] | dict[str, str]) -> OwnershipGraph:
     # Shell layer
     g.add_entity("ShellCo_Alpha", name="Alpha Holdings SA", entity_type="shell")
     g.add_entity("ShellCo_Beta", name="Beta Ventures Ltd", entity_type="shell")
-    g.add_entity("CleanHolding", name="Helvetia Trust AG", entity_type="company")
 
-    # Only add the three customers that actually have ownership edges — adding
-    # the whole book floods the graph with unconnected grey dots that obscure
-    # the contagion story. Unconnected entities are not in this graph at all.
+    # Only add the customers that have ownership edges into the sanctioned
+    # structure — unconnected entities would add noise without story value.
     CONNECTED = {
         "drift-003": ("ShellCo_Alpha", 0.30),   # Alpine Logistics — 2 hops, affected
         "drift-008": ("ShellCo_Beta",  0.25),   # Bernina Wealth   — 2 hops, affected
-        "drift-014": ("CleanHolding",  0.50),   # Toggenburg FO    — clean control
     }
     for cid, (shell, stake) in CONNECTED.items():
         entity_name = id_name.get(cid, cid)

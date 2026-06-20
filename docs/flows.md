@@ -38,7 +38,8 @@ flowchart TD
 
 **Coverage status:**
 - ✅ S1 S2 S3 S7 S8 S9 S10 — fully covered by drift engine layers (S10 dormancy break via the explicit `dormancy.py` detector)
-- ❌ S4 S5 S6 — entity name change, domain monitoring, and business model pivot not yet implemented
+- 🔶 S6 — business-model pivot: the comparator (`drift/business_model.py`, Wayback↔Firecrawl cosine distance) is **built**; end-to-end aggregator wiring (loading each customer's two website texts) is pending under UC 9
+- ❌ S4 S5 — entity name change and domain monitoring not yet implemented
 
 ---
 

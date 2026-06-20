@@ -137,7 +137,6 @@ flowchart LR
     Officer --> FE
     FE -->|HTTP + SSE| API
     API --> DE & ML & Svcs
-    DE --> ML
     Svcs -->|Pseudonymized| Claude
     API & ML & Svcs --> DB
 ```

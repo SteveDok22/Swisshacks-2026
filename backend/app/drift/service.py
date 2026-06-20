@@ -39,7 +39,7 @@ from app.drift.dormancy import assess_dormancy
 from app.drift.public_intel import (
     assess_public_risk,
     confirmation_lift,
-    generate_signals_for_customer,
+    gather_public_signals_sync,
 )
 from app.drift.simulator import SyntheticCustomer, generate_book, generate_customer
 from app.drift.stability import assess_stability, cohort_volatility
@@ -184,12 +184,8 @@ class DriftEngine:
             1.0,
         )
 
-        # --- PUBLIC: external signals ---
-        signals = generate_signals_for_customer(
-            cust.drift_id, cust.name, cust.scenario, months=cust.months,
-            drift_start_month=cust.drift_start_month,
-            seed=hash(cust.drift_id) % 9999,
-        )
+        # --- PUBLIC: real adapter signals via aggregator ---
+        signals = gather_public_signals_sync(cust.drift_id, cust.name)
         pi = assess_public_risk(signals, months=cust.months)
 
         # --- Confirmation Lift: do the two worlds confirm each other? ---

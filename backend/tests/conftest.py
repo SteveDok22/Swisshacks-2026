@@ -25,6 +25,18 @@ from app.db.session import get_session
 from app.main import app
 
 
+@pytest.fixture(autouse=True)
+def _stub_public_intel_for_engine(monkeypatch):
+    """Prevent real HTTP adapter calls in tests that exercise DriftEngine.
+
+    Tests that specifically test the aggregator (test_public_intel_aggregator.py)
+    patch app.sources.registry.usable_adapters directly so this stub is a no-op
+    for them (they never call into app.drift.service).
+    """
+    import app.drift.service as _service
+    monkeypatch.setattr(_service, "gather_public_signals_sync", lambda *a, **kw: [])
+
+
 @pytest.fixture
 async def db_engine():
     """

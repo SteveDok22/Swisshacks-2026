@@ -58,7 +58,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 **2. Prerequisites (build these before adapters)**
 - [x] **`db/kyc_baseline.py`** — `EntitySnapshotDB` SQLModel table + `store_snapshot`, `load_latest_snapshot`, `load_onboarding_snapshot`, `load_snapshot_history`, `load_all_baselines` CRUD helpers; registered in `session.py` so the table is auto-created on startup; 24 unit tests covering all helpers and seeding behaviour (PR #11)
 - [x] **Seed KYC baselines** — `seed.py:_seed_kyc_baselines()` populates `entity_snapshots` from the synthetic drift book at startup; behavioral baseline (volume, counterparty/corridor risk, margin) computed from the pre-drift window so adapters have a numeric anchor to diff against (PR #11)
-- [ ] **`sources/base.py`** — `RegistryAdapter` ABC + `EntitySnapshot` + `PublicSignal` diff pattern; shared by all adapters below
+- [x] **`sources/base.py`** — `RegistryAdapter` ABC + `EntitySnapshot` + `PublicSignal` diff pattern; shared by all adapters below (PR #13)
 
 **3. Source adapters — `backend/app/sources/` (package does not exist yet)**
 - [ ] **`sources/zefix.py`** — Swiss commercial register; name change, legal form, dissolution, dormancy (Cases 4, 7, 8, 10)

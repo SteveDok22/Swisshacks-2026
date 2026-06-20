@@ -113,6 +113,18 @@ Lift = P(risk | public AND internal) / [ P(risk | public) · P(risk | internal) 
 
 A temporal-coincidence factor amplifies the joint when the peak public signal and peak internal drift fall within a few months — because the external story and the internal behavior are plausibly the same event seen from two sides. The lift is gated: it is only meaningful when **both** signals clear a floor; two near-zero risks coinciding is the absence of evidence, not its presence.
 
+The current hand-tuned fusion parameters are centralized in
+`app/core/config.py`:
+
+| Constant | Value | Role |
+|---|---:|---|
+| `DRIFT_INTERNAL_VELOCITY_WEIGHT` | 0.60 | Leading drift contribution |
+| `DRIFT_INTERNAL_ACCUMULATED_WEIGHT` | 0.25 | Accumulated divergence contribution |
+| `DRIFT_INTERNAL_CONTAGION_WEIGHT` | 0.40 | Ownership-propagated risk contribution |
+| `DRIFT_PUBLIC_RISK_WEIGHT` | 0.85 | Public-risk scaling before fusion |
+| `DRIFT_CONFIRMATION_LIFT_RANGE` | 3.0 | Lift excess mapped to the amplification range |
+| `DRIFT_CONFIRMATION_MAX_AMPLIFICATION` | 0.35 | Maximum confirmation-lift score increase |
+
 ---
 
 ## Layer 5 — Causal Drift
@@ -218,7 +230,7 @@ flowchart LR
         AML[AML flag history]
     end
 
-    CL["Confirmation Lift\nMultiplied when signals\nco-occur within ±30 days"]
+    CL["Confirmation Lift\nMultiplied when signals\nco-occur within 3 months"]
 
     FusedScore["Fused Drift Score\nWeighted combination\nof all 7 layers"]
 
@@ -238,21 +250,34 @@ sequenceDiagram
     participant O as Officer
     participant TT as timetravel.py
     participant DE as Drift Engine
-    participant DB as Database
 
-    O->>TT: replay(customer_id, as_of_date)
-    TT->>DB: Fetch data WHERE timestamp ≤ as_of_date
-    TT->>DB: Fetch public signals WHERE date ≤ as_of_date
-    TT->>DB: Fetch contagion edges WHERE listed_at ≤ as_of_date
+    O->>DE: replay(customer_id)
+    DE->>TT: replay_trajectory(customer snapshot)
+    TT->>TT: Truncate metrics and public signals at month T
+    TT->>TT: Activate contagion only after sanctions listing
 
     note over TT: Strictly truncates future data —<br/>no look-ahead bias
 
-    TT->>DE: run_full_analysis(truncated_snapshot)
-    DE-->>TT: Historical drift score + evidence
-    TT-->>O: ReplayResult<br/>(score, lead_time, what_was_known)
+    TT->>TT: Apply shared internal/public weights<br/>and replay-specific causal factor
+    note over TT: Replay does not apply confirmation lift<br/>or stability/dormancy anomaly floors
+    TT-->>DE: Historical score points + lead time
+    DE-->>O: ReplayResult<br/>(score, lead_time, what_was_known)
 
     note over O: Proves the system would<br/>have flagged this customer<br/>without hindsight
 ```
+
+---
+
+## Runtime State and Worker Model
+
+The MVP keeps its synthetic customer book and injected scenarios in the
+process-local `DriftEngine` singleton. Run the API with exactly one worker so
+all requests see the same demo state. The current Docker and Compose commands
+already use one Uvicorn worker.
+
+Before scaling to multiple workers, move mutable engine state to a shared
+database or cache. `get_drift_engine()` emits a warning when it creates the
+singleton to make this deployment constraint visible in application logs.
 
 ---
 

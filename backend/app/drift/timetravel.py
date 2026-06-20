@@ -27,8 +27,9 @@ source of future information:
     that month the seed entity is NOT yet flagged, so propagated risk is 0
   - causal signature: baseline vs a recent window that ENDS at T, never later
 
-This module reuses the exact same scoring math as the live engine, applied to
-truncated inputs — so the as-of score is directly comparable to the live score.
+This module reuses the live engine's core internal/public weighting parameters,
+applied to truncated inputs. Replay-specific causal scoring remains free of
+future data and does not apply full-book anomaly floors.
 """
 
 from __future__ import annotations
@@ -37,7 +38,12 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from app.drift.bocpd import BOCPD, standardize
+from app.core.config import (
+    DRIFT_INTERNAL_ACCUMULATED_WEIGHT,
+    DRIFT_INTERNAL_CONTAGION_WEIGHT,
+    DRIFT_INTERNAL_VELOCITY_WEIGHT,
+    DRIFT_PUBLIC_RISK_WEIGHT,
+)
 from app.drift.causal import classify_causal, compute_signature
 from app.drift.public_intel import assess_public_risk, generate_signals_for_customer
 from app.drift.simulator import SyntheticCustomer
@@ -68,27 +74,27 @@ def _truncate_windows(
 
 def replay_as_of(
     cust: SyntheticCustomer,
-    month_T: int,
+    month_t: int,
     *,
     propagated_risk_final: float,
     contagion_listing_month: int | None,
 ) -> AsOfPoint:
     """
-    Recompute the customer's drift score AS OF month_T, using only information
-    available at that time. No data after month_T may influence the result.
+    Recompute the customer's drift score AS OF month_t, using only information
+    available at that time. No data after month_t may influence the result.
 
     Parameters
     ----------
     propagated_risk_final:
         The customer's propagated contagion risk in the present (final) state.
         It only becomes active once the sanctions listing has occurred, i.e.
-        for month_T >= contagion_listing_month.
+        for month_t >= contagion_listing_month.
     contagion_listing_month:
         The month the seed entity was sanctioned. Before this, contagion = 0.
     """
     # --- Truncate behavioral metrics to [0, T] ---
     full_windows = cust.metric_windows()  # behavioral (no margin)
-    trunc = _truncate_windows(full_windows, month_T)
+    trunc = _truncate_windows(full_windows, month_t)
 
     # Velocity as-of T (trailing — already causal, but we feed truncated data)
     ds = compute_drift_series(trunc)
@@ -101,33 +107,38 @@ def replay_as_of(
         drift_start_month=cust.drift_start_month,
         seed=hash(cust.customer_id) % 9999,
     )
-    past_signals = [s for s in all_signals if s.month <= month_T]
+    past_signals = [s for s in all_signals if s.month <= month_t]
     pi = assess_public_risk(past_signals, months=cust.months)
 
     # --- Contagion: only active once the listing has happened ---
     contagion_active = (
-        contagion_listing_month is not None and month_T >= contagion_listing_month
+        contagion_listing_month is not None and month_t >= contagion_listing_month
     )
     prop_risk = propagated_risk_final if contagion_active else 0.0
 
     # --- Internal risk (same formula as live engine) ---
     vel_norm = min(max_vel / 3.0, 1.0)
     drift_norm = min(final_drift / 20.0, 1.0)
-    internal_risk = min(0.6 * vel_norm + 0.25 * drift_norm + 0.4 * prop_risk, 1.0)
+    internal_risk = min(
+        DRIFT_INTERNAL_VELOCITY_WEIGHT * vel_norm
+        + DRIFT_INTERNAL_ACCUMULATED_WEIGHT * drift_norm
+        + DRIFT_INTERNAL_CONTAGION_WEIGHT * prop_risk,
+        1.0,
+    )
 
     # --- Causal as-of: signature from baseline vs window ending at T ---
-    causal_trunc = _truncate_windows(cust.causal_windows(), month_T)
+    causal_trunc = _truncate_windows(cust.causal_windows(), month_t)
     sig = compute_signature(causal_trunc)
     causal = classify_causal(sig)
 
     # --- Fused score (same shape as live engine) ---
-    base = max(internal_risk, pi.public_risk * 0.85)
+    base = max(internal_risk, pi.public_risk * DRIFT_PUBLIC_RISK_WEIGHT)
     score = min(base * 100.0, 100.0)
     causal_factor = 0.45 + 0.55 * causal.p_risk
     score = min(score * causal_factor, 100.0)
 
     return AsOfPoint(
-        month=month_T,
+        month=month_t,
         as_of_score=round(score, 1),
         velocity=round(max_vel, 3),
         public_risk=round(pi.public_risk, 3),

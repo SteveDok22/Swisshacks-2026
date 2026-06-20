@@ -2,7 +2,7 @@
 
 Base URL: `http://localhost:8000/api/v1`  
 Interactive docs: `http://localhost:8000/docs`  
-Total endpoints: 28
+Total API endpoints: 27
 
 ## Endpoint Map
 
@@ -10,13 +10,12 @@ Total endpoints: 28
 flowchart TB
     subgraph Drift["Drift Engine  — /drift"]
         D1["GET /customers\nScan full customer book\nReturns risk-ranked list"]
-        D2["GET /customers/{customer_id}\nFull per-customer analysis\nAll 7 layers + causal evidence"]
-        D3["GET /customers/{customer_id}/timeline\nDrift velocity over time"]
-        D4["POST /scan\nRun cost cascade scan\nReturns CascadeCostReport"]
-        D5["GET /contagion\nOwnership graph + PageRank scores"]
-        D6["GET /replay/{customer_id}\nTime-travel as-of replay"]
-        D7["POST /inject\nInject public signal\nBody: scenario, name"]
-        D8["POST /rfi/{customer_id}\nGenerate RFI\nValue-of-Information ordering"]
+        D2["GET /customers/{customer_id}\nFull per-customer analysis\nAll 7 layers + causal evidence + timeline"]
+        D3["POST /scan\nRun cost cascade scan\nReturns CascadeCostReport"]
+        D4["GET /contagion\nOwnership graph + PageRank scores"]
+        D5["GET /replay/{customer_id}\nTime-travel as-of replay"]
+        D6["POST /inject\nInject public signal\nBody: scenario, name"]
+        D7["POST /rfi/{customer_id}\nGenerate RFI\nValue-of-Information ordering"]
     end
 
     subgraph Cases["Cases  — /cases"]
@@ -60,7 +59,7 @@ flowchart TB
 flowchart LR
     subgraph DriftSchemas["Drift Schemas"]
         DS1["DriftCustomerSummary\ncustomer_id · name · score · velocity\naction · risk_level"]
-        DS2["DriftCustomerDetail\n+ LayerContribution[]\n+ CausalVerdictOut\n+ StabilityOut\n+ contagion_score"]
+        DS2["DriftCustomerDetail\n+ LayerContribution[]\n+ CausalVerdictOut\n+ StabilityOut\n+ DriftTimelinePoint[]\n+ contagion_score"]
         DS3["ReplayResult\nas_of_score · current_score\nlead_time_months"]
         DS4["CascadeCostReport\ntier_counts · costs · total_customers\n+ actual_t2_llm_calls\n+ llm_adjudications[]"]
     end

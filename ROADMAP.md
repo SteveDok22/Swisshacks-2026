@@ -74,7 +74,7 @@ See [`docs/sources.md`](docs/sources.md) for full cost/access breakdown.
 *Still to implement (carcasses exist):*
 - [x] **`sources/opensanctions.py`** — OFAC / EU / UN sanctions + PEP screening (Cases 2, 5) · FREEMIUM
 - [ ] **`sources/gdelt.py`** — GDELT 2.0 free news feed (Cases 1, 6, 8, 10) · FREE — **fallback** when Event Registry key absent
-- [ ] **`sources/firecrawl.py`** — website-to-markdown scraping, current content (Cases 9, 10) · FREEMIUM
+- [x] **`sources/firecrawl.py`** — website-to-markdown scraping, current content (Cases 9, 10) · FREEMIUM — key-optional (cloud `/scrape` → plain-HTTP strip → empty fallback)
 - [x] **`sources/wayback.py`** — Internet Archive historical snapshot at onboarding date (Cases 9, 10) · FREE
 
 *Paid — skipped (carcasses exist and document the decision):*
@@ -188,16 +188,17 @@ Each adapter has two methods to implement. `fetch()` returns a current `EntitySn
 
 ---
 
-**`FirecrawlAdapter`** (`sources/firecrawl.py`) — Current Website Content
+**`FirecrawlAdapter`** (`sources/firecrawl.py`) — Current Website Content ✅ IMPLEMENTED
 - **What to fetch**: the live website content as clean markdown. The "after" reference for business-model drift.
-- **`fetch(drift_id, name)`**
-  - Get domain from `EntitySnapshotDB.extra["domain"]`
-  - `POST https://api.firecrawl.dev/v1/scrape` with `{"url": f"https://{domain}", "formats": ["markdown"], "onlyMainContent": true}`
-  - Parse `data.markdown` → trim to 10 kB
-  - Return `EntitySnapshot(source="firecrawl", extra={"website_text": markdown[:10000], "scraped_at": now_iso})`
+- **`fetch(drift_id, name, *, domain)`** — the caller injects `domain` (read from `EntitySnapshotDB.extra["domain"]`); the adapter never touches the DB, preserving the `sources` dependency rule.
+  - Normalise `domain` to a bare host (strip scheme/path/case) → `url = f"https://{host}"`.
+  - **Tier 1 (key present)**: `POST https://api.firecrawl.dev/v1/scrape` with `{"url": url, "formats": ["markdown"], "onlyMainContent": true}`; parse `data.markdown`.
+  - **Tier 2 (no key, or Tier 1 failed)**: plain `httpx.GET(url)` + a stdlib `html.parser` HTML-to-text strip (drops `script`/`style`/`head`) — zero cost, **no `BeautifulSoup` dependency added**.
+  - **Tier 3**: page unreachable (or a literal internal/loopback host, blocked by a lightweight SSRF guard) → empty `website_text` (comparator skips when either side is empty).
+  - Store the result in `raw_data` (`EntitySnapshot` has no `extra` field — that is the ORM model's): `raw_data={"domain", "url", "website_text": text[:10000], "scraped_at": now_iso, "scrape_method"}`.
+  - Returns `None` **only** when no `domain` is supplied.
 - **`fetch_signals`**: returns `[]` — signals are emitted by `drift/business_model.py`.
-- **Auth**: `Authorization: Bearer {FIRECRAWL_API_KEY}` env var. If absent → return `EntitySnapshot` with empty `website_text` (graceful degradation; comparator skips if either text is empty).
-- **Fallback**: if Firecrawl key is absent, attempt plain `httpx.get(domain)` + `BeautifulSoup` text extraction as a zero-cost fallback.
+- **Auth**: `Authorization: Bearer {FIRECRAWL_API_KEY}` (config `firecrawl_api_key`). The key is **optional** thanks to the Tier-2/3 fallback ladder above.
 
 ---
 
@@ -252,7 +253,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 
 > **UC 9 — Domain switch / website change** (❌ MISSING → ✅)
 - [x] Implement `WaybackAdapter.fetch` (historical snapshot path — see spec above)
-- [ ] Implement `FirecrawlAdapter.fetch` (current content path — see spec above)
+- [x] Implement `FirecrawlAdapter.fetch` (current content path — key-optional: cloud `/scrape` → plain-HTTP HTML strip → empty snapshot; `fetch_signals` is a no-op by design)
 - [x] Implement `WhoisAdapter.fetch_signals` domain registrant diff path
 - [ ] Implement `drift/business_model.py` cosine comparator (Wayback text vs Firecrawl text via `all-MiniLM-L6-v2`)
 - [ ] Add `is_business_model_change: bool` + `business_model_distance: float` to `DriftSubjectDetail` API response and surface in `TwoLayerPanel.tsx` alongside other public signals
@@ -304,7 +305,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | Drift Engine | `drift/service.py` | All 7 layers, confirmation lift, LLM adjudication |
 | Synthetic Book | `drift/simulator.py` | 8 scenarios with ground-truth labels |
 | KYC Baseline Store | `db/kyc_baseline.py` | `EntitySnapshotDB` — onboarding + history snapshots |
-| Source Adapter Layer | `sources/` | `RegistryAdapter` ABC; GLEIF, ZEFIX, EventRegistry, and WHOIS/RDAP implemented; 4 planned carcasses; 2 SKIPPED |
+| Source Adapter Layer | `sources/` | `RegistryAdapter` ABC; GLEIF, ZEFIX, EventRegistry, OpenSanctions, Wayback, WHOIS/RDAP, Firecrawl implemented; 1 planned carcass (GDELT); 2 SKIPPED |
 | REST API | `api/v1/` | 27 endpoints, all functional |
 | Frontend | `src/app/drift/`, `src/app/audit/` | 8 drift panels + audit log page + dormancy-break panel |
 | XGBoost + SHAP | `ml/base.py` | Wired to case management only; drift uses per-layer LLR breakdown |
@@ -325,7 +326,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | GDELT | 1, 6, 8, 10 | FREE | 🔲 PLANNED — fallback when ER key absent |
 | RDAP/WHOIS | 8, 9 | FREE | ✅ IMPLEMENTED — `fetch()` + `fetch_signals()` live; no key required |
 | Wayback Machine | 9, 10 | FREE | ✅ IMPLEMENTED — `fetch()` live; `fetch_signals()` returns `[]` by design |
-| Firecrawl | 9, 10 | FREEMIUM | 🔲 PLANNED |
+| Firecrawl | 9, 10 | FREEMIUM | ✅ IMPLEMENTED — key-optional (cloud → plain-HTTP fallback); comparator wiring pending |
 | OpenCorporates | 3, 4, 5, 7 | PAID | ⛔ SKIPPED |
 | Crunchbase | 6 | PAID | ⛔ SKIPPED |
 | Internal transactions | 2, 3, 7 | — | ✅ Built |

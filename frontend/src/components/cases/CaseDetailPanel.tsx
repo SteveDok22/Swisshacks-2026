@@ -258,6 +258,7 @@ export function CaseDetailPanel({ caseId }: CaseDetailPanelProps) {
 
       {/* === Decision bar (sticky) === */}
       <DecisionBar
+        key={caseId}
         caseId={caseId}
         aiRecommendedAction={recommendedAction}
       />

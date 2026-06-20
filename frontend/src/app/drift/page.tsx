@@ -73,13 +73,6 @@ export default function DriftPage() {
         <div className="h-16 border-b border-paper-line px-6 flex items-center justify-between bg-paper-raised">
           <div>
             <h1 className="font-semibold text-ink">Drift Engine</h1>
-            <p className="text-xs text-ink-muted mt-0.5">
-              KYC drift detection · AMINA Challenge 4
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5 text-xs text-ink-muted">
-            <span className="h-2 w-2 rounded-full bg-risk-low animate-pulse" />
-            Live
           </div>
         </div>
 

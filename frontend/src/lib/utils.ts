@@ -16,9 +16,21 @@ export function formatCHF(amount: number): string {
   }).format(amount);
 }
 
+/**
+ * Parse an ISO timestamp into a Date, treating timezone-less strings as UTC.
+ *
+ * The backend emits some naive UTC timestamps (no `Z`/offset suffix, e.g.
+ * `datetime.utcnow()`). Without this, `new Date()` would interpret them as the
+ * viewer's local time, making them appear shifted (i.e. shown "in UTC").
+ */
+export function parseTimestamp(iso: string): Date {
+  const hasTimezone = /[zZ]|[+-]\d{2}:?\d{2}$/.test(iso);
+  return new Date(hasTimezone ? iso : `${iso}Z`);
+}
+
 /** Format a relative time (e.g. "12 min ago"). */
 export function timeAgo(iso: string): string {
-  const then = new Date(iso).getTime();
+  const then = parseTimestamp(iso).getTime();
   const now = Date.now();
   const diffSec = Math.round((now - then) / 1000);
 
@@ -28,9 +40,9 @@ export function timeAgo(iso: string): string {
   return `${Math.floor(diffSec / 86400)} d ago`;
 }
 
-/** Format an ISO timestamp as a readable date-time. */
+/** Format an ISO timestamp as a readable date-time in the viewer's local zone. */
 export function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("en-GB", {
+  return parseTimestamp(iso).toLocaleString("en-GB", {
     day: "2-digit",
     month: "short",
     hour: "2-digit",

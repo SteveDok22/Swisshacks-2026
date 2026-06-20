@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { decisionsApi } from "@/lib/api";
-import { cn, ACTION_LABELS } from "@/lib/utils";
+import { cn, ACTION_LABELS, formatDateTime } from "@/lib/utils";
 import { Check, ChevronUp, AlertOctagon, ShieldAlert, X } from "lucide-react";
-import type { DecisionAction } from "@/types/api";
+import type { DecisionAction, DecisionRead } from "@/types/api";
 
 type DecisionBarProps = {
   aiRecommendedAction: DecisionAction | null;
@@ -66,11 +66,34 @@ export function DecisionBar(props: DecisionBarProps) {
     null,
   );
   const [rationale, setRationale] = useState("");
-  const [submitted, setSubmitted] = useState(false);
   const queryClient = useQueryClient();
 
   const isDrift = "driftId" in props;
   const subjectId = isDrift ? props.driftId : props.caseId;
+
+  const decisionsKey = isDrift
+    ? ["decisions-subject", subjectId]
+    : ["decisions-case", subjectId];
+
+  // Source of truth for "is this already resolved": the immutable decisions
+  // recorded server-side. This keeps the resolved state correct across case
+  // switches and page reloads instead of relying on transient local state.
+  const { data: decisions } = useQuery({
+    queryKey: decisionsKey,
+    queryFn: () =>
+      isDrift
+        ? decisionsApi.forCustomer(props.driftId)
+        : decisionsApi.forCase(props.caseId),
+    enabled: !!subjectId,
+  });
+
+  const latestDecision: DecisionRead | null =
+    decisions && decisions.length > 0
+      ? [...decisions].sort(
+          (a, b) =>
+            new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        )[0]
+      : null;
 
   const mutation = useMutation({
     mutationFn: (payload: {
@@ -92,10 +115,15 @@ export function DecisionBar(props: DecisionBarProps) {
               rationale: payload.rationale,
             },
       ),
-    onSuccess: () => {
-      setSubmitted(true);
+    onSuccess: (decision) => {
+      // Show the resolved block immediately, before the refetch lands.
+      queryClient.setQueryData<DecisionRead[]>(decisionsKey, (old) => [
+        ...(old ?? []),
+        decision,
+      ]);
       setPendingAction(null);
       setRationale("");
+      queryClient.invalidateQueries({ queryKey: decisionsKey });
       if (isDrift) {
         queryClient.invalidateQueries({ queryKey: ["drift-customers"] });
         queryClient.invalidateQueries({ queryKey: ["drift-customer", subjectId] });
@@ -124,26 +152,24 @@ export function DecisionBar(props: DecisionBarProps) {
     mutation.mutate({ action: pendingAction, rationale: rationale.trim() });
   };
 
-  if (submitted) {
+  if (latestDecision) {
     return (
       <div className="border-t border-paper-line bg-risk-low-bg px-6 py-4 flex items-center gap-3 animate-fade-in">
-        <div className="h-6 w-6 rounded-full bg-risk-low flex items-center justify-center">
+        <div className="h-6 w-6 rounded-full bg-risk-low flex items-center justify-center shrink-0">
           <Check className="h-3.5 w-3.5 text-paper-raised" strokeWidth={3} />
         </div>
-        <div className="flex-1">
+        <div className="flex-1 min-w-0">
           <div className="text-sm font-medium text-risk-low">
-            Decision recorded
+            Resolved · {ACTION_LABELS[latestDecision.action]}
           </div>
-          <div className="text-2xs text-ink-soft">
-            Immutably logged to audit trail
+          <div className="text-2xs text-ink-soft truncate">
+            {latestDecision.overrode_ai && latestDecision.ai_recommended_action
+              ? `Overrode AI (${ACTION_LABELS[latestDecision.ai_recommended_action]}) · `
+              : ""}
+            Recorded {formatDateTime(latestDecision.created_at)} · immutably
+            logged to audit trail
           </div>
         </div>
-        <button
-          onClick={() => setSubmitted(false)}
-          className="text-2xs text-ink-muted hover:text-ink"
-        >
-          Reset
-        </button>
       </div>
     );
   }

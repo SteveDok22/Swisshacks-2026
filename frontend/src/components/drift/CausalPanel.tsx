@@ -49,6 +49,18 @@ export function CausalPanel({ causal }: CausalPanelProps) {
     (a, b) => Math.abs(b[1]) - Math.abs(a[1]),
   );
 
+  const verdictTitle =
+    label === "ambiguous"
+      ? "Ambiguous — needs review"
+      : `${label.charAt(0).toUpperCase()}${label.slice(1)}-shaped drift`;
+
+  const verdictSubtitle =
+    label === "risk"
+      ? "Change matches a transit/laundering signature"
+      : label === "benign"
+        ? "Change matches legitimate business growth"
+        : "Signal insufficient to separate risk from life";
+
   return (
     <ZoomablePanel
       className="border border-paper-line rounded bg-paper-raised p-4"
@@ -68,27 +80,28 @@ export function CausalPanel({ causal }: CausalPanelProps) {
       </div>
 
       {/* Verdict banner */}
-      <div className={cn("rounded border p-3 mb-3", verdictBg)}>
-        <div className="flex items-center justify-between">
-          <div>
-            <div className={cn("text-sm font-semibold capitalize", verdictColor)}>
-              {label === "ambiguous" ? "Ambiguous — needs review" : `${label}-shaped drift`}
-            </div>
-            <div className="text-2xs text-ink-muted mt-0.5">
-              {label === "risk" &&
-                "Change matches a transit/laundering signature"}
-              {label === "benign" &&
-                "Change matches legitimate business growth"}
-              {label === "ambiguous" &&
-                "Signal insufficient to separate risk from life"}
-            </div>
-          </div>
-          <div className="text-right">
-            <div className={cn("font-mono text-xl font-semibold tabular", verdictColor)}>
-              {Math.round(p_risk * 100)}%
-            </div>
-            <div className="text-2xs text-ink-muted">P(risk)</div>
-          </div>
+      <div
+        className={cn(
+          "rounded border px-3 py-2 mb-3 flex items-center justify-between gap-3",
+          verdictBg,
+        )}
+      >
+        <div className="flex items-baseline gap-x-2 gap-y-0.5 flex-wrap min-w-0">
+          <span className={cn("text-sm font-semibold", verdictColor)}>
+            {verdictTitle}
+          </span>
+          <span className="text-2xs text-ink-muted">{verdictSubtitle}</span>
+        </div>
+        <div className="flex items-baseline gap-1 shrink-0">
+          <span
+            className={cn(
+              "font-mono text-xl font-semibold tabular",
+              verdictColor,
+            )}
+          >
+            {Math.round(p_risk * 100)}%
+          </span>
+          <span className="text-2xs text-ink-muted">P(risk)</span>
         </div>
       </div>
 

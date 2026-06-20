@@ -158,10 +158,6 @@ export function CaseQueue({ selectedCaseId, onSelectCase }: CaseQueueProps) {
             {sorted.length} cases · sorted by risk
           </p>
         </div>
-        <div className="flex items-center gap-2 text-xs text-ink-muted">
-          <span className="h-2 w-2 rounded-full bg-risk-low animate-pulse" />
-          Live
-        </div>
       </div>
 
       {/* List */}

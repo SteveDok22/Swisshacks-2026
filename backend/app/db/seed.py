@@ -1,5 +1,5 @@
 """
-Database seeding — fills empty DB with mock data on first startup.
+Database seeding — fills the freshly recreated DB with mock data at startup.
 
 Uses the existing mock_data generators from services/mock_data.py.
 Idempotent: only runs if DB is empty.

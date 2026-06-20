@@ -30,6 +30,7 @@ from app.drift.simulator import SyntheticCustomer, generate_book, generate_custo
 from app.drift.stability import assess_stability, cohort_volatility
 from app.drift.timetravel import replay_trajectory
 from app.drift.velocity import compute_drift_series, velocity_band
+from app.ml.base import score_to_level
 from app.schemas.drift import (
     CascadeCostReport,
     CausalVerdictOut,
@@ -43,11 +44,30 @@ from app.schemas.drift import (
     AsOfPointOut,
     ReplayResult,
 )
+from app.schemas.enums import DecisionAction
 
 # Sanctioned seed entity for the contagion demo
 SANCTIONED_SEED = "SANCTIONED_ENTITY"
 # Customers wired into the ownership graph as contagion-affected
 CONTAGION_AFFECTED = {"drift-004", "drift-002"}
+DRIFT_ANALYSIS_VERSION = "drift-v1"
+
+
+def recommend_drift_action(
+    score: float,
+    causal_label: str,
+    is_suspicious: bool,
+) -> DecisionAction:
+    """Single authoritative mapping used by API responses and decisions."""
+    if is_suspicious:
+        return DecisionAction.ESCALATE
+    if causal_label == "benign":
+        return DecisionAction.ALLOW
+    if score >= 70 or causal_label == "risk":
+        return DecisionAction.ESCALATE
+    if score >= 40 or causal_label == "ambiguous":
+        return DecisionAction.STEP_UP_VERIFICATION
+    return DecisionAction.ALLOW
 
 
 class DriftEngine:
@@ -286,6 +306,11 @@ class DriftEngine:
             propagated_risk=a["propagated_risk"],
         )
         decision = self._router.route_one(signal)
+        recommended_action = recommend_drift_action(
+            a["drift_score"],
+            a["causal"].label,
+            a["stability"].is_suspicious,
+        )
 
         timeline = [
             DriftTimelinePoint(
@@ -305,6 +330,8 @@ class DriftEngine:
             drift_velocity=round(a["max_velocity"], 3),
             velocity_band=velocity_band(a["max_velocity"]),
             reached_tier=decision.reached_tier.name,
+            recommended_action=recommended_action,
+            risk_level=score_to_level(a["drift_score"]),
             escalation_reasons=decision.escalation_reasons,
             layers=self._build_layers(cust, a),
             timeline=timeline,

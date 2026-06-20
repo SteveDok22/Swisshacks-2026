@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.logging import get_logger
 from app.db.models import DecisionDB
 from app.db.session import get_session
+from app.drift.service import get_drift_engine
 from app.schemas.audit import DecisionCreate, DecisionRead
 from app.services.decision import DecisionService
 
@@ -33,6 +34,7 @@ def _to_read(d: DecisionDB) -> DecisionRead:
         ai_recommended_action=d.ai_recommended_action,
         ai_risk_score=d.ai_risk_score,
         ai_risk_level=d.ai_risk_level,
+        analysis_snapshot=d.analysis_snapshot,
         created_at=d.created_at,
     )
 
@@ -82,10 +84,13 @@ async def list_customer_decisions(
 ) -> list[DecisionRead]:
     """Get all drift-engine decisions ever made on a customer (chronological).
 
-    Returns an empty list when the customer exists but has no decisions, or
-    when the customer_id is unknown — callers should not infer customer
-    existence from this.
+    Returns an empty list when the customer exists but has no decisions.
     """
+    if get_drift_engine().get_customer(customer_id) is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"No drift customer {customer_id!r}",
+        )
     service = DecisionService(session)
     decisions = await service.list_decisions_for_customer(customer_id)
     return [_to_read(d) for d in decisions]

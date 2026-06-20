@@ -52,6 +52,7 @@ erDiagram
         string ai_recommended_action
         float ai_risk_score
         string ai_risk_level
+        json analysis_snapshot
         datetime created_at
     }
 
@@ -59,6 +60,7 @@ erDiagram
         uuid id PK
         uuid case_id FK
         uuid client_id FK
+        string customer_id
         string event_type
         string actor_id
         string actor_type
@@ -130,11 +132,15 @@ Two distinct decision paths share the same `decisions` table:
 |---|---|---|
 | `case_id` | Set (UUID FK → cases) | `NULL` |
 | `customer_id` | `NULL` | Set (drift customer string ID) |
-| `ai_recommended_action` | Derived from `case.risk_score` thresholds | Passed as `ai_hint` by the caller (VerdictBar logic) |
+| `ai_recommended_action` | Derived from `case.risk_score` thresholds | Derived by the backend from the current drift analysis |
+| `analysis_snapshot` | Case type, jurisdiction, confidence | Score, risk level, tier, causal evidence, stability, and analysis version |
 | Audit event type | `decision_recorded` | `drift_decision_recorded` |
 | Case status updated | Yes (`resolved` / `in_review`) | No (no linked case record) |
 
 Both paths enforce the same override rule: if `action ≠ ai_recommended_action`, a `rationale` of ≥ 10 characters is required.
+
+The SQLite schema is disposable and is dropped/recreated on every backend
+startup before mock data is seeded.
 
 ---
 

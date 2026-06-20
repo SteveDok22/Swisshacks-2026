@@ -113,8 +113,9 @@ sequenceDiagram
     FE-->>O: Typing animation
 
     O->>FE: Log decision (drift workspace — no linked case)
-    FE->>API: POST /api/v1/decisions\n{customer_id, action, officer_id, ai_hint}
-    API->>DB: INSERT decision (customer_id set, case_id NULL)
+    FE->>API: POST /api/v1/decisions\n{customer_id, action, officer_id, rationale?}
+    API->>DE: Validate customer + derive recommendation
+    API->>DB: INSERT decision + immutable analysis snapshot
     DB-->>API: 201 Created
     API-->>FE: Confirmed
     FE-->>O: Decision recorded — audit event drift_decision_recorded

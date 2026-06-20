@@ -169,6 +169,7 @@ export interface AuditEntry {
   event_type: string;
   case_id: string | null;
   client_id: string | null;
+  customer_id: string | null;
   actor_id: string | null;
   actor_type: string;
   payload: Record<string, unknown>;
@@ -189,6 +190,7 @@ export interface DecisionRead {
   ai_recommended_action: DecisionAction | null;
   ai_risk_score: number | null;
   ai_risk_level: RiskLevel | null;
+  analysis_snapshot: Record<string, unknown>;
   created_at: string;
 }
 
@@ -295,6 +297,8 @@ export interface DriftCustomerDetail {
   drift_velocity: number;
   velocity_band: string;
   reached_tier: string;
+  recommended_action: DecisionAction;
+  risk_level: RiskLevel;
   escalation_reasons: string[];
   layers: LayerContribution[];
   timeline: DriftTimelinePoint[];

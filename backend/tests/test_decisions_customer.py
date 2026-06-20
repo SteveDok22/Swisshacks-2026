@@ -3,9 +3,8 @@ Tests for the drift-engine decision path (customer_id instead of case_id).
 
 Covers:
 - POST /decisions with customer_id records a drift decision
-- POST /decisions with ai_hint enables override detection
+- Override detection uses the server-derived recommendation
 - Override without rationale is rejected (400)
-- ai_hint alongside case_id is rejected (422)
 - GET /decisions/customer/{id} returns decisions chronologically
 - Validation: neither case_id nor customer_id → 422
 - Validation: both case_id and customer_id → 422
@@ -31,9 +30,21 @@ OFFICER = "test.officer@amina.ch"
 
 
 @pytest.fixture
-def cid() -> str:
-    """Unique drift customer ID per test — prevents cross-test contamination."""
-    return f"DRIFT-{uuid4().hex[:8]}"
+async def drift_subject(client: AsyncClient) -> dict:
+    """Use a real server-side drift customer with an escalation recommendation."""
+    customers = (await client.get("/api/v1/drift/customers")).json()
+    for customer in customers:
+        detail = (
+            await client.get(f"/api/v1/drift/customers/{customer['customer_id']}")
+        ).json()
+        if detail["recommended_action"] == "escalate":
+            return detail
+    raise AssertionError("Expected at least one drift customer recommended for escalation")
+
+
+@pytest.fixture
+def cid(drift_subject: dict) -> str:
+    return drift_subject["customer_id"]
 
 
 async def post_drift_decision(
@@ -41,7 +52,6 @@ async def post_drift_decision(
     customer_id: str,
     action: DecisionAction | str = "escalate",
     rationale: str | None = None,
-    ai_hint: DecisionAction | str | None = None,
 ):
     payload: dict = {
         "customer_id": customer_id,
@@ -50,8 +60,6 @@ async def post_drift_decision(
     }
     if rationale is not None:
         payload["rationale"] = rationale
-    if ai_hint is not None:
-        payload["ai_hint"] = ai_hint
     return await client.post("/api/v1/decisions", json=payload)
 
 
@@ -73,9 +81,11 @@ async def test_drift_decision_created(client: AsyncClient, cid: str) -> None:
 
 
 @pytest.mark.asyncio
-async def test_drift_decision_ai_hint_no_override(client: AsyncClient, cid: str) -> None:
-    """ai_hint matches action → overrode_ai is False, no rationale needed."""
-    resp = await post_drift_decision(client, cid, action="escalate", ai_hint="escalate")
+async def test_drift_decision_server_recommendation_no_override(
+    client: AsyncClient, cid: str
+) -> None:
+    """Matching the server recommendation is not an override."""
+    resp = await post_drift_decision(client, cid, action="escalate")
     assert resp.status_code == 201, resp.text
     body = resp.json()
     assert body["overrode_ai"] is False
@@ -83,15 +93,14 @@ async def test_drift_decision_ai_hint_no_override(client: AsyncClient, cid: str)
 
 
 @pytest.mark.asyncio
-async def test_drift_decision_ai_hint_override_with_rationale(
+async def test_drift_decision_override_with_rationale(
     client: AsyncClient, cid: str
 ) -> None:
-    """ai_hint differs from action + rationale provided → accepted."""
+    """Action differs from server recommendation + rationale → accepted."""
     resp = await post_drift_decision(
         client,
         cid,
         action="allow",
-        ai_hint="escalate",
         rationale="Customer confirmed legitimate restructuring via KYC docs.",
     )
     assert resp.status_code == 201, resp.text
@@ -107,7 +116,7 @@ async def test_drift_decision_override_without_rationale_rejected(
     client: AsyncClient, cid: str
 ) -> None:
     """Override without rationale must be rejected with 400."""
-    resp = await post_drift_decision(client, cid, action="allow", ai_hint="escalate")
+    resp = await post_drift_decision(client, cid, action="allow")
     assert resp.status_code == 400, resp.text
     assert "rationale" in resp.text.lower()
 
@@ -125,12 +134,21 @@ async def test_list_customer_decisions_empty(client: AsyncClient, cid: str) -> N
 
 
 @pytest.mark.asyncio
+async def test_list_unknown_customer_returns_404(client: AsyncClient) -> None:
+    resp = await client.get("/api/v1/decisions/customer/unknown-customer")
+    assert resp.status_code == 404, resp.text
+
+
+@pytest.mark.asyncio
 async def test_list_customer_decisions_chronological(
     client: AsyncClient, cid: str
 ) -> None:
     """Multiple decisions for the same customer are returned in creation order."""
     for action in ("escalate", "step_up_verification", "block"):
-        r = await post_drift_decision(client, cid, action=action)
+        rationale = None if action == "escalate" else "Documented officer override."
+        r = await post_drift_decision(
+            client, cid, action=action, rationale=rationale
+        )
         assert r.status_code == 201, r.text
 
     resp = await client.get(f"/api/v1/decisions/customer/{cid}")
@@ -144,14 +162,20 @@ async def test_list_customer_decisions_chronological(
 
 @pytest.mark.asyncio
 async def test_list_customer_decisions_isolated_by_customer(
-    client: AsyncClient,
+    client: AsyncClient, cid: str
 ) -> None:
     """Decisions for one customer don't appear under another."""
-    cid_a = f"DRIFT-{uuid4().hex[:8]}"
-    cid_b = f"DRIFT-{uuid4().hex[:8]}"
+    customers = (await client.get("/api/v1/drift/customers")).json()
+    cid_a = cid
+    cid_b = next(c["customer_id"] for c in customers if c["customer_id"] != cid_a)
+    detail_b = (await client.get(f"/api/v1/drift/customers/{cid_b}")).json()
 
     await post_drift_decision(client, cid_a)
-    await post_drift_decision(client, cid_b)
+    await post_drift_decision(
+        client,
+        cid_b,
+        action=detail_b["recommended_action"],
+    )
 
     resp_a = await client.get(f"/api/v1/decisions/customer/{cid_a}")
     resp_b = await client.get(f"/api/v1/decisions/customer/{cid_b}")
@@ -169,7 +193,6 @@ async def test_list_reflects_override_flag(client: AsyncClient, cid: str) -> Non
         client,
         cid,
         action="allow",
-        ai_hint="escalate",
         rationale="Customer provided verified restructuring documents.",
     )
     assert r.status_code == 201, r.text
@@ -213,21 +236,20 @@ async def test_both_case_and_customer_id_rejected(
 
 
 @pytest.mark.asyncio
-async def test_ai_hint_with_case_id_rejected(
+async def test_unknown_decision_field_rejected(
     client: AsyncClient, seed_case: dict
 ) -> None:
-    """ai_hint is only valid for the drift workflow; case path rejects it."""
     resp = await client.post(
         "/api/v1/decisions",
         json={
             "case_id": seed_case["case_id"],
             "action": "allow",
             "officer_id": OFFICER,
-            "ai_hint": "escalate",
+            "unexpected_field": "escalate",
         },
     )
     assert resp.status_code == 422, resp.text
-    assert "ai_hint" in resp.text.lower()
+    assert "unexpected_field" in resp.text.lower()
 
 
 @pytest.mark.asyncio
@@ -236,6 +258,46 @@ async def test_empty_customer_id_rejected(client: AsyncClient) -> None:
     resp = await client.post(
         "/api/v1/decisions",
         json={"customer_id": "", "action": "allow", "officer_id": OFFICER},
+    )
+    assert resp.status_code == 422, resp.text
+
+
+@pytest.mark.asyncio
+async def test_unknown_customer_rejected(client: AsyncClient) -> None:
+    resp = await post_drift_decision(
+        client,
+        f"UNKNOWN-{uuid4().hex}",
+        action="allow",
+    )
+    assert resp.status_code == 400, resp.text
+    assert "not found" in resp.text.lower()
+
+
+@pytest.mark.asyncio
+async def test_deprecated_ai_hint_rejected(client: AsyncClient, cid: str) -> None:
+    resp = await client.post(
+        "/api/v1/decisions",
+        json={
+            "customer_id": cid,
+            "action": "allow",
+            "officer_id": OFFICER,
+            "rationale": "Attempted stale recommendation submission.",
+            "ai_hint": "allow",
+        },
+    )
+    assert resp.status_code == 422, resp.text
+    assert "ai_hint" in resp.text
+
+
+@pytest.mark.asyncio
+async def test_short_override_rationale_rejected(
+    client: AsyncClient, cid: str
+) -> None:
+    resp = await post_drift_decision(
+        client,
+        cid,
+        action="allow",
+        rationale="too short",
     )
     assert resp.status_code == 422, resp.text
 
@@ -274,7 +336,12 @@ async def test_drift_decisions_not_mixed_with_case_decisions(
 async def test_drift_decision_audit_event(
     client: AsyncClient, cid: str, audit_query
 ) -> None:
-    resp = await post_drift_decision(client, cid, action="block")
+    resp = await post_drift_decision(
+        client,
+        cid,
+        action="block",
+        rationale="Risk warrants immediate blocking action.",
+    )
     assert resp.status_code == 201, resp.text
 
     entries = await audit_query("drift_decision_recorded")
@@ -282,4 +349,17 @@ async def test_drift_decision_audit_event(
     entry = entries[0]
     assert entry.payload["customer_id"] == cid
     assert entry.payload["action"] == "block"
-    assert entry.payload["overrode_ai"] is False
+    assert entry.customer_id == cid
+    assert entry.risk_score is not None
+    assert entry.payload["analysis_snapshot"]["analysis_version"] == "drift-v1"
+
+    audit_resp = await client.get(
+        "/api/v1/audit",
+        params={
+            "event_type": "drift_decision_recorded",
+            "customer_id": cid,
+        },
+    )
+    assert audit_resp.status_code == 200, audit_resp.text
+    assert audit_resp.json()["total"] == 1
+    assert audit_resp.json()["items"][0]["customer_id"] == cid

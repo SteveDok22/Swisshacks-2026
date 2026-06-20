@@ -112,6 +112,8 @@ The challenge specifies a **staged pipeline** — teams must demonstrate and qua
 
 **Required deliverables:** token usage per workflow, cost per 1,000 analyses, clear demonstration of Stage 1 vs Stage 2 vs Stage 3 routing.
 
+**Sentinel implementation note:** `POST /drift/scan` reports tier counts and costs, keeps `llm_on_everything_cost` as a counterfactual baseline, and separately reports how many T2 LLM adjudications were actually executed (`actual_t2_llm_calls`, split into real vs mock mode). Mock mode is used automatically in development when no Anthropic API key is configured.
+
 ---
 
 ## Available Technology Sources
@@ -241,3 +243,5 @@ The three-tier routing architecture that controls LLM usage cost:
 - **Tier 2** — LLM reasoning via Claude (~$0.05 per customer, borderline high-risk only)
 
 A customer escalates to the next tier only when the expected information gain justifies the cost. On 1,000 customers this yields ~96% cost reduction versus running every customer through the LLM, at equal high-risk recall.
+
+In the demo backend, Tier 2 is not only a cost estimate: customers routed to `T2_LLM` are adjudicated through the shared Anthropic client. The "LLM on everything" number remains a baseline estimate and is not executed.

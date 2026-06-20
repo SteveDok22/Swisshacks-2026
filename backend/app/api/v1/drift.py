@@ -99,6 +99,9 @@ async def run_cascade_scan(
             "tier_counts": report.tier_counts,
             "total_cost": report.total_cost,
             "savings_pct": report.savings_pct,
+            "actual_t2_llm_calls": report.actual_t2_llm_calls,
+            "real_t2_llm_calls": report.real_t2_llm_calls,
+            "mock_t2_llm_calls": report.mock_t2_llm_calls,
         },
     )
 

@@ -20,16 +20,16 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 | # | Use Case | Signal | Status | What exists | What's needed | Real-world example |
 |---|---|---|---|---|---|---|
-| 1 | Negative news spike | Reputational risk | ⚠️ PARTIAL | Lexicon classifier + confirmation lift; no live feed | GDELT adapter + BOCPD on news volume time-series | **Wirecard** — adverse media, whistle-blower allegations, and accounting red flags accumulated in public signals 2 years before collapse |
+| 1 | Negative news spike | Reputational risk | ⚠️ PARTIAL | Lexicon classifier + confirmation lift; no live feed | Event Registry adapter (primary) + BOCPD on weekly event-count series; GDELT as fallback | **Wirecard** — adverse media, whistle-blower allegations, and accounting red flags accumulated in public signals 2 years before collapse |
 | 2 | Cross-border transfer anomaly | Behavioural anomaly | ✅ WORKS | BOCPD + velocity on synthetic data | — | **Deutsche Bank mirror trades** — $10B moved Russia→UK via back-to-back exchange orders, evading cross-border transfer controls (2011–2015) |
 | 3 | Multiple entities + sudden flows | Structuring / layering | ⚠️ PARTIAL | Contagion + causal; no named layering detector | GLEIF for real UBO graph to replace synthetic contagion graph | **Danske Estonia** — 15,000 non-resident shell-company customers, hidden UBO chains, €200B in suspicious cross-border flows |
 | 4 | Jurisdiction / legal form change | Structural risk | 🔶 INDIRECT | `jurisdiction.py` is rule-pack selector, not change detector | ZEFIX / GLEIF diff vs. KYC baseline → `jurisdiction_change` signal | **Long Blockchain Corp** — Long Island Iced Tea rebranded to exploit crypto hype; name change triggered mandatory re-KYC across its banking relationships |
 | 5 | New shareholders / UBOs | Ownership KYC drift | ⚠️ PARTIAL | PageRank over synthetic graph; no real UBO lookup | GLEIF ownership chain + OpenSanctions screening of each UBO | **1MDB** — beneficial ownership routed through multiple layers of Cayman/BVI shells; each UBO change further obscured the true principal |
-| 6 | Large funding round / expansion | Scale risk | ⚠️ PARTIAL | `funding_event` template + causal; no live feed | GDELT news search for funding/expansion events + scale-jump ratio | **FTX** — $900M raise at $18B valuation; transaction volumes never matched claimed revenue; scale jump was the leading AML signal |
+| 6 | Large funding round / expansion | Scale risk | ⚠️ PARTIAL | `funding_event` template + causal; no live feed | Event Registry funding-event query + scale-jump ratio; GDELT fallback | **FTX** — $900M raise at $18B valuation; transaction volumes never matched claimed revenue; scale jump was the leading AML signal |
 | 7 | Dormant company activates | Suspicious activation | ✅ WORKS | `drift/dormancy.py` explicit detector; wired into score + API; `dormancy_break` scenario in book; DormancyPanel in UI | — | **Azerbaijani Laundromat** — EU shell companies dormant for years, suddenly activated 2012–2014 to route $2.9B out of Azerbaijan |
 | 8 | Legal entity name change | Re-KYC required | ❌ MISSING | Not implemented | ZEFIX + GLEIF diff against KYC baseline; `name_changed` signal; score floor at 60 | **Mossack Fonseca shelf cycling** — systematic renaming of shelf companies every 12–18 months to reset KYC review clocks |
 | 9 | Domain switch / website change | Business activity change | ❌ MISSING | Not implemented | WHOIS registrant diff + Wayback (onboarding snapshot) + Firecrawl (current) + cosine distance | **N26** — rapid international expansion and domain/product proliferation outpaced AML monitoring; BaFin appointed a special monitor |
-| 10 | Public business model pivot | Material business change | ❌ MISSING | Not implemented | GDELT pivot-adjacent news cluster + Firecrawl + sentence-transformer cosine | **Centra Tech** — pivoted from debit-card fintech to ICO in 90 days; existing AML profile captured none of the new business model risk |
+| 10 | Public business model pivot | Material business change | ❌ MISSING | Not implemented | Event Registry pivot-event cluster + Firecrawl + sentence-transformer cosine; GDELT fallback | **Centra Tech** — pivoted from debit-card fintech to ICO in 90 days; existing AML profile captured none of the new business model risk |
 
 ---
 
@@ -62,22 +62,22 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 **3. Source adapters — carcasses exist in `backend/app/sources/`; `fetch`/`fetch_signals` are stubs**
 
-Decision rule: **only 100%-free / free-tier sources are implemented**; paid sources are `SKIPPED`.
+Decision rule: **free/free-tier sources + Event Registry** (hackathon API key provided); other paid sources remain `SKIPPED`.
 See [`docs/sources.md`](docs/sources.md) for full cost/access breakdown.
 
-*Free — implement these (status: `PLANNED`):*
+*Implement these (status: `PLANNED`):*
+- [ ] **`sources/event_registry.py`** — structured news events, entity-aware queries (Cases 1, 6, 8, 10) · PAID — **hackathon API key provided; PRIMARY news source**
 - [ ] **`sources/zefix.py`** — Swiss commercial register (Cases 4, 7, 8, 10) · FREEMIUM (free, but needs a free registered Basic-auth account — verified live 401 without creds; no officers/UBO in the API)
 - [ ] **`sources/gleif.py`** — Global LEI Foundation (Cases 3, 4, 5, 8, 10) · FREE
 - [ ] **`sources/opensanctions.py`** — OFAC / EU / UN sanctions + PEP screening (Cases 2, 5) · FREEMIUM
-- [ ] **`sources/gdelt.py`** — GDELT 2.0 free news feed (Cases 1, 6, 8, 10) · FREE — replaces paid Event Registry
+- [ ] **`sources/gdelt.py`** — GDELT 2.0 free news feed (Cases 1, 6, 8, 10) · FREE — **fallback** when Event Registry key absent
 - [ ] **`sources/firecrawl.py`** — website-to-markdown scraping, current content (Cases 9, 10) · FREEMIUM
 - [ ] **`sources/wayback.py`** — Internet Archive historical snapshot at onboarding date (Cases 9, 10) · FREE
 - [ ] **`sources/whois.py`** — RDAP domain age + registrant change (Cases 8, 9) · FREE
 
 *Paid — skipped (carcasses exist and document the decision):*
 - [x] ~~**`sources/open_corporates.py`**~~ — PAID — SKIP (covered by GLEIF + ZEFIX)
-- [x] ~~**`sources/event_registry.py`**~~ — PAID trial-only — SKIP (covered by GDELT)
-- [x] ~~**`sources/crunchbase.py`**~~ — PAID — SKIP (funding news covered by GDELT)
+- [x] ~~**`sources/crunchbase.py`**~~ — PAID — SKIP (funding news covered by Event Registry)
 
 **4. Adapter implementation specs — what each connector must fetch and return**
 
@@ -133,7 +133,21 @@ Each adapter has two methods to implement. `fetch()` returns a current `EntitySn
 
 ---
 
-**`GdeltAdapter`** (`sources/gdelt.py`) — GDELT 2.0 Free News Feed
+**`EventRegistryAdapter`** (`sources/event_registry.py`) — Event Registry / NewsAPI.ai · PRIMARY NEWS SOURCE
+- **What to fetch**: de-duplicated news events about a named entity, with per-event sentiment, relevance score, and article cluster. Preferred over GDELT because it is entity-aware (searches by concept/organisation URI, not raw text), de-duplicates syndicated coverage into single Events, and returns structured sentiment.
+- **Auth**: `EVENT_REGISTRY_API_KEY` env var → sent as `"apiKey": key` in every POST body. Raise `SourceUnavailableError` if key absent (falls back to GDELT in aggregator).
+- **`fetch(drift_id, name)`**: returns `None` — screening source, no canonical snapshot.
+- **`fetch_signals(drift_id, name, since_month)`** — four query modes (all `POST /api/v1/event/getEvents`, JSON body):
+  - **News volume / adverse media (UC 1)**: query `{"action": "getEvents", "keyword": name, "dateStart": since_date, "dateEnd": today, "lang": ["eng","deu","fra"], "sortBy": "date", "resultType": "timeline", "timelineStartDate": since_date, "timelineEndDate": today, "timelineInterval": "week"}` → weekly event-count series → BOCPD on the counts → if changepoint detected, also fetch `avgSentiment` for that window: negative sentiment → `PublicSignal(signal_type="news", severity="high", detail=f"News spike detected at {spike_date}, avg_sentiment={sentiment:.2f}")` ; neutral/positive → `severity="medium"`
+  - **Adverse media events (UC 1 corroboration)**: same query but add `"categoryUri": "news/Business"` + filter events whose `avgSentiment < -0.3` → `signal_type="adverse_media"`, severity=`"high"`, `source_url` = event URL on eventregistry.org
+  - **Funding events (UC 6)**: `{"keyword": f"{name} funding OR investment OR raised OR acquisition", "dateStart": since_date, ...}` → events within window → `signal_type="funding_event"`, severity=`"medium"`, detail = event title + article count
+  - **Pivot / rebrand (UC 8, 10)**: `{"keyword": f"{name} rebranding OR renamed OR pivot OR \"business model\" OR \"new product\"", ...}` → cluster of ≥ 2 events within 90-day window → `signal_type="business_model_change"`, severity=`"high"`
+- **Rate limit**: 2,500 req/day on hackathon tier. Cache `fetch_signals` results per `(drift_id, since_month)` tuple in `EntitySnapshotDB.extra["er_signals_cache"]` with a 6 h TTL to stay well within quota.
+
+---
+
+**`GdeltAdapter`** (`sources/gdelt.py`) — GDELT 2.0 Free News Feed · FALLBACK
+- **When to use**: only if `EVENT_REGISTRY_API_KEY` is absent. The aggregator checks `EventRegistryAdapter.status` first; if unavailable, delegates to GDELT.
 - **What to fetch**: global news article lists and weekly volume time-series, filterable by entity name and keyword. No canonical entity record — signals only.
 - **`fetch(drift_id, name)`**: returns `None` always.
 - **`fetch_signals(drift_id, name, since_month)`** — three separate query modes:
@@ -197,9 +211,10 @@ Each adapter has two methods to implement. `fetch()` returns a current `EntitySn
 Each task below flips one row in the Use Case Coverage table. Prerequisite: the relevant adapter(s) from section 3 must be implemented first.
 
 > **UC 1 — Negative news spike** (⚠️ PARTIAL → ✅)
-- [ ] Implement `GdeltAdapter.fetch_signals` volume time-series mode (see spec above)
-- [ ] Run BOCPD on GDELT weekly article-count series in `service.py:_analyze_customer`; surface `news_spike_month` in the analysis dict; feed into the confirmation-lift temporal window alongside internal BOCPD changepoint
-- [ ] Add `news_spike` synthetic scenario to `simulator.py` — customer whose public_risk surges at month 9 via a GDELT-shaped article-count spike; causal label `"risk"`
+- [ ] Implement `EventRegistryAdapter.fetch_signals` news-volume + adverse-media modes (primary; see spec above); implement `GdeltAdapter.fetch_signals` volume mode as fallback
+- [ ] Aggregator selects EventRegistry if `EVENT_REGISTRY_API_KEY` is set, else falls back to GDELT — single call site in `public_intel.py`
+- [ ] Run BOCPD on weekly event-count series in `service.py:_analyze_customer`; surface `news_spike_month` in the analysis dict; feed into the confirmation-lift temporal window alongside internal BOCPD changepoint
+- [ ] Add `news_spike` synthetic scenario to `simulator.py` — customer whose public_risk surges at month 9 via a news event-count spike; causal label `"risk"`
 
 > **UC 3 — Multiple entities + sudden flows** (⚠️ PARTIAL → ✅)
 - [ ] Implement `GleifAdapter.fetch` (ownership chain: parent LEI + direct children)
@@ -218,7 +233,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 - [ ] Surface UBO screening results (matched entity names + scores) in `DriftSubjectDetail` API response
 
 > **UC 6 — Large funding round / expansion** (⚠️ PARTIAL → ✅)
-- [ ] Implement `GdeltAdapter.fetch_signals` funding article mode (see spec above)
+- [ ] Implement `EventRegistryAdapter.fetch_signals` funding-events mode (primary); implement `GdeltAdapter.fetch_signals` funding mode as fallback
 - [ ] Compute scale-jump ratio (`active_volume / baseline_volume`) in `causal.py`; if ratio ≥ 5× and a `funding_event` signal exists in the same window, raise `causal_p_risk` (corroborating that the volume jump is acquisition-driven rather than laundering)
 
 > **UC 8 — Legal entity name change** (❌ MISSING → ✅)
@@ -238,9 +253,9 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 - [ ] Add `domain_pivot` synthetic scenario to `simulator.py` — WHOIS registrant change at month 8 + high cosine distance; causal label `"risk"`
 
 > **UC 10 — Public business model pivot** (❌ MISSING → ✅)
-- [ ] Implement `GdeltAdapter.fetch_signals` pivot/rebrand article cluster mode (see spec above)
-- [ ] In the aggregator: if GDELT reports a pivot-adjacent article cluster AND cosine distance ≥ 0.35, elevate signal severity to `"critical"` (two independent corroborating sources)
-- [ ] Add `pivot` synthetic scenario to `simulator.py` — GDELT signals fire at month 9; website cosine distance fires; causal label `"risk"` with `funding_event` co-occurrence (Centra Tech pattern)
+- [ ] Implement `EventRegistryAdapter.fetch_signals` pivot/rebrand mode (primary; see spec above); implement `GdeltAdapter.fetch_signals` pivot mode as fallback
+- [ ] In the aggregator: if Event Registry reports a pivot-adjacent event cluster AND cosine distance ≥ 0.35, elevate signal severity to `"critical"` (two independent corroborating sources)
+- [ ] Add `pivot` synthetic scenario to `simulator.py` — news pivot signals fire at month 9; website cosine distance fires; causal label `"risk"` with `funding_event` co-occurrence (Centra Tech pattern)
 
 ---
 
@@ -299,12 +314,12 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | ZEFIX | 4, 7, 8, 10 | FREEMIUM¹ | 🔲 PLANNED |
 | GLEIF | 3, 4, 5, 8, 10 | FREE | 🔲 PLANNED |
 | OpenSanctions | 2, 5 | FREEMIUM | 🔲 PLANNED |
-| GDELT | 1, 6, 8, 10 | FREE | 🔲 PLANNED |
+| Event Registry / NewsAPI.ai | 1, 6, 8, 10 | PAID (hackathon key) | 🔲 PLANNED — **primary news source** |
+| GDELT | 1, 6, 8, 10 | FREE | 🔲 PLANNED — fallback when ER key absent |
 | RDAP/WHOIS | 8, 9 | FREE | 🔲 PLANNED |
 | Wayback Machine | 9, 10 | FREE | 🔲 PLANNED |
 | Firecrawl | 9, 10 | FREEMIUM | 🔲 PLANNED |
 | OpenCorporates | 3, 4, 5, 7 | PAID | ⛔ SKIPPED |
-| EventRegistry / NewsAPI.ai | 1, 6, 8, 10 | PAID | ⛔ SKIPPED |
 | Crunchbase | 6 | PAID | ⛔ SKIPPED |
 | Internal transactions | 2, 3, 7 | — | ✅ Built |
 

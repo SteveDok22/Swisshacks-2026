@@ -100,11 +100,11 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 ### P3 — Nice to have
 
-- [ ] **`time_travel.feature`** BDD test — replay uses only data available at as-of date; lead time is positive
-- [ ] **`test_hypothesis_h1.py`** — BOCPD lead time ≥ 2 months on drifting scenarios; 0 false positives on stable scenario
-- [ ] **`test_hypothesis_h2.py`** — velocity alert fires earlier than absolute-threshold alert at equal false-positive rate
-- [ ] **`test_hypothesis_h3.py`** — 2-hop contagion customers elevated; 3+ hop not elevated
-- [ ] **`test_hypothesis_h4.py`** — cascade cost < 10% of LLM-on-everything; high-risk recall unchanged
+- [x] **`time_travel.feature`** BDD test — replay uses only data available at as-of date; lead time is positive
+- [x] **`test_hypothesis_h1.py`** — BOCPD lead time ≥ 2 months on drifting scenarios; 0 false positives on stable scenario
+- [x] **`test_hypothesis_h2.py`** — velocity alert fires earlier than absolute-threshold alert at equal false-positive rate
+- [x] **`test_hypothesis_h3.py`** — 2-hop contagion customers elevated; 3+ hop not elevated
+- [x] **`test_hypothesis_h4.py`** — cascade cost < 10% of LLM-on-everything; high-risk recall unchanged
 
 ---
 

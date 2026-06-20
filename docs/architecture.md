@@ -133,6 +133,7 @@ flowchart TD
 
     subgraph Data["db/"]
         models["models.py\nSQLModel schemas"]
+        kyc_baseline["kyc_baseline.py\nEntitySnapshot store/load"]
         session[session.py]
         seed[seed.py]
     end

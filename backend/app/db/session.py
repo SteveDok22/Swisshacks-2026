@@ -56,6 +56,7 @@ async def init_db() -> None:
     # Import models so they're registered with SQLModel.metadata
     # (must happen before create_all)
     from app.db import models  # noqa: F401
+    from app.db import kyc_baseline  # noqa: F401
     
     async with _engine.begin() as conn:
         if conn.dialect.name == "sqlite":

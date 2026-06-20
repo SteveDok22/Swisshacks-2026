@@ -31,6 +31,7 @@ from app.drift.public_intel import (
 )
 from app.drift.simulator import SyntheticCustomer, generate_book, generate_customer
 from app.drift.stability import assess_stability, cohort_volatility
+from app.drift.dormancy import assess_dormancy
 from app.drift.timetravel import replay_trajectory
 from app.drift.velocity import compute_drift_series, velocity_band
 from app.ml.base import score_to_level
@@ -38,6 +39,7 @@ from app.schemas.drift import (
     CascadeCostReport,
     CausalVerdictOut,
     ContagionGraph,
+    DormancyOut,
     DriftCustomerDetail,
     DriftCustomerSummary,
     DriftTimelinePoint,
@@ -181,6 +183,10 @@ class DriftEngine:
             public_risk=pi.public_risk,
         )
 
+        # --- DORMANCY BREAK: was the customer dormant, then suddenly active?
+        # (AMINA use case: "previously dormant company begins high volume") ---
+        dormancy = assess_dormancy(cust.monthly_volume)
+
         # Causal modulation — the whole point of the causal layer is to act on
         # the verdict, not just display it. A high-magnitude drift that is
         # clearly LIFE-SHAPED (benign) should NOT sit at the top of the
@@ -201,6 +207,16 @@ class DriftEngine:
         if stability.is_suspicious:
             score = max(score, 50.0 + stability.suspicion * 40.0)
 
+        # Dormancy-break ELEVATION — a reactivated sleeper starts from a quiet
+        # baseline, so drift/velocity under-react. When a genuine dormant->active
+        # burst is detected, floor the score upward so it surfaces for review.
+        # NOTE: this floor is applied AFTER the causal demotion above and will
+        # override it on purpose — a reactivated shell must surface even if the
+        # causal layer reads the new activity as (so far) benign-shaped. This is
+        # the same "cannot hide below the radar" policy as the stability floor.
+        if dormancy.is_dormancy_break:
+            score = max(score, 55.0 + dormancy.dormancy_break * 35.0)
+
         return {
             "drift_series": ds,
             "latest_velocity": latest_velocity,
@@ -216,6 +232,7 @@ class DriftEngine:
             "confirmation_lift": lift,
             "causal": causal,
             "stability": stability,
+            "dormancy": dormancy,
             "drift_score": score,
         }
 
@@ -285,6 +302,7 @@ class DriftEngine:
         """Build a strict JSON-only adjudication prompt for T2 cases."""
         causal = analysis["causal"]
         stability = analysis["stability"]
+        dormancy = analysis["dormancy"]
         signature = causal.signature
         context: dict[str, Any] = {
             "customer": {
@@ -317,6 +335,13 @@ class DriftEngine:
                 "is_suspicious": stability.is_suspicious,
                 "score": round(stability.suspicion, 3),
                 "detail": stability.detail,
+            },
+            "dormancy_break": {
+                "is_dormancy_break": dormancy.is_dormancy_break,
+                "score": round(dormancy.dormancy_break, 3),
+                "baseline_volume": round(dormancy.baseline_volume, 1),
+                "active_volume": round(dormancy.active_volume, 1),
+                "detail": dormancy.detail,
             },
             "public_signals": [
                 {
@@ -445,6 +470,8 @@ class DriftEngine:
                     causal_p_risk=round(a["causal"].p_risk, 3),
                     suspicion=round(a["stability"].suspicion, 3),
                     is_suspicious=a["stability"].is_suspicious,
+                    dormancy_break=round(a["dormancy"].dormancy_break, 3),
+                    is_dormancy_break=a["dormancy"].is_dormancy_break,
                     scenario=cust.scenario,
                 )
             )
@@ -521,6 +548,15 @@ class DriftEngine:
                 cohort_volatility=round(a["stability"].cohort_volatility, 4),
                 is_suspicious=a["stability"].is_suspicious,
                 detail=a["stability"].detail,
+            ),
+            dormancy=DormancyOut(
+                dormancy_break=round(a["dormancy"].dormancy_break, 3),
+                dormancy_depth=round(a["dormancy"].dormancy_depth, 3),
+                activation_strength=round(a["dormancy"].activation_strength, 3),
+                baseline_volume=round(a["dormancy"].baseline_volume, 1),
+                active_volume=round(a["dormancy"].active_volume, 1),
+                is_dormancy_break=a["dormancy"].is_dormancy_break,
+                detail=a["dormancy"].detail,
             ),
         )
 

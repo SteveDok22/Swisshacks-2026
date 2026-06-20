@@ -48,8 +48,7 @@ Specific signal scenarios from the challenge brief — each must be detected, fl
 | Previously dormant company begins high transaction volume | Dormancy Break – Suspicious Activation | Trigger AML review; validate business legitimacy |
 
 **Coverage in Sentinel Drift Engine:**
-- ✅ Covered: reputational news spike, behavioural anomaly, structuring/layering, jurisdiction move, new beneficial owners, funding round / scale change
-- ⚠️ Partial: dormancy break (stability detector catches it, no explicit dormancy signal)
+- ✅ Covered: reputational news spike, behavioural anomaly, structuring/layering, jurisdiction move, new beneficial owners, funding round / scale change, **dormancy break** (explicit `drift/dormancy.py` detector — near-zero baseline → volume burst; wired into the drift score and surfaced in the API)
 - ❌ Missing: legal entity name change signal, domain switch / website content monitoring, public business model pivot detection
 
 ---

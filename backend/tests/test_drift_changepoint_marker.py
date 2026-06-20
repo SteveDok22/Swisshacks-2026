@@ -65,8 +65,8 @@ class TestChangepointTimelineMarker:
                 # timeline point) — nothing to render, and that is correct.
                 assert not marked
 
-    def test_dormancy_break_customer_is_marked(self) -> None:
-        """The seeded dormancy-break customer has a confirmed regime change, so
+    def test_dormancy_break_subject_is_marked(self) -> None:
+        """The seeded dormancy-break subject has a confirmed regime change, so
         its timeline must carry exactly one marker (regression guard)."""
         engine = DriftEngine()
         dormant = next(
@@ -107,7 +107,7 @@ class TestChangepointTimelineMarker:
         assert cp_month not in set(ds.windows)
         assert [w for w in ds.windows if w == cp_month] == []
 
-    def test_stable_customer_has_no_marker(self) -> None:
+    def test_stable_subject_has_no_marker(self) -> None:
         engine = DriftEngine()
         stable = next(c for c in engine._book if c.scenario == "stable")
         detail = engine.get_subject(stable.drift_id)

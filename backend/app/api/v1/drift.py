@@ -28,7 +28,7 @@ router = APIRouter(prefix="/drift", tags=["drift"])
 
 @router.get("/subjects", response_model=list[DriftSubjectSummary])
 async def list_drift_subjects() -> list[DriftSubjectSummary]:
-    """Book overview: drift score + velocity per customer, sorted by risk."""
+    """Book overview: drift score + velocity per subject, sorted by risk."""
     return get_drift_engine().list_subjects()
 
 
@@ -123,7 +123,7 @@ async def get_replay(
 ) -> ReplayResult:
     """
     Time-Travel Audit: as-of replay proving the system would have flagged this
-    customer using ONLY past data — no look-ahead bias. The regulatory proof.
+    subject using ONLY past data — no look-ahead bias. The regulatory proof.
     """
     result = get_drift_engine().replay(drift_id)
     if result is None:
@@ -189,7 +189,7 @@ async def generate_rfi(
     """
     Generate a Value-of-Information ranked request-for-information.
 
-    Returns rule-based RFI questions tuned to the customer's dominant
+    Returns rule-based RFI questions tuned to the subject's dominant
     drift signal, ordered by expected information gain.
     """
     engine = get_drift_engine()

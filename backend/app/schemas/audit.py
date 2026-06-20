@@ -4,7 +4,7 @@ Audit log schemas.
 Three key shapes:
 - AuditEntry — full record returned from queries
 - DecisionCreate — what a compliance officer submits when acting on a case
-  (case-review workflow) or a drift customer (drift-engine workflow)
+  (case-review workflow) or a drift subject (drift-engine workflow)
 - DecisionRead — what we return after recording
 """
 

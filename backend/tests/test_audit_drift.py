@@ -141,7 +141,7 @@ class TestAuditDriftEndpoints:
 
 class TestDriftActorCapture:
 
-    async def test_actor_id_captured_on_customer_detail(self, client, audit_query):
+    async def test_actor_id_captured_on_subject_detail(self, client, audit_query):
         drift_id = await _first_drift_id(client)
 
         await client.get(
@@ -208,7 +208,7 @@ class TestDriftActorCapture:
 
 class TestAuditNotWrittenOnError:
 
-    async def test_404_customer_detail_writes_no_audit(self, client, audit_query):
+    async def test_404_subject_detail_writes_no_audit(self, client, audit_query):
         response = await client.get("/api/v1/drift/subjects/nonexistent-id-xyz")
         assert response.status_code == 404
 
@@ -265,9 +265,9 @@ class TestAuditRiskLevelConsistency:
         else:
             assert level == RiskLevel.CRITICAL.value, f"score={score} should be critical, got {level}"
 
-    async def test_all_customers_have_consistent_audit_levels(self, client, audit_query):
+    async def test_all_subjects_have_consistent_audit_levels(self, client, audit_query):
         """
-        Call detail for every customer in the book and verify each audit entry's
+        Call detail for every subject in the book and verify each audit entry's
         risk_level is consistent with its risk_score. Covers all score ranges.
         """
         response = await client.get("/api/v1/drift/subjects")

@@ -117,7 +117,7 @@ class CaseDB(SQLModel, table=True):
 
 class DecisionDB(SQLModel, table=True):
     """
-    A compliance officer's decision — on a case or a drift customer.
+    A compliance officer's decision — on a case or a drift subject.
 
     Exactly one of case_id / drift_id is set (enforced by DB CHECK constraint
     and Pydantic validator on DecisionCreate).
@@ -139,7 +139,7 @@ class DecisionDB(SQLModel, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     case_id: UUID | None = Field(default=None, foreign_key="cases.id", index=True)
-    drift_id: str | None = Field(default=None, index=True)  # drift-engine customer
+    drift_id: str | None = Field(default=None, index=True)  # drift-engine subject
     
     action: DecisionAction
     

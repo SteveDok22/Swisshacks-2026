@@ -53,7 +53,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 **1. Engine (no external deps)**
 - [x] **Case 7: Dormancy-break detector** — `drift/dormancy.py` detects near-zero baseline → volume jump (`dormancy_break = dormancy_depth × activation_strength`); wired into `drift/service.py` (score floor) and surfaced via `DormancyOut` on summary/detail + T2 evidence; `dormancy_break` scenario + "Dormant Holdings AG" seeded in the book; unit + end-to-end tests. **Case 7 PARTIAL → WORKS.** (PR #10)
-- [x] **Fix BOCPD changepoint visual marker** — `bocpd_changepoint` is now derived in `DriftEngine.get_customer` by mapping `bocpd_changepoint_day` to its month window (via `SyntheticCustomer.day_to_month`); `DriftTimeline.tsx` renders a violet dashed "Regime change" marker at that month. Unit tests in `test_drift_changepoint_marker.py`. **DONE.** (PR #11)
+- [x] **Fix BOCPD changepoint visual marker** — `bocpd_changepoint` is now derived in `DriftEngine.get_subject` by mapping `bocpd_changepoint_day` to its month window (via `SyntheticCustomer.day_to_month`); `DriftTimeline.tsx` renders a violet dashed "Regime change" marker at that month. Unit tests in `test_drift_changepoint_marker.py`. **DONE.** (PR #11)
 
 **2. Prerequisites (build these before adapters)**
 - [x] **`db/kyc_baseline.py`** — `EntitySnapshotDB` SQLModel table + `store_snapshot`, `load_latest_snapshot`, `load_onboarding_snapshot`, `load_snapshot_history`, `load_all_baselines` CRUD helpers; registered in `session.py` so the table is auto-created on startup; 24 unit tests covering all helpers and seeding behaviour (PR #11)
@@ -79,7 +79,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 **5. UX / explainability**
 - [ ] **Source citations on signal cards** — add `source_url` field to `PublicSignalOut` in `public_intel.py`; display in `TwoLayerPanel.tsx`
-- [ ] **SHAP wired to drift** — option A (fast): reword docs to "per-layer contribution breakdown", drop per-variable SHAP claim; option B (correct): route T1 drift customers through `RiskEngine.score_case`, attach SHAP values to `DriftCustomerDetail`
+- [ ] **SHAP wired to drift** — option A (fast): reword docs to "per-layer contribution breakdown", drop per-variable SHAP claim; option B (correct): route T1 drift subjects through `RiskEngine.score_case`, attach SHAP values to `DriftSubjectDetail`
 
 **6. Cost tracking**
 - [ ] **Token usage per workflow** — add `tokens_used: int` and `model: str` to `CascadeCostReport` in `schemas/drift.py`; populate from `anthropic_client.py` response metadata
@@ -90,9 +90,9 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 - [ ] Move 6 magic-number layer weights from `service.py:104–163` to named constants in `core/config.py`
 - [ ] Add single-worker warning to `service.py:426` global `_engine` singleton (unsafe under multi-process)
-- [ ] Remove duplicate timeline endpoint — `GET /drift/customers/{id}/timeline` returns same payload as `GET /drift/customers/{id}`
+- [ ] Remove duplicate timeline endpoint — `GET /drift/subjects/{drift_id}/timeline` returns same payload as `GET /drift/subjects/{drift_id}`
 - [ ] Fix `audit.py:138` — `len(list(...all()))` loads entire table; replace with `COUNT(*)` query
-- [ ] `list_customers()` recomputes all 10 customers on every request — add short-lived TTL cache
+- [ ] `list_subjects()` recomputes all 10 subjects on every request — add short-lived TTL cache
 - [ ] Qualify "real-time signals" language in README and pitch — signals are simulated for MVP; architecture is slot-swap ready
 
 ---

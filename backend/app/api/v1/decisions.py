@@ -1,5 +1,5 @@
 """
-Decisions API — compliance officer actions on cases and drift customers.
+Decisions API — compliance officer actions on cases and drift subjects.
 """
 
 from __future__ import annotations

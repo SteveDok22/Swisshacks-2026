@@ -41,7 +41,7 @@ class DecisionService:
 
         Two workflows are supported:
         - Case workflow (case_id set): looks up the case, captures AI state.
-        - Drift workflow (drift_id set): validates the customer against the
+        - Drift workflow (drift_id set): validates the subject against the
           live drift engine and captures its server-derived analysis state.
         """
         if payload.case_id is not None:

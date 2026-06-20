@@ -11,6 +11,7 @@ import {
   Activity,
 } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 
 interface NavItem {
@@ -82,9 +83,14 @@ export function Sidebar() {
         className="h-16 flex items-center px-5 border-b border-paper-line hover:bg-paper-sunken transition-colors"
       >
         <div className="flex items-center gap-2.5">
-          <div className="h-7 w-7 rounded bg-accent flex items-center justify-center">
-            <span className="text-paper-raised font-semibold text-sm">S</span>
-          </div>
+          <Image
+            src="/assets/logo.png"
+            alt="Sentinel logo"
+            width={28}
+            height={28}
+            className="h-7 w-7 rounded object-contain"
+            priority
+          />
           <div className="leading-tight">
             <div className="font-semibold text-sm text-ink">Sentinel</div>
             <div className="text-2xs text-ink-muted">Risk Intelligence</div>

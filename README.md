@@ -52,7 +52,7 @@ This is **KYC drift**, the core of AMINA Challenge 4. Sentinel's Drift Engine de
 
 Derived from the [AMINA Challenge 4 brief](https://github.com/SwissHacks-2026/Amina-BANK/blob/main/README.md):
 
-- **BR1 — Public intelligence layer:** combine real-time public signals (news, sanctions, registries, funding, domain monitoring) into the risk picture.
+- **BR1 — Public intelligence layer:** combine public signals (news, sanctions, registries, funding, domain monitoring — simulated for MVP; live-feed adapters are slot-swap ready) into the risk picture.
 - **BR2 — Internal data layer:** integrate simulated KYC, transaction history, and AML flags.
 - **BR3 — KYC drift detection:** catch slow structural changes invalidating the original profile months before regulatory action.
 - **BR4 — Explainable AI:** every score decomposes into named contributions with source citations.

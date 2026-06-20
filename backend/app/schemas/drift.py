@@ -56,6 +56,18 @@ class StabilityOut(BaseModel):
     detail: str
 
 
+class DormancyOut(BaseModel):
+    """Dormancy-break assessment: the sleeper-account reactivation detector."""
+
+    dormancy_break: float = Field(description="0-1 product of the two factors")
+    dormancy_depth: float = Field(description="0-1 how dormant the baseline was")
+    activation_strength: float = Field(description="0-1 how strong the later burst is")
+    baseline_volume: float = Field(description="mean volume in the dormant window")
+    active_volume: float = Field(description="mean volume in the active window")
+    is_dormancy_break: bool
+    detail: str
+
+
 class AsOfPointOut(BaseModel):
     """The score the system WOULD have produced at month T, using only data
     available up to T (no look-ahead)."""
@@ -97,6 +109,8 @@ class DriftCustomerSummary(BaseModel):
     causal_p_risk: float = Field(default=0.5, description="Posterior P(risk)")
     suspicion: float = Field(default=0.0, description="Suspicious-stability score 0-1")
     is_suspicious: bool = Field(default=False, description="Slow-walker flag")
+    dormancy_break: float = Field(default=0.0, description="Dormancy-break score 0-1")
+    is_dormancy_break: bool = Field(default=False, description="Suspicious-activation flag")
     scenario: str | None = Field(default=None, description="Ground-truth scenario (demo)")
 
 
@@ -141,6 +155,9 @@ class DriftCustomerDetail(BaseModel):
 
     # Suspicious stability: the slow-walker / sleeper detector
     stability: StabilityOut | None = None
+
+    # Dormancy break: the reactivated-sleeper / suspicious-activation detector
+    dormancy: DormancyOut | None = None
 
 
 class LLMAdjudicationOut(BaseModel):

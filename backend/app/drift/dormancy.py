@@ -45,7 +45,12 @@ class DormancyResult:
 
 
 def _window_means(monthly: list[np.ndarray]) -> np.ndarray:
-    """Per-month mean volume as a 1-D array (skips empty months)."""
+    """Per-month mean volume as a 1-D array.
+
+    Empty months are skipped, so the baseline/active split below operates over
+    the sequence of *non-empty* months. For the synthetic book every month has
+    observations, so this is a no-op there; it only matters for sparse inputs.
+    """
     return np.array([float(np.mean(m)) for m in monthly if len(m) > 0])
 
 
@@ -77,8 +82,13 @@ def assess_dormancy(
     means = _window_means(customer_monthly)
     if len(means) < 4:
         return DormancyResult(
-            0.0, 0.0, 0.0, 0.0, 0.0, False,
-            "Insufficient history for dormancy assessment",
+            dormancy_break=0.0,
+            dormancy_depth=0.0,
+            activation_strength=0.0,
+            baseline_volume=0.0,
+            active_volume=0.0,
+            is_dormancy_break=False,
+            detail="Insufficient history for dormancy assessment",
         )
 
     split = max(int(len(means) * baseline_fraction), 1)

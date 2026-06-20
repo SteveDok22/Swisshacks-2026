@@ -6,6 +6,7 @@ import numpy as np
 import pytest
 
 from app.drift.dormancy import DormancyResult, assess_dormancy
+from app.drift.simulator import generate_book, generate_customer
 
 
 def _dormant_then_active(
@@ -74,6 +75,23 @@ class TestAssessDormancy:
         assert result.is_dormancy_break is False
         assert result.dormancy_break == 0.0
 
+    def test_all_zeros_overall_is_safe(self):
+        # >=4 months so we pass the length guard and actually hit the
+        # overall < 1e-9 branch — must not divide by zero or flag a break.
+        result = assess_dormancy([np.zeros(21) for _ in range(8)])
+        assert result.is_dormancy_break is False
+        assert result.dormancy_break == 0.0
+        assert result.dormancy_depth == 0.0
+
+    def test_custom_thresholds_change_outcome(self):
+        # A modest 5x jump from a quiet baseline: with a high activation_floor
+        # it should NOT count as a burst; with a low floor it should.
+        series = _dormant_then_active(active_level=300.0)  # ~6x over the 50 baseline
+        strict = assess_dormancy(series, activation_floor=20.0)
+        lenient = assess_dormancy(series, activation_floor=2.0)
+        assert lenient.activation_strength >= strict.activation_strength
+        assert lenient.dormancy_break >= strict.dormancy_break
+
     def test_result_shape(self):
         result = assess_dormancy(_dormant_then_active())
         assert isinstance(result, DormancyResult)
@@ -85,3 +103,36 @@ class TestAssessDormancy:
         result = assess_dormancy([])
         assert result.is_dormancy_break is False
         assert result.dormancy_break == 0.0
+
+
+class TestDormancyScenarioEndToEnd:
+    """The detector must actually fire on the synthetic book — not only on
+    hand-built arrays. Guards against the 'dead branch' regression where the
+    scenario existed in code but no customer ever exhibited it."""
+
+    def test_simulator_dormancy_break_customer_is_flagged(self):
+        cust = generate_customer(
+            customer_id="t-dorm",
+            name="Dormant Test AG",
+            scenario="dormancy_break",
+            drift_start_month=9,
+            seed=7,
+        )
+        result = assess_dormancy(cust.monthly_volume)
+        assert result.is_dormancy_break is True
+        assert result.active_volume > result.baseline_volume
+
+    def test_book_contains_a_flagged_dormant_customer(self):
+        book = generate_book()
+        flagged = [
+            c for c in book
+            if c.scenario == "dormancy_break"
+            and assess_dormancy(c.monthly_volume).is_dormancy_break
+        ]
+        assert flagged, "expected at least one dormant customer that fires the detector"
+
+    def test_steady_book_customers_do_not_falsely_flag(self):
+        book = generate_book()
+        for c in book:
+            if c.scenario in ("stable", "benign_expansion"):
+                assert assess_dormancy(c.monthly_volume).is_dormancy_break is False, c.scenario

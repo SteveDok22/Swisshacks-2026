@@ -208,7 +208,7 @@ docker compose run --rm backend-tests
 What's covered:
 
 - **Unit:** BOCPD against reference behavior (changepoint on step data, none on stationary).
-- **Scenario suite:** stable / volume-creep / counterparty-migration / corridor-shift / combined / benign-expansion / suspicious-stability, each with ground truth.
+- **Scenario suite:** stable / volume-creep / counterparty-migration / corridor-shift / combined / benign-expansion / suspicious-stability / dormancy-break, each with ground truth.
 - **T2 LLM adjudication:** verifies that only T2 customers trigger AnthropicClient calls, zero-T2 scans call none, and invalid LLM JSON falls back safely.
 - **Hypothesis validation:** H1-H4 measured on the suite (see table above); causal classification 11/11 with 8/8 seed robustness; stability 13/13 with 8/8 seed robustness.
 - **Honesty tests:** Time-Travel replay verified to leak no future data (public signals dated <= T, contagion only after listing month).

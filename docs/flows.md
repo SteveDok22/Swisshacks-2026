@@ -37,8 +37,7 @@ flowchart TD
 ```
 
 **Coverage status:**
-- ✅ S1 S2 S3 S7 S8 S9 — fully covered by drift engine layers
-- ⚠️ S10 — partially (stability detector flags anomalous smoothness; no explicit dormancy signal)
+- ✅ S1 S2 S3 S7 S8 S9 S10 — fully covered by drift engine layers (S10 dormancy break via the explicit `dormancy.py` detector)
 - ❌ S4 S5 S6 — entity name change, domain monitoring, and business model pivot not yet implemented
 
 ---

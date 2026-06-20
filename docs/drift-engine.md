@@ -140,6 +140,21 @@ A product, not a sum — both factors must be present. Stability is measured by 
 
 ---
 
+## Layer 6b — Dormancy Break (Suspicious Activation)
+
+The mirror image of suspicious stability. Every drift/velocity layer assumes a customer who is *doing something* the whole time; a dormant shell is the opposite — near-zero activity for a long stretch, then a sudden burst. Because the baseline is so quiet, even a large absolute jump reads as "starting from nothing" rather than a regime change, so the magnitude layers under-react. `drift/dormancy.py` detects it explicitly (pure numpy, no external API):
+
+```
+dormancy_break = dormancy_depth × activation_strength
+```
+
+- **dormancy_depth** — how quiet the baseline window was, relative to the customer's own overall level.
+- **activation_strength** — how large the later burst is versus the dormant baseline (a small floor on the baseline keeps a near-zero baseline from exploding the ratio).
+
+A product, not a sum: a company that stays dormant scores ~0, and one that was always active and merely grew scores ~0 (ordinary drift, handled elsewhere). Only the dormant → active transition scores high. A confirmed break floors the drift score upward — deliberately overriding the causal demotion — so a reactivated sleeper surfaces for review. This realises the AMINA brief's *"previously dormant company begins high transaction volume → Dormancy Break – Suspicious Activation"* use case.
+
+---
+
 ## Cost-Aware Cascade (Tier Router)
 
 Escalation is framed as information economics:

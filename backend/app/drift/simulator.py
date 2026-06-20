@@ -14,6 +14,8 @@ Scenarios:
 - counterparty_migration: share of high-risk counterparties grows
 - corridor_shift:        payment corridors move toward high-risk countries
 - combined:              all three, slowly — the realistic "quiet drift"
+- dormancy_break:        near-zero baseline then a sudden volume burst (the
+                         reactivated sleeper / "suspicious activation")
 
 Every scenario ends with a simulated sanctions listing at the final month
 (month 0 in demo language), so lead time = listing date - detection date.
@@ -33,7 +35,13 @@ SCENARIOS = (
     "combined",
     "benign_expansion",
     "suspicious_stability",
+    "dormancy_break",
 )
+
+# Must match `assess_dormancy`'s `baseline_fraction` default (drift/dormancy.py):
+# the dormancy_break scenario activates exactly on this split so the dormant
+# baseline window stays clean.
+DORMANCY_BASELINE_FRACTION = 0.5
 
 # Country risk weights reused conceptually from the social-engineering extractor
 CORRIDOR_RISK = {"CH": 0.05, "DE": 0.1, "IT": 0.15, "SG": 0.35, "HK": 0.4, "AE": 0.5, "RU": 0.95, "IR": 1.0}
@@ -110,6 +118,15 @@ def generate_customer(
     if scenario not in SCENARIOS:
         raise ValueError(f"unknown scenario {scenario!r}; choose from {SCENARIOS}")
 
+    # Dormancy break must activate exactly at the dormancy detector's
+    # baseline/active split (DORMANCY_BASELINE_FRACTION of the series); otherwise
+    # an active month leaks into the baseline window and the depth factor clips
+    # to 0. Snap the activation here so EVERY entry point — the demo book and the
+    # live /drift/inject path — produces a flaggable customer regardless of the
+    # caller's drift_start_month.
+    if scenario == "dormancy_break":
+        drift_start_month = round(months * DORMANCY_BASELINE_FRACTION)
+
     rng = np.random.default_rng(seed)
     # Causal ground-truth label: benign_expansion is the only benign drift;
     # suspicious_stability is its own category (the slow-walker / sleeper);
@@ -121,6 +138,8 @@ def generate_customer(
     elif scenario == "suspicious_stability":
         causal_truth = "suspicious"
     else:
+        # volume_creep / counterparty_migration / corridor_shift / combined /
+        # dormancy_break are all risk-shaped.
         causal_truth = "risk"
 
     cust = SyntheticCustomer(
@@ -142,17 +161,27 @@ def generate_customer(
             intensity = (month - drift_start_month) / span
 
         # --- Volume ---
-        # Both volume_creep (risk) AND benign_expansion move volume up by the
-        # SAME magnitude — so velocity alone cannot tell them apart. The causal
-        # layer must distinguish them by OTHER metrics (margin, counterparties).
-        vol_mult = 1.0
-        if scenario in ("volume_creep", "combined", "benign_expansion"):
-            vol_mult = 1.0 + 1.2 * intensity  # up to +120% by the end
-        # suspicious_stability: anomalously LOW noise — the slow-walker keeps an
-        # unnaturally smooth profile. Real customers jitter (~15% daily noise);
-        # a 2% profile is robotic and is itself the signal.
-        vol_noise = 0.02 if scenario == "suspicious_stability" else 0.15
-        volumes = rng.normal(base_volume * vol_mult, base_volume * vol_noise, days_per_month)
+        if scenario == "dormancy_break":
+            # The reactivated sleeper: near-floor volume for the whole dormant
+            # baseline, then a HARD burst at activation (a step, not a creep) —
+            # exactly the pattern the drift/velocity layers under-react to.
+            if month < drift_start_month:
+                vol_mean, vol_sd = 150.0, 30.0                 # dormant: quiet
+            else:
+                vol_mean, vol_sd = base_volume * 1.6, base_volume * 0.08  # surge
+            volumes = rng.normal(vol_mean, vol_sd, days_per_month)
+        else:
+            # Both volume_creep (risk) AND benign_expansion move volume up by the
+            # SAME magnitude — so velocity alone cannot tell them apart. The
+            # causal layer distinguishes them by OTHER metrics (margin, etc.).
+            vol_mult = 1.0
+            if scenario in ("volume_creep", "combined", "benign_expansion"):
+                vol_mult = 1.0 + 1.2 * intensity  # up to +120% by the end
+            # suspicious_stability: anomalously LOW noise — the slow-walker keeps
+            # an unnaturally smooth profile. Real customers jitter (~15% daily
+            # noise); a 2% profile is robotic and is itself the signal.
+            vol_noise = 0.02 if scenario == "suspicious_stability" else 0.15
+            volumes = rng.normal(base_volume * vol_mult, base_volume * vol_noise, days_per_month)
         volumes = np.maximum(volumes, 100.0)
 
         # --- Counterparty risk (share of tx with risky counterparties) ---
@@ -190,8 +219,12 @@ def generate_customer(
         # profit is reinvested). Transit/laundering scenarios COLLAPSE margin:
         # money flows straight through, retention approaches zero.
         base_margin = 0.25
-        if scenario in ("volume_creep", "counterparty_migration", "corridor_shift", "combined"):
-            # Risk: margin collapses toward 0 as intensity rises
+        if scenario in (
+            "volume_creep", "counterparty_migration", "corridor_shift",
+            "combined", "dormancy_break",
+        ):
+            # Risk: margin collapses toward 0 as intensity rises (the reactivated
+            # shell pushes money straight through — near-zero retention).
             margin_mean = base_margin * (1.0 - 0.9 * intensity)
         elif scenario == "benign_expansion":
             # Benign: margin holds (tiny dip from growth costs, then recovers)
@@ -251,6 +284,18 @@ def generate_book(
             name="Irina Volkova",
             scenario="suspicious_stability",
             seed=seed + 200,
+        )
+    )
+    idx += 1
+    # The reactivated sleeper (Case 7): a previously dormant shell that suddenly
+    # begins high transaction volume. generate_customer snaps the activation to
+    # the dormancy detector's baseline/active split, so it always flags.
+    book.append(
+        generate_customer(
+            customer_id=f"drift-{idx:03d}",
+            name="Dormant Holdings AG",
+            scenario="dormancy_break",
+            seed=seed + 300,
         )
     )
     idx += 1

@@ -26,12 +26,15 @@ import app.db.kyc_baseline  # noqa: F401 — register entity_snapshots table
 from app.db.kyc_baseline import (
     EntitySnapshotDB,
     load_all_baselines,
+    load_gleif_baselines,
     load_latest_snapshot,
     load_onboarding_snapshot,
     load_snapshot_history,
     store_snapshot,
 )
 from app.drift.simulator import generate_book
+from app.sources.base import EntitySnapshot
+from app.sources.gleif import ownership_change_signals
 
 
 # ---------------------------------------------------------------------------
@@ -400,7 +403,9 @@ class TestKycBaselineSeeding:
             rows = list(result.scalars().all())
 
         assert all(r.snapshot_type == "seeded" for r in rows)
-        assert all(r.source == "internal" for r in rows)
+        # Each customer now gets BOTH an internal behavioral baseline and a
+        # GLEIF-source ownership baseline (PR #45 follow-up).
+        assert {r.source for r in rows} == {"internal", "gleif"}
 
     async def test_stable_customer_baseline_uses_full_history(self, engine):
         """Stable customers have no drift window so baseline uses all months."""
@@ -445,3 +450,196 @@ class TestKycBaselineSeeding:
             assert row.avg_monthly_volume_chf < 5_000, (
                 f"dormant baseline unexpectedly high: {row.avg_monthly_volume_chf}"
             )
+
+
+# ---------------------------------------------------------------------------
+# EntitySnapshotDB.to_entity_snapshot — ORM row → pure domain object
+# ---------------------------------------------------------------------------
+
+
+class TestToEntitySnapshot:
+    def test_carries_registry_and_ownership_fields(self):
+        row = EntitySnapshotDB(
+            drift_id="d-conv",
+            snapshot_date=date(2023, 1, 1),
+            source="gleif",
+            name="Alpine Holdings AG",
+            legal_form="AG",
+            jurisdiction="CH",
+            registered_address="Bahnhofstrasse 1, Zurich, CH",
+            dissolution_status="active",
+            beneficial_owners=["PARENTLEI00000000001X"],
+            officers=["CHILDLEIA0000000001X"],
+            raw_data={"lei": "529900T8BM49AURSDO55"},
+        )
+        snap = row.to_entity_snapshot()
+        assert isinstance(snap, EntitySnapshot)
+        assert snap.drift_id == "d-conv"
+        assert snap.source == "gleif"
+        assert snap.name == "Alpine Holdings AG"
+        assert snap.legal_form == "AG"
+        assert snap.jurisdiction == "CH"
+        assert snap.registered_address == "Bahnhofstrasse 1, Zurich, CH"
+        assert snap.dissolution_status == "active"
+        assert snap.beneficial_owners == ["PARENTLEI00000000001X"]
+        assert snap.officers == ["CHILDLEIA0000000001X"]
+        assert snap.raw_data == {"lei": "529900T8BM49AURSDO55"}
+
+    def test_returned_lists_are_copies(self):
+        # Mutating the domain object must not corrupt the ORM row's JSON columns.
+        row = EntitySnapshotDB(
+            drift_id="d-copy",
+            snapshot_date=date(2023, 1, 1),
+            source="gleif",
+            name="Corp",
+            beneficial_owners=["A"],
+            officers=["B"],
+            raw_data={"lei": "L"},
+        )
+        snap = row.to_entity_snapshot()
+        snap.beneficial_owners.append("X")
+        snap.officers.append("Y")
+        snap.raw_data["lei"] = "MUTATED"
+        assert row.beneficial_owners == ["A"]
+        assert row.officers == ["B"]
+        assert row.raw_data == {"lei": "L"}
+
+
+# ---------------------------------------------------------------------------
+# load_gleif_baselines — source-filtered onboarding anchors as EntitySnapshots
+# ---------------------------------------------------------------------------
+
+
+def _gleif_row(
+    drift_id: str,
+    *,
+    lei: str = "LEIGLEIF0000000000XX",
+    parents: list[str] | None = None,
+    days_offset: int = 0,
+) -> EntitySnapshotDB:
+    return EntitySnapshotDB(
+        drift_id=drift_id,
+        snapshot_date=date(2023, 1, 1) + timedelta(days=days_offset),
+        snapshot_type="seeded",
+        source="gleif",
+        name="GLEIF Corp",
+        jurisdiction="CH",
+        dissolution_status="active",
+        beneficial_owners=list(parents or []),
+        raw_data={"lei": lei},
+    )
+
+
+class TestLoadGleifBaselines:
+    async def test_empty_when_no_gleif_rows(self, session):
+        # An internal-only baseline must not surface as a GLEIF baseline.
+        await store_snapshot(session, _make_snapshot(drift_id="g-1"), flush=True)
+        assert await load_gleif_baselines(session) == {}
+
+    async def test_returns_gleif_row_as_entity_snapshot(self, session):
+        await store_snapshot(session, _gleif_row("g-2", lei="LEIG2"), flush=True)
+        out = await load_gleif_baselines(session)
+        assert set(out) == {"g-2"}
+        assert isinstance(out["g-2"], EntitySnapshot)
+        assert out["g-2"].source == "gleif"
+        assert out["g-2"].raw_data["lei"] == "LEIG2"
+
+    async def test_excludes_internal_source(self, session):
+        await store_snapshot(session, _make_snapshot(drift_id="g-3"), flush=True)
+        await store_snapshot(session, _gleif_row("g-3", lei="LEIG3"), flush=True)
+        out = await load_gleif_baselines(session)
+        # Only the GLEIF-source baseline is returned for g-3.
+        assert out["g-3"].raw_data["lei"] == "LEIG3"
+
+    async def test_oldest_gleif_row_wins_per_customer(self, session):
+        t0 = datetime(2024, 1, 1, tzinfo=timezone.utc)
+        first = _gleif_row("g-4", lei="OLD")
+        first.created_at = t0
+        second = _gleif_row("g-4", lei="NEW", days_offset=90)
+        second.created_at = t0 + timedelta(seconds=1)
+        await store_snapshot(session, first, flush=True)
+        await store_snapshot(session, second, flush=True)
+        out = await load_gleif_baselines(session)
+        assert out["g-4"].raw_data["lei"] == "OLD"
+
+
+# ---------------------------------------------------------------------------
+# GLEIF baseline seeding + ownership diff fires against it (PR #45 follow-up)
+# ---------------------------------------------------------------------------
+
+
+class TestGleifBaselineSeeding:
+    async def _seed_and_load(self, engine):
+        from app.db.seed import _seed_kyc_baselines
+
+        factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+        async with factory() as s:
+            await _seed_kyc_baselines(s)
+            await s.commit()
+        async with factory() as s:
+            return await load_gleif_baselines(s)
+
+    async def test_every_customer_gets_a_gleif_baseline(self, engine):
+        gleif_baselines = await self._seed_and_load(engine)
+        for customer in generate_book():
+            assert customer.drift_id in gleif_baselines, (
+                f"no GLEIF baseline seeded for {customer.drift_id}"
+            )
+            assert gleif_baselines[customer.drift_id].source == "gleif"
+
+    async def test_gleif_baseline_carries_a_lei(self, engine):
+        gleif_baselines = await self._seed_and_load(engine)
+        for snap in gleif_baselines.values():
+            lei = snap.raw_data.get("lei")
+            assert isinstance(lei, str) and len(lei) == 20, f"bad LEI: {lei!r}"
+
+    async def test_internal_baseline_remains_latest(self, engine):
+        """The behavioral (internal) baseline must stay latest-per-customer so
+        load_all_baselines keeps returning the row carrying volume/risk means."""
+        from app.db.seed import _seed_kyc_baselines
+
+        factory = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
+        async with factory() as s:
+            await _seed_kyc_baselines(s)
+            await s.commit()
+        async with factory() as s:
+            latest = await load_all_baselines(s)
+        assert latest, "expected seeded baselines"
+        for cid, snap in latest.items():
+            assert snap.source == "internal", f"{cid}: GLEIF row displaced the anchor"
+            assert snap.avg_monthly_volume_chf is not None
+
+    async def test_ownership_diff_fires_against_seeded_baseline(self, engine):
+        """A new ultimate parent in the current GLEIF chain must produce an
+        ownership_change signal when diffed against the seeded GLEIF baseline."""
+        gleif_baselines = await self._seed_and_load(engine)
+        book = generate_book()
+        drift_id = book[0].drift_id
+        baseline = gleif_baselines[drift_id]
+
+        # Current live chain: same customer, now with an ultimate-parent LEI.
+        current = EntitySnapshot(
+            drift_id=drift_id,
+            name=baseline.name,
+            source="gleif",
+            beneficial_owners=["NEWPARENTLEI000001XX"],
+            raw_data={"lei": baseline.raw_data["lei"]},
+        )
+        signals = ownership_change_signals(baseline, current)
+        assert [s.signal_type for s in signals] == ["ownership_change"]
+        assert "NEWPARENTLEI000001XX" in signals[0].headline
+
+    async def test_no_diff_when_chain_unchanged(self, engine):
+        """An unchanged ownership chain emits nothing — the seeded baseline does
+        not manufacture spurious signals."""
+        gleif_baselines = await self._seed_and_load(engine)
+        drift_id = generate_book()[0].drift_id
+        baseline = gleif_baselines[drift_id]
+        current = EntitySnapshot(
+            drift_id=drift_id,
+            name=baseline.name,
+            source="gleif",
+            beneficial_owners=list(baseline.beneficial_owners),
+            raw_data={"lei": baseline.raw_data["lei"]},
+        )
+        assert ownership_change_signals(baseline, current) == []

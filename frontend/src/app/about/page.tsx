@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import {
   ArrowRight,
   Activity,
@@ -28,12 +29,17 @@ export default function AboutPage() {
       <header className="border-b border-paper-line bg-paper-raised/90 backdrop-blur sticky top-0 z-20">
         <div className="max-w-6xl mx-auto px-8 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2.5">
-            <div className="h-7 w-7 rounded bg-accent flex items-center justify-center">
-              <span className="text-paper-raised font-semibold text-sm">S</span>
-            </div>
+            <Image
+              src="/assets/logo.png"
+              alt="Sentinel logo"
+              width={28}
+              height={28}
+              className="h-7 w-7 rounded object-contain"
+              priority
+            />
             <div className="leading-tight">
-              <div className="font-semibold text-sm text-ink">Sentinel</div>
-              <div className="text-2xs text-ink-muted">Drift Engine</div>
+              <div className="font-serif font-semibold text-base text-ink tracking-tight">Sentinel</div>
+              <div className="text-2xs text-ink-muted">Risk Intelligence</div>
             </div>
           </Link>
           <Link
@@ -57,10 +63,6 @@ export default function AboutPage() {
           }}
         />
         <div className="relative max-w-6xl mx-auto px-8 py-20">
-          <div className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent-bg px-3 py-1 text-2xs font-semibold uppercase tracking-wide text-accent mb-6">
-            <span className="h-1.5 w-1.5 rounded-full bg-accent animate-pulse" />
-            SwissHacks 2026 · AMINA Challenge 4
-          </div>
           <h1 className="text-4xl sm:text-5xl font-semibold text-ink leading-[1.08] tracking-tight max-w-3xl">
             Catch KYC drift{" "}
             <span className="text-accent">before</span> it becomes a sanctions hit.

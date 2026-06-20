@@ -187,7 +187,8 @@ export const clientsApi = {
 // === Decisions ===
 export const decisionsApi = {
   record: (payload: {
-    case_id: string;
+    case_id?: string;
+    customer_id?: string;
     action: DecisionAction;
     officer_id: string;
     rationale?: string;
@@ -199,6 +200,9 @@ export const decisionsApi = {
 
   forCase: (caseId: string) =>
     apiFetch<DecisionRead[]>(`/decisions/case/${caseId}`),
+
+  forCustomer: (customerId: string) =>
+    apiFetch<DecisionRead[]>(`/decisions/customer/${customerId}`),
 };
 
 // === Audit ===
@@ -206,12 +210,20 @@ export const auditApi = {
   search: (params?: {
     event_type?: string;
     risk_level?: string;
+    actor_id?: string;
+    customer_id?: string;
+    from_date?: string;
+    to_date?: string;
     page?: number;
     page_size?: number;
   }) => {
     const qs = new URLSearchParams();
     if (params?.event_type) qs.set("event_type", params.event_type);
     if (params?.risk_level) qs.set("risk_level", params.risk_level);
+    if (params?.actor_id) qs.set("actor_id", params.actor_id);
+    if (params?.customer_id) qs.set("customer_id", params.customer_id);
+    if (params?.from_date) qs.set("from_date", params.from_date);
+    if (params?.to_date) qs.set("to_date", params.to_date);
     if (params?.page) qs.set("page", String(params.page));
     if (params?.page_size) qs.set("page_size", String(params.page_size));
     const query = qs.toString();

@@ -1,11 +1,15 @@
 """
-Unit tests for pure scoring functions — no I/O, no app startup.
+Boundary / pure-function tests for the scoring stack — no I/O, no app startup.
 
-These cover the mathematical boundaries of the drift engine's building blocks:
-- velocity_band() interpretation thresholds
-- gaussian_kl_bits() divergence properties
-- standardize() z-scoring
-- BOCPD changepoint behaviour on clean signals
+Two independent groups live here, both exercising mathematical boundaries:
+
+1. Decision boundaries — score_to_level() and score_to_action() tier cut-offs.
+   Key regression: before the fix, thresholds were (<= 30, <= 60, <= 85) which
+   misclassified float scores in the boundary zones (30,31), (60,61), (85,86).
+   After the fix: (< 31, < 61, < 86) — correct for both integer and float scores.
+
+2. Drift primitives — velocity_band() / gaussian_kl_bits() / standardize() /
+   BOCPD changepoint behaviour on clean signals.
 
 Run: pytest tests/test_score_boundaries.py -v
 """
@@ -15,6 +19,8 @@ import pytest
 
 from app.drift.velocity import velocity_band, gaussian_kl_bits
 from app.drift.bocpd import standardize, BOCPD
+from app.ml.base import score_to_action, score_to_level
+from app.schemas.enums import DecisionAction, RiskLevel
 
 
 class TestVelocityBand:
@@ -104,3 +110,140 @@ class TestBOCPD:
         series = standardize(np.concatenate([first, second]), baseline_window=30)
         result = BOCPD().run(series)
         assert len(result.detected_changepoints) > 0
+
+
+class TestScoreToLevel:
+    # --- LOW (0–30) ---
+
+    def test_zero_is_low(self):
+        assert score_to_level(0) == RiskLevel.LOW
+
+    def test_thirty_is_low(self):
+        assert score_to_level(30) == RiskLevel.LOW
+
+    def test_fractional_below_31_is_low(self):
+        # Regression: was MEDIUM before the boundary fix
+        assert score_to_level(30.5) == RiskLevel.LOW
+        assert score_to_level(30.9) == RiskLevel.LOW
+
+    # --- MEDIUM (31–60) ---
+
+    def test_31_is_medium(self):
+        assert score_to_level(31) == RiskLevel.MEDIUM
+
+    def test_mid_medium_is_medium(self):
+        assert score_to_level(45) == RiskLevel.MEDIUM
+
+    def test_sixty_is_medium(self):
+        assert score_to_level(60) == RiskLevel.MEDIUM
+
+    def test_fractional_below_61_is_medium(self):
+        # Regression: was HIGH before the boundary fix
+        assert score_to_level(60.5) == RiskLevel.MEDIUM
+        assert score_to_level(60.9) == RiskLevel.MEDIUM
+
+    # --- HIGH (61–85) ---
+
+    def test_61_is_high(self):
+        assert score_to_level(61) == RiskLevel.HIGH
+
+    def test_mid_high_is_high(self):
+        assert score_to_level(75) == RiskLevel.HIGH
+
+    def test_85_is_high(self):
+        assert score_to_level(85) == RiskLevel.HIGH
+
+    def test_fractional_below_86_is_high(self):
+        # Regression: was CRITICAL before the boundary fix
+        assert score_to_level(85.5) == RiskLevel.HIGH
+        assert score_to_level(85.9) == RiskLevel.HIGH
+
+    # --- CRITICAL (86–100) ---
+
+    def test_86_is_critical(self):
+        assert score_to_level(86) == RiskLevel.CRITICAL
+
+    def test_100_is_critical(self):
+        assert score_to_level(100) == RiskLevel.CRITICAL
+
+    # --- Return type ---
+
+    def test_returns_risk_level_enum(self):
+        assert isinstance(score_to_level(50), RiskLevel)
+
+    def test_risk_level_is_str_compatible(self):
+        # RiskLevel is StrEnum — must compare equal to its string value
+        assert score_to_level(50) == "medium"
+        assert score_to_level(70) == "high"
+
+
+class TestScoreToAction:
+    # --- ALLOW (low scores) ---
+
+    def test_zero_is_allow(self):
+        assert score_to_action(0, 0.9) == DecisionAction.ALLOW
+
+    def test_30_is_allow(self):
+        assert score_to_action(30, 0.9) == DecisionAction.ALLOW
+
+    def test_fractional_below_31_is_allow(self):
+        # Regression: was STEP_UP before the boundary fix
+        assert score_to_action(30.5, 0.9) == DecisionAction.ALLOW
+        assert score_to_action(30.9, 0.9) == DecisionAction.ALLOW
+
+    # --- STEP_UP_VERIFICATION (medium scores) ---
+
+    def test_31_is_step_up(self):
+        assert score_to_action(31, 0.9) == DecisionAction.STEP_UP_VERIFICATION
+
+    def test_60_is_step_up(self):
+        assert score_to_action(60, 0.9) == DecisionAction.STEP_UP_VERIFICATION
+
+    def test_fractional_below_61_is_step_up(self):
+        # Regression: was BLOCK/ESCALATE before the boundary fix
+        assert score_to_action(60.5, 0.9) == DecisionAction.STEP_UP_VERIFICATION
+        assert score_to_action(60.9, 0.9) == DecisionAction.STEP_UP_VERIFICATION
+
+    # --- BLOCK / ESCALATE (high + critical scores) ---
+
+    def test_high_score_with_high_confidence_is_block(self):
+        assert score_to_action(61, 0.9) == DecisionAction.BLOCK
+        assert score_to_action(86, 0.9) == DecisionAction.BLOCK
+        assert score_to_action(100, 0.9) == DecisionAction.BLOCK
+
+    def test_high_score_with_low_confidence_is_escalate(self):
+        assert score_to_action(61, 0.5) == DecisionAction.ESCALATE
+        assert score_to_action(86, 0.5) == DecisionAction.ESCALATE
+        assert score_to_action(100, 0.0) == DecisionAction.ESCALATE
+
+    def test_confidence_threshold_is_085(self):
+        assert score_to_action(70, 0.85) == DecisionAction.BLOCK
+        assert score_to_action(70, 0.84) == DecisionAction.ESCALATE
+
+
+class TestLevelActionConsistency:
+    """
+    score_to_level and score_to_action must agree on which tier a score falls in.
+    After the boundary fix both functions use the same (<31 / <61 / <86) thresholds.
+    """
+
+    SCORES = [0, 15, 30, 30.5, 31, 45, 60, 60.5, 61, 75, 85, 85.5, 86, 95, 100]
+
+    def test_low_scores_always_allow(self):
+        for score in [s for s in self.SCORES if s < 31]:
+            assert score_to_level(score) == RiskLevel.LOW, f"score={score}"
+            assert score_to_action(score, 0.9) == DecisionAction.ALLOW, f"score={score}"
+
+    def test_medium_scores_always_step_up(self):
+        for score in [s for s in self.SCORES if 31 <= s < 61]:
+            assert score_to_level(score) == RiskLevel.MEDIUM, f"score={score}"
+            assert (
+                score_to_action(score, 0.9) == DecisionAction.STEP_UP_VERIFICATION
+            ), f"score={score}"
+
+    def test_high_and_critical_scores_never_allow_or_step_up(self):
+        for score in [s for s in self.SCORES if s >= 61]:
+            level = score_to_level(score)
+            action = score_to_action(score, 0.9)
+            assert level in (RiskLevel.HIGH, RiskLevel.CRITICAL), f"score={score}"
+            assert action in (DecisionAction.BLOCK, DecisionAction.ESCALATE), f"score={score}"

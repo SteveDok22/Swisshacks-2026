@@ -22,7 +22,19 @@
 8. [Technologies Used](#technologies-used)
 9. [Running Locally](#running-locally)
 10. [Testing](#testing)
-11. [Credits](#credits)
+11. [Documentation](#documentation)
+12. [Credits](#credits)
+
+## Documentation
+
+| Page | Contents |
+|---|---|
+| **[Architecture](docs/architecture.md)** | System diagram, deployment topology, backend & frontend module maps |
+| **[User Flows](docs/flows.md)** | Use cases, officer investigation sequence, contagion discovery flow |
+| **[Database Schema](docs/db-schema.md)** | ER diagram, enumerations, case lifecycle state machine |
+| **[API Reference](docs/api.md)** | Endpoint map, response shapes, anonymization flow |
+| **[Drift Engine](docs/drift-engine.md)** | 7-layer pipeline, cost cascade, two-layer fusion, math, validation, references |
+| **[Challenge Overview](docs/CHALLENGE_4_OVERVIEW.md)** | AMINA Challenge 4 brief, key terminology |
 
 ---
 
@@ -30,7 +42,7 @@
 
 A customer is onboarded as a low-risk retail trader. Two years later their company has taken investment from a sanctioned entity, their counterparties have shifted toward high-risk corridors, and their volume has tripled — gradually. No single event tripped an alert. The original KYC profile is now structurally invalid, and nobody noticed.
 
-This is **KYC drift**, the core of AMINA Challenge 4. Sentinel's Drift Engine detects the precursor, not the consequence — combining **real-time public signals** (news, sanctions, adverse media, ownership changes, funding events) with **internal bank data** (KYC, transactions, AML flags), wrapped in explainable AI, human-in-the-loop validation, and immutable audit logs.
+This is **KYC drift**, the core of AMINA Challenge 4. Sentinel's Drift Engine detects the precursor, not the consequence — combining **public signals** (news, sanctions, adverse media, ownership changes, funding events — simulated for MVP; real API slots ready) with **internal bank data** (KYC, transactions, AML flags), wrapped in explainable AI, human-in-the-loop validation, and immutable audit logs.
 
 **Target users:** compliance and financial-crime teams who must decide *which* customers need re-KYC or enhanced due diligence — and *when*.
 
@@ -38,15 +50,25 @@ This is **KYC drift**, the core of AMINA Challenge 4. Sentinel's Drift Engine de
 
 ## Business Requirements
 
-Derived from the AMINA Challenge 4 brief:
+Derived from the [AMINA Challenge 4 brief](https://github.com/SwissHacks-2026/Amina-BANK/blob/main/README.md):
 
-- **BR1 — Public intelligence layer:** combine real-time public signals into the risk picture.
+- **BR1 — Public intelligence layer:** combine real-time public signals (news, sanctions, registries, funding, domain monitoring) into the risk picture.
 - **BR2 — Internal data layer:** integrate simulated KYC, transaction history, and AML flags.
-- **BR3 — KYC drift detection:** catch slow structural changes invalidating the original profile.
-- **BR4 — Explainable AI:** every score decomposes into named, human-readable contributions.
-- **BR5 — Human-in-the-loop:** an officer confirms or overrides every consequential action.
+- **BR3 — KYC drift detection:** catch slow structural changes invalidating the original profile months before regulatory action.
+- **BR4 — Explainable AI:** every score decomposes into named contributions with source citations.
+- **BR5 — Human-in-the-loop:** an officer confirms or overrides every consequential action with a written rationale.
 - **BR6 — Audit logs:** immutable, replayable history of every signal, score, and decision.
-- **BR7 — Cost awareness:** cheap models filter first; heavy reasoning only for high-risk cases.
+- **BR7 — Cost awareness:** staged pipeline — rules first, ML second, LLM only for high-risk cases; the scan report tracks actual T2 LLM adjudications separately from the LLM-on-everything counterfactual baseline.
+
+### Judging Criteria Coverage
+
+| Criterion | Weight | Our approach |
+|---|---|---|
+| **AI Intelligence Quality** | 25% | 7-layer drift engine: BOCPD, KL velocity, PageRank contagion, causal LLR, suspicious stability |
+| **Cost Efficiency** | 20% | 3-tier cascade (rules → ML → LLM); actual T2 adjudication counts; 96% cost reduction vs LLM-on-everything |
+| **UX & Explainability** | 20% | 7 interactive visualizations; per-layer breakdown; causal evidence cards |
+| **Compliance & Safety** | 20% | Anonymizer, append-only audit log, HITL decision bar, jurisdiction rules |
+| **Engineering & Architecture** | 15% | Modular 10-file drift engine; clean API; SQLModel + FastAPI |
 
 ---
 
@@ -93,30 +115,34 @@ Most teams will build "news API + LLM + dashboard". Three things go deeper:
 
 A module on top of the existing Sentinel platform — roughly 15% new code, 85% reuse.
 
-```
-backend/app/
-├── drift/              # The Drift Engine (10 modules)
-│   ├── bocpd.py            Bayesian Online Changepoint Detection
-│   ├── velocity.py         KL drift + drift velocity
-│   ├── contagion.py        Ownership graph + personalized PageRank
-│   ├── public_intel.py     Public signals + Confirmation Lift
-│   ├── causal.py           Causal hypothesis competition
-│   ├── stability.py        Suspicious-stability detector
-│   ├── cascade.py          Cost-aware tier router
-│   ├── timetravel.py       As-of replay (no look-ahead)
-│   ├── simulator.py        Synthetic customers with ground truth
-│   └── service.py          Orchestrator
-├── api/v1/             # 33 endpoints incl. /drift/*
-├── ml/                 # XGBoost + SHAP + DiCE (existing platform)
-├── services/           # Risk engine, anonymizer, audit log
-└── jurisdictions/      # CH / EU / HK / AE rule packs
+```mermaid
+flowchart LR
+    Officer(["Compliance Officer\nBrowser"])
 
-frontend/src/
-├── app/drift/          # Drift Engine workspace
-└── components/drift/   # 7 visualizations (radar, timeline, contagion, ...)
+    subgraph FE["Next.js 15 Frontend"]
+        DW[Drift Workspace]
+        CQ[Case Queue]
+    end
+
+    subgraph BE["FastAPI Backend"]
+        API["REST API\n27 endpoints"]
+        DE["Drift Engine\n7 layers"]
+        ML["ML Layer\nXGBoost · SHAP · DiCE"]
+        Svcs["Services\nAnonymizer · Audit · Jurisdiction"]
+    end
+
+    Claude["Anthropic Claude\nSonnet / Haiku"]
+    DB[("SQLite")]
+
+    Officer --> FE
+    FE -->|HTTP + SSE| API
+    API --> DE & ML & Svcs
+    DE --> ML
+    Svcs -->|Pseudonymized| Claude
+    API & ML & Svcs --> DB
 ```
 
-For a deeper technical treatment of the Drift Engine math, see **[DRIFT_ENGINE_README.md](DRIFT_ENGINE_README.md)**.
+Full diagrams and math: **[Architecture](docs/architecture.md)** · **[Drift Engine](docs/drift-engine.md)**
 
 ---
 
@@ -137,7 +163,7 @@ The Drift Engine workspace presents a verdict-first view: a recommended action u
 | **Time-Travel Audit** | As-of score replay proving early detection |
 | **Two-Layer Panel** | Public Intelligence vs Internal Bank Data + Confirmation Lift |
 | **Contagion Graph** | Ownership risk propagation from a sanctioned entity |
-| **Cost Cascade** | Live cost meter vs LLM-on-everything |
+| **Cost Cascade** | Live cost meter vs LLM-on-everything, with actual T2 real/mock adjudication counts |
 
 ---
 
@@ -148,36 +174,42 @@ The Drift Engine workspace presents a verdict-first view: a recommended action u
 | **Backend** | Python 3.11, FastAPI, Pydantic v2, SQLModel + SQLite |
 | **Science** | NumPy, SciPy (BOCPD, KL, statistics), NetworkX (PageRank) |
 | **ML** | XGBoost, SHAP, DiCE (counterfactuals) |
-| **LLM** | Anthropic Claude (assessment, RFI generation) |
-| **Frontend** | Next.js 15, React 19, TypeScript, Tailwind, TanStack Query |
-| **Tooling** | Git, GitHub, structlog, Server-Sent Events |
+| **LLM** | Anthropic Claude Sonnet 4.5 / Haiku 4.5 |
+| **Frontend** | Next.js 15, React 19, TypeScript, Tailwind CSS, TanStack Query |
+| **Tooling** | Git, GitHub, structlog, Server-Sent Events, uv |
+| **Public signals (MVP — simulated)** | Architecture slots for: OpenSanctions, GDELT, GLEIF, Swiss ZEFIX, OpenCorporates, Crunchbase |
 
 ---
 
 ## Running Locally
 
-Two terminals. Full copy-paste setup in **[QUICKSTART.md](QUICKSTART.md)**.
+One command with Docker. Full setup in **[QUICKSTART.md](QUICKSTART.md)**.
 
 ```bash
-# Backend
-cd backend
-python3 -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-uvicorn app.main:app --reload --port 8000
-
-# Frontend (new terminal)
-cd frontend
-npm install && npm run dev
+docker compose up --build
 ```
 
-Open <http://localhost:3000/drift> for the Drift Engine, or <http://localhost:8000/docs> for the API.
+Builds and starts both containers (frontend + backend) with hot reload. SQLite
+is disposable: the schema is recreated and mock data is seeded on every backend
+startup. Open
+<http://localhost:3000/drift> for the Drift Engine, or
+<http://localhost:8000/docs> for the API.
 
 ---
 
 ## Testing
 
+Run the suite in Docker (no local Python needed):
+
+```bash
+docker compose run --rm backend-tests
+```
+
+What's covered:
+
 - **Unit:** BOCPD against reference behavior (changepoint on step data, none on stationary).
 - **Scenario suite:** stable / volume-creep / counterparty-migration / corridor-shift / combined / benign-expansion / suspicious-stability, each with ground truth.
+- **T2 LLM adjudication:** verifies that only T2 customers trigger AnthropicClient calls, zero-T2 scans call none, and invalid LLM JSON falls back safely.
 - **Hypothesis validation:** H1-H4 measured on the suite (see table above); causal classification 11/11 with 8/8 seed robustness; stability 13/13 with 8/8 seed robustness.
 - **Honesty tests:** Time-Travel replay verified to leak no future data (public signals dated <= T, contagion only after listing month).
 

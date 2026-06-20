@@ -25,11 +25,11 @@ Design decisions:
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import UTC, date, datetime
 from typing import Any
 from uuid import UUID, uuid4
 
-from sqlalchemy import JSON, Column
+from sqlalchemy import JSON, CheckConstraint, Column
 from sqlmodel import Field, SQLModel
 
 from app.schemas.enums import (
@@ -117,16 +117,29 @@ class CaseDB(SQLModel, table=True):
 
 class DecisionDB(SQLModel, table=True):
     """
-    A compliance officer's decision on a case.
-    
+    A compliance officer's decision — on a case or a drift customer.
+
+    Exactly one of case_id / customer_id is set (enforced by DB CHECK constraint
+    and Pydantic validator on DecisionCreate).
+
     Append-only: once recorded, never updated.
-    If officer changes their mind — new decision record.
+    If the officer changes their mind — a new decision record is created.
+
+    NOTE: case_id is nullable as of the drift-engine workflow addition.
+    The application recreates its disposable SQLite schema on every startup.
     """
-    
+
     __tablename__ = "decisions"
-    
+    __table_args__ = (
+        CheckConstraint(
+            "(case_id IS NULL) != (customer_id IS NULL)",
+            name="ck_decision_exactly_one_id",
+        ),
+    )
+
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    case_id: UUID = Field(foreign_key="cases.id", index=True)
+    case_id: UUID | None = Field(default=None, foreign_key="cases.id", index=True)
+    customer_id: str | None = Field(default=None, index=True)  # drift-engine customer
     
     action: DecisionAction
     
@@ -143,6 +156,10 @@ class DecisionDB(SQLModel, table=True):
     # Snapshot of AI state at decision time
     ai_risk_score: float | None = None
     ai_risk_level: str | None = None
+    analysis_snapshot: dict[str, Any] = Field(
+        default_factory=dict,
+        sa_column=Column(JSON),
+    )
     
     created_at: datetime = Field(default_factory=datetime.utcnow, index=True)
 
@@ -176,6 +193,7 @@ class AuditEntryDB(SQLModel, table=True):
     # What it relates to
     case_id: UUID | None = Field(default=None, index=True)
     client_id: UUID | None = Field(default=None, index=True)
+    customer_id: str | None = Field(default=None, index=True)
     
     # Who did it (None if system event)
     actor_id: str | None = Field(default=None, index=True)
@@ -193,5 +211,5 @@ class AuditEntryDB(SQLModel, table=True):
     
     # When it happened
     occurred_at: datetime = Field(
-        default_factory=datetime.utcnow, index=True
+        default_factory=lambda: datetime.now(UTC), index=True
     )

@@ -10,6 +10,8 @@ dependencies = [
     "uvicorn[standard]>=0.32.0",
     "pydantic>=2.9.0",
     "pydantic-settings>=2.5.0",
+    # Required by pydantic EmailStr (app/schemas/client.py)
+    "email-validator>=2.0.0",
     "sse-starlette>=2.1.0",
     
     # Database
@@ -35,9 +37,6 @@ dependencies = [
     # LLM
     "anthropic>=0.39.0",
     
-    # Local embeddings (privacy-first)
-    "sentence-transformers>=3.2.0",
-    
     # Logging
     "structlog>=24.4.0",
     
@@ -53,6 +52,7 @@ dependencies = [
 dev = [
     "pytest>=8.3.0",
     "pytest-asyncio>=0.24.0",
+    "pytest-bdd>=7.0.0",
     "ruff>=0.7.0",
     "mypy>=1.13.0",
     "pre-commit>=4.0.0",

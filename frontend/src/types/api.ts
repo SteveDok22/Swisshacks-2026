@@ -169,6 +169,7 @@ export interface AuditEntry {
   event_type: string;
   case_id: string | null;
   client_id: string | null;
+  customer_id: string | null;
   actor_id: string | null;
   actor_type: string;
   payload: Record<string, unknown>;
@@ -180,7 +181,8 @@ export interface AuditEntry {
 // === Decisions ===
 export interface DecisionRead {
   id: string;
-  case_id: string;
+  case_id: string | null;
+  customer_id: string | null;
   action: DecisionAction;
   officer_id: string;
   rationale: string | null;
@@ -188,6 +190,7 @@ export interface DecisionRead {
   ai_recommended_action: DecisionAction | null;
   ai_risk_score: number | null;
   ai_risk_level: RiskLevel | null;
+  analysis_snapshot: Record<string, unknown>;
   created_at: string;
 }
 
@@ -294,6 +297,8 @@ export interface DriftCustomerDetail {
   drift_velocity: number;
   velocity_band: string;
   reached_tier: string;
+  recommended_action: DecisionAction;
+  risk_level: RiskLevel;
   escalation_reasons: string[];
   layers: LayerContribution[];
   timeline: DriftTimelinePoint[];
@@ -317,6 +322,24 @@ export interface CascadeCostReport {
   summary: string;
   llm_on_everything_cost: number;
   savings_pct: number;
+  actual_t2_llm_calls: number;
+  real_t2_llm_calls: number;
+  mock_t2_llm_calls: number;
+  llm_adjudications: LLMAdjudication[];
+}
+
+export interface LLMAdjudication {
+  customer_id: string;
+  customer_name: string;
+  llm_mode: "real" | "mock";
+  was_cached: boolean;
+  response: {
+    verdict: "risk" | "benign" | "ambiguous";
+    confidence: number;
+    rationale: string;
+    key_evidence: string[];
+    recommended_action: string;
+  };
 }
 
 export interface ContagionNode {

@@ -51,7 +51,8 @@ const NAV_ITEMS: NavItem[] = [
     label: "Audit Log",
     icon: FileSearch,
     active: false,
-    enabled: false,
+    enabled: true,
+    href: "/audit",
   },
   {
     id: "jurisdictions",

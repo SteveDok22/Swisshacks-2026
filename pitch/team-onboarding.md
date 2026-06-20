@@ -22,44 +22,26 @@ This addresses the AMINA challenge directly (cross-jurisdictional compliance), a
 
 ---
 
-## First — get it running (10 minutes)
+## First — get it running (one command)
 
 ### Prerequisites
 
-- **Python 3.11+** (`python3 --version`)
-- **Node.js 20+** (`node --version`)
+- **Docker Desktop** (with Compose v2) — `docker compose version`
 - **Git** (you already have it if you cloned)
 
-### Backend (terminal 1)
+### Start everything
 
 ```bash
-cd backend
-python3 -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt  # ~2 min, lots of ML deps
-python -m app.ml.training train-social-engineering  # ~15s, trains XGBoost
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+docker compose up --build
 ```
 
-You should see:
+This builds and starts both containers with hot reload (backend on :8000,
+frontend on :3000). The database is SQLite, auto-seeded on first start — no API
+key needed. The backend log shows:
 ```
 seed_completed     client_count=10  case_count=18
 ✓ Application startup complete.
 ✓ Uvicorn running on http://0.0.0.0:8000
-```
-
-### Frontend (terminal 2)
-
-```bash
-cd frontend
-npm install  # ~1 min
-npm run dev
-```
-
-You should see:
-```
-✓ Ready in 1.3s
-- Local: http://localhost:3000
 ```
 
 ### Verify
@@ -74,6 +56,14 @@ Open **http://localhost:3000**. You should see:
 Click **Marc Weber** (top of queue, score 100). The AI assessment should stream in word-by-word.
 
 If anything failed — ping in Slack with the exact error.
+
+### Run the tests
+
+```bash
+docker compose run --rm backend-tests
+```
+
+Runs the backend pytest suite in a container — no local Python needed.
 
 ---
 
@@ -214,10 +204,10 @@ Pick what fits your strength. Each line is roughly a half-day of work.
 ## Stuck? Read these in order
 
 1. **Error in browser console** → DevTools → Network tab → check the failing request
-2. **Backend not starting** → check `data/` directory exists, model file exists, `.env` not corrupted
-3. **Frontend not building** → `rm -rf node_modules .next && npm install`
-4. **Strange data** → `rm backend/data/risk_platform.db` and restart backend (re-seeds)
-5. **Nothing else worked** → DM Stiven, screenshot + last 10 lines of relevant terminal log
+2. **Backend not starting** → `docker compose logs backend` (model-file and startup errors show here)
+3. **Frontend not building** → rebuild: `docker compose up --build`
+4. **Strange data** → `docker compose down -v` wipes the `backend_data` volume; the DB re-seeds on the next `docker compose up`
+5. **Nothing else worked** → DM Stiven, screenshot + `docker compose logs`
 
 ---
 

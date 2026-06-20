@@ -265,6 +265,20 @@ export interface PublicSignal {
   severity: number;
   source: string;
   source_url: string | null;
+  // True when a business_model_change pivot was lifted to the critical band by
+  // two independent sources (news event cluster + website cosine shift, UC 10).
+  corroborated: boolean;
+}
+
+// Case 5: one UBO / ownership-chain entity screened against sanctions watchlists.
+export interface UboScreening {
+  screened_ubo: string;
+  matched_entity: string;
+  score: number;
+  severity: number;
+  month: number;
+  definitive: boolean;
+  source_url: string | null;
 }
 
 export interface LayerContribution {
@@ -292,6 +306,7 @@ export interface DriftCustomerSummary {
   is_suspicious: boolean;
   dormancy_break: number;
   is_dormancy_break: boolean;
+  is_name_changed: boolean;
   scenario: string | null;
 }
 
@@ -319,10 +334,20 @@ export interface DriftCustomerDetail {
   drift_start_month: number | null;
   sanctions_month: number | null;
   bocpd_changepoint_day: number | null;
+  // News-volume regime change (UC 1): month a sustained news spike broke.
+  news_spike_month: number | null;
   public_risk: number;
   internal_risk: number;
   confirmation_lift: number;
   public_signals: PublicSignal[];
+  // Case 5: UBO / ownership-chain sanctions screening hits.
+  ubo_screening: UboScreening[];
+  // UC8: confirmed legal-entity name change (re-KYC trigger). The underlying
+  // name_change / domain_change signals also appear in public_signals.
+  is_name_changed: boolean;
+  // Business-model drift (UC 9): silent website/domain pivot since onboarding.
+  is_business_model_change: boolean;
+  business_model_distance: number;
   causal: CausalVerdict | null;
   stability: StabilityVerdict | null;
   dormancy: DormancyVerdict | null;

@@ -409,6 +409,19 @@ flowchart TD
     T -->|dormancy_break| S9["0.60 + 0.15 × volume_jump_factor"]
 ```
 
+**Cross-source pivot corroboration (UC 10).** A `business_model_change` signal is
+emitted by *two* independent lenses: a **news** pivot/rebrand event cluster
+(Event Registry primary, GDELT fallback) and a **website** cosine shift
+(`drift/business_model.py`, which only fires at distance ≥ 0.35). The aggregator's
+`elevate_corroborated_pivots` (in `public_intel.py`, applied inside
+`gather_public_signals` and the synthetic generator) detects when both lenses are
+present — ≥ 2 news-derived pivots **and** ≥ 1 website-derived pivot — and elevates
+every pivot signal to the critical band (severity `0.95`, the top "near-certain
+escalation trigger" row above). Either lens alone is a lead, not a confirmation,
+and is left untouched. This is the Centra Tech pattern: a debit-card fintech that
+read as an ICO 90 days later, where neither the news cluster nor the website
+rewrite alone is conclusive but their co-occurrence is.
+
 ---
 
 ## 6. BOCPD Applied to Public Signal Time-Series

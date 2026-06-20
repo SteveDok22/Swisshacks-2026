@@ -28,6 +28,13 @@ class PublicSignalOut(BaseModel):
     severity: float = Field(description="0-1 classifier severity")
     source: str
     source_url: str | None = Field(default=None, description="Deep-link to the original source record")
+    corroborated: bool = Field(
+        default=False,
+        description=(
+            "True when a business_model_change pivot was lifted to the critical band by "
+            "two independent sources (news event cluster + website cosine shift, UC 10)"
+        ),
+    )
 
 
 class UboScreeningOut(BaseModel):
@@ -130,6 +137,7 @@ class DriftSubjectSummary(BaseModel):
     is_suspicious: bool = Field(default=False, description="Slow-walker flag")
     dormancy_break: float = Field(default=0.0, description="Dormancy-break score 0-1")
     is_dormancy_break: bool = Field(default=False, description="Suspicious-activation flag")
+    is_name_changed: bool = Field(default=False, description="Confirmed legal-entity name change (re-KYC trigger, UC8)")
     scenario: str | None = Field(default=None, description="Ground-truth scenario (demo)")
 
 
@@ -162,6 +170,11 @@ class DriftSubjectDetail(BaseModel):
     drift_start_month: int | None = None
     sanctions_month: int | None = None
     bocpd_changepoint_day: int | None = None
+    # News-volume regime change (UC 1): the month a sustained news spike broke,
+    # detected by BOCPD over the weekly event-count series. Anchors the public
+    # side of the confirmation-lift window. None when no spike is found (or there
+    # are no public signals).
+    news_spike_month: int | None = None
 
     # Two-layer breakdown (AMINA Challenge 4 architecture)
     public_risk: float = Field(default=0.0, description="Public intelligence layer risk 0-1")
@@ -170,6 +183,30 @@ class DriftSubjectDetail(BaseModel):
     public_signals: list[PublicSignalOut] = Field(default_factory=list)
     # Case 5: UBO / ownership-chain sanctions screening hits (matched names + scores).
     ubo_screening: list[UboScreeningOut] = Field(default_factory=list)
+
+    # UC8: confirmed legal-entity name change (re-KYC trigger). Mirrors the
+    # summary flag so the detail panel can surface the identity-reset treatment
+    # without re-deriving it from the public-signals list. The underlying
+    # `name_change` (ZEFIX/GLEIF) and `domain_change` (WHOIS) signals that set
+    # this flag also flow through `public_signals` above.
+    is_name_changed: bool = Field(
+        default=False,
+        description="Confirmed legal-entity name change (re-KYC trigger, UC8); floors the drift score at 60",
+    )
+
+    # Business-model drift (UC 9): silent website/domain pivot since onboarding.
+    # Derived from the Wayback (onboarding) vs Firecrawl (current) website-text
+    # cosine comparison in drift/business_model.py. When no website texts are
+    # available or the embeddings backend is absent, the comparison is skipped and
+    # these stay at their neutral defaults (no change, distance 0.0).
+    is_business_model_change: bool = Field(
+        default=False,
+        description="True when the public-facing business model shifted materially since onboarding",
+    )
+    business_model_distance: float = Field(
+        default=0.0,
+        description="Cosine distance between onboarding and current website text (0 = identical, higher = more divergent)",
+    )
 
     # Causal drift: risk-shaped vs life-shaped change
     causal: CausalVerdictOut | None = None
@@ -243,7 +280,8 @@ class InjectScenarioRequest(BaseModel):
         default="combined",
         description=(
             "stable | volume_creep | counterparty_migration | corridor_shift | "
-            "combined | benign_expansion | suspicious_stability | dormancy_break"
+            "combined | benign_expansion | suspicious_stability | dormancy_break | "
+            "domain_pivot"
         ),
     )
     name: str = Field(default="Injected Test Customer")

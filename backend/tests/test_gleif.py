@@ -731,6 +731,132 @@ class TestGleifHttpHelpers:
 
 
 # ---------------------------------------------------------------------------
+# direct-children pagination — follows GLEIF JSON:API ``links.next`` across
+# pages, honours the overall cap, and degrades gracefully on a mid-walk error.
+# ---------------------------------------------------------------------------
+
+_NEXT_PAGE_URL = (
+    "https://api.gleif.org/api/v1/lei-records/"
+    f"{_LEI}/direct-children?page%5Bnumber%5D=2&page%5Bsize%5D=200"
+)
+
+
+def _is_page_two(url: str) -> bool:
+    # GLEIF's ``links.next`` encodes page[number]; match either the percent-
+    # encoded form we emit or a plain ``page[number]=2`` for robustness.
+    return "page%5Bnumber%5D=2" in url or "page[number]=2" in url
+
+
+class TestGleifChildrenPagination:
+    def _adapter_with_mock_get(self, side_effect) -> GleifAdapter:
+        mock_client = MagicMock(spec=httpx.AsyncClient)
+        mock_client.get = AsyncMock(side_effect=side_effect)
+        return GleifAdapter(http_client=mock_client)
+
+    async def test_follows_links_next_across_pages(self):
+        # Page 1 carries a ``links.next`` cursor; page 2 ends the chain (next=null).
+        page1 = {
+            "data": [{"id": _CHILD_LEI_A, "attributes": {"lei": _CHILD_LEI_A}}],
+            "links": {"next": _NEXT_PAGE_URL},
+        }
+        page2 = {
+            "data": [{"id": _CHILD_LEI_B, "attributes": {"lei": _CHILD_LEI_B}}],
+            "links": {"next": None},
+        }
+
+        def side_effect(url, **kw):
+            return _mock_response(200, page2 if _is_page_two(url) else page1)
+
+        adapter = self._adapter_with_mock_get(side_effect)
+        result = await adapter._get_children_leis(_LEI)
+        # Both pages' children are collected, in order.
+        assert result == [_CHILD_LEI_A, _CHILD_LEI_B]
+        # Exactly two requests: the initial page + the followed ``links.next``.
+        assert adapter._http.get.await_count == 2
+
+    async def test_single_page_makes_one_request(self):
+        # Absent ``links.next`` → stop after the first page (legacy behaviour).
+        adapter = self._adapter_with_mock_get(
+            lambda url, **kw: _mock_response(200, _CHILDREN_RECORD)
+        )
+        result = await adapter._get_children_leis(_LEI)
+        assert result == [_CHILD_LEI_A, _CHILD_LEI_B]
+        assert adapter._http.get.await_count == 1
+
+    async def test_overall_cap_truncates_and_stops_paginating(self, monkeypatch):
+        # Cap at 2: a 3-child page is truncated and the ``links.next`` cursor is
+        # NOT followed — the cap bounds total work across pages, not per page.
+        monkeypatch.setattr("app.sources.gleif._MAX_DIRECT_CHILDREN", 2)
+        page = {
+            "data": [
+                {"id": f"CHILDLEI0000000000{i}X", "attributes": {}}
+                for i in range(3)
+            ],
+            "links": {"next": _NEXT_PAGE_URL},
+        }
+        adapter = self._adapter_with_mock_get(
+            lambda url, **kw: _mock_response(200, page)
+        )
+        result = await adapter._get_children_leis(_LEI)
+        assert len(result) == 2
+        # Cap reached on page 1 → no second request despite a present ``next``.
+        assert adapter._http.get.await_count == 1
+
+    async def test_degrades_on_mid_pagination_http_error(self):
+        # Page 1 ok with a ``next`` cursor; page 2 returns 500. The walk stops and
+        # returns the page-1 children rather than raising or discarding them.
+        page1 = {
+            "data": [{"id": _CHILD_LEI_A, "attributes": {"lei": _CHILD_LEI_A}}],
+            "links": {"next": _NEXT_PAGE_URL},
+        }
+
+        def side_effect(url, **kw):
+            return _mock_response(500) if _is_page_two(url) else _mock_response(200, page1)
+
+        adapter = self._adapter_with_mock_get(side_effect)
+        result = await adapter._get_children_leis(_LEI)
+        assert result == [_CHILD_LEI_A]
+        assert adapter._http.get.await_count == 2
+
+    async def test_degrades_on_mid_pagination_transport_error(self):
+        # A transport error while fetching page 2 must also degrade to page-1 data.
+        page1 = {
+            "data": [{"id": _CHILD_LEI_A, "attributes": {"lei": _CHILD_LEI_A}}],
+            "links": {"next": _NEXT_PAGE_URL},
+        }
+
+        async def side_effect(url, **kw):
+            if _is_page_two(url):
+                raise httpx.TransportError("connection reset")
+            return _mock_response(200, page1)
+
+        adapter = self._adapter_with_mock_get(side_effect)
+        result = await adapter._get_children_leis(_LEI)
+        assert result == [_CHILD_LEI_A]
+
+    async def test_loop_guard_bounds_runaway_pagination(self, monkeypatch):
+        # A malformed feed whose every page points to a fresh ``next`` must not
+        # loop forever — ``_MAX_CHILDREN_PAGES`` caps the number of requests.
+        monkeypatch.setattr("app.sources.gleif._MAX_CHILDREN_PAGES", 3)
+        call_count = {"n": 0}
+
+        def side_effect(url, **kw):
+            call_count["n"] += 1
+            return _mock_response(
+                200,
+                {
+                    "data": [{"id": f"CHILD{call_count['n']:016d}X", "attributes": {}}],
+                    "links": {"next": f"{_NEXT_PAGE_URL}&_p={call_count['n']}"},
+                },
+            )
+
+        adapter = self._adapter_with_mock_get(side_effect)
+        result = await adapter._get_children_leis(_LEI)
+        assert len(result) == 3
+        assert adapter._http.get.await_count == 3
+
+
+# ---------------------------------------------------------------------------
 # Integration: EntitySnapshot from fetch() feeds diff_snapshots()
 # ---------------------------------------------------------------------------
 

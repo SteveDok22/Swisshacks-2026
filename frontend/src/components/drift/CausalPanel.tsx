@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { InfoHint } from "@/components/ui/InfoHint";
 import { ZoomablePanel } from "@/components/ui/ZoomablePanel";
 import type { CausalVerdict } from "@/types/api";
-import { GitBranch } from "lucide-react";
+import { GitBranch, TrendingUp } from "lucide-react";
 
 interface CausalPanelProps {
   causal: CausalVerdict;
@@ -16,6 +16,13 @@ const METRIC_LABEL: Record<string, string> = {
   counterparty_change: "Counterparty risk",
   corridor_change: "Corridor risk",
 };
+
+// The scale-jump × funding corroboration (UC6) is not a per-metric movement —
+// it is a fixed positive boost added when a >=5x active/baseline volume jump is
+// confirmed by a public funding_event in the same window. Render it separately
+// from the diverging per-metric bars so the corroboration reads as explicit
+// evidence, not as one more metric.
+const SCALE_JUMP_FUNDING = "scale_jump_funding";
 
 /**
  * Causal Panel — the differentiator that answers "is this risk or normal life?"
@@ -30,10 +37,14 @@ export function CausalPanel({ causal }: CausalPanelProps) {
   const explanation =
     "Likelihood ratio between two generative hypotheses. Drift magnitude alone cannot separate benign from risk — the correlation signature can.";
 
-  // Order contributions by absolute magnitude (most decisive first)
-  const ranked = Object.entries(contributions).sort(
-    (a, b) => Math.abs(b[1]) - Math.abs(a[1]),
-  );
+  // Pull the scale-jump × funding corroboration out of the per-metric ranking —
+  // it gets its own callout below the metric bars (UC6).
+  const scaleJumpFunding = contributions[SCALE_JUMP_FUNDING];
+  // Order the remaining per-metric contributions by absolute magnitude (most
+  // decisive first).
+  const ranked = Object.entries(contributions)
+    .filter(([metric]) => metric !== SCALE_JUMP_FUNDING)
+    .sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
 
   return (
     <ZoomablePanel
@@ -131,6 +142,23 @@ export function CausalPanel({ causal }: CausalPanelProps) {
         })}
       </div>
 
+      {/* Scale-jump × funding corroboration (UC6): a >=5x volume jump confirmed
+          by a public funding event in the same window — a scale risk in its own
+          right (the FTX pattern). */}
+      {scaleJumpFunding !== undefined && (
+        <div className="flex items-center gap-2 rounded border border-risk-critical/20 bg-risk-critical-bg py-2 px-2.5 mt-3">
+          <TrendingUp className="h-3.5 w-3.5 shrink-0 text-risk-critical" strokeWidth={2} />
+          <span className="text-xs font-medium text-risk-critical">
+            Scale-jump corroborated by funding event
+          </span>
+          <span className="text-2xs text-ink-muted">
+            — ≥5x volume jump confirmed in the same window
+          </span>
+          <span className="ml-auto font-mono text-2xs tabular text-risk-critical shrink-0">
+            +{scaleJumpFunding.toFixed(1)}
+          </span>
+        </div>
+      )}
     </ZoomablePanel>
   );
 }

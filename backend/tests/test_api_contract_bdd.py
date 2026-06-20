@@ -79,3 +79,93 @@ async def test_subject_detail_exposes_ubo_screening(client: AsyncClient) -> None
         f"ubo_screening missing from detail. Keys: {list(body.keys())}"
     )
     assert isinstance(body["ubo_screening"], list)
+
+
+# --------------------------------------------------------------------------- #
+# UC10 — PublicSignalOut exposes the corroborated-critical pivot flag          #
+# --------------------------------------------------------------------------- #
+
+def test_public_signal_out_exposes_corroborated_flag() -> None:
+    """A corroborated pivot's ``corroborated`` flag must survive the exact
+    serialization path the service uses (``PublicSignalOut(**signal.to_dict())``,
+    drift/service.py), so the signal card can give it a critical treatment (UC10).
+    """
+    from app.schemas.drift import PublicSignalOut
+    from app.sources.base import PublicSignal
+
+    corroborated = PublicSignal(
+        month=9,
+        signal_type="business_model_change",
+        headline="Website content shifted materially since onboarding",
+        severity=0.95,
+        source="website-comparison",
+        corroborated=True,
+    )
+    out = PublicSignalOut(**corroborated.to_dict())
+    assert out.corroborated is True
+
+    # The default (uncorroborated single signal) must stay False, not over-state.
+    lead = PublicSignal(
+        month=8,
+        signal_type="business_model_change",
+        headline="Acme announces strategic pivot",
+        severity=0.60,
+        source="Event Registry / NewsAPI.ai",
+    )
+    assert PublicSignalOut(**lead.to_dict()).corroborated is False
+
+
+# --------------------------------------------------------------------------- #
+# UC8 — DriftSubjectDetail exposes the is_name_changed flag (contract test)    #
+# --------------------------------------------------------------------------- #
+
+async def test_subject_detail_exposes_is_name_changed(client: AsyncClient) -> None:
+    """DriftSubjectDetail must always carry the boolean ``is_name_changed`` flag
+    (UC8 follow-up), mirroring the summary so the detail panel can render the
+    identity-reset re-KYC treatment. Present and correctly typed for every
+    subject, regardless of whether a name change was detected.
+    """
+    listing = await client.get("/api/v1/drift/subjects")
+    assert listing.status_code == 200
+    subjects = listing.json()
+    assert subjects, "synthetic book should not be empty"
+
+    drift_id = subjects[0]["drift_id"]
+    detail = await client.get(f"/api/v1/drift/subjects/{drift_id}")
+    assert detail.status_code == 200
+
+    body = detail.json()
+    assert "is_name_changed" in body, (
+        f"is_name_changed missing from detail. Keys: {list(body.keys())}"
+    )
+    assert isinstance(body["is_name_changed"], bool)
+
+
+# --------------------------------------------------------------------------- #
+# UC1 — DriftSubjectDetail surfaces news_spike_month (contract test)           #
+# --------------------------------------------------------------------------- #
+
+async def test_subject_detail_exposes_news_spike_month(client: AsyncClient) -> None:
+    """DriftSubjectDetail must carry the ``news_spike_month`` field (UC1).
+
+    The field is part of the contract and nullable. Public-intel acquisition is
+    neutralized in this fixture (conftest stubs ``_public_signals`` to []), so no
+    spike is detectable here and the value is ``None`` — the concrete-value path
+    (a real news spike resolving to a month) is asserted at the engine level in
+    test_news_spike_scenario.py. Here we only pin the contract shape.
+    """
+    listing = await client.get("/api/v1/drift/subjects")
+    assert listing.status_code == 200
+    subjects = listing.json()
+    assert subjects, "synthetic book should not be empty"
+
+    drift_id = subjects[0]["drift_id"]
+    detail = await client.get(f"/api/v1/drift/subjects/{drift_id}")
+    assert detail.status_code == 200
+    body = detail.json()
+    assert "news_spike_month" in body, (
+        f"news_spike_month missing from detail. Keys: {list(body.keys())}"
+    )
+    assert body["news_spike_month"] is None or isinstance(
+        body["news_spike_month"], int
+    ), f"news_spike_month must be int | None, got {body['news_spike_month']!r}"

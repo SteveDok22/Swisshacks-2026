@@ -19,6 +19,18 @@ Scenarios:
 - news_spike:            reputational risk (UC 1) — a sustained negative-news
                          event spike whose external story confirms an internal
                          volume drift + margin collapse (the Wirecard pattern)
+- pivot:                 a public business-model pivot (UC 10, Centra Tech
+                         pattern) — volume climbs while margin collapses as the
+                         raised capital flows straight through; the public-intel
+                         layer pairs it with a news pivot cluster, a website
+                         cosine shift, and a co-occurring funding event
+- name_cycling:          legal entity name change at month 6 (ZEFIX + WHOIS
+                         signals fire) — the Mossack Fonseca shelf-cycling
+                         pattern, where shelf companies are renamed to reset
+                         KYC review clocks (Case 8 / re-KYC trigger)
+- domain_pivot:          the public-facing business model changes (website +
+                         WHOIS registrant) while transactions look superficially
+                         normal — the Centra Tech pattern the AML profile misses
 
 Every scenario ends with a simulated sanctions listing at the final month
 (month 0 in demo language), so lead time = listing date - detection date.
@@ -40,7 +52,34 @@ SCENARIOS = (
     "suspicious_stability",
     "dormancy_break",
     "news_spike",
+    "pivot",
+    "name_cycling",
+    "domain_pivot",
 )
+
+# Synthetic onboarding vs current website text for the domain_pivot scenario.
+# The two read as materially different businesses (boutique advisory → crypto
+# exchange / token ICO — the Centra Tech pattern), so an offline embedder yields
+# a cosine distance well above drift/business_model.py's 0.35 change threshold.
+# Each clears the comparator's 50-char minimum so the comparison is never skipped
+# as "empty_text". Used only in the offline demo path; live runs source these
+# texts from the Wayback / Firecrawl adapters instead.
+DOMAIN_PIVOT_ONBOARDING_TEXT = (
+    "Helvetia Advisory AG is a boutique import and export consultancy based in "
+    "Zug, advising family-owned manufacturers on cross-border trade finance, "
+    "customs documentation, and supplier due diligence across the EU and UK."
+)
+DOMAIN_PIVOT_CURRENT_TEXT = (
+    "HelvetiaX is a regulated cryptocurrency exchange and token launchpad "
+    "offering spot trading, staking rewards, custodial wallets, and an initial "
+    "coin offering for our new DeFi yield protocol with global onboarding."
+)
+
+# The name_cycling scenario (Case 8) injects a legal-entity name change at this
+# month. Public ZEFIX + WHOIS signals are emitted here by the synthetic
+# generator (see public_intel.generate_signals_for_customer) and the engine
+# floors the drift score on the resulting `name_change` signal.
+NAME_CHANGE_MONTH = 6
 
 # Must match `assess_dormancy`'s `baseline_fraction` default (drift/dormancy.py):
 # the dormancy_break scenario activates exactly on this split so the dormant
@@ -74,6 +113,12 @@ class SyntheticCustomer:
     sanctions_month: int | None = None
     # Ground-truth causal label for validation: "benign" | "risk" | None
     causal_truth: str | None = None
+    # Website text at KYC onboarding (Wayback "before" reference) and the current
+    # snapshot (Firecrawl "after"). Populated only for the domain_pivot scenario
+    # in the offline demo; the business-model comparator diffs the two. None for
+    # every other scenario, where no website comparison runs.
+    onboarding_website_text: str | None = None
+    current_website_text: str | None = None
 
     def metric_windows(self) -> dict[str, list[np.ndarray]]:
         """Behavioral metrics for velocity/BOCPD (magnitude of drift)."""
@@ -149,6 +194,21 @@ def generate_customer(
     if scenario == "dormancy_break":
         drift_start_month = round(months * DORMANCY_BASELINE_FRACTION)
 
+    # The name change is a fixed-month event (Case 8). Pin it to NAME_CHANGE_MONTH
+    # regardless of the caller's drift_start_month so every entry point — the demo
+    # book and the live /drift/inject path — emits the name_change signal at the
+    # same month the public signals fire. Clamp for unusually short books.
+    if scenario == "name_cycling":
+        drift_start_month = min(NAME_CHANGE_MONTH, months - 2)
+        # sanctions_month is deliberately left at the risk-scenario default
+        # (final month) below: the name change at NAME_CHANGE_MONTH is a re-KYC
+        # TRIGGER, not the sanctions event itself. Keeping the listing at the
+        # final month gives the Time-Travel replay its strongest narrative — the
+        # high-severity name_change public signal lifts the as-of score across the
+        # alert threshold ~(months-1 - NAME_CHANGE_MONTH) months before the
+        # listing, demonstrating the early-warning lead time. An earlier explicit
+        # value would only shorten that lead time without any domain rationale.
+
     rng = np.random.default_rng(seed)
     # Causal ground-truth label: benign_expansion is the only benign drift;
     # suspicious_stability is its own category (the slow-walker / sleeper);
@@ -161,7 +221,7 @@ def generate_customer(
         causal_truth = "suspicious"
     else:
         # volume_creep / counterparty_migration / corridor_shift / combined /
-        # dormancy_break / news_spike are all risk-shaped.
+        # dormancy_break / news_spike / pivot / name_cycling / domain_pivot are all risk-shaped.
         causal_truth = "risk"
 
     cust = SyntheticCustomer(
@@ -197,7 +257,7 @@ def generate_customer(
             # SAME magnitude — so velocity alone cannot tell them apart. The
             # causal layer distinguishes them by OTHER metrics (margin, etc.).
             vol_mult = 1.0
-            if scenario in ("volume_creep", "combined", "benign_expansion", "news_spike"):
+            if scenario in ("volume_creep", "combined", "benign_expansion", "news_spike", "pivot"):
                 vol_mult = 1.0 + 1.2 * intensity  # up to +120% by the end
             # suspicious_stability: anomalously LOW noise — the slow-walker keeps
             # an unnaturally smooth profile. Real customers jitter (~15% daily
@@ -217,6 +277,12 @@ def generate_customer(
         # the whole signal.
         if scenario == "suspicious_stability":
             risky_share = base_risky_share + 0.35 * intensity
+        # name_cycling: the renamed shell quietly picks up new (riskier)
+        # counterparties after the identity reset — a mild migration. Volume
+        # stays flat; the identity change, not the volume, is the headline
+        # signal (surfaced by the public name_change feed + the score floor).
+        if scenario == "name_cycling":
+            risky_share = base_risky_share + 0.30 * intensity
         # Benign expansion DIVERSIFIES (slightly more counterparties) but they
         # stay low-risk — share barely moves.
         cp_risk = rng.binomial(1, min(risky_share, 0.95), days_per_month).astype(float)
@@ -243,10 +309,13 @@ def generate_customer(
         base_margin = 0.25
         if scenario in (
             "volume_creep", "counterparty_migration", "corridor_shift",
-            "combined", "dormancy_break", "news_spike",
+            "combined", "dormancy_break", "news_spike", "pivot", "name_cycling", "domain_pivot",
         ):
             # Risk: margin collapses toward 0 as intensity rises (the reactivated
-            # shell pushes money straight through — near-zero retention).
+            # shell — the pivoted ICO, or the silently-pivoted business — pushes
+            # money straight through, near-zero retention). For domain_pivot this
+            # is the only transactional tell; volume/counterparty/corridor stay at
+            # baseline, so the public website/WHOIS change is what actually surfaces it.
             margin_mean = base_margin * (1.0 - 0.9 * intensity)
         elif scenario == "benign_expansion":
             # Benign: margin holds (tiny dip from growth costs, then recovers)
@@ -260,6 +329,14 @@ def generate_customer(
         cust.counterparty_risk.append(cp_risk)
         cust.corridor_risk.append(corridor_risk)
         cust.margin_ratio.append(margin)
+
+    # domain_pivot carries onboarding vs current website text so the
+    # business-model comparator can diff them (UC 9). The WHOIS registrant change
+    # the scenario represents lands at drift_start_month; the website divergence
+    # is the same pivot seen from the public side.
+    if scenario == "domain_pivot":
+        cust.onboarding_website_text = DOMAIN_PIVOT_ONBOARDING_TEXT
+        cust.current_website_text = DOMAIN_PIVOT_CURRENT_TEXT
 
     return cust
 
@@ -321,6 +398,31 @@ def generate_book(
             name="Dormant Holdings AG",
             scenario="dormancy_break",
             seed=seed + 300,
+        )
+    )
+    idx += 1
+    # The shelf-company cycler (Case 8): a legal entity that changes its name at
+    # NAME_CHANGE_MONTH to reset its KYC review clock (Mossack Fonseca pattern).
+    # ZEFIX + WHOIS public signals fire; the engine floors the drift score on the
+    # resulting name_change signal so the identity reset surfaces for re-KYC.
+    book.append(
+        generate_customer(
+            drift_id=f"drift-{idx:03d}",
+            name="Meridian Trust Reg.",
+            scenario="name_cycling",
+            seed=seed + 400,
+        )
+    )
+    idx += 1
+    # The silent business-model pivot (Case 9): a boutique advisory whose website
+    # and WHOIS registrant change into a crypto exchange while its transactions
+    # look superficially normal — the Centra Tech pattern the AML profile misses.
+    book.append(
+        generate_customer(
+            drift_id=f"drift-{idx:03d}",
+            name="Helvetia Advisory AG",
+            scenario="domain_pivot",
+            seed=seed + 400,
         )
     )
     idx += 1

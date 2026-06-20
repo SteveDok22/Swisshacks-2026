@@ -10,6 +10,7 @@ import { DriftRadar } from "@/components/drift/DriftRadar";
 import { DriftTimeline } from "@/components/drift/DriftTimeline";
 import { ContagionGraph } from "@/components/drift/ContagionGraph";
 import { TwoLayerPanel } from "@/components/drift/TwoLayerPanel";
+import { UboScreeningPanel } from "@/components/drift/UboScreeningPanel";
 import { CausalPanel } from "@/components/drift/CausalPanel";
 import { StabilityPanel } from "@/components/drift/StabilityPanel";
 import { DormancyPanel } from "@/components/drift/DormancyPanel";
@@ -166,6 +167,7 @@ export function DriftWorkspace() {
                 {detail.causal && <CausalPanel causal={detail.causal} />}
                 <DriftTimeline detail={detail} />
                 <TwoLayerPanel detail={detail} />
+                <UboScreeningPanel hits={detail.ubo_screening} />
               </div>
 
               {/* Right column: evidence & context */}

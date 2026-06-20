@@ -27,13 +27,14 @@ from __future__ import annotations
 
 import asyncio
 import concurrent.futures
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
 from app.core.config import settings
 from app.core.logging import get_logger
+from app.drift.business_model import WEBSITE_COMPARISON_SOURCE
 from app.sources.base import PublicSignal
 
 if TYPE_CHECKING:
@@ -67,7 +68,23 @@ _SEVERITY_LEXICON = {
 
 # PublicSignal is now defined in sources/base.py (canonical location) and
 # imported above. The re-export keeps existing imports from this module working.
-__all__ = ["PublicSignal"]
+__all__ = ["PublicSignal", "elevate_corroborated_pivots"]
+
+# --- UC 10: cross-source business-model-pivot corroboration ----------------
+# Signal type emitted BOTH by news adapters (Event Registry primary / GDELT
+# fallback, on a pivot/rebrand article cluster) AND by the website cosine
+# comparator (drift/business_model.py, on Wayback↔Firecrawl distance ≥ 0.35).
+_PIVOT_SIGNAL_TYPE = "business_model_change"
+# A lone pivot headline is noise; a credible news *event cluster* needs at least
+# this many independent news-derived pivot signals. Mirrors the adapters' own
+# clustering (GDELT requires ≥ 3 articles; Event Registry emits one per article).
+_NEWS_PIVOT_CLUSTER_MIN = 2
+# Severity a corroborated pivot is elevated to — the top "near-certain escalation
+# trigger" band (0.90–1.00) in docs/source-integration-architecture.md §5.
+_CRITICAL_SEVERITY = 0.95
+# Synthetic-scenario calibration (offline demo path only).
+_PIVOT_NEWS_SEVERITY = 0.60     # matches Event Registry / GDELT pivot signals
+_PIVOT_WEBSITE_DISTANCE = 0.52  # cosine distance, comfortably past the 0.35 threshold
 
 
 def classify_severity(headline: str) -> float:
@@ -110,7 +127,30 @@ _HEADLINES = {
         "{name}-linked company product launch covered in trade press",
         "{name} entity announces new hiring in Zurich office",
     ],
+    "business_model_change": [
+        "{name} entity announces strategic pivot to a new product line",
+        "Trade press: {name}-linked company rebrands around a new business model",
+        "{name} firm shifts focus, unveils new product after strategic review",
+    ],
+    # Case 8 — legal-entity name change. Mirrors the ZEFIX/GLEIF diff signal the
+    # live adapters emit; here the synthetic generator fires it for name_cycling.
+    "name_change": [
+        "Registry filing: {name}-linked entity changes its legal name",
+        "ZEFIX update: legal name change recorded for {name} company",
+    ],
+    # Case 8 — domain registrant handover detected by the WHOIS/RDAP diff.
+    "domain_change": [
+        "WHOIS: registrant change on {name}-linked corporate domain",
+        "RDAP diff: new registrant on the {name} entity's domain",
+    ],
 }
+
+# Fixed severities for the Case 8 identity-change signal types, mirroring the
+# live adapter conventions (ZEFIX name-change is high-severity; a WHOIS
+# registrant handover is medium). These bypass the lexicon classifier because
+# their headlines carry no lexicon terms but the *event* is what matters.
+_NAME_CHANGE_SEVERITY = 0.85
+_DOMAIN_CHANGE_SEVERITY = 0.60
 
 
 _SOURCE_BASE_URLS = {
@@ -185,6 +225,80 @@ def generate_signals_for_customer(
                 )
             )
         return sorted(signals, key=lambda s: s.month)
+
+    # Pivot scenario (UC 10, Centra Tech pattern): a public business-model pivot
+    # that surfaces in two independent lenses at once — a NEWS pivot/rebrand
+    # cluster and a WEBSITE cosine shift — alongside a co-occurring funding event.
+    # elevate_corroborated_pivots() then lifts the corroborated pivot to the
+    # critical band, exactly as the live aggregator does.
+    if scenario == "pivot":
+        pivot_signals: list[PublicSignal] = []
+        pivot_month = min(drift_start_month + 1, months - 1)  # ~month 9 for the default onset
+        # 1. News pivot/rebrand CLUSTER (one past the minimum, like real coverage).
+        for offset in range(_NEWS_PIVOT_CLUSTER_MIN + 1):
+            m = min(pivot_month + offset, months - 1)
+            headline = rng.choice(_HEADLINES["business_model_change"]).format(name=first)
+            pivot_signals.append(
+                PublicSignal(
+                    month=m, signal_type="business_model_change", headline=headline,
+                    severity=_PIVOT_NEWS_SEVERITY, source="trade press",
+                    source_url=_demo_source_url(
+                        "trade press", drift_id, "business_model_change", m
+                    ),
+                )
+            )
+        # 2. Co-occurring funding event — the pivot is financed (Centra Tech's ICO raise).
+        funding_headline = rng.choice(_HEADLINES["funding_event"]).format(name=first)
+        pivot_signals.append(
+            PublicSignal(
+                month=pivot_month, signal_type="funding_event", headline=funding_headline,
+                severity=classify_severity(funding_headline), source="press release",
+                source_url=_demo_source_url(
+                    "press release", drift_id, "funding_event", pivot_month
+                ),
+            )
+        )
+        # 3. Website cosine distance fires, mirroring drift/business_model.py's
+        #    signal at distance ≥ 0.35 (severity = clip(0.20 + 1.30 × distance, 0, 0.95)).
+        distance = _PIVOT_WEBSITE_DISTANCE
+        severity = min(0.20 + 1.30 * distance, 0.95)
+        pivot_signals.append(
+            PublicSignal(
+                month=pivot_month, signal_type="business_model_change",
+                headline=(
+                    f"Website content for {name} shifted materially since onboarding "
+                    f"(cosine distance {distance:.2f})"
+                ),
+                severity=severity, source=WEBSITE_COMPARISON_SOURCE,
+                source_url=_demo_source_url(
+                    "website", drift_id, "business_model_change", pivot_month
+                ),
+            )
+        )
+        return elevate_corroborated_pivots(
+            sorted(pivot_signals, key=lambda s: s.month)
+        )
+
+    # Case 8 — name_cycling: a legal-entity name change fires ZEFIX (registry)
+    # and WHOIS (domain registrant) signals at the change month. These are the
+    # synthetic counterparts of the live ZEFIX/GLEIF/WHOIS diff signals; the
+    # engine floors the drift score on the `name_change` signal (re-KYC trigger).
+    if scenario == "name_cycling":
+        m = min(drift_start_month, months - 1)
+        zefix_headline = rng.choice(_HEADLINES["name_change"]).format(name=first)
+        whois_headline = rng.choice(_HEADLINES["domain_change"]).format(name=first)
+        return [
+            PublicSignal(
+                month=m, signal_type="name_change", headline=zefix_headline,
+                severity=_NAME_CHANGE_SEVERITY, source="corporate registry",
+                source_url=_demo_source_url("corporate registry", drift_id, "name_change", m),
+            ),
+            PublicSignal(
+                month=m, signal_type="domain_change", headline=whois_headline,
+                severity=_DOMAIN_CHANGE_SEVERITY, source="WHOIS",
+                source_url=_demo_source_url("WHOIS", drift_id, "domain_change", m),
+            ),
+        ]
 
     # Drifting customer: signals align with and follow internal drift onset.
     # Earlier signals are softer (funding/ownership), later turn adverse.
@@ -290,6 +404,51 @@ def detect_news_spike_month(
     return spike_month
 
 
+def elevate_corroborated_pivots(signals: list[PublicSignal]) -> list[PublicSignal]:
+    """Elevate a business-model pivot to *critical* when two independent sources confirm it (UC 10).
+
+    A public business-model pivot (the Centra Tech pattern: a debit-card fintech
+    that became an ICO in 90 days) is only high-confidence when it shows up in two
+    *independent* lenses at once:
+
+    1. a **news** pivot/rebrand event cluster — ``business_model_change`` signals
+       whose source is a news outlet (Event Registry primary, GDELT fallback), and
+    2. a **website** cosine shift — a ``business_model_change`` signal from
+       ``drift/business_model.py``, which only fires when the Wayback↔Firecrawl
+       cosine distance clears ``BUSINESS_MODEL_DISTANCE_THRESHOLD`` (0.35). Its
+       mere presence in the list therefore *is* the "distance ≥ 0.35" condition.
+
+    When both lenses are present (≥ ``_NEWS_PIVOT_CLUSTER_MIN`` news pivots AND
+    ≥ 1 website pivot) the two corroborate each other, so every pivot signal is
+    elevated to the critical band. Either lens alone is left untouched — one
+    source is a lead, not a confirmation. The input list is never mutated:
+    ``PublicSignal`` is frozen, so elevated signals are fresh copies and order is
+    preserved.
+    """
+    pivots = [s for s in signals if s.signal_type == _PIVOT_SIGNAL_TYPE]
+    if not pivots:
+        return signals
+
+    website_pivots = [s for s in pivots if s.source == WEBSITE_COMPARISON_SOURCE]
+    news_pivots = [s for s in pivots if s.source != WEBSITE_COMPARISON_SOURCE]
+    # Need BOTH independent lenses: a news event cluster AND the website cosine
+    # shift. One alone is a lead, not a corroboration — leave severities as-is.
+    if not website_pivots or len(news_pivots) < _NEWS_PIVOT_CLUSTER_MIN:
+        return signals
+
+    _logger.info(
+        "pivot_corroborated_critical",
+        news_pivots=len(news_pivots),
+        website_pivots=len(website_pivots),
+    )
+    return [
+        replace(s, severity=max(s.severity, _CRITICAL_SEVERITY), corroborated=True)
+        if s.signal_type == _PIVOT_SIGNAL_TYPE
+        else s
+        for s in signals
+    ]
+
+
 @dataclass
 class PublicIntelResult:
     """Aggregate public-intelligence assessment for one customer."""
@@ -377,13 +536,16 @@ async def _resolve_ubo_names(
     name: str,
     adapters: tuple[Any, ...],
 ) -> list[str]:
-    """Resolve the entity's GLEIF child LEIs to legal names for UBO screening.
+    """Resolve the entity's GLEIF ownership-chain LEIs to legal names for screening.
 
     Case 5 (new shareholders / UBOs): the OpenSanctions adapter screens each
-    name passed via its ``ubo_names`` kwarg. The names come from the GLEIF
-    ownership chain — we fetch the entity's direct-child LEIs (the GLEIF adapter
-    stores them in ``EntitySnapshot.officers``) and resolve each LEI back to a
-    legal name.
+    name passed via its ``ubo_names`` kwarg. The names come from BOTH ends of the
+    GLEIF ownership chain — the ultimate-parent LEI (the entity-level UBO proxy,
+    stored in ``EntitySnapshot.beneficial_owners``) and the direct-child LEIs
+    (stored in ``EntitySnapshot.officers``) — each resolved back to a legal name
+    so OpenSanctions screens the parent as well as the subsidiaries. A parent hit
+    surfaces as an ``ownership_change`` signal carrying the parent name (identical
+    UBO-screening convention to a child hit).
 
     Returns ``[]`` when GLEIF is not among the usable adapters, the entity is
     not in GLEIF, or any error occurs — screening then degrades to the main
@@ -401,13 +563,20 @@ async def _resolve_ubo_names(
         snapshot = await adapter.fetch(drift_id, name)
         if snapshot is None:
             return []
-        # GLEIF stores direct-child LEIs in ``officers`` (no subsidiaries field
-        # exists on EntitySnapshot). Cap the fan-out before resolving names.
+        # Screen BOTH ends of the GLEIF ownership chain: the ultimate-parent LEI
+        # (stored in ``beneficial_owners`` — the entity-level UBO proxy) and the
+        # direct-child LEIs (stored in ``officers``; no ``subsidiaries`` field
+        # exists on EntitySnapshot). The child fan-out is capped first; the parent
+        # (at most one LEI) is added on top, keeping the per-adapter budget intact.
+        # Dedupe LEIs so a node appearing as both parent and child — or a repeated
+        # entry — is resolved/screened only once.
+        parent_leis = [lei for lei in snapshot.beneficial_owners if lei]
         child_leis = [lei for lei in snapshot.officers if lei][:_MAX_UBO_CHILDREN]
-        if not child_leis:
+        leis = list(dict.fromkeys([*parent_leis, *child_leis]))
+        if not leis:
             return []
         resolved = await asyncio.gather(
-            *(_resolve_lei_name(adapter, drift_id, lei) for lei in child_leis)
+            *(_resolve_lei_name(adapter, drift_id, lei) for lei in leis)
         )
         # Drop unresolved (None) names; dedupe while preserving order.
         return list(dict.fromkeys(n for n in resolved if n))
@@ -530,7 +699,9 @@ async def gather_public_signals(
         return []
 
     signals: list[PublicSignal] = [s for batch in batches for s in batch]
-    return sorted(signals, key=lambda s: s.month)
+    # Cross-source corroboration (UC 10): a news pivot cluster + a website cosine
+    # shift together elevate the pivot to critical before the merged list returns.
+    return elevate_corroborated_pivots(sorted(signals, key=lambda s: s.month))
 
 
 def gather_public_signals_sync(

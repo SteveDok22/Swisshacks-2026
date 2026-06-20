@@ -256,6 +256,11 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
                   dormant
                 </span>
               )}
+              {c.is_name_changed && (
+                <span className="text-2xs px-1.5 py-0.5 rounded bg-risk-medium text-white shrink-0">
+                  name
+                </span>
+              )}
               <span className="font-mono text-2xs tabular text-ink-soft w-8 text-right shrink-0">
                 {c.drift_score.toFixed(0)}
               </span>

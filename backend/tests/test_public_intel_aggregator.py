@@ -15,9 +15,12 @@ from __future__ import annotations
 import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
+from app.drift.business_model import WEBSITE_COMPARISON_SOURCE
 from app.drift.public_intel import (
     _AGGREGATE_TIMEOUT_S,
+    _CRITICAL_SEVERITY,
     _FALLBACK_NEWS_SOURCE,
+    _NEWS_PIVOT_CLUSTER_MIN,
     _PRIMARY_NEWS_SOURCE,
     _SYNC_TIMEOUT_S,
     _resolve_ubo_names,
@@ -25,6 +28,7 @@ from app.drift.public_intel import (
     assess_public_risk,
     classify_severity,
     detect_news_spike_month,
+    elevate_corroborated_pivots,
     gather_public_signals,
     gather_public_signals_sync,
     generate_signals_for_customer,
@@ -89,15 +93,23 @@ def _make_adapter_cls(
 class _FakeGleif:
     """Minimal GLEIF adapter stand-in for UBO-resolution tests.
 
-    ``fetch`` returns a snapshot whose ``officers`` hold direct-child LEIs when
-    called with a name, and resolves each LEI to a legal name when called with
-    the ``lei`` kwarg (mirroring the real GleifAdapter contract).
+    ``fetch`` returns a snapshot whose ``officers`` hold direct-child LEIs and
+    whose ``beneficial_owners`` hold the ultimate-parent LEI when called with a
+    name, and resolves each LEI to a legal name when called with the ``lei``
+    kwarg (mirroring the real GleifAdapter contract).
     """
 
     source_name = "gleif"
 
-    def __init__(self, *, root_officers: list[str], lei_names: dict[str, str]) -> None:
+    def __init__(
+        self,
+        *,
+        root_officers: list[str],
+        lei_names: dict[str, str],
+        root_parents: list[str] | None = None,
+    ) -> None:
         self._root_officers = root_officers
+        self._root_parents = root_parents or []
         self._lei_names = lei_names
 
     async def fetch(self, drift_id, name, **kwargs):
@@ -106,6 +118,7 @@ class _FakeGleif:
             return EntitySnapshot(
                 drift_id=drift_id, name=name, source="gleif",
                 officers=list(self._root_officers),
+                beneficial_owners=list(self._root_parents),
             )
         resolved = self._lei_names.get(lei)
         if resolved is None:
@@ -119,8 +132,10 @@ class _FakeGleif:
         return None
 
 
-def _gleif_cls(root_officers, lei_names) -> MagicMock:
-    instance = _FakeGleif(root_officers=root_officers, lei_names=lei_names)
+def _gleif_cls(root_officers, lei_names, root_parents=None) -> MagicMock:
+    instance = _FakeGleif(
+        root_officers=root_officers, lei_names=lei_names, root_parents=root_parents
+    )
     cls = MagicMock()
     cls.source_name = "gleif"
     cls.return_value = instance
@@ -148,6 +163,50 @@ class TestResolveUboNames:
     async def test_no_children_returns_empty(self):
         cls = _gleif_cls([], {})
         assert await _resolve_ubo_names("d", "Root AG", (cls,)) == []
+
+    async def test_resolves_parent_lei_in_addition_to_children(self):
+        # The ultimate parent (beneficial_owners) is screened alongside the
+        # direct children (officers). Parent is resolved first.
+        cls = _gleif_cls(
+            ["LEI-A", "LEI-B"],
+            {
+                "LEI-P": "Parent Global SA",
+                "LEI-A": "Alpha Holdings",
+                "LEI-B": "Beta Trust",
+            },
+            root_parents=["LEI-P"],
+        )
+        names = await _resolve_ubo_names("d", "Root AG", (cls,))
+        assert names == ["Parent Global SA", "Alpha Holdings", "Beta Trust"]
+
+    async def test_resolves_parent_only_when_no_children(self):
+        # A parent with no direct children must still be screened (previously the
+        # children-only guard returned [] here — the deferred follow-up).
+        cls = _gleif_cls([], {"LEI-P": "Parent Global SA"}, root_parents=["LEI-P"])
+        names = await _resolve_ubo_names("d", "Root AG", (cls,))
+        assert names == ["Parent Global SA"]
+
+    async def test_no_parent_degrades_to_children_only(self):
+        # No ultimate parent in GLEIF → screening degrades to the children.
+        cls = _gleif_cls(["LEI-A"], {"LEI-A": "Alpha Holdings"}, root_parents=[])
+        names = await _resolve_ubo_names("d", "Root AG", (cls,))
+        assert names == ["Alpha Holdings"]
+
+    async def test_parent_equal_to_child_is_deduped(self):
+        # A node appearing as both parent and child is resolved/screened once.
+        cls = _gleif_cls(
+            ["LEI-X"], {"LEI-X": "Shared Entity"}, root_parents=["LEI-X"]
+        )
+        names = await _resolve_ubo_names("d", "Root AG", (cls,))
+        assert names == ["Shared Entity"]
+
+    async def test_unresolvable_parent_dropped(self):
+        # Parent LEI that GLEIF cannot resolve is dropped; children survive.
+        cls = _gleif_cls(
+            ["LEI-A"], {"LEI-A": "Alpha Holdings"}, root_parents=["LEI-MISSING"]
+        )
+        names = await _resolve_ubo_names("d", "Root AG", (cls,))
+        assert names == ["Alpha Holdings"]
 
     async def test_entity_not_in_gleif_returns_empty(self):
         # fetch returns None for the root name (no LEI match).
@@ -198,6 +257,48 @@ class TestGatherUboScreening:
         assert captured["ubo_names"] == ["Alpha Holdings", "Beta Trust"]
         assert len(signals) == 1
         assert signals[0].meta["kind"] == "ubo_screening"
+
+    async def test_parent_lei_screened_through_opensanctions(self):
+        # The ultimate-parent name resolved from GLEIF beneficial_owners is
+        # screened by OpenSanctions alongside the direct children, and a parent
+        # hit surfaces as a UBO-tagged ownership_change signal.
+        captured: dict = {}
+
+        async def os_fetch(drift_id, name, **kwargs):
+            captured["ubo_names"] = kwargs.get("ubo_names")
+            return [
+                PublicSignal(
+                    month=3, signal_type="ownership_change",
+                    headline="UBO hit (parent)", severity=0.9, source="OpenSanctions",
+                    source_url="https://www.opensanctions.org/entities/p/",
+                    meta={
+                        "kind": "ubo_screening", "ubo_name": "Parent Global SA",
+                        "matched_entity": "Parent Global SA", "score": 0.93,
+                        "definitive": True,
+                    },
+                )
+            ]
+
+        os_instance = MagicMock()
+        os_instance.source_name = "opensanctions"
+        os_instance.aclose = AsyncMock()
+        os_instance.fetch_signals = os_fetch
+        os_cls = MagicMock()
+        os_cls.source_name = "opensanctions"
+        os_cls.return_value = os_instance
+
+        gleif_cls = _gleif_cls(
+            ["LEI-A"],
+            {"LEI-A": "Alpha Holdings", "LEI-P": "Parent Global SA"},
+            root_parents=["LEI-P"],
+        )
+
+        with patch("app.sources.registry.usable_adapters", return_value=(gleif_cls, os_cls)):
+            signals = await gather_public_signals("d", "Root AG")
+
+        assert captured["ubo_names"] == ["Parent Global SA", "Alpha Holdings"]
+        assert len(signals) == 1
+        assert signals[0].meta["ubo_name"] == "Parent Global SA"
 
     async def test_slow_ubo_resolution_does_not_block_other_adapters(self, monkeypatch):
         # A hung GLEIF resolution must not sink the aggregation: the resolution
@@ -822,3 +923,146 @@ class TestDetectNewsSpikeMonth:
             assert detect_news_spike_month(signals, cust.months) is None, (
                 f"false-positive news spike on stable seed {seed}"
             )
+
+
+# ---------------------------------------------------------------------------
+# UC 10 — cross-source business-model-pivot corroboration
+# ---------------------------------------------------------------------------
+
+def _news_pivot(month: int, severity: float = 0.60) -> PublicSignal:
+    """A news-derived pivot signal (Event Registry / GDELT)."""
+    return PublicSignal(
+        month=month,
+        signal_type="business_model_change",
+        headline=f"Acme announces strategic pivot (month {month})",
+        severity=severity,
+        source="Event Registry / NewsAPI.ai",
+        source_url="https://eventregistry.org/event/x",
+    )
+
+
+def _website_pivot(month: int, severity: float = 0.80) -> PublicSignal:
+    """A website-derived pivot signal (Wayback↔Firecrawl cosine ≥ 0.35)."""
+    return PublicSignal(
+        month=month,
+        signal_type="business_model_change",
+        headline="Website content shifted materially since onboarding",
+        severity=severity,
+        source=WEBSITE_COMPARISON_SOURCE,
+        source_url="https://example.com/site",
+    )
+
+
+class TestElevateCorroboratedPivots:
+    def test_both_sources_elevate_all_pivots_to_critical(self):
+        signals = [
+            _news_pivot(8),
+            _news_pivot(9),
+            _website_pivot(9),
+            _signal(2, "news", 0.2),  # untouched non-pivot
+        ]
+        out = elevate_corroborated_pivots(signals)
+
+        pivots = [s for s in out if s.signal_type == "business_model_change"]
+        assert pivots, "expected pivot signals"
+        assert all(s.severity == _CRITICAL_SEVERITY for s in pivots)
+        # UC 10: the corroboration state is carried explicitly so the signal
+        # card can distinguish it from a lone high-severity signal.
+        assert all(s.corroborated for s in pivots)
+        # Non-pivot signal is left exactly as-is (not flagged corroborated).
+        news = next(s for s in out if s.signal_type == "news")
+        assert news.severity == 0.2
+        assert news.corroborated is False
+        # The flag rides through the serialization contract (to_dict).
+        assert pivots[0].to_dict()["corroborated"] is True
+
+    def test_uncorroborated_pivots_keep_corroborated_false(self):
+        # A news-only lead is not corroborated — the flag must stay False so the
+        # UI does not over-state confidence.
+        signals = [_news_pivot(8), _news_pivot(9)]
+        out = elevate_corroborated_pivots(signals)
+        assert all(s.corroborated is False for s in out)
+
+    def test_news_only_is_not_elevated(self):
+        # A news cluster with no website corroboration stays as a lead.
+        signals = [_news_pivot(8), _news_pivot(9)]
+        out = elevate_corroborated_pivots(signals)
+        assert all(s.severity == 0.60 for s in out)
+
+    def test_website_only_is_not_elevated(self):
+        signals = [_website_pivot(9)]
+        out = elevate_corroborated_pivots(signals)
+        assert out[0].severity == 0.80
+
+    def test_single_news_pivot_below_cluster_min_is_not_elevated(self):
+        assert _NEWS_PIVOT_CLUSTER_MIN >= 2  # one stray headline is not a cluster
+        signals = [_news_pivot(9), _website_pivot(9)]
+        out = elevate_corroborated_pivots(signals)
+        assert all(s.severity < _CRITICAL_SEVERITY for s in out)
+
+    def test_no_pivot_signals_returns_input_unchanged(self):
+        signals = [_signal(1, "news", 0.2), _signal(3, "funding_event", 0.5)]
+        out = elevate_corroborated_pivots(signals)
+        assert out == signals
+
+    def test_existing_critical_severity_is_not_lowered(self):
+        # max() guard: a website signal already above the critical floor keeps it.
+        signals = [_news_pivot(8), _news_pivot(9), _website_pivot(9, severity=0.99)]
+        out = elevate_corroborated_pivots(signals)
+        website = next(s for s in out if s.source == WEBSITE_COMPARISON_SOURCE)
+        assert website.severity == 0.99
+
+    def test_input_list_is_not_mutated(self):
+        signals = [_news_pivot(8), _news_pivot(9), _website_pivot(9)]
+        elevate_corroborated_pivots(signals)
+        assert all(s.severity < _CRITICAL_SEVERITY for s in signals)
+
+    async def test_gather_applies_corroboration_across_adapters(self):
+        # Two independent adapters: a news pivot cluster and the website cosine
+        # comparator. The aggregator must corroborate them into critical.
+        cls_news = _make_adapter_cls("news", [_news_pivot(8), _news_pivot(9)])
+        cls_site = _make_adapter_cls("site", [_website_pivot(9)])
+
+        with patch("app.sources.registry.usable_adapters", return_value=(cls_news, cls_site)):
+            signals = await gather_public_signals("drift-001", "Acme AG")
+
+        pivots = [s for s in signals if s.signal_type == "business_model_change"]
+        assert len(pivots) == 3
+        assert all(s.severity == _CRITICAL_SEVERITY for s in pivots)
+
+
+class TestPivotSyntheticSignals:
+    def test_pivot_scenario_emits_corroborated_critical_signals(self):
+        signals = generate_signals_for_customer(
+            "drift-pivot", "Centra Holdings AG", "pivot",
+            months=18, drift_start_month=8, seed=7,
+        )
+        by_type = [s.signal_type for s in signals]
+        assert by_type.count("business_model_change") >= _NEWS_PIVOT_CLUSTER_MIN + 1
+        assert "funding_event" in by_type, "Centra Tech pattern co-occurring funding event"
+
+        # Both lenses present → every pivot signal sits in the critical band.
+        pivots = [s for s in signals if s.signal_type == "business_model_change"]
+        assert all(s.severity == _CRITICAL_SEVERITY for s in pivots)
+        # A website-derived cosine signal is among them.
+        assert any(s.source == WEBSITE_COMPARISON_SOURCE for s in pivots)
+
+    def test_pivot_news_signals_fire_around_month_nine(self):
+        signals = generate_signals_for_customer(
+            "drift-pivot", "Centra Holdings AG", "pivot",
+            months=18, drift_start_month=8, seed=7,
+        )
+        news = [
+            s for s in signals
+            if s.signal_type == "business_model_change"
+            and s.source != WEBSITE_COMPARISON_SOURCE
+        ]
+        assert news, "expected news-derived pivot signals"
+        assert min(s.month for s in news) == 9  # first article fires at month 9
+
+    def test_pivot_signals_are_time_sorted(self):
+        signals = generate_signals_for_customer(
+            "drift-pivot", "Centra Holdings AG", "pivot", drift_start_month=8, seed=3,
+        )
+        months = [s.month for s in signals]
+        assert months == sorted(months)

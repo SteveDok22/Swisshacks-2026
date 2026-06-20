@@ -44,9 +44,11 @@ OWNERSHIP REPRESENTATION
                         no ``subsidiaries`` field exists on EntitySnapshot)
 
 PAGINATION NOTE
-    ``_get_children_leis`` fetches only the first page of direct children
-    (GLEIF default page[size]=10). Large holding companies may have more;
-    the full ownership graph is truncated.  TODO: paginate direct-children.
+    ``_get_children_leis`` follows the GLEIF JSON:API ``links.next`` cursor to
+    paginate direct children (requesting the max page[size]=200), bounded by an
+    overall ``_MAX_DIRECT_CHILDREN`` cap and a ``_MAX_CHILDREN_PAGES`` loop guard.
+    It degrades gracefully — a transport error or non-2xx page stops the walk and
+    returns the children gathered so far rather than raising or discarding them.
 """
 
 from __future__ import annotations
@@ -66,6 +68,22 @@ _BASE_URL = "https://api.gleif.org/api/v1"
 
 # Human-readable provenance stamped on every GLEIF-derived PublicSignal.
 _SIGNAL_SOURCE = "GLEIF (Global LEI)"
+
+# --- direct-children pagination tuning ---------------------------------------
+# GLEIF's JSON:API paginates ``direct-children`` (default page[size]=10, max
+# 200) and exposes a ``links.next`` cursor. Fetching only page 1 truncates the
+# ownership graph for large holding companies — the deferred follow-up from
+# PR #45 (UC3) and PR #43 (UC5). ``_get_children_leis`` now follows the cursor.
+#
+# _CHILDREN_PAGE_SIZE — request the largest allowed page to minimise round-trips.
+# _MAX_DIRECT_CHILDREN — overall cap on collected child LEIs; bounds memory and
+#   request volume (the contagion layer only needs a representative subgraph, not
+#   the entire tree). Pagination stops once this many children are gathered.
+# _MAX_CHILDREN_PAGES — defensive ceiling on pages followed, guarding against a
+#   malformed self-referential ``links.next`` looping forever.
+_CHILDREN_PAGE_SIZE = 200
+_MAX_DIRECT_CHILDREN = 1000
+_MAX_CHILDREN_PAGES = 50
 
 # Map the ownership-related routing keys produced by ``diff_snapshots`` to the
 # noun-form ``PublicSignal.signal_type`` vocabulary. Use case 3 is scoped to
@@ -257,18 +275,48 @@ class GleifAdapter(CostMixin, RegistryAdapter):
         return data.get("id") or data.get("attributes", {}).get("lei")  # type: ignore[no-any-return]
 
     async def _get_children_leis(self, lei: str) -> list[str]:
-        try:
-            resp = await self._http.get(f"/lei-records/{lei}/direct-children")
-        except httpx.TransportError:
-            return []
-        if not resp.is_success:
-            return []
-        items = resp.json().get("data", [])
-        return [
-            item.get("id") or item.get("attributes", {}).get("lei")
-            for item in items
-            if item.get("id") or item.get("attributes", {}).get("lei")
-        ]
+        """
+        Fetch direct-child LEIs, following GLEIF JSON:API pagination.
+
+        Walks the ``links.next`` cursor until it is exhausted, the overall
+        ``_MAX_DIRECT_CHILDREN`` cap is reached, or ``_MAX_CHILDREN_PAGES`` is
+        hit. Degrades gracefully: any transport error or non-2xx page stops the
+        walk and returns whatever was collected so far, so a mid-pagination
+        GLEIF hiccup yields a partial graph rather than an exception or [].
+        Single-page responses (absent/null ``links.next``) return after one
+        request, matching the previous behaviour.
+        """
+        leis: list[str] = []
+        # First request: explicitly ask for the largest page; subsequent pages
+        # follow the absolute ``links.next`` URL, which already carries page[size].
+        url: str | None = f"/lei-records/{lei}/direct-children"
+        params: dict[str, str] | None = {"page[size]": str(_CHILDREN_PAGE_SIZE)}
+
+        for _ in range(_MAX_CHILDREN_PAGES):
+            if url is None:
+                break
+            try:
+                resp = await self._http.get(url, params=params)
+            except httpx.TransportError:
+                break
+            if not resp.is_success:
+                break
+
+            body = resp.json()
+            for item in body.get("data", []):
+                child = item.get("id") or item.get("attributes", {}).get("lei")
+                if child:
+                    leis.append(child)
+                    if len(leis) >= _MAX_DIRECT_CHILDREN:
+                        return leis
+
+            # Follow the JSON:API cursor. ``links.next`` is an absolute URL with
+            # its own encoded query string, so clear ``params`` to avoid resending.
+            links = body.get("links") or {}
+            url = links.get("next")
+            params = None
+
+        return leis
 
     # ------------------------------------------------------------------
     # Normalisation — pure, no I/O

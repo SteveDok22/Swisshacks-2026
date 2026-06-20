@@ -41,7 +41,8 @@ function niceVelocityTicks(min: number, max: number, count = 4): number[] {
  * The gap between them is the lead time — the entire value proposition.
  */
 export function DriftTimeline({ detail }: DriftTimelineProps) {
-  const { timeline, sanctions_month, drift_start_month } = detail;
+  const { timeline, sanctions_month, drift_start_month, news_spike_month } =
+    detail;
   const [cursor, setCursor] = useState(timeline.length - 1);
   const explanation =
     "Past timeline of observed drift velocity. X-axis is historical month; Y-axis is velocity in bits per month. Values above the alert band indicate the behaviour is changing fast enough to flag before any sanctions event.";
@@ -89,6 +90,17 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
   // behavioral changepoint). Rendered as a dashed marker.
   const changepointPoint = timeline.find((p) => p.bocpd_changepoint);
   const changepointMonth = changepointPoint?.month ?? null;
+
+  // News-volume spike (UC1) — the month a sustained external news spike broke,
+  // the public anchor of the confirmation-lift window. It is an analysis value
+  // (not a timeline point), so only render it when it lands inside the plotted
+  // window. Rendered as a distinct cyan dashed marker.
+  const newsSpikeMonth =
+    news_spike_month !== null &&
+    news_spike_month >= minMonth &&
+    news_spike_month <= maxMonth
+      ? news_spike_month
+      : null;
 
   const path = timeline
     .map((p, i) => `${i === 0 ? "M" : "L"} ${mx(p.month)} ${vy(p.velocity)}`)
@@ -222,6 +234,31 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
               fontWeight={600}
             >
               Regime change
+            </text>
+          </g>
+        )}
+
+        {/* News-spike marker (UC1) — external news-volume regime change */}
+        {newsSpikeMonth !== null && (
+          <g>
+            <line
+              x1={mx(newsSpikeMonth)}
+              y1={PAD_Y}
+              x2={mx(newsSpikeMonth)}
+              y2={H - PAD_Y}
+              stroke="#0891b2"
+              strokeWidth={1.5}
+              strokeDasharray="5 3"
+              opacity={0.8}
+            />
+            <text
+              x={mx(newsSpikeMonth) + 4}
+              y={H - PAD_Y - 16}
+              fontSize={9}
+              fill="#0891b2"
+              fontWeight={600}
+            >
+              News spike
             </text>
           </g>
         )}

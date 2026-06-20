@@ -21,6 +21,7 @@ import json
 import time
 import zlib
 from collections.abc import Iterable
+from datetime import UTC, date, datetime
 from typing import Any
 
 import numpy as np
@@ -35,7 +36,19 @@ from app.core.config import (
     settings,
 )
 from app.core.logging import get_logger
+from app.db.kyc_baseline import (
+    EntitySnapshotDB,
+    load_latest_snapshot,
+    store_snapshot,
+)
+from app.db.session import session_scope
 from app.drift.bocpd import BOCPD, standardize
+from app.drift.business_model import (
+    BusinessModelComparison,
+    CachedEmbedding,
+    compare_business_model,
+    text_fingerprint,
+)
 from app.drift.cascade import CascadeRouter, CustomerSignal, Tier
 from app.drift.causal import causal_assessment
 from app.drift.contagion import (
@@ -76,7 +89,9 @@ from app.schemas.drift import (
 from app.schemas.enums import DecisionAction
 from app.services.anthropic_client import get_anthropic_client
 from app.sources.base import EntitySnapshot
+from app.sources.firecrawl import FirecrawlAdapter
 from app.sources.gleif import gather_ownership_snapshots, ownership_change_signals
+from app.sources.wayback import WaybackAdapter
 
 logger = get_logger(__name__)
 
@@ -96,12 +111,26 @@ LLM_PARSE_FALLBACK = {
 
 # Sanctioned seed entity for the contagion demo
 SANCTIONED_SEED = "SANCTIONED_ENTITY"
+# Display name for the sanctioned seed node (kept in sync with build_demo_graph
+# so the live-LEI and synthetic graphs label the flagged entity identically).
+SANCTIONED_SEED_NAME = "Orion Capital Partners"
 # Wall-clock cap for the startup GLEIF ownership fetch (live mode only). On any
 # timeout or failure the engine falls back to the synthetic demo graph.
 _GLEIF_FETCH_TIMEOUT_S = 30.0
 # Customers wired into the ownership graph as contagion-affected
 CONTAGION_AFFECTED = {"drift-004", "drift-002"}
 DRIFT_ANALYSIS_VERSION = "drift-v1"
+
+# Wall-clock cap for the live business-model website fetch (Wayback + Firecrawl)
+# in live mode. The cosine comparison must never block the engine, so any
+# overrun (a slow archive.org capture, a hung scrape) is abandoned and the
+# customer simply gets no business-model signal. Sized above the Wayback polite
+# delay + two HTTP round-trips, well under the cascade's per-customer budget.
+_WEBSITE_FETCH_TIMEOUT_S = 30.0
+# raw_data key under which the comparator's embeddings are persisted, keyed by
+# the SHA-256 text fingerprint the comparator returns. A re-scan reads this back
+# as a read-through cache to skip re-embedding when the website text is unchanged.
+_BUSINESS_MODEL_EMBEDDINGS_KEY = "business_model_embeddings"
 
 # UC 4 — structural-change signal types that mandate a re-KYC review. A
 # confirmed jurisdiction or legal-form change is a hard regulatory trigger, so
@@ -289,6 +318,12 @@ class DriftEngine:
         self._gleif_snapshots: dict[str, EntitySnapshot] = {}
         self._gleif_baselines: dict[str, EntitySnapshot] = {}
         self._graph: OwnershipGraph = self._build_ownership_graph()
+        # Load persisted GLEIF onboarding baselines so the live ownership diff
+        # has a same-source anchor to fire against (PR #45 follow-up). Live mode
+        # only — offline keeps the empty mapping so the diff stays inert and the
+        # offline scores are unchanged.
+        if settings.external_apis_enabled:
+            self._gleif_baselines = self._load_gleif_baselines()
         # Contagion is computed once (sanctions already hit in demo state)
         self._contagion = self._graph.propagate(seeds=[SANCTIONED_SEED])
         # Cohort volatility reference for Suspicious Stability (computed once
@@ -338,7 +373,14 @@ class DriftEngine:
         self._gleif_snapshots = self._fetch_gleif_snapshots(
             [(c.drift_id, c.name) for c in self._book]
         )
-        graph = build_graph_from_snapshots(self._gleif_snapshots)
+        # Seed the same flagged entity used by the synthetic demo graph into the
+        # real-LEI graph so contagion propagates over live LEIs (PR #45 follow-up).
+        graph = build_graph_from_snapshots(
+            self._gleif_snapshots,
+            sanctioned_seed=SANCTIONED_SEED,
+            sanctioned_seed_name=SANCTIONED_SEED_NAME,
+            contagion_affected=CONTAGION_AFFECTED,
+        )
         if graph is None:
             logger.info(
                 "ownership_graph_fallback_demo",
@@ -372,15 +414,60 @@ class DriftEngine:
         finally:
             pool.shutdown(wait=False)
 
+    @staticmethod
+    def _load_gleif_baselines() -> dict[str, EntitySnapshot]:
+        """Synchronous bridge to load persisted GLEIF onboarding baselines.
+
+        Mirrors ``_fetch_gleif_snapshots``: runs the async DB read in a dedicated
+        thread with its own event loop. It also creates its OWN short-lived async
+        engine inside that thread (the way ``gather_ownership_snapshots`` owns its
+        httpx client) so it never touches the app's engine, which is bound to a
+        different loop — calling that engine from this thread would raise. Any
+        failure (timeout included) degrades to an empty mapping, leaving the
+        ownership diff inert exactly as in offline mode.
+        """
+        async def _load() -> dict[str, EntitySnapshot]:
+            from sqlalchemy.ext.asyncio import (
+                AsyncSession,
+                async_sessionmaker,
+                create_async_engine,
+            )
+
+            from app.db.kyc_baseline import load_gleif_baselines
+
+            engine = create_async_engine(
+                settings.database_url,
+                connect_args={"check_same_thread": False},
+            )
+            try:
+                factory = async_sessionmaker(
+                    engine, class_=AsyncSession, expire_on_commit=False
+                )
+                async with factory() as session:
+                    return await load_gleif_baselines(session)
+            finally:
+                await engine.dispose()
+
+        pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        future = pool.submit(asyncio.run, _load())
+        try:
+            return future.result(timeout=_GLEIF_FETCH_TIMEOUT_S)
+        except Exception:  # noqa: BLE001 — honour the graceful-degradation contract
+            logger.warning("gleif_baseline_load_failed", exc_info=True)
+            return {}
+        finally:
+            pool.shutdown(wait=False)
+
     def _gleif_ownership_signals(self, cust: SyntheticCustomer) -> list[PublicSignal]:
         """Emit ``ownership_change`` signals from the GLEIF ownership-chain diff.
 
         Diffs the customer's current GLEIF snapshot against its persisted GLEIF
-        KYC baseline (same source) via :func:`ownership_change_signals`. Returns
+        KYC baseline (same source) via :func:`ownership_change_signals`. The seed
+        persists a dedicated ``source="gleif"`` onboarding baseline per customer
+        (``_load_gleif_baselines`` loads it in live mode), satisfying the
+        same-source contract that excludes the ``internal`` baseline. Returns
         ``[]`` when either side is absent — offline mode, an unmatched customer,
-        or before a GLEIF onboarding baseline has been persisted (the demo seed
-        currently writes ``internal``-source baselines, which the same-source
-        contract correctly excludes from this diff).
+        or before a GLEIF baseline has been persisted.
         """
         baseline = self._gleif_baselines.get(cust.drift_id)
         current = self._gleif_snapshots.get(cust.drift_id)
@@ -424,6 +511,268 @@ class DriftEngine:
         )
 
     # ------------------------------------------------------------------ #
+    # Business-model drift (UC 9)
+    # ------------------------------------------------------------------ #
+    def _business_model_comparison(
+        self, cust: SyntheticCustomer
+    ) -> BusinessModelComparison | None:
+        """Compare onboarding vs current website text for a silent pivot (UC 9).
+
+        Two acquisition paths, selected by the ``external_apis_enabled`` master
+        switch — exactly the same seam as ``_public_signals``:
+
+        - OFFLINE (default): the synthetic demo path. The texts ride on the
+          customer (only the ``domain_pivot`` scenario carries them); every other
+          scenario returns ``None`` (no signal). No network, no DB.
+        - LIVE: source the onboarding "before" text from Wayback and the current
+          "after" text from Firecrawl via a bounded sync bridge, with the
+          comparator's embeddings persisted to (and re-read from)
+          ``EntitySnapshotDB.raw_data`` as a read-through cache. Missing domain,
+          adapter error, or an absent embeddings backend all degrade to ``None``.
+
+        Either way the pure comparator never raises and never requires a model
+        download at request time — an unavailable backend yields a skipped result.
+        """
+        if settings.external_apis_enabled:
+            return self._live_business_model_comparison(cust)
+
+        onboarding = cust.onboarding_website_text
+        current = cust.current_website_text
+        if not onboarding or not current:
+            return None
+        return compare_business_model(
+            cust.drift_id,
+            cust.name,
+            onboarding,
+            current,
+            # Align the emitted signal with the pivot onset (the WHOIS registrant
+            # change) so Confirmation Lift can time-match it to internal drift.
+            month=cust.drift_start_month or 0,
+        )
+
+    def _live_business_model_comparison(
+        self, cust: SyntheticCustomer
+    ) -> BusinessModelComparison | None:
+        """Synchronous bridge to the async live website-text comparison.
+
+        Mirrors the public-intel / GLEIF sync bridges: runs the async fetch +
+        compare in a dedicated thread with its own event loop, so it is safe to
+        call from the synchronous engine even under a running FastAPI loop. Bounded
+        by ``_WEBSITE_FETCH_TIMEOUT_S``; any failure (timeout included) degrades to
+        ``None`` (no signal). ``shutdown(wait=False)`` so a hung worker never
+        re-blocks the engine — it unwinds on its own once the inner work is
+        abandoned.
+        """
+        pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        future = pool.submit(
+            asyncio.run,
+            self._gather_business_model_async(
+                cust.drift_id, cust.name, month=cust.drift_start_month or 0
+            ),
+        )
+        try:
+            return future.result(timeout=_WEBSITE_FETCH_TIMEOUT_S)
+        except Exception:  # noqa: BLE001 — honour the graceful-degradation contract
+            logger.warning(
+                "business_model_live_fetch_failed", drift_id=cust.drift_id, exc_info=True
+            )
+            return None
+        finally:
+            pool.shutdown(wait=False)
+
+    async def _gather_business_model_async(
+        self, drift_id: str, name: str, *, month: int
+    ) -> BusinessModelComparison | None:
+        """Source live website texts, run the comparator, and persist embeddings.
+
+        Pipeline:
+          1. Read the customer's domain + any cached embeddings from the latest
+             persisted snapshot's ``raw_data`` (the read-through cache). No domain
+             → no live wiring (returns ``None``), so this never derives a domain
+             from the name slug or hits the network for an unknown customer.
+          2. Fetch the onboarding text (Wayback) and current text (Firecrawl).
+          3. Build per-side caches from the persisted embeddings (matched on the
+             SHA-256 fingerprint of the stripped text) and run the comparator,
+             which reuses a cached vector only while its fingerprint still matches.
+          4. Persist the embeddings the comparator actually used, but only when
+             they changed — a re-scan with unchanged text is a pure cache hit and
+             writes nothing.
+        """
+        domain, cached_map, onboarding_date = await self._load_website_baseline(drift_id)
+        if not domain:
+            logger.info("business_model_live_no_domain", drift_id=drift_id)
+            return None
+
+        wayback_text = await self._fetch_wayback_text(
+            drift_id, name, domain, onboarding_date
+        )
+        current_text, current_url = await self._fetch_firecrawl_text(
+            drift_id, name, domain
+        )
+
+        # Fingerprint the STRIPPED text the comparator embeds, so a persisted
+        # vector is reused only when it covers exactly that normalised text.
+        wb_fp = text_fingerprint((wayback_text or "").strip())
+        cur_fp = text_fingerprint((current_text or "").strip())
+        wb_cache = (
+            CachedEmbedding(wb_fp, cached_map[wb_fp]) if wb_fp in cached_map else None
+        )
+        cur_cache = (
+            CachedEmbedding(cur_fp, cached_map[cur_fp]) if cur_fp in cached_map else None
+        )
+
+        result = compare_business_model(
+            drift_id,
+            name,
+            wayback_text,
+            current_text,
+            month=month,
+            wayback_cache=wb_cache,
+            current_cache=cur_cache,
+            source_url=current_url,
+        )
+
+        # Persist the embeddings actually used (never the degenerate ones a skip
+        # withholds). Keep only the two current fingerprints so the cache stays
+        # bounded and self-prunes; skip the write when nothing changed.
+        if (
+            not result.skipped
+            and result.wayback_embedding is not None
+            and result.current_embedding is not None
+        ):
+            new_map = {
+                result.wayback_embedding.fingerprint: result.wayback_embedding.vector,
+                result.current_embedding.fingerprint: result.current_embedding.vector,
+            }
+            if new_map != cached_map:
+                await self._persist_website_embeddings(
+                    drift_id=drift_id,
+                    name=name,
+                    domain=domain,
+                    current_text=current_text or "",
+                    current_url=current_url,
+                    onboarding_date=onboarding_date,
+                    embeddings=new_map,
+                )
+        return result
+
+    async def _load_website_baseline(
+        self, drift_id: str
+    ) -> tuple[str | None, dict[str, list[float]], str | None]:
+        """Read the persisted domain + cached embeddings for one customer.
+
+        Returns ``(domain, embeddings_by_fingerprint, onboarding_date)`` from the
+        latest snapshot's ``raw_data``. Degrades to ``(None, {}, None)`` on any DB
+        error or when no snapshot (or no domain) exists — the live website path is
+        then inert for that customer.
+        """
+        try:
+            async with session_scope() as session:
+                latest = await load_latest_snapshot(session, drift_id)
+        except Exception:  # noqa: BLE001 — DB unavailable must degrade, not crash
+            logger.warning(
+                "business_model_baseline_load_failed", drift_id=drift_id, exc_info=True
+            )
+            return None, {}, None
+        if latest is None:
+            return None, {}, None
+        raw = latest.raw_data or {}
+        embeddings = raw.get(_BUSINESS_MODEL_EMBEDDINGS_KEY) or {}
+        return raw.get("domain"), embeddings, raw.get("onboarding_date")
+
+    async def _persist_website_embeddings(
+        self,
+        *,
+        drift_id: str,
+        name: str,
+        domain: str,
+        current_text: str,
+        current_url: str | None,
+        onboarding_date: str | None,
+        embeddings: dict[str, list[float]],
+    ) -> None:
+        """Append a Firecrawl snapshot carrying the comparator's embeddings.
+
+        Append-only, matching the snapshot store's contract: a fresh capture is a
+        new row, and ``load_latest_snapshot`` returns it on the next scan so the
+        read-through cache hits. Best-effort — a persistence failure must not sink
+        the comparison the caller already computed.
+        """
+        try:
+            async with session_scope() as session:
+                await store_snapshot(
+                    session,
+                    EntitySnapshotDB(
+                        drift_id=drift_id,
+                        snapshot_date=date.today(),
+                        snapshot_type="triggered",
+                        source="firecrawl",
+                        name=name,
+                        raw_data={
+                            "domain": domain,
+                            "url": current_url,
+                            "website_text": current_text,
+                            "onboarding_date": onboarding_date,
+                            "scraped_at": datetime.now(UTC).isoformat(),
+                            _BUSINESS_MODEL_EMBEDDINGS_KEY: embeddings,
+                        },
+                    ),
+                )
+        except Exception:  # noqa: BLE001 — persistence is best-effort
+            logger.warning(
+                "business_model_embeddings_persist_failed",
+                drift_id=drift_id,
+                exc_info=True,
+            )
+
+    async def _fetch_wayback_text(
+        self, drift_id: str, name: str, domain: str, onboarding_date: str | None
+    ) -> str | None:
+        """Fetch the onboarding-era website text via Wayback. None on any error."""
+        adapter = WaybackAdapter()
+        try:
+            snap = await adapter.fetch(
+                drift_id, name, domain=domain, onboarding_date=onboarding_date
+            )
+        except Exception:  # noqa: BLE001 — a Wayback outage degrades to no signal
+            logger.warning(
+                "business_model_wayback_failed", drift_id=drift_id, exc_info=True
+            )
+            return None
+        finally:
+            await self._safe_aclose(adapter)
+        return snap.raw_data.get("website_text") if snap else None
+
+    async def _fetch_firecrawl_text(
+        self, drift_id: str, name: str, domain: str
+    ) -> tuple[str | None, str | None]:
+        """Fetch the current website text + URL via Firecrawl. (None, None) on error."""
+        adapter = FirecrawlAdapter()
+        try:
+            snap = await adapter.fetch(drift_id, name, domain=domain)
+        except Exception:  # noqa: BLE001 — a scrape failure degrades to no signal
+            logger.warning(
+                "business_model_firecrawl_failed", drift_id=drift_id, exc_info=True
+            )
+            return None, None
+        finally:
+            await self._safe_aclose(adapter)
+        if snap is None:
+            return None, None
+        return snap.raw_data.get("website_text"), snap.raw_data.get("url")
+
+    @staticmethod
+    async def _safe_aclose(adapter: Any) -> None:
+        """Close an adapter's HTTP client if it owns one; never raise."""
+        aclose = getattr(adapter, "aclose", None)
+        if aclose is None:
+            return
+        try:
+            await aclose()
+        except Exception:  # noqa: BLE001
+            logger.debug("business_model_adapter_aclose_failed", exc_info=True)
+
+    # ------------------------------------------------------------------ #
     # Core per-customer analysis
     # ------------------------------------------------------------------ #
     def _analyze_customer(self, cust: SyntheticCustomer) -> dict:
@@ -443,14 +792,28 @@ class DriftEngine:
         scoring policies that training does not need — the XGBoost blend and the
         regulatory floors — on top of that shared analysis.
         """
+        # PUBLIC: real adapter signals via aggregator (live), or the deterministic
+        # synthetic generator (offline/mock). See _public_signals.
+        public_signals = self._public_signals(cust)
+
+        # Business-model drift (UC 9): fold a website/domain pivot into the public
+        # layer so it lifts public_risk and time-aligns for Confirmation Lift,
+        # exactly like any other external signal. Absent texts / embedder → no
+        # signal, no effect.
+        bm = self._business_model_comparison(cust)
+        if bm is not None and bm.signal is not None:
+            public_signals = [*public_signals, bm.signal]
+
         # --- Shared passive-layer analysis (identical formula to training) ---
         analysis = compute_drift_analysis(
             cust,
             cohort_cv=self._cohort_cv,
             propagated_risk=self._contagion.propagated_risk.get(cust.drift_id, 0.0),
-            # PUBLIC: real adapter signals via aggregator (live), or the
-            # deterministic synthetic generator (offline/mock). See _public_signals.
-            public_signals=self._public_signals(cust),
+            public_signals=public_signals,
+        )
+        analysis["is_business_model_change"] = bm.is_change if bm is not None else False
+        analysis["business_model_distance"] = (
+            round(bm.distance, 4) if bm is not None else 0.0
         )
         score = analysis["drift_score"]
 
@@ -514,6 +877,22 @@ class DriftEngine:
         if requires_re_kyc_floor(analysis["public_signals"]):
             score = max(score, RE_KYC_SCORE_FLOOR)
 
+        # Name-change ELEVATION (UC8) — a confirmed legal-entity name change is a
+        # mandatory re-KYC trigger. The ZEFIX/GLEIF/WHOIS diffs (live adapters)
+        # or the name_cycling scenario (offline) surface a `name_change` public
+        # signal. Floor the score at 60 regardless of other signals: an identity
+        # reset must surface for review even when the transactions look clean —
+        # the Mossack Fonseca shelf-cycling pattern of renaming shell companies
+        # to reset the KYC review clock. Same "cannot hide below the radar"
+        # policy as the stability and dormancy floors above, and applied last so
+        # it cannot be undercut by the causal demotion or a low ML blend.
+        name_changed = any(
+            s.signal_type == "name_change" for s in analysis["public_signals"]
+        )
+        if name_changed:
+            score = max(score, 60.0)
+
+        analysis["name_changed"] = name_changed
         analysis["drift_score"] = score
         analysis["ml_score"] = ml_score
         return analysis
@@ -759,6 +1138,7 @@ class DriftEngine:
                     is_suspicious=a["stability"].is_suspicious,
                     dormancy_break=round(a["dormancy"].dormancy_break, 3),
                     is_dormancy_break=a["dormancy"].is_dormancy_break,
+                    is_name_changed=a["name_changed"],
                     scenario=cust.scenario,
                 )
             )
@@ -838,6 +1218,7 @@ class DriftEngine:
             drift_start_month=cust.drift_start_month,
             sanctions_month=cust.sanctions_month,
             bocpd_changepoint_day=a["bocpd_changepoint_day"],
+            news_spike_month=a["news_spike_month"],
             public_risk=round(a["public_risk"], 3),
             internal_risk=round(a["internal_risk"], 3),
             confirmation_lift=round(a["confirmation_lift"], 2),
@@ -845,6 +1226,9 @@ class DriftEngine:
                 PublicSignalOut(**s.to_dict()) for s in a["public_signals"]
             ],
             ubo_screening=ubo_screening,
+            is_name_changed=a["name_changed"],
+            is_business_model_change=a.get("is_business_model_change", False),
+            business_model_distance=a.get("business_model_distance", 0.0),
             causal=CausalVerdictOut(
                 causal_llr=round(a["causal"].causal_llr, 2),
                 p_risk=round(a["causal"].p_risk, 3),

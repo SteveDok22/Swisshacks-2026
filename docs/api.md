@@ -9,7 +9,7 @@ Total API endpoints: 27
 ```mermaid
 flowchart TB
     subgraph Drift["Drift Engine  — /drift"]
-        D1["GET /subjects\nScan full subject book\nReturns risk-ranked list"]
+        D1["GET /subjects\nScan full subject book\nReturns risk-ranked list\nis_name_changed flags re-KYC triggers (UC8)"]
         D2["GET /subjects/{drift_id}\nFull per-subject analysis\nAll 7 layers + causal evidence + timeline"]
         D3["POST /scan\nRun cost cascade scan\nReturns CascadeCostReport"]
         D4["GET /contagion\nOwnership graph + PageRank scores"]
@@ -58,8 +58,8 @@ flowchart TB
 ```mermaid
 flowchart LR
     subgraph DriftSchemas["Drift Schemas"]
-        DS1["DriftSubjectSummary\ndrift_id · name · score · velocity\naction · risk_level"]
-        DS2["DriftSubjectDetail\n+ LayerContribution[]\n+ CausalVerdictOut\n+ StabilityOut\n+ DriftTimelinePoint[]\n+ PublicSignalOut[]\n+ UboScreeningOut[] (UC5)\n+ contagion_score"]
+        DS1["DriftSubjectSummary\ndrift_id · name · score · velocity\naction · risk_level\nis_suspicious · is_dormancy_break · is_name_changed"]
+        DS2["DriftSubjectDetail\n+ LayerContribution[]\n+ CausalVerdictOut\n+ StabilityOut\n+ DriftTimelinePoint[]\n+ PublicSignalOut[]\n+ UboScreeningOut[] (UC5)\n+ contagion_score\n+ is_business_model_change\n+ business_model_distance"]
         DS3["ReplayResult\nas_of_score · current_score\nlead_time_months"]
         DS4["CascadeCostReport\ntier_counts · costs · total_customers\n+ actual_t2_llm_calls\n+ llm_adjudications[]"]
     end
@@ -75,6 +75,13 @@ flowchart LR
         ES3["AnonymizationPreview\noriginal_fields · anonymized_fields\nfields_sent_to_llm"]
     end
 ```
+
+`DriftSubjectDetail` carries two business-model drift fields (UC 9):
+
+- `is_business_model_change` (bool) — `true` when the customer's public-facing business model shifted materially since onboarding.
+- `business_model_distance` (float) — cosine distance between the onboarding (Wayback) and current (Firecrawl) website text; `0.0` = identical, `≥ 0.35` flags a change.
+
+Both come from the `drift/business_model.py` comparator. They stay at their neutral defaults (`false` / `0.0`) when no website texts are available for the customer or the optional `embeddings` backend (model2vec) is absent — the comparison degrades to a skip rather than failing the request.
 
 ---
 

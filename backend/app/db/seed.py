@@ -7,7 +7,8 @@ Idempotent: only runs if DB is empty.
 
 from __future__ import annotations
 
-from datetime import date
+import hashlib
+from datetime import date, timedelta
 
 import numpy as np
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -119,6 +120,21 @@ def _mean_of_windows(windows: list) -> float | None:
     return float(np.mean([w.mean() for w in windows]))
 
 
+def _synthetic_lei(drift_id: str) -> str:
+    """Deterministic 20-character pseudo-LEI for a demo customer (offline only).
+
+    NOT a registered LEI — a stable synthetic identifier so the seeded GLEIF
+    baseline carries an own-LEI for the ownership-diff ``source_url`` and graph
+    node identity. Derived from ``drift_id`` (SHA-1) so it is stable across
+    restarts. ``DEMO`` prefix + 16 hex chars = 20 alphanumeric chars, matching
+    the LEI charset/length without ever colliding with a real registry code.
+    """
+    # usedforsecurity=False: this is a stable demo identifier, not a security
+    # hash — the flag also keeps it working under FIPS-restricted builds.
+    digest = hashlib.sha1(drift_id.encode(), usedforsecurity=False).hexdigest().upper()
+    return f"DEMO{digest[:16]}"
+
+
 async def _seed_kyc_baselines(session: AsyncSession) -> None:
     """
     Populate entity_snapshots from the synthetic drift book.
@@ -144,13 +160,17 @@ async def _seed_kyc_baselines(session: AsyncSession) -> None:
         baseline_cr = customer.corridor_risk[:cutoff]
         baseline_margin = customer.margin_ratio[:cutoff]
 
+        legal_form = (
+            "AG" if "AG" in customer.name or "Holdings" in customer.name else None
+        )
+
         snapshot = EntitySnapshotDB(
             drift_id=customer.drift_id,
             snapshot_date=snapshot_date,
             snapshot_type="seeded",
             source="internal",
             name=customer.name,
-            legal_form="AG" if "AG" in customer.name or "Holdings" in customer.name else None,
+            legal_form=legal_form,
             jurisdiction="CH",
             dissolution_status="active",
             beneficial_owners=[],
@@ -168,5 +188,31 @@ async def _seed_kyc_baselines(session: AsyncSession) -> None:
             },
         )
         await store_snapshot(session, snapshot, flush=False)
+
+        # GLEIF-source onboarding baseline (use case 3). The drift engine diffs
+        # the *current* live GLEIF ownership chain against this same-source
+        # anchor; the internal baseline above is excluded by that same-source
+        # contract, which is why a dedicated gleif row is required for the
+        # ownership_change diff to fire (PR #45 follow-up). It carries only the
+        # registry/ownership fields (own LEI, empty onboarding parent/child
+        # chain) — no behavioral columns and no "scenario" key, so it never
+        # perturbs the behavioral baseline that ``load_all_baselines`` returns.
+        # Its created_at is pinned 1s before the internal row so the internal
+        # (behavioral) snapshot remains the latest-per-customer baseline.
+        gleif_snapshot = EntitySnapshotDB(
+            drift_id=customer.drift_id,
+            snapshot_date=snapshot_date,
+            snapshot_type="seeded",
+            source="gleif",
+            name=customer.name,
+            legal_form=legal_form,
+            jurisdiction="CH",
+            dissolution_status="active",
+            beneficial_owners=[],
+            officers=[],
+            raw_data={"lei": _synthetic_lei(customer.drift_id)},
+            created_at=snapshot.created_at - timedelta(seconds=1),
+        )
+        await store_snapshot(session, gleif_snapshot, flush=False)
 
     logger.info("kyc_baselines_seeded", count=len(book))

@@ -131,8 +131,11 @@ class TestPublicSignal:
     def test_to_dict_shape_without_url(self):
         sig = PublicSignal(month=1, signal_type="news", headline="h", severity=0.2, source="s")
         d = sig.to_dict()
-        assert set(d.keys()) == {"month", "signal_type", "headline", "severity", "source", "source_url"}
+        assert set(d.keys()) == {
+            "month", "signal_type", "headline", "severity", "source", "source_url", "corroborated",
+        }
         assert d["source_url"] is None
+        assert d["corroborated"] is False  # UC10: defaults False until cross-source elevation
 
     def test_to_dict_shape_with_url(self):
         sig = PublicSignal(

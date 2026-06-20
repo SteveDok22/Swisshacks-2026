@@ -58,7 +58,7 @@ class EntitySnapshot:
     Keeping the two types separate means adapters need no SQLAlchemy import.
     """
 
-    customer_id: str
+    drift_id: str
     name: str
     source: str  # adapter source_name value, e.g. "zefix"
     fetched_at: datetime = field(default_factory=lambda: datetime.now(UTC))
@@ -306,7 +306,7 @@ class RegistryAdapter(ABC):
     @abstractmethod
     async def fetch(
         self,
-        customer_id: str,
+        drift_id: str,
         name: str,
         **kwargs: Any,
     ) -> EntitySnapshot | None:
@@ -319,7 +319,7 @@ class RegistryAdapter(ABC):
 
         Parameters
         ----------
-        customer_id:
+        drift_id:
             Internal identifier for the customer (drift engine ID or UUID).
         name:
             Entity name used for registry lookup when no structured ID is
@@ -334,7 +334,7 @@ class RegistryAdapter(ABC):
     @abstractmethod
     async def fetch_signals(
         self,
-        customer_id: str,
+        drift_id: str,
         name: str,
         since_month: int = 0,
         **kwargs: Any,
@@ -347,7 +347,7 @@ class RegistryAdapter(ABC):
 
         Parameters
         ----------
-        customer_id:
+        drift_id:
             Internal customer identifier.
         name:
             Entity name used for news / event lookup.

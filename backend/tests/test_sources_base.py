@@ -35,7 +35,7 @@ from app.sources.base import (
 # ---------------------------------------------------------------------------
 
 def _snap(
-    customer_id: str = "drift-001",
+    drift_id: str = "drift-001",
     name: str = "Test Corp AG",
     source: str = "zefix",
     legal_form: str | None = "AG",
@@ -47,7 +47,7 @@ def _snap(
     raw_data: dict | None = None,
 ) -> EntitySnapshot:
     return EntitySnapshot(
-        customer_id=customer_id,
+        drift_id=drift_id,
         name=name,
         source=source,
         legal_form=legal_form,
@@ -66,13 +66,13 @@ def _snap(
 
 class TestEntitySnapshot:
     def test_required_fields_only(self):
-        s = EntitySnapshot(customer_id="c-1", name="CorpX", source="zefix")
-        assert s.customer_id == "c-1"
+        s = EntitySnapshot(drift_id="c-1", name="CorpX", source="zefix")
+        assert s.drift_id == "c-1"
         assert s.name == "CorpX"
         assert s.source == "zefix"
 
     def test_defaults_are_safe(self):
-        s = EntitySnapshot(customer_id="c-2", name="Y", source="gleif")
+        s = EntitySnapshot(drift_id="c-2", name="Y", source="gleif")
         assert s.legal_form is None
         assert s.jurisdiction is None
         assert s.registered_address is None
@@ -83,13 +83,13 @@ class TestEntitySnapshot:
 
     def test_fetched_at_defaults_to_utc_now(self):
         before = datetime.now(UTC)
-        s = EntitySnapshot(customer_id="c-3", name="Z", source="internal")
+        s = EntitySnapshot(drift_id="c-3", name="Z", source="internal")
         after = datetime.now(UTC)
         assert before <= s.fetched_at <= after
 
     def test_explicit_fetched_at_is_preserved(self):
         t = datetime(2024, 6, 1, tzinfo=UTC)
-        s = EntitySnapshot(customer_id="c-4", name="W", source="zefix", fetched_at=t)
+        s = EntitySnapshot(drift_id="c-4", name="W", source="zefix", fetched_at=t)
         assert s.fetched_at == t
 
     def test_full_construction(self):
@@ -103,8 +103,8 @@ class TestEntitySnapshot:
         assert s.raw_data["uid"] == "CHE-123.456.789"
 
     def test_mutable_defaults_are_independent(self):
-        s1 = EntitySnapshot(customer_id="a", name="A", source="x")
-        s2 = EntitySnapshot(customer_id="b", name="B", source="x")
+        s1 = EntitySnapshot(drift_id="a", name="A", source="x")
+        s2 = EntitySnapshot(drift_id="b", name="B", source="x")
         s1.beneficial_owners.append("Acme")
         assert s2.beneficial_owners == []
 
@@ -362,17 +362,17 @@ class TestRegistryAdapterABC:
     def test_concrete_without_source_name_raises(self):
         with pytest.raises(TypeError, match="source_name"):
             class BadAdapter(RegistryAdapter):
-                async def fetch(self, customer_id, name, **kwargs):
+                async def fetch(self, drift_id, name, **kwargs):
                     return None
-                async def fetch_signals(self, customer_id, name, since_month=0, **kwargs):
+                async def fetch_signals(self, drift_id, name, since_month=0, **kwargs):
                     return []
 
     def test_concrete_with_source_name_can_instantiate(self):
         class GoodAdapter(RegistryAdapter):
             source_name = "test_source"
-            async def fetch(self, customer_id, name, **kwargs):
+            async def fetch(self, drift_id, name, **kwargs):
                 return None
-            async def fetch_signals(self, customer_id, name, since_month=0, **kwargs):
+            async def fetch_signals(self, drift_id, name, since_month=0, **kwargs):
                 return []
 
         adapter = GoodAdapter()
@@ -381,9 +381,9 @@ class TestRegistryAdapterABC:
     def test_fetch_returns_none_for_missing_entity(self):
         class NullAdapter(RegistryAdapter):
             source_name = "null"
-            async def fetch(self, customer_id, name, **kwargs):
+            async def fetch(self, drift_id, name, **kwargs):
                 return None
-            async def fetch_signals(self, customer_id, name, since_month=0, **kwargs):
+            async def fetch_signals(self, drift_id, name, since_month=0, **kwargs):
                 return []
 
         async def _run():
@@ -396,14 +396,14 @@ class TestRegistryAdapterABC:
     def test_fetch_returns_entity_snapshot(self):
         class StubAdapter(RegistryAdapter):
             source_name = "stub"
-            async def fetch(self, customer_id, name, **kwargs):
+            async def fetch(self, drift_id, name, **kwargs):
                 return EntitySnapshot(
-                    customer_id=customer_id,
+                    drift_id=drift_id,
                     name=name,
                     source=self.source_name,
                     jurisdiction="CH",
                 )
-            async def fetch_signals(self, customer_id, name, since_month=0, **kwargs):
+            async def fetch_signals(self, drift_id, name, since_month=0, **kwargs):
                 return []
 
         async def _run():
@@ -418,9 +418,9 @@ class TestRegistryAdapterABC:
     def test_fetch_signals_returns_list(self):
         class SignalAdapter(RegistryAdapter):
             source_name = "signal_source"
-            async def fetch(self, customer_id, name, **kwargs):
+            async def fetch(self, drift_id, name, **kwargs):
                 return None
-            async def fetch_signals(self, customer_id, name, since_month=0, **kwargs):
+            async def fetch_signals(self, drift_id, name, since_month=0, **kwargs):
                 return [
                     PublicSignal(
                         month=3,
@@ -445,9 +445,9 @@ class TestRegistryAdapterABC:
 
         class MonthAwareAdapter(RegistryAdapter):
             source_name = "month_source"
-            async def fetch(self, customer_id, name, **kwargs):
+            async def fetch(self, drift_id, name, **kwargs):
                 return None
-            async def fetch_signals(self, customer_id, name, since_month=0, **kwargs):
+            async def fetch_signals(self, drift_id, name, since_month=0, **kwargs):
                 received.append(since_month)
                 return []
 
@@ -461,9 +461,9 @@ class TestRegistryAdapterABC:
     def test_source_name_class_variable_inherited(self):
         class BaseAdapter(RegistryAdapter):
             source_name = "shared"
-            async def fetch(self, customer_id, name, **kwargs):
+            async def fetch(self, drift_id, name, **kwargs):
                 return None
-            async def fetch_signals(self, customer_id, name, since_month=0, **kwargs):
+            async def fetch_signals(self, drift_id, name, since_month=0, **kwargs):
                 return []
 
         class ChildAdapter(BaseAdapter):
@@ -482,7 +482,7 @@ class TestPublicIntelIntegration:
     def test_generate_signals_returns_public_signal_instances(self):
         from app.drift.public_intel import generate_signals_for_customer
         signals = generate_signals_for_customer(
-            customer_id="drift-001",
+            drift_id="drift-001",
             name="Viktor Antonov",
             scenario="volume_creep",
             months=18,
@@ -496,7 +496,7 @@ class TestPublicIntelIntegration:
     def test_generated_signals_have_source_url_attribute(self):
         from app.drift.public_intel import generate_signals_for_customer
         signals = generate_signals_for_customer(
-            customer_id="drift-002",
+            drift_id="drift-002",
             name="Helena Krause",
             scenario="counterparty_migration",
             months=18,
@@ -504,14 +504,14 @@ class TestPublicIntelIntegration:
             seed=7,
         )
         for s in signals:
-            # source_url defaults to None for internally-generated signals
             assert hasattr(s, "source_url")
-            assert s.source_url is None
+            assert s.source_url is not None
+            assert "drift-002" in s.source_url
 
     def test_to_dict_includes_source_url_key(self):
         from app.drift.public_intel import generate_signals_for_customer
         signals = generate_signals_for_customer(
-            customer_id="drift-003",
+            drift_id="drift-003",
             name="Tomas Lindqvist",
             scenario="corridor_shift",
             months=18,

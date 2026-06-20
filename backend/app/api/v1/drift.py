@@ -15,8 +15,8 @@ from app.ml.base import score_to_level
 from app.schemas.drift import (
     CascadeCostReport,
     ContagionGraph,
-    DriftCustomerDetail,
-    DriftCustomerSummary,
+    DriftSubjectDetail,
+    DriftSubjectSummary,
     InjectScenarioRequest,
     ReplayResult,
     RFIResponse,
@@ -26,35 +26,35 @@ from app.services.audit import AuditService
 router = APIRouter(prefix="/drift", tags=["drift"])
 
 
-@router.get("/customers", response_model=list[DriftCustomerSummary])
-async def list_drift_customers() -> list[DriftCustomerSummary]:
-    """Book overview: drift score + velocity per customer, sorted by risk."""
-    return get_drift_engine().list_customers()
+@router.get("/subjects", response_model=list[DriftSubjectSummary])
+async def list_drift_subjects() -> list[DriftSubjectSummary]:
+    """Book overview: drift score + velocity per subject, sorted by risk."""
+    return get_drift_engine().list_subjects()
 
 
-@router.get("/customers/{customer_id}", response_model=DriftCustomerDetail)
-async def get_drift_customer(
-    customer_id: str,
+@router.get("/subjects/{drift_id}", response_model=DriftSubjectDetail)
+async def get_drift_subject(
+    drift_id: str,
     session: Annotated[AsyncSession, Depends(get_session)],
-    actor_id: str | None = Query(None, description="ID of the officer viewing the customer"),
-) -> DriftCustomerDetail:
-    """Full layer breakdown + timeline for one customer."""
-    detail = get_drift_engine().get_customer(customer_id)
+    actor_id: str | None = Query(None, description="ID of the officer viewing the subject"),
+) -> DriftSubjectDetail:
+    """Full layer breakdown + timeline for one drift subject."""
+    detail = get_drift_engine().get_subject(drift_id)
     if detail is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No drift customer {customer_id!r}",
+            detail=f"No drift subject {drift_id!r}",
         )
 
     await AuditService(session).log(
-        event_type="drift_customer_analyzed",
-        customer_id=customer_id,
+        event_type="drift_subject_analyzed",
+        drift_id=drift_id,
         actor_id=actor_id,
         actor_type="compliance_officer" if actor_id else "system",
         risk_score=detail.drift_score,
         risk_level=score_to_level(detail.drift_score),
         payload={
-            "customer_id": customer_id,
+            "drift_id": drift_id,
             "drift_velocity": detail.drift_velocity,
             "velocity_band": detail.velocity_band,
             "reached_tier": detail.reached_tier,
@@ -65,21 +65,6 @@ async def get_drift_customer(
         },
     )
 
-    return detail
-
-
-@router.get("/customers/{customer_id}/timeline", response_model=DriftCustomerDetail)
-async def get_drift_timeline(customer_id: str) -> DriftCustomerDetail:
-    """
-    Timeline-focused view (same payload as detail; the frontend scrubber
-    reads the `timeline` array). Kept as a separate route for clarity.
-    """
-    detail = get_drift_engine().get_customer(customer_id)
-    if detail is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No drift customer {customer_id!r}",
-        )
     return detail
 
 
@@ -115,30 +100,30 @@ async def get_contagion_graph() -> ContagionGraph:
     return get_drift_engine().contagion_graph()
 
 
-@router.get("/replay/{customer_id}", response_model=ReplayResult)
+@router.get("/replay/{drift_id}", response_model=ReplayResult)
 async def get_replay(
-    customer_id: str,
+    drift_id: str,
     session: Annotated[AsyncSession, Depends(get_session)],
     actor_id: str | None = Query(None, description="ID of the officer running the replay"),
 ) -> ReplayResult:
     """
     Time-Travel Audit: as-of replay proving the system would have flagged this
-    customer using ONLY past data — no look-ahead bias. The regulatory proof.
+    subject using ONLY past data — no look-ahead bias. The regulatory proof.
     """
-    result = get_drift_engine().replay(customer_id)
+    result = get_drift_engine().replay(drift_id)
     if result is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No drift customer {customer_id!r}",
+            detail=f"No drift subject {drift_id!r}",
         )
 
     await AuditService(session).log(
         event_type="drift_replay_executed",
-        customer_id=customer_id,
+        drift_id=drift_id,
         actor_id=actor_id,
         actor_type="compliance_officer" if actor_id else "system",
         payload={
-            "customer_id": customer_id,
+            "drift_id": drift_id,
             "alert_month": result.alert_month,
             "sanctions_month": result.sanctions_month,
             "lead_time_months": result.lead_time_months,
@@ -149,12 +134,12 @@ async def get_replay(
     return result
 
 
-@router.post("/inject", response_model=DriftCustomerDetail)
+@router.post("/inject", response_model=DriftSubjectDetail)
 async def inject_scenario(
     req: InjectScenarioRequest,
     session: Annotated[AsyncSession, Depends(get_session)],
     actor_id: str | None = Query(None, description="ID of the officer injecting the scenario"),
-) -> DriftCustomerDetail:
+) -> DriftSubjectDetail:
     """Red-team: inject a synthetic drift scenario and return its analysis."""
     try:
         detail = get_drift_engine().inject_scenario(req.scenario, req.name)
@@ -165,7 +150,7 @@ async def inject_scenario(
 
     await AuditService(session).log(
         event_type="drift_scenario_injected",
-        customer_id=detail.customer_id,
+        drift_id=detail.drift_id,
         actor_id=actor_id,
         actor_type="compliance_officer" if actor_id else "system",
         risk_score=detail.drift_score,
@@ -180,24 +165,24 @@ async def inject_scenario(
     return detail
 
 
-@router.post("/rfi/{customer_id}", response_model=RFIResponse)
+@router.post("/rfi/{drift_id}", response_model=RFIResponse)
 async def generate_rfi(
-    customer_id: str,
+    drift_id: str,
     session: Annotated[AsyncSession, Depends(get_session)],
     actor_id: str | None = Query(None, description="ID of the officer generating the RFI"),
 ) -> RFIResponse:
     """
     Generate a Value-of-Information ranked request-for-information.
 
-    Returns rule-based RFI questions tuned to the customer's dominant
+    Returns rule-based RFI questions tuned to the subject's dominant
     drift signal, ordered by expected information gain.
     """
     engine = get_drift_engine()
-    detail = engine.get_customer(customer_id)
+    detail = engine.get_subject(drift_id)
     if detail is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No drift customer {customer_id!r}",
+            detail=f"No drift subject {drift_id!r}",
         )
 
     questions: list[str] = []
@@ -223,7 +208,7 @@ async def generate_rfi(
         )
 
     rfi = RFIResponse(
-        customer_id=customer_id,
+        drift_id=drift_id,
         questions=questions,
         rationale=(
             f"Drift score {detail.drift_score} (band: {detail.velocity_band}). "
@@ -235,13 +220,13 @@ async def generate_rfi(
 
     await AuditService(session).log(
         event_type="drift_rfi_generated",
-        customer_id=customer_id,
+        drift_id=drift_id,
         actor_id=actor_id,
         actor_type="compliance_officer" if actor_id else "system",
         risk_score=detail.drift_score,
         risk_level=score_to_level(detail.drift_score),
         payload={
-            "customer_id": customer_id,
+            "drift_id": drift_id,
             "question_count": len(questions),
             "questions": questions,
             "estimated_info_gain_bits": rfi.estimated_info_gain_bits,

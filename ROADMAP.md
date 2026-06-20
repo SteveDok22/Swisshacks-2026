@@ -10,26 +10,26 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 |---|---|---|
 | **AI Intelligence Quality** | 25% | ✅ Strong — 7 real algorithms, causal separation, suspicious stability |
 | **Cost Efficiency** | 20% | ⚠️ Partial — T2 LLM works; no per-workflow token count yet |
-| **UX & Explainability** | 20% | ⚠️ Gap — 7 visualisations solid; drift uses per-layer LLR contribution breakdown (no per-variable SHAP, by design); source citations missing |
-| **Compliance & Safety** | 20% | ✅ Good — audit log wired; DecisionBar on drift; source citations still missing |
+| **UX & Explainability** | 20% | ✅ Good — 7 visualisations solid; drift uses per-layer LLR contribution breakdown; signal cards include source citations |
+| **Compliance & Safety** | 20% | ✅ Good — audit log wired; DecisionBar on drift; source citations surfaced |
 | **Engineering & Architecture** | 15% | ✅ Good — modular engine, clean API, async, unit + BDD tests; no CI/CD |
 
 ---
 
 ## Use Case Coverage
 
-| # | Use Case | Status | What exists | What's needed |
-|---|---|---|---|---|
-| 1 | Negative news spike | ⚠️ PARTIAL | Lexicon classifier + confirmation lift; no live feed | EventRegistry adapter + BOCPD on event time-series |
-| 2 | Cross-border transfer anomaly | ✅ WORKS | BOCPD + velocity on synthetic data | — |
-| 3 | Multiple entities + sudden flows | ⚠️ PARTIAL | Contagion + causal; no named layering detector | GLEIF / OpenCorporates for real UBO graph |
-| 4 | Jurisdiction / legal form change | 🔶 INDIRECT | `jurisdiction.py` is rule-pack selector, not change detector | ZEFIX / GLEIF diff vs. KYC baseline |
-| 5 | New shareholders / UBOs | ⚠️ PARTIAL | PageRank over synthetic graph; no real UBO lookup | OpenCorporates / GLEIF / OpenSanctions screening |
-| 6 | Large funding round / expansion | ⚠️ PARTIAL | `funding_event` template + causal; no live feed | Crunchbase adapter + scale-jump ratio |
-| 7 | Dormant company activates | ✅ WORKS | `drift/dormancy.py` explicit detector (near-zero baseline → volume burst); wired into the drift score + surfaced in API; `dormancy_break` scenario in the book | — |
-| 8 | Legal entity name change | ❌ MISSING | Not implemented | ZEFIX + GLEIF diff; `name_changed` signal |
-| 9 | Domain switch / website change | ❌ MISSING | Not implemented | WHOIS + Wayback + Firecrawl |
-| 10 | Public business model pivot | ❌ MISSING | Not implemented | EventRegistry + Firecrawl + sentence-transformer cosine |
+| # | Use Case | Signal | Status | What exists | What's needed | Real-world example |
+|---|---|---|---|---|---|---|
+| 1 | Negative news spike | Reputational risk | ⚠️ PARTIAL | Lexicon classifier + confirmation lift; no live feed | EventRegistry adapter + BOCPD on event time-series | **Wirecard** — adverse media, whistle-blower allegations, and accounting red flags accumulated in public signals 2 years before collapse |
+| 2 | Cross-border transfer anomaly | Behavioural anomaly | ✅ WORKS | BOCPD + velocity on synthetic data | — | **Deutsche Bank mirror trades** — $10B moved Russia→UK via back-to-back exchange orders, evading cross-border transfer controls (2011–2015) |
+| 3 | Multiple entities + sudden flows | Structuring / layering | ⚠️ PARTIAL | Contagion + causal; no named layering detector | GLEIF / OpenCorporates for real UBO graph | **Danske Estonia** — 15,000 non-resident shell-company customers, hidden UBO chains, €200B in suspicious cross-border flows |
+| 4 | Jurisdiction / legal form change | Structural risk | 🔶 INDIRECT | `jurisdiction.py` is rule-pack selector, not change detector | ZEFIX / GLEIF diff vs. KYC baseline | **Long Blockchain Corp** — Long Island Iced Tea rebranded to exploit crypto hype; name change triggered mandatory re-KYC across its banking relationships |
+| 5 | New shareholders / UBOs | Ownership KYC drift | ⚠️ PARTIAL | PageRank over synthetic graph; no real UBO lookup | OpenCorporates / GLEIF / OpenSanctions screening | **1MDB** — beneficial ownership routed through multiple layers of Cayman/BVI shells; each UBO change further obscured the true principal |
+| 6 | Large funding round / expansion | Scale risk | ⚠️ PARTIAL | `funding_event` template + causal; no live feed | Crunchbase adapter + scale-jump ratio | **FTX** — $900M raise at $18B valuation; transaction volumes never matched claimed revenue; scale jump was the leading AML signal |
+| 7 | Dormant company activates | Suspicious activation | ✅ WORKS | `drift/dormancy.py` explicit detector (near-zero baseline → volume burst); wired into the drift score + surfaced in API; `dormancy_break` scenario in the book | — | **Azerbaijani Laundromat** — EU shell companies dormant for years, suddenly activated 2012–2014 to route $2.9B out of Azerbaijan |
+| 8 | Legal entity name change | Re-KYC required | ❌ MISSING | Not implemented | ZEFIX + GLEIF diff; `name_changed` signal | **Mossack Fonseca shelf cycling** — systematic renaming of shelf companies every 12–18 months to reset KYC review clocks |
+| 9 | Domain switch / website change | Business activity change | ❌ MISSING | Not implemented | WHOIS + Wayback + Firecrawl | **N26** — rapid international expansion and domain/product proliferation outpaced AML monitoring; BaFin appointed a special monitor |
+| 10 | Public business model pivot | Material business change | ❌ MISSING | Not implemented | EventRegistry + Firecrawl + sentence-transformer cosine | **Centra Tech** — pivoted from debit-card fintech to ICO in 90 days; existing AML profile captured none of the new business model risk |
 
 ---
 
@@ -37,8 +37,8 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 ### P0 — Already done ✅
 
-- [x] Wire audit log into drift pipeline — `drift_customer_analyzed`, `drift_scan_completed`, `drift_replay_executed`, etc.
-- [x] DecisionBar on drift page — `POST /decisions` accepts `customer_id`; drift recommendations derived server-side
+- [x] Wire audit log into drift pipeline — `drift_subject_analyzed`, `drift_scan_completed`, `drift_replay_executed`, etc.
+- [x] DecisionBar on drift page — `POST /decisions` accepts `drift_id`; drift recommendations derived server-side
 - [x] T2 LLM adjudication — `AnthropicClient` called for T2 customers in `drift/service.py:scan()`
 - [x] Audit log frontend page — `GET /api/v1/audit` + `/audit` route in Next.js
 - [x] Backend Docker — multi-stage, non-root, healthcheck
@@ -53,7 +53,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 **1. Engine (no external deps)**
 - [x] **Case 7: Dormancy-break detector** — `drift/dormancy.py` detects near-zero baseline → volume jump (`dormancy_break = dormancy_depth × activation_strength`); wired into `drift/service.py` (score floor) and surfaced via `DormancyOut` on summary/detail + T2 evidence; `dormancy_break` scenario + "Dormant Holdings AG" seeded in the book; unit + end-to-end tests. **Case 7 PARTIAL → WORKS.** (PR #10)
-- [x] **Fix BOCPD changepoint visual marker** — `bocpd_changepoint` is now derived in `DriftEngine.get_customer` by mapping `bocpd_changepoint_day` to its month window (via `SyntheticCustomer.day_to_month`); `DriftTimeline.tsx` renders a violet dashed "Regime change" marker at that month. Unit tests in `test_drift_changepoint_marker.py`. **DONE.** (PR #11)
+- [x] **Fix BOCPD changepoint visual marker** — `bocpd_changepoint` is now derived in `DriftEngine.get_subject` by mapping `bocpd_changepoint_day` to its month window (via `SyntheticCustomer.day_to_month`); `DriftTimeline.tsx` renders a violet dashed "Regime change" marker at that month. Unit tests in `test_drift_changepoint_marker.py`. **DONE.** (PR #11)
 
 **2. Prerequisites (build these before adapters)**
 - [x] **`db/kyc_baseline.py`** — `EntitySnapshotDB` SQLModel table + `store_snapshot`, `load_latest_snapshot`, `load_onboarding_snapshot`, `load_snapshot_history`, `load_all_baselines` CRUD helpers; registered in `session.py` so the table is auto-created on startup; 24 unit tests covering all helpers and seeding behaviour (PR #11)
@@ -79,7 +79,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 **5. UX / explainability**
 - [x] **DormancyPanel.tsx** — `DormancyOut` is typed in `api.ts`, surfaced on `DriftCustomerDetail`, and shown in a dedicated panel mirroring `StabilityPanel.tsx` (`dormancy_depth × activation_strength = dormancy_break`) with flagged banners and summary badges when `is_dormancy_break` is true.
-- [ ] **Source citations on signal cards** — backend done (`source_url` field on `PublicSignal` in `sources/base.py` and on `PublicSignalOut` in `schemas/drift.py`); remaining: add `source_url: string | null` to `PublicSignal` TS type in `api.ts`; render as a clickable link in `TwoLayerPanel.tsx` signal rows
+- [x] **Source citations on signal cards** — `source_url` field on canonical `PublicSignal` in `sources/base.py` and `PublicSignalOut` in `schemas/drift.py`; synthetic demo signals emit deterministic source references; `PublicSignal` TS type includes `source_url`; `TwoLayerPanel.tsx` renders clickable source links.
 - [x] **Drift explainability** — option A chosen: drift attribution is a per-layer LLR contribution breakdown (7 layers × `LayerContribution.llr` + `CausalVerdictOut.contributions` per metric). Per-variable SHAP is case-scoring only; applying it to drift time-series would explain the wrong thing (transaction features ≠ behavioural drift features).
 
 **6. Cost tracking**
@@ -89,12 +89,12 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 ### P2 — Engineering cleanups
 
-- [ ] Move 6 magic-number layer weights from `service.py:104–163` to named constants in `core/config.py`
-- [ ] Add single-worker warning to `service.py:426` global `_engine` singleton (unsafe under multi-process)
-- [ ] Remove duplicate timeline endpoint — `GET /drift/customers/{id}/timeline` returns same payload as `GET /drift/customers/{id}`
-- [ ] Fix `audit.py:138` — `len(list(...all()))` loads entire table; replace with `COUNT(*)` query
-- [ ] `list_customers()` recomputes all 10 customers on every request — add short-lived TTL cache
-- [ ] Qualify "real-time signals" language in README and pitch — signals are simulated for MVP; architecture is slot-swap ready
+- [x] Move 6 magic-number layer weights from `service.py` to named constants in `core/config.py`
+- [x] Add single-worker warning to the global `_engine` singleton (unsafe under multi-process)
+- [x] Remove duplicate timeline endpoint — `GET /drift/subjects/{drift_id}` already returns the timeline
+- [x] Fix `db_store.py` — `len(list(...all()))` loads all case IDs for count; replaced with `COUNT(*)` query via `func.count()`
+- [x] `list_subjects()` recomputes all 10 subjects on every request — added 30 s TTL cache on `DriftEngine`
+- [x] Qualify "real-time signals" language in README and pitch — signals are simulated for MVP; architecture is slot-swap ready
 
 ---
 
@@ -121,7 +121,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 | Time-Travel Audit | `drift/timetravel.py` | No look-ahead bias on replay |
 | Drift Engine | `drift/service.py` | All 7 layers, confirmation lift, LLM adjudication |
 | Synthetic Book | `drift/simulator.py` | 8 scenarios with ground-truth labels |
-| REST API | `api/v1/` | 28 endpoints, all functional |
+| REST API | `api/v1/` | 27 endpoints, all functional |
 | Frontend | `src/app/drift/`, `src/app/audit/` | 7 drift visualisations + audit log page |
 | XGBoost + SHAP | `ml/base.py` | Wired to case management only; drift uses per-layer LLR breakdown |
 | Audit service | `services/audit.py` | Append-only, queried by customer and event type |

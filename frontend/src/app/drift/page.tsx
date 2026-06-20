@@ -53,14 +53,14 @@ export default function DriftPage() {
     onSuccess: (newCustomer) => {
       queryClient.invalidateQueries({ queryKey: ["drift-customers"] });
       queryClient.invalidateQueries({ queryKey: ["drift-scan"] });
-      setSelectedId(newCustomer.customer_id);
+      setSelectedId(newCustomer.drift_id);
     },
   });
 
   // Auto-select highest-risk customer once loaded
   useEffect(() => {
     if (!selectedId && customers && customers.length > 0) {
-      setSelectedId(customers[0].customer_id);
+      setSelectedId(customers[0].drift_id);
     }
   }, [customers, selectedId]);
 
@@ -216,8 +216,8 @@ export default function DriftPage() {
 
             {/* === DECISION BAR — officer records their compliance action === */}
             <DecisionBar
-              key={detail.customer_id}
-              customerId={detail.customer_id}
+              key={detail.drift_id}
+              driftId={detail.drift_id}
               aiRecommendedAction={detail.recommended_action}
             />
 
@@ -234,7 +234,7 @@ export default function DriftPage() {
               <div className="space-y-5">
                 {detail.stability && <StabilityPanel stability={detail.stability} />}
                 {detail.dormancy && <DormancyPanel dormancy={detail.dormancy} />}
-                <TimeTravelPanel customerId={detail.customer_id} />
+                <TimeTravelPanel driftId={detail.drift_id} />
 
                 {/* Signal Layers */}
                 <div className="border border-paper-line rounded bg-paper-raised p-4">

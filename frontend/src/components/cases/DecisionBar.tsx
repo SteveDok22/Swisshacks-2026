@@ -10,8 +10,8 @@ import type { DecisionAction } from "@/types/api";
 type DecisionBarProps = {
   aiRecommendedAction: DecisionAction | null;
 } & (
-  | { caseId: string; customerId?: never }
-  | { customerId: string; caseId?: never }
+  | { caseId: string; driftId?: never }
+  | { driftId: string; caseId?: never }
 );
 
 const ACTIONS: {
@@ -53,7 +53,7 @@ const VARIANT_STYLES: Record<string, { base: string; hover: string; ring: string
  *
  * Supports two workflows:
  * - Case review: pass `caseId`; decision is recorded against a case.
- * - Drift engine: pass `customerId`; decision is recorded against a drift customer.
+ * - Drift engine: pass `driftId`; decision is recorded against a drift customer.
  *
  * In both cases the AI's recommended action is highlighted with a ring so
  * officers can see when they're overriding it.  Override requires a rationale.
@@ -69,8 +69,8 @@ export function DecisionBar(props: DecisionBarProps) {
   const [submitted, setSubmitted] = useState(false);
   const queryClient = useQueryClient();
 
-  const isDrift = "customerId" in props;
-  const subjectId = isDrift ? props.customerId : props.caseId;
+  const isDrift = "driftId" in props;
+  const subjectId = isDrift ? props.driftId : props.caseId;
 
   const mutation = useMutation({
     mutationFn: (payload: {
@@ -80,7 +80,7 @@ export function DecisionBar(props: DecisionBarProps) {
       decisionsApi.record(
         isDrift
           ? {
-              customer_id: props.customerId,
+              drift_id: props.driftId,
               action: payload.action,
               officer_id: "anna.mueller@amina.ch",
               rationale: payload.rationale,

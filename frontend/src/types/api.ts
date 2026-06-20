@@ -169,7 +169,7 @@ export interface AuditEntry {
   event_type: string;
   case_id: string | null;
   client_id: string | null;
-  customer_id: string | null;
+  drift_id: string | null;
   actor_id: string | null;
   actor_type: string;
   payload: Record<string, unknown>;
@@ -182,7 +182,7 @@ export interface AuditEntry {
 export interface DecisionRead {
   id: string;
   case_id: string | null;
-  customer_id: string | null;
+  drift_id: string | null;
   action: DecisionAction;
   officer_id: string;
   rationale: string | null;
@@ -249,7 +249,7 @@ export interface AsOfPoint {
 }
 
 export interface ReplayResult {
-  customer_id: string;
+  drift_id: string;
   name: string;
   points: AsOfPoint[];
   alert_month: number | null;
@@ -264,6 +264,7 @@ export interface PublicSignal {
   headline: string;
   severity: number;
   source: string;
+  source_url: string | null;
 }
 
 export interface LayerContribution {
@@ -275,7 +276,7 @@ export interface LayerContribution {
 }
 
 export interface DriftCustomerSummary {
-  customer_id: string;
+  drift_id: string;
   name: string;
   drift_score: number;
   drift_velocity: number;
@@ -303,7 +304,7 @@ export interface DriftTimelinePoint {
 }
 
 export interface DriftCustomerDetail {
-  customer_id: string;
+  drift_id: string;
   name: string;
   drift_score: number;
   drift_velocity: number;
@@ -342,8 +343,8 @@ export interface CascadeCostReport {
 }
 
 export interface LLMAdjudication {
-  customer_id: string;
-  customer_name: string;
+  drift_id: string;
+  drift_name: string;
   llm_mode: "real" | "mock";
   was_cached: boolean;
   response: {

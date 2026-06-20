@@ -36,6 +36,7 @@ from app.core.config import (
 )
 from app.core.logging import get_logger
 from app.drift.bocpd import BOCPD, standardize
+from app.drift.business_model import BusinessModelComparison, compare_business_model
 from app.drift.cascade import CascadeRouter, CustomerSignal, Tier
 from app.drift.causal import causal_assessment
 from app.drift.contagion import (
@@ -424,6 +425,41 @@ class DriftEngine:
         )
 
     # ------------------------------------------------------------------ #
+    # Business-model drift (UC 9)
+    # ------------------------------------------------------------------ #
+    def _business_model_comparison(
+        self, cust: SyntheticCustomer
+    ) -> BusinessModelComparison | None:
+        """Compare onboarding vs current website text for a silent pivot (UC 9).
+
+        Returns ``None`` when the customer carries no website texts (every
+        scenario but ``domain_pivot`` in the offline demo, and — until the
+        snapshot/adapter wiring lands — every customer in live mode). Otherwise
+        runs the pure comparator, which itself degrades to a skipped result
+        (distance 0.0, no signal) when the embeddings backend is unavailable, so
+        this never requires a model download or any network at request time.
+
+        NOTE (deferred): the comparator returns the embeddings it used so a caller
+        can persist them in ``EntitySnapshotDB.raw_data`` to skip re-embedding on
+        re-scan. That persistence — and sourcing the two texts from the Wayback /
+        Firecrawl adapters in live mode — is the remaining aggregator wiring,
+        tracked as a follow-up.
+        """
+        onboarding = cust.onboarding_website_text
+        current = cust.current_website_text
+        if not onboarding or not current:
+            return None
+        return compare_business_model(
+            cust.drift_id,
+            cust.name,
+            onboarding,
+            current,
+            # Align the emitted signal with the pivot onset (the WHOIS registrant
+            # change) so Confirmation Lift can time-match it to internal drift.
+            month=cust.drift_start_month or 0,
+        )
+
+    # ------------------------------------------------------------------ #
     # Core per-customer analysis
     # ------------------------------------------------------------------ #
     def _analyze_customer(self, cust: SyntheticCustomer) -> dict:
@@ -443,14 +479,28 @@ class DriftEngine:
         scoring policies that training does not need — the XGBoost blend and the
         regulatory floors — on top of that shared analysis.
         """
+        # PUBLIC: real adapter signals via aggregator (live), or the deterministic
+        # synthetic generator (offline/mock). See _public_signals.
+        public_signals = self._public_signals(cust)
+
+        # Business-model drift (UC 9): fold a website/domain pivot into the public
+        # layer so it lifts public_risk and time-aligns for Confirmation Lift,
+        # exactly like any other external signal. Absent texts / embedder → no
+        # signal, no effect.
+        bm = self._business_model_comparison(cust)
+        if bm is not None and bm.signal is not None:
+            public_signals = [*public_signals, bm.signal]
+
         # --- Shared passive-layer analysis (identical formula to training) ---
         analysis = compute_drift_analysis(
             cust,
             cohort_cv=self._cohort_cv,
             propagated_risk=self._contagion.propagated_risk.get(cust.drift_id, 0.0),
-            # PUBLIC: real adapter signals via aggregator (live), or the
-            # deterministic synthetic generator (offline/mock). See _public_signals.
-            public_signals=self._public_signals(cust),
+            public_signals=public_signals,
+        )
+        analysis["is_business_model_change"] = bm.is_change if bm is not None else False
+        analysis["business_model_distance"] = (
+            round(bm.distance, 4) if bm is not None else 0.0
         )
         score = analysis["drift_score"]
 
@@ -862,6 +912,8 @@ class DriftEngine:
                 PublicSignalOut(**s.to_dict()) for s in a["public_signals"]
             ],
             ubo_screening=ubo_screening,
+            is_business_model_change=a.get("is_business_model_change", False),
+            business_model_distance=a.get("business_model_distance", 0.0),
             causal=CausalVerdictOut(
                 causal_llr=round(a["causal"].causal_llr, 2),
                 p_risk=round(a["causal"].p_risk, 3),

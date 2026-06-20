@@ -305,7 +305,7 @@ def train_social_engineering_model(
 _DRIFT_RISK_SCENARIOS = frozenset(
     {
         "volume_creep", "counterparty_migration", "corridor_shift", "combined",
-        "dormancy_break", "suspicious_stability", "news_spike", "name_cycling",
+        "dormancy_break", "suspicious_stability", "news_spike", "name_cycling", "domain_pivot",
     }
 )
 

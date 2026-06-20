@@ -1,5 +1,5 @@
 """
-Decisions API — compliance officer actions on cases and drift customers.
+Decisions API — compliance officer actions on cases and drift subjects.
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ def _to_read(d: DecisionDB) -> DecisionRead:
     return DecisionRead(
         id=d.id,
         case_id=d.case_id,
-        customer_id=d.customer_id,
+        drift_id=d.drift_id,
         action=d.action,
         officer_id=d.officer_id,
         rationale=d.rationale,
@@ -47,7 +47,7 @@ async def record_decision(
     """
     Record a compliance officer's decision.
 
-    Accepts either ``case_id`` (case-review workflow) or ``customer_id``
+    Accepts either ``case_id`` (case-review workflow) or ``drift_id``
     (drift-engine workflow) — not both, and at least one is required.
 
     If the decision overrides the AI's recommendation, ``rationale`` is REQUIRED.
@@ -77,20 +77,20 @@ async def list_case_decisions(
     return [_to_read(d) for d in decisions]
 
 
-@router.get("/customer/{customer_id}", response_model=list[DecisionRead])
-async def list_customer_decisions(
-    customer_id: str,
+@router.get("/subject/{drift_id}", response_model=list[DecisionRead])
+async def list_subject_decisions(
+    drift_id: str,
     session: Annotated[AsyncSession, Depends(get_session)],
 ) -> list[DecisionRead]:
-    """Get all drift-engine decisions ever made on a customer (chronological).
+    """Get all drift-engine decisions ever made on a subject (chronological).
 
-    Returns an empty list when the customer exists but has no decisions.
+    Returns an empty list when the subject exists but has no decisions.
     """
-    if get_drift_engine().get_customer(customer_id) is None:
+    if get_drift_engine().get_subject(drift_id) is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"No drift customer {customer_id!r}",
+            detail=f"No drift subject {drift_id!r}",
         )
     service = DecisionService(session)
-    decisions = await service.list_decisions_for_customer(customer_id)
+    decisions = await service.list_decisions_for_subject(drift_id)
     return [_to_read(d) for d in decisions]

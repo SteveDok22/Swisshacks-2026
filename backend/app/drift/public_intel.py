@@ -112,7 +112,7 @@ _SOURCE_BASE_URLS = {
 }
 
 
-def _demo_source_url(source: str, customer_id: str, signal_type: str, month: int) -> str:
+def _demo_source_url(source: str, drift_id: str, signal_type: str, month: int) -> str:
     """
     Deterministic demo citation URL for synthetic public signals.
 
@@ -120,13 +120,13 @@ def _demo_source_url(source: str, customer_id: str, signal_type: str, month: int
     record URLs while preserving the API shape.
     """
     base = _SOURCE_BASE_URLS.get(source, "https://example.com/demo-sources/")
-    slug = f"{customer_id}-{signal_type}-m{month}".lower().replace("_", "-")
+    slug = f"{drift_id}-{signal_type}-m{month}".lower().replace("_", "-")
     separator = "" if base.endswith("/") else "/"
     return f"{base}{separator}{slug}"
 
 
 def generate_signals_for_customer(
-    customer_id: str,
+    drift_id: str,
     name: str,
     scenario: str,
     months: int = 18,
@@ -154,7 +154,7 @@ def generate_signals_for_customer(
                 PublicSignal(
                     month=m, signal_type="news", headline=headline,
                     severity=classify_severity(headline), source="trade press",
-                    source_url=_demo_source_url("trade press", customer_id, "news", m),
+                    source_url=_demo_source_url("trade press", drift_id, "news", m),
                 )
             )
         return sorted(signals, key=lambda s: s.month)
@@ -178,7 +178,7 @@ def generate_signals_for_customer(
             PublicSignal(
                 month=int(month), signal_type=stype, headline=headline,
                 severity=classify_severity(headline), source=source,
-                source_url=_demo_source_url(source, customer_id, stype, int(month)),
+                source_url=_demo_source_url(source, drift_id, stype, int(month)),
             )
         )
 

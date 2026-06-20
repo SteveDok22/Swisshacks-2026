@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 import { History, ShieldCheck, Loader2 } from "lucide-react";
 
 interface TimeTravelPanelProps {
-  customerId: string;
+  driftId: string;
 }
 
 /**
@@ -21,10 +21,10 @@ interface TimeTravelPanelProps {
  *
  * This is the regulatory proof: not a chart, but a verifiable property.
  */
-export function TimeTravelPanel({ customerId }: TimeTravelPanelProps) {
+export function TimeTravelPanel({ driftId }: TimeTravelPanelProps) {
   const { data, isLoading } = useQuery({
-    queryKey: ["drift-replay", customerId],
-    queryFn: () => driftApi.replay(customerId),
+    queryKey: ["drift-replay", driftId],
+    queryFn: () => driftApi.replay(driftId),
   });
 
   const [cursor, setCursor] = useState<number | null>(null);

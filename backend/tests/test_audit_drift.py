@@ -23,13 +23,13 @@ from app.schemas.enums import RiskLevel
 # Helper
 # ---------------------------------------------------------------------------
 
-async def _first_customer_id(client: AsyncClient) -> str:
-    """Return the customer_id of the highest-risk customer in the synthetic book."""
-    response = await client.get("/api/v1/drift/customers")
+async def _first_drift_id(client: AsyncClient) -> str:
+    """Return the drift_id of the highest-risk subject in the synthetic book."""
+    response = await client.get("/api/v1/drift/subjects")
     assert response.status_code == 200, response.text
     customers = response.json()
-    assert customers, "Drift engine returned an empty book — check simulator.py"
-    return customers[0]["customer_id"]
+    assert customers, "Drift engine returned an empty subject book — check simulator.py"
+    return customers[0]["drift_id"]
 
 
 _VALID_RISK_LEVELS = {r.value for r in RiskLevel}
@@ -41,20 +41,20 @@ _VALID_RISK_LEVELS = {r.value for r in RiskLevel}
 
 class TestAuditDriftEndpoints:
 
-    async def test_customer_detail_writes_audit_entry(self, client, audit_query):
-        customer_id = await _first_customer_id(client)
+    async def test_subject_detail_writes_audit_entry(self, client, audit_query):
+        drift_id = await _first_drift_id(client)
 
-        response = await client.get(f"/api/v1/drift/customers/{customer_id}")
+        response = await client.get(f"/api/v1/drift/subjects/{drift_id}")
         assert response.status_code == 200
 
-        entries = await audit_query("drift_customer_analyzed")
+        entries = await audit_query("drift_subject_analyzed")
         assert len(entries) == 1, "Expected exactly one audit entry"
 
         entry = entries[0]
-        assert entry.event_type == "drift_customer_analyzed"
+        assert entry.event_type == "drift_subject_analyzed"
         assert entry.risk_score is not None
         assert entry.risk_level in _VALID_RISK_LEVELS
-        assert entry.payload["customer_id"] == customer_id
+        assert entry.payload["drift_id"] == drift_id
         assert "drift_velocity" in entry.payload
         assert "velocity_band" in entry.payload
         assert "reached_tier" in entry.payload
@@ -79,9 +79,9 @@ class TestAuditDriftEndpoints:
         assert entry.payload["total_customers"] > 0
 
     async def test_rfi_writes_audit_entry(self, client, audit_query):
-        customer_id = await _first_customer_id(client)
+        drift_id = await _first_drift_id(client)
 
-        response = await client.post(f"/api/v1/drift/rfi/{customer_id}")
+        response = await client.post(f"/api/v1/drift/rfi/{drift_id}")
         assert response.status_code == 200
 
         entries = await audit_query("drift_rfi_generated")
@@ -91,7 +91,7 @@ class TestAuditDriftEndpoints:
         assert entry.event_type == "drift_rfi_generated"
         assert entry.risk_score is not None
         assert entry.risk_level in _VALID_RISK_LEVELS
-        assert entry.payload["customer_id"] == customer_id
+        assert entry.payload["drift_id"] == drift_id
         assert "question_count" in entry.payload
         assert entry.payload["question_count"] >= 1
         assert "estimated_info_gain_bits" in entry.payload
@@ -101,9 +101,9 @@ class TestAuditDriftEndpoints:
         assert len(entry.payload["questions"]) == entry.payload["question_count"]
 
     async def test_replay_writes_audit_entry(self, client, audit_query):
-        customer_id = await _first_customer_id(client)
+        drift_id = await _first_drift_id(client)
 
-        response = await client.get(f"/api/v1/drift/replay/{customer_id}")
+        response = await client.get(f"/api/v1/drift/replay/{drift_id}")
         assert response.status_code == 200
 
         entries = await audit_query("drift_replay_executed")
@@ -111,7 +111,7 @@ class TestAuditDriftEndpoints:
 
         entry = entries[0]
         assert entry.event_type == "drift_replay_executed"
-        assert entry.payload["customer_id"] == customer_id
+        assert entry.payload["drift_id"] == drift_id
         assert "lead_time_months" in entry.payload
         assert "alert_month" in entry.payload
         assert "alert_threshold" in entry.payload
@@ -141,24 +141,24 @@ class TestAuditDriftEndpoints:
 
 class TestDriftActorCapture:
 
-    async def test_actor_id_captured_on_customer_detail(self, client, audit_query):
-        customer_id = await _first_customer_id(client)
+    async def test_actor_id_captured_on_subject_detail(self, client, audit_query):
+        drift_id = await _first_drift_id(client)
 
         await client.get(
-            f"/api/v1/drift/customers/{customer_id}",
+            f"/api/v1/drift/subjects/{drift_id}",
             params={"actor_id": "anna.mueller"},
         )
 
-        entries = await audit_query("drift_customer_analyzed")
+        entries = await audit_query("drift_subject_analyzed")
         assert entries[0].actor_id == "anna.mueller"
         assert entries[0].actor_type == "compliance_officer"
 
     async def test_no_actor_id_defaults_to_system(self, client, audit_query):
-        customer_id = await _first_customer_id(client)
+        drift_id = await _first_drift_id(client)
 
-        await client.get(f"/api/v1/drift/customers/{customer_id}")
+        await client.get(f"/api/v1/drift/subjects/{drift_id}")
 
-        entries = await audit_query("drift_customer_analyzed")
+        entries = await audit_query("drift_subject_analyzed")
         assert entries[0].actor_id is None
         assert entries[0].actor_type == "system"
 
@@ -170,10 +170,10 @@ class TestDriftActorCapture:
         assert entries[0].actor_type == "compliance_officer"
 
     async def test_actor_id_captured_on_replay(self, client, audit_query):
-        customer_id = await _first_customer_id(client)
+        drift_id = await _first_drift_id(client)
 
         await client.get(
-            f"/api/v1/drift/replay/{customer_id}",
+            f"/api/v1/drift/replay/{drift_id}",
             params={"actor_id": "anna.mueller"},
         )
 
@@ -181,10 +181,10 @@ class TestDriftActorCapture:
         assert entries[0].actor_id == "anna.mueller"
 
     async def test_actor_id_captured_on_rfi(self, client, audit_query):
-        customer_id = await _first_customer_id(client)
+        drift_id = await _first_drift_id(client)
 
         await client.post(
-            f"/api/v1/drift/rfi/{customer_id}",
+            f"/api/v1/drift/rfi/{drift_id}",
             params={"actor_id": "anna.mueller"},
         )
 
@@ -208,11 +208,11 @@ class TestDriftActorCapture:
 
 class TestAuditNotWrittenOnError:
 
-    async def test_404_customer_detail_writes_no_audit(self, client, audit_query):
-        response = await client.get("/api/v1/drift/customers/nonexistent-id-xyz")
+    async def test_404_subject_detail_writes_no_audit(self, client, audit_query):
+        response = await client.get("/api/v1/drift/subjects/nonexistent-id-xyz")
         assert response.status_code == 404
 
-        entries = await audit_query("drift_customer_analyzed")
+        entries = await audit_query("drift_subject_analyzed")
         assert len(entries) == 0, "Audit must not be written for failed requests"
 
     async def test_404_replay_writes_no_audit(self, client, audit_query):
@@ -245,10 +245,10 @@ class TestAuditRiskLevelConsistency:
         Whatever score the drift engine produces, the risk_level stored in the
         audit log must match the corrected (<31 / <61 / <86) thresholds.
         """
-        customer_id = await _first_customer_id(client)
-        await client.get(f"/api/v1/drift/customers/{customer_id}")
+        drift_id = await _first_drift_id(client)
+        await client.get(f"/api/v1/drift/subjects/{drift_id}")
 
-        entries = await audit_query("drift_customer_analyzed")
+        entries = await audit_query("drift_subject_analyzed")
         assert entries
 
         entry = entries[0]
@@ -265,18 +265,18 @@ class TestAuditRiskLevelConsistency:
         else:
             assert level == RiskLevel.CRITICAL.value, f"score={score} should be critical, got {level}"
 
-    async def test_all_customers_have_consistent_audit_levels(self, client, audit_query):
+    async def test_all_subjects_have_consistent_audit_levels(self, client, audit_query):
         """
-        Call detail for every customer in the book and verify each audit entry's
+        Call detail for every subject in the book and verify each audit entry's
         risk_level is consistent with its risk_score. Covers all score ranges.
         """
-        response = await client.get("/api/v1/drift/customers")
+        response = await client.get("/api/v1/drift/subjects")
         customers = response.json()
 
         for customer in customers:
-            await client.get(f"/api/v1/drift/customers/{customer['customer_id']}")
+            await client.get(f"/api/v1/drift/subjects/{customer['drift_id']}")
 
-        entries = await audit_query("drift_customer_analyzed")
+        entries = await audit_query("drift_subject_analyzed")
         assert len(entries) == len(customers)
 
         for entry in entries:
@@ -291,6 +291,6 @@ class TestAuditRiskLevelConsistency:
             else:
                 expected = RiskLevel.CRITICAL.value
             assert level == expected, (
-                f"customer={entry.payload.get('customer_id')}: "
+                f"customer={entry.payload.get('drift_id')}: "
                 f"score={score} → expected {expected}, got {level}"
             )

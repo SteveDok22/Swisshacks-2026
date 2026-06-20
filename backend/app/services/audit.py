@@ -53,7 +53,7 @@ class AuditService:
         payload: dict[str, Any] | None = None,
         case_id: UUID | None = None,
         client_id: UUID | None = None,
-        customer_id: str | None = None,
+        drift_id: str | None = None,
         actor_id: str | None = None,
         actor_type: str = "system",
         risk_score: float | None = None,
@@ -69,7 +69,7 @@ class AuditService:
             payload=payload or {},
             case_id=case_id,
             client_id=client_id,
-            customer_id=customer_id,
+            drift_id=drift_id,
             actor_id=actor_id,
             actor_type=actor_type,
             risk_score=risk_score,
@@ -100,8 +100,8 @@ class AuditService:
             stmt = stmt.where(AuditEntryDB.case_id == params.case_id)
         if params.client_id:
             stmt = stmt.where(AuditEntryDB.client_id == params.client_id)
-        if params.customer_id:
-            stmt = stmt.where(AuditEntryDB.customer_id == params.customer_id)
+        if params.drift_id:
+            stmt = stmt.where(AuditEntryDB.drift_id == params.drift_id)
         if params.actor_id:
             stmt = stmt.where(AuditEntryDB.actor_id == params.actor_id)
         if params.risk_level:

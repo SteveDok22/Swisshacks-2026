@@ -144,22 +144,22 @@ def test_confirmation_amplification_consumes_both_constants():
     )
 
 
-async def test_timeline_is_available_only_on_canonical_customer_route(client):
-    canonical_response = await client.get("/api/v1/drift/customers/drift-001")
-    removed_response = await client.get("/api/v1/drift/customers/drift-001/timeline")
+async def test_timeline_is_available_only_on_canonical_subject_route(client):
+    canonical_response = await client.get("/api/v1/drift/subjects/drift-001")
+    removed_response = await client.get("/api/v1/drift/subjects/drift-001/timeline")
 
     assert canonical_response.status_code == 200
     assert canonical_response.json()["timeline"]
     # 404 specifically because no route matches (FastAPI's default body), not
-    # because the old handler ran and reported an unknown customer.
+    # because the old handler ran and reported an unknown subject.
     assert removed_response.status_code == 404
     assert removed_response.json() == {"detail": "Not Found"}
 
 
-# --- TTL cache tests for list_customers() ---
+# --- TTL cache tests for list_subjects() ---
 
 
-def test_list_customers_cache_hit_skips_reanalysis(monkeypatch):
+def test_list_subjects_cache_hit_skips_reanalysis(monkeypatch):
     """Second call within TTL must return from cache without re-running analysis."""
     engine = drift_service.DriftEngine()
     call_count = 0
@@ -172,34 +172,34 @@ def test_list_customers_cache_hit_skips_reanalysis(monkeypatch):
 
     monkeypatch.setattr(engine, "_analyze_customer", counting_analyze)
 
-    first = engine.list_customers()
+    first = engine.list_subjects()
     calls_after_first = call_count
 
-    second = engine.list_customers()
+    second = engine.list_subjects()
 
     assert second == first
     assert call_count == calls_after_first, (
-        "list_customers() re-ran _analyze_customer on a cache-hit call"
+        "list_subjects() re-ran _analyze_customer on a cache-hit call"
     )
 
 
-def test_list_customers_cache_returns_independent_list(monkeypatch):
+def test_list_subjects_cache_returns_independent_list(monkeypatch):
     """Mutating the returned list must not corrupt subsequent cache hits."""
     engine = drift_service.DriftEngine()
-    first = engine.list_customers()
+    first = engine.list_subjects()
     original_len = len(first)
 
     # Mutate the returned list
     first.clear()
 
-    second = engine.list_customers()
+    second = engine.list_subjects()
     assert len(second) == original_len, (
         "Mutating the returned list corrupted the internal cache"
     )
 
 
-def test_list_customers_cache_expires_after_ttl(monkeypatch):
-    """After TTL elapses, list_customers() must re-run analysis."""
+def test_list_subjects_cache_expires_after_ttl(monkeypatch):
+    """After TTL elapses, list_subjects() must re-run analysis."""
     engine = drift_service.DriftEngine()
     call_count = 0
     original = engine._analyze_customer
@@ -211,13 +211,13 @@ def test_list_customers_cache_expires_after_ttl(monkeypatch):
 
     monkeypatch.setattr(engine, "_analyze_customer", counting_analyze)
 
-    engine.list_customers()
+    engine.list_subjects()
     calls_after_first = call_count
 
     # Force TTL expiry by pushing the cached timestamp into the past
     engine._list_cache_at -= engine._LIST_CACHE_TTL + 1.0
 
-    engine.list_customers()
+    engine.list_subjects()
     assert call_count > calls_after_first, (
-        "list_customers() served stale cache after TTL expiry"
+        "list_subjects() served stale cache after TTL expiry"
     )

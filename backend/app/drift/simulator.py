@@ -97,6 +97,24 @@ class SyntheticCustomer:
             return np.zeros(0)
         return np.concatenate(self.monthly_volume)
 
+    def days_per_month(self) -> int:
+        """Daily observations per month window (uniform across months).
+
+        Falls back to 21 (the simulator default) when the book has no volume
+        data, so day<->month conversions never divide by zero.
+        """
+        if self.monthly_volume and len(self.monthly_volume[0]):
+            return len(self.monthly_volume[0])
+        return 21
+
+    def day_to_month(self, day: int) -> int:
+        """Map a daily index (e.g. a BOCPD changepoint) to its month window.
+
+        The BOCPD detector runs over the concatenated daily volume series, so
+        its changepoint is a day index; the drift timeline is indexed by month.
+        """
+        return day // self.days_per_month()
+
 
 def generate_customer(
     customer_id: str,

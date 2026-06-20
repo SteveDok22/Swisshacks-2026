@@ -68,6 +68,8 @@ with a Normal-Inverse-Gamma conjugate model giving a Student-t posterior predict
 
 **Detection.** In practice a changepoint manifests as a sharp **drop in the MAP run length** (posterior mass jumping to short runs), not as P(r=0) crossing a threshold — the mass spreads over r = 0..k. This distinction matters: it is why the detector catches gradual drift that threshold rules structurally miss. A customer who raised average volume from 5K to 9K over six months never crosses a 10K threshold, but the distribution shift is plainly visible to the run-length posterior.
 
+**Surfacing.** BOCPD runs over the concatenated *daily* volume series, so its detected changepoint is a **day index** (`bocpd_changepoint_day`). The Drift Timeline is indexed by **month**, so `DriftEngine.get_customer` maps the day to its month window (`SyntheticCustomer.day_to_month`, i.e. `day // days_per_month`) and flags that month's timeline point with `bocpd_changepoint=True`. The UI renders it as a violet dashed **"Regime change"** marker, distinct from the (solid) alert and sanctions markers. A changepoint landing inside the baseline window — before the first timeline point — is intentionally not drawn.
+
 ---
 
 ## Layer 2 — Drift Velocity

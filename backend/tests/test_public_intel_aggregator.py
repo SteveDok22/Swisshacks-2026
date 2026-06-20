@@ -17,10 +17,14 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from app.drift.public_intel import (
     _AGGREGATE_TIMEOUT_S,
+    _FALLBACK_NEWS_SOURCE,
+    _PRIMARY_NEWS_SOURCE,
     _SYNC_TIMEOUT_S,
     _resolve_ubo_names,
+    _select_news_source,
     assess_public_risk,
     classify_severity,
+    detect_news_spike_month,
     gather_public_signals,
     gather_public_signals_sync,
     generate_signals_for_customer,
@@ -47,6 +51,13 @@ def _signal(month: int, signal_type: str = "news", severity: float = 0.2) -> Pub
         source="test_source",
         source_url="https://example.com/test",
     )
+
+
+def _named_cls(source_name: str) -> MagicMock:
+    """A minimal adapter-class stub carrying only a ``source_name`` (for selection)."""
+    cls = MagicMock()
+    cls.source_name = source_name
+    return cls
 
 
 def _make_adapter_cls(
@@ -709,3 +720,105 @@ class TestEngineOwnershipGraph:
         }
         signals = engine._public_signals(cust)
         assert [s.signal_type for s in signals] == ["ownership_change"]
+
+
+# ---------------------------------------------------------------------------
+# News-source selection (UC 1) — Event Registry primary, GDELT fallback
+# ---------------------------------------------------------------------------
+
+class TestNewsSourceSelection:
+    def _adapters(self):
+        return (
+            _named_cls("zefix"),
+            _named_cls(_FALLBACK_NEWS_SOURCE),  # gdelt
+            _named_cls(_PRIMARY_NEWS_SOURCE),   # event_registry
+            _named_cls("whois"),
+        )
+
+    def test_event_registry_primary_when_key_set(self, monkeypatch):
+        monkeypatch.setattr("app.drift.public_intel.settings.event_registry_api_key", "KEY")
+        names = [a.source_name for a in _select_news_source(self._adapters())]
+        assert _PRIMARY_NEWS_SOURCE in names
+        assert _FALLBACK_NEWS_SOURCE not in names
+
+    def test_gdelt_fallback_when_key_absent(self, monkeypatch):
+        monkeypatch.setattr("app.drift.public_intel.settings.event_registry_api_key", "")
+        names = [a.source_name for a in _select_news_source(self._adapters())]
+        assert _FALLBACK_NEWS_SOURCE in names
+        assert _PRIMARY_NEWS_SOURCE not in names
+
+    def test_non_news_adapters_always_pass_through(self, monkeypatch):
+        monkeypatch.setattr("app.drift.public_intel.settings.event_registry_api_key", "KEY")
+        names = [a.source_name for a in _select_news_source(self._adapters())]
+        assert {"zefix", "whois"} <= set(names)
+
+    def test_exactly_one_news_source_selected(self, monkeypatch):
+        for key in ("KEY", ""):
+            monkeypatch.setattr(
+                "app.drift.public_intel.settings.event_registry_api_key", key
+            )
+            names = [a.source_name for a in _select_news_source(self._adapters())]
+            news = [n for n in names if n in (_PRIMARY_NEWS_SOURCE, _FALLBACK_NEWS_SOURCE)]
+            assert len(news) == 1
+
+    async def test_only_primary_dispatched_when_key_set(self, monkeypatch):
+        # End-to-end: with a key, GDELT's fetch_signals must never be invoked.
+        monkeypatch.setattr("app.drift.public_intel.settings.event_registry_api_key", "KEY")
+        cls_er = _make_adapter_cls(_PRIMARY_NEWS_SOURCE, [_signal(4)])
+        cls_gdelt = _make_adapter_cls(_FALLBACK_NEWS_SOURCE, [_signal(8)])
+
+        with patch(
+            "app.sources.registry.usable_adapters",
+            return_value=(cls_er, cls_gdelt),
+        ):
+            signals = await gather_public_signals("drift-001", "AG")
+
+        assert [s.month for s in signals] == [4]
+        cls_er.return_value.fetch_signals.assert_called_once()
+        cls_gdelt.return_value.fetch_signals.assert_not_called()
+
+
+# ---------------------------------------------------------------------------
+# News-volume spike detection (UC 1) — BOCPD over the weekly event-count series
+# ---------------------------------------------------------------------------
+
+class TestDetectNewsSpikeMonth:
+    def test_sustained_spike_is_detected(self):
+        # Adverse media every month from 9 onward — a regime change.
+        signals = [_signal(m, "adverse_media", 0.8) for m in range(9, 18)]
+        spike = detect_news_spike_month(signals, months=18)
+        assert spike is not None
+        assert 7 <= spike <= 10  # onset of the news regime, near the surge
+
+    def test_no_signals_returns_none(self):
+        assert detect_news_spike_month([], months=18) is None
+
+    def test_sparse_noise_is_not_a_spike(self):
+        # One or two scattered stories must not read as a reputational spike.
+        signals = [_signal(3, "news", 0.1), _signal(11, "news", 0.1)]
+        assert detect_news_spike_month(signals, months=18) is None
+
+    def test_only_news_types_count(self):
+        # Funding / ownership signals are not news volume — they never spike.
+        signals = [_signal(m, "funding_event", 0.5) for m in range(9, 18)]
+        assert detect_news_spike_month(signals, months=18) is None
+
+    def test_news_spike_scenario_signals_detected(self):
+        from app.drift.simulator import generate_customer
+
+        cust = generate_customer("d", "Wirecard Holdings AG", "news_spike", seed=3)
+        signals = generate_signals_for_customer(
+            "d", "Wirecard Holdings AG", "news_spike",
+            months=cust.months, drift_start_month=cust.drift_start_month, seed=3,
+        )
+        assert detect_news_spike_month(signals, cust.months) is not None
+
+    def test_stable_scenario_has_no_spike_across_seeds(self):
+        from app.drift.simulator import generate_customer
+
+        for seed in range(30):
+            cust = generate_customer("s", "Ctrl", "stable", seed=seed)
+            signals = generate_signals_for_customer("s", "Ctrl", "stable", seed=seed)
+            assert detect_news_spike_month(signals, cust.months) is None, (
+                f"false-positive news spike on stable seed {seed}"
+            )

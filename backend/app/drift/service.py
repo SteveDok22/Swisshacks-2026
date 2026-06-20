@@ -48,6 +48,7 @@ from app.drift.public_intel import (
     PublicSignal,
     assess_public_risk,
     confirmation_lift,
+    detect_news_spike_month,
     gather_public_signals_sync,
     generate_signals_for_customer,
 )
@@ -211,9 +212,18 @@ def compute_drift_analysis(
 
     # --- PUBLIC + Confirmation Lift ---
     pi = assess_public_risk(signals, months=cust.months)
+    # News-volume regime change (UC 1): BOCPD over the weekly event-count series.
+    # When a sustained news spike is found, its onset month is the public anchor
+    # for the confirmation-lift temporal window — a better "when did the external
+    # story break" marker than the single peak-severity signal. Falls back to the
+    # peak-severity month when no spike is detected (or there are no signals).
+    news_spike_month = detect_news_spike_month(signals, cust.months)
+    public_peak_month = (
+        news_spike_month if news_spike_month is not None else pi.peak_signal_month
+    )
     lift = confirmation_lift(
         pi.public_risk, internal_risk,
-        pi.peak_signal_month, internal_peak_month,
+        public_peak_month, internal_peak_month,
     )
 
     # --- Fused score 0..100 ---
@@ -255,6 +265,7 @@ def compute_drift_analysis(
         "public_signals": signals,
         "public_risk": pi.public_risk,
         "public_peak_month": pi.peak_signal_month,
+        "news_spike_month": news_spike_month,
         "confirmation_lift": lift,
         "causal": causal,
         "stability": stability,

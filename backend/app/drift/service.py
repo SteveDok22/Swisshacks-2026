@@ -101,6 +101,20 @@ def recommend_drift_action(
     return DecisionAction.ALLOW
 
 
+def confirmation_amplification(lift: float) -> float:
+    """Map a confirmation lift (>= 1) to a multiplicative score amplification.
+
+    The lift's excess over 1 is mapped, over a window of
+    ``DRIFT_CONFIRMATION_LIFT_RANGE``, into up to
+    ``DRIFT_CONFIRMATION_MAX_AMPLIFICATION`` of additional weight, e.g. a lift of
+    ``1 + DRIFT_CONFIRMATION_LIFT_RANGE`` (or higher) saturates at the maximum.
+    """
+    return 1.0 + min(
+        (lift - 1.0) / DRIFT_CONFIRMATION_LIFT_RANGE,
+        1.0,
+    ) * DRIFT_CONFIRMATION_MAX_AMPLIFICATION
+
+
 class DriftEngine:
     """Orchestrates drift detection over the customer book."""
 
@@ -182,10 +196,7 @@ class DriftEngine:
         # Base from the stronger of the two layers, then amplified by lift.
         base = max(internal_risk, pi.public_risk * DRIFT_PUBLIC_RISK_WEIGHT)
         # Lift in [1, ~4]; map its excess over 1 into up to +35% amplification
-        amplification = 1.0 + min(
-            (lift - 1.0) / DRIFT_CONFIRMATION_LIFT_RANGE,
-            1.0,
-        ) * DRIFT_CONFIRMATION_MAX_AMPLIFICATION
+        amplification = confirmation_amplification(lift)
         score = min(base * amplification * 100.0, 100.0)
 
         # --- CAUSAL: is this drift risk-shaped or life-shaped? ---

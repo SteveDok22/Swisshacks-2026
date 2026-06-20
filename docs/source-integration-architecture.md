@@ -603,7 +603,7 @@ sequenceDiagram
     SIG->>ENG: signals=[name_change×2], internal_drift_score=38
     ENG->>ENG: public_risk = 0.85
     ENG->>ENG: confirmation_lift = 1.8  (two sources confirm same event)
-    ENG->>ENG: base = max(internal_risk, 0.85×DRIFT_PUBLIC_RISK_WEIGHT) = 0.7225
+    ENG->>ENG: base = max(internal_risk, public_risk×DRIFT_PUBLIC_RISK_WEIGHT) = max(internal_risk, 0.85×0.85) = 0.7225
     ENG->>ENG: amplification = 1 + ((1.8-1)/3.0)×0.35 = 1.093
     ENG->>ENG: causal_factor = 1.0; stability floor inactive
     ENG->>ENG: score = 0.7225 × 1.093 × 100 = 79.0

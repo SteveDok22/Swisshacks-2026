@@ -12,12 +12,12 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 # === Drift Engine scoring ===
 # Keep the MVP's hand-tuned fusion parameters explicit until the planned
 # learned fusion model replaces them.
-DRIFT_INTERNAL_VELOCITY_WEIGHT: Final = 0.60
-DRIFT_INTERNAL_ACCUMULATED_WEIGHT: Final = 0.25
-DRIFT_INTERNAL_CONTAGION_WEIGHT: Final = 0.40
-DRIFT_PUBLIC_RISK_WEIGHT: Final = 0.85
-DRIFT_CONFIRMATION_LIFT_RANGE: Final = 3.0
-DRIFT_CONFIRMATION_MAX_AMPLIFICATION: Final = 0.35
+DRIFT_INTERNAL_VELOCITY_WEIGHT: Final[float] = 0.60
+DRIFT_INTERNAL_ACCUMULATED_WEIGHT: Final[float] = 0.25
+DRIFT_INTERNAL_CONTAGION_WEIGHT: Final[float] = 0.40
+DRIFT_PUBLIC_RISK_WEIGHT: Final[float] = 0.85
+DRIFT_CONFIRMATION_LIFT_RANGE: Final[float] = 3.0
+DRIFT_CONFIRMATION_MAX_AMPLIFICATION: Final[float] = 0.35
 
 
 class Settings(BaseSettings):

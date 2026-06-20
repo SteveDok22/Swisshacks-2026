@@ -26,7 +26,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 | 4 | Jurisdiction / legal form change | 🔶 INDIRECT | `jurisdiction.py` is rule-pack selector, not change detector | ZEFIX / GLEIF diff vs. KYC baseline |
 | 5 | New shareholders / UBOs | ⚠️ PARTIAL | PageRank over synthetic graph; no real UBO lookup | OpenCorporates / GLEIF / OpenSanctions screening |
 | 6 | Large funding round / expansion | ⚠️ PARTIAL | `funding_event` template + causal; no live feed | Crunchbase adapter + scale-jump ratio |
-| 7 | Dormant company activates | ⚠️ PARTIAL | Stability flags smoothness; no zero→jump detector | `drift/dormancy.py` explicit detector |
+| 7 | Dormant company activates | ✅ WORKS | `drift/dormancy.py` explicit detector (near-zero baseline → volume burst); wired into the drift score + surfaced in API; `dormancy_break` scenario in the book | — |
 | 8 | Legal entity name change | ❌ MISSING | Not implemented | ZEFIX + GLEIF diff; `name_changed` signal |
 | 9 | Domain switch / website change | ❌ MISSING | Not implemented | WHOIS + Wayback + Firecrawl |
 | 10 | Public business model pivot | ❌ MISSING | Not implemented | EventRegistry + Firecrawl + sentence-transformer cosine |
@@ -44,7 +44,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 - [x] Backend Docker — multi-stage, non-root, healthcheck
 - [x] Frontend Docker + compose — `frontend/Dockerfile` + `docker-compose.yml` wired
 - [x] BOCPD unit tests — changepoint fires on step series; silent on stationary noise (`test_bocpd.py`)
-- [x] Full unit test suite — velocity, causal, stability, cascade, contagion, t2_llm, decisions, score boundaries (15 files)
+- [x] Full unit test suite — velocity, causal, stability, dormancy, cascade, contagion, t2_llm, decisions, score boundaries (16 files)
 - [x] BDD scenario tests — drift detection, contagion, audit compliance, API contract (`tests/features/`)
 
 ---
@@ -52,7 +52,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 ### P1 — High impact, do these first
 
 **1. Engine (no external deps)**
-- [ ] **Case 7: Dormancy-break detector** — add `drift/dormancy.py`; detect near-zero baseline → volume jump; wire into `drift/service.py`. No external API needed. Moves Case 7 PARTIAL → WORKS.
+- [x] **Case 7: Dormancy-break detector** — `drift/dormancy.py` detects near-zero baseline → volume jump (`dormancy_break = dormancy_depth × activation_strength`); wired into `drift/service.py` (score floor) and surfaced via `DormancyOut` on summary/detail + T2 evidence; `dormancy_break` scenario + "Dormant Holdings AG" seeded in the book; unit + end-to-end tests. **Case 7 PARTIAL → WORKS.** (PR #10)
 - [ ] **Fix BOCPD changepoint visual marker** — `bocpd_changepoint=False` hardcoded at `service.py:296`; map `bocpd_changepoint_day` to timeline index; add dashed-line marker in `DriftTimeline.tsx`
 
 **2. Prerequisites (build these before adapters)**
@@ -75,7 +75,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 - [ ] **Refactor `public_intel.py` into aggregator** — `service.py:148` calls `generate_signals_for_customer()` which returns fake templates; replace with real adapter calls. This one step makes every adapter actually run.
 - [ ] **`drift/business_model.py`** — sentence-transformer cosine distance between onboarding snapshot and current website (Cases 9, 10)
 - [ ] **`ml/extractors/drift.py`** — `DriftFeatureExtractor` with 20-dim feature vector; wire XGBoost to drift (currently wired to cases only)
-- [ ] **Train drift XGBoost model** — `ml/training.py` has no drift training; feed synthetic book (7 scenarios × time windows ≈ 200 samples) through `DriftFeatureExtractor` → label → `XGBClassifier.fit()`
+- [ ] **Train drift XGBoost model** — `ml/training.py` has no drift training; feed synthetic book (8 scenarios × time windows ≈ 200 samples) through `DriftFeatureExtractor` → label → `XGBClassifier.fit()`
 
 **5. UX / explainability**
 - [ ] **Source citations on signal cards** — add `source_url` field to `PublicSignalOut` in `public_intel.py`; display in `TwoLayerPanel.tsx`
@@ -119,7 +119,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 | Cost-Aware Cascade | `drift/cascade.py` | T0 rules → T1 XGBoost → T2 LLM |
 | Time-Travel Audit | `drift/timetravel.py` | No look-ahead bias on replay |
 | Drift Engine | `drift/service.py` | All 7 layers, confirmation lift, LLM adjudication |
-| Synthetic Book | `drift/simulator.py` | 7 scenarios with ground-truth labels |
+| Synthetic Book | `drift/simulator.py` | 8 scenarios with ground-truth labels |
 | REST API | `api/v1/` | 28 endpoints, all functional |
 | Frontend | `src/app/drift/`, `src/app/audit/` | 7 drift visualisations + audit log page |
 | XGBoost + SHAP | `ml/base.py` | Wired to case management only — not drift yet |

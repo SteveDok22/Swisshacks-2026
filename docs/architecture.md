@@ -30,6 +30,7 @@ flowchart TB
             PI[Public Intel]
             Caus[Causal]
             Stab[Stability]
+            Dorm[Dormancy]
             Casc[Cost Cascade]
         end
 
@@ -49,8 +50,8 @@ flowchart TB
     DriftWS & CaseWS --> APIClient
     APIClient -->|HTTP + SSE| Router
     Router --> Svcs & DE
-    DE --> BOCPD & Vel & Con & PI & Caus & Stab
-    BOCPD & Vel & Con & PI & Caus & Stab --> Casc
+    DE --> BOCPD & Vel & Con & PI & Caus & Stab & Dorm
+    BOCPD & Vel & Con & PI & Caus & Stab & Dorm --> Casc
     Casc --> ML
     Casc -->|High-stakes| AnonSvc
     AnonSvc -->|Pseudonymized| Claude
@@ -108,6 +109,7 @@ flowchart TD
         pubintel["public_intel.py\nConfirmation Lift"]
         causal["causal.py\nLikelihood Ratio"]
         stability["stability.py\nSlow-Walker"]
+        dormancy["dormancy.py\nDormancy Break"]
         cascade["cascade.py\nTier Router"]
         timetravel["timetravel.py\nAs-of Replay"]
         simulator["simulator.py\nSynthetic Book"]
@@ -137,7 +139,7 @@ flowchart TD
 
     Main --> API
     R1 --> service
-    service --> bocpd & velocity & contagion & pubintel & causal & stability & cascade & timetravel
+    service --> bocpd & velocity & contagion & pubintel & causal & stability & dormancy & cascade & timetravel
     cascade --> ML & claude_c
     R3 & R4 & R5 --> Svc
     Svc & API --> Data

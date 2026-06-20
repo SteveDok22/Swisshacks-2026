@@ -260,7 +260,7 @@ export default function AboutPage() {
                 "Tailwind v3 · AMINA teal",
                 "TanStack Query",
                 "Radix UI primitives",
-                "Geist + IBM Plex Mono",
+                "Bitter + Satoshi + IBM Plex Mono",
                 "Lucide icons",
               ]}
             />

@@ -11,6 +11,26 @@ interface DriftTimelineProps {
 }
 
 /**
+ * Evenly-spaced "nice" y-axis ticks across [min, max], always anchored at 0.
+ * Chooses a 1/2/5 ×10^n step so labels never collide — critical when one
+ * customer peaks at 16k bits/mo while another sits near the 0.8 alert band.
+ */
+function niceVelocityTicks(min: number, max: number, count = 4): number[] {
+  const lo = Math.min(0, min);
+  const hi = Math.max(max, lo + 1);
+  const rawStep = (hi - lo) / count;
+  const mag = Math.pow(10, Math.floor(Math.log10(rawStep)));
+  const norm = rawStep / mag;
+  const step = (norm <= 1 ? 1 : norm <= 2 ? 2 : norm <= 5 ? 5 : 10) * mag;
+  const ticks: number[] = [];
+  for (let v = Math.ceil(lo / step) * step; v <= hi + step * 1e-3; v += step) {
+    ticks.push(Number(v.toFixed(2)));
+  }
+  if (lo <= 0 && hi >= 0 && !ticks.some((t) => Math.abs(t) < 1e-9)) ticks.push(0);
+  return Array.from(new Set(ticks)).sort((a, b) => a - b);
+}
+
+/**
  * Timeline scrubber — the demo killer.
  *
  * Drag through the customer's months of history and watch drift velocity
@@ -39,8 +59,10 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
   const PAD_X = 64;
   const PAD_Y = 36;
 
-  const minVel = Math.min(0, ...timeline.map((p) => p.velocity));
   const maxVel = Math.max(1, ...timeline.map((p) => p.velocity));
+  const rawMinVel = Math.min(...timeline.map((p) => p.velocity));
+  // Ignore tiny negative dips relative to the peak so the 0 line sits on the axis.
+  const minVel = rawMinVel < -0.02 * maxVel ? rawMinVel : 0;
   const months = timeline.map((p) => p.month);
   const minMonth = Math.min(...months);
   const maxMonth = Math.max(...months);
@@ -50,14 +72,12 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
   const vy = (v: number) =>
     H - PAD_Y - ((v - minVel) / Math.max(0.1, maxVel - minVel)) * (H - 2 * PAD_Y);
   const monthTicks = evenTicks(minMonth, maxMonth);
-  const velocityTicks = Array.from(
-    new Set([minVel, 0, 0.8, maxVel].map((tick) => Number(tick.toFixed(1)))),
-  ).sort((a, b) => a - b);
+  const velocityTicks = niceVelocityTicks(minVel, maxVel);
   const formatVelocityTick = (tick: number) => {
     if (Math.abs(tick) >= 1000) {
-      return `${(tick / 1000).toFixed(Math.abs(tick) >= 10000 ? 0 : 1)}k`;
+      const k = tick / 1000;
+      return Number.isInteger(k) ? `${k}k` : `${k.toFixed(1)}k`;
     }
-
     return Number.isInteger(tick) ? tick.toFixed(0) : tick.toFixed(1);
   };
 

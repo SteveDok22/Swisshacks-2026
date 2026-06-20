@@ -228,6 +228,16 @@ export interface StabilityVerdict {
   detail: string;
 }
 
+export interface DormancyVerdict {
+  dormancy_break: number;
+  dormancy_depth: number;
+  activation_strength: number;
+  baseline_volume: number;
+  active_volume: number;
+  is_dormancy_break: boolean;
+  detail: string;
+}
+
 
 export interface AsOfPoint {
   month: number;
@@ -280,6 +290,8 @@ export interface DriftCustomerSummary {
   causal_p_risk: number;
   suspicion: number;
   is_suspicious: boolean;
+  dormancy_break: number;
+  is_dormancy_break: boolean;
   scenario: string | null;
 }
 
@@ -313,6 +325,7 @@ export interface DriftCustomerDetail {
   public_signals: PublicSignal[];
   causal: CausalVerdict | null;
   stability: StabilityVerdict | null;
+  dormancy: DormancyVerdict | null;
 }
 
 export interface CascadeCostReport {

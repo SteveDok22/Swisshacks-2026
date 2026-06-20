@@ -12,9 +12,14 @@ from __future__ import annotations
 import numpy as np
 
 from app.drift.public_intel import detect_news_spike_month, generate_signals_for_customer
+from app.drift.service import DriftEngine as _DriftEngine
 from app.drift.service import compute_drift_analysis
 from app.drift.simulator import SCENARIOS, generate_book, generate_customer
 from app.drift.stability import cohort_volatility
+
+# Captured at import time, before conftest's autouse fixture stubs the seam to
+# [], so the surfacing test can restore the genuine synthetic-signals method.
+_REAL_PUBLIC_SIGNALS = _DriftEngine._public_signals
 
 
 def _cohort_cv() -> float:
@@ -84,3 +89,38 @@ class TestNewsSpikeEndToEnd:
         with_news = compute_drift_analysis(cust, cohort_cv=cohort_cv, public_signals=signals)
         without = compute_drift_analysis(cust, cohort_cv=cohort_cv, public_signals=None)
         assert with_news["drift_score"] >= without["drift_score"]
+
+
+class TestNewsSpikeSurfacedOnDetail:
+    """UC1 follow-up: the spike month must be surfaced on DriftSubjectDetail
+    (and thereby the API / UI), not just live in the internal analysis dict."""
+
+    def test_detail_carries_concrete_spike_month(self, monkeypatch):
+        """get_subject() must surface news_spike_month on the schema, matching
+        the spike detected over the subject's own synthetic news signals."""
+        from app.drift import service
+
+        # Restore the real synthetic public-intel seam (conftest stubs it to [])
+        # so the news_spike subject actually receives its adverse-media signals.
+        monkeypatch.setattr(
+            service.DriftEngine, "_public_signals", _REAL_PUBLIC_SIGNALS
+        )
+        monkeypatch.setattr(service.settings, "external_apis_enabled", False)
+
+        engine = service.DriftEngine()
+        subject = next(
+            (c for c in engine._book if c.scenario == "news_spike"), None
+        )
+        assert subject is not None, "demo book should contain a news_spike subject"
+
+        detail = engine.get_subject(subject.drift_id)
+        assert detail is not None
+
+        # The surfaced value must equal the spike detected over the same signals
+        # the engine fed into the analysis (its own offline synthetic generator).
+        signals = engine._public_signals(subject)
+        expected = detect_news_spike_month(signals, subject.months)
+        assert expected is not None, "news_spike subject should yield a spike"
+        assert detail.news_spike_month == expected
+        # And it must land within the customer's month range.
+        assert 0 <= detail.news_spike_month < subject.months

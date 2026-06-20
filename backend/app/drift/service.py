@@ -1218,6 +1218,7 @@ class DriftEngine:
             drift_start_month=cust.drift_start_month,
             sanctions_month=cust.sanctions_month,
             bocpd_changepoint_day=a["bocpd_changepoint_day"],
+            news_spike_month=a["news_spike_month"],
             public_risk=round(a["public_risk"], 3),
             internal_risk=round(a["internal_risk"], 3),
             confirmation_lift=round(a["confirmation_lift"], 2),

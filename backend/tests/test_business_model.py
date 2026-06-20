@@ -152,6 +152,7 @@ class TestDegradation:
         ("", _PIVOTED),
         (_ONBOARDING, ""),
         ("too short", _PIVOTED),
+        ("a" * 49, _PIVOTED),  # one char under the _MIN_TEXT_CHARS (50) boundary
         (None, None),
     ])
     def test_empty_or_short_text_skips(self, wb, cur):
@@ -162,6 +163,28 @@ class TestDegradation:
         assert result.signal is None
         # No embedding attempted when a side is unusable.
         assert embedder.encoded == []
+
+    def test_exactly_min_chars_is_not_skipped(self):
+        # Exactly at the boundary (50 chars) → proceeds to embedding, not skipped.
+        wb = "a" * 50
+        embedder = FakeEmbedder({wb: [1.0, 0.0, 0.0], _PIVOTED: [0.0, 1.0, 0.0]})
+        result = compare_business_model("drift-009", "X", wb, _PIVOTED, embedder=embedder)
+        assert result.skipped is False
+        assert embedder.encoded != []
+
+    def test_degenerate_embedding_skips_no_false_positive(self):
+        # A model emitting NaN/inf must degrade to a skip, NOT a max-severity
+        # signal (cosine_distance would otherwise fall back to 1.0 ≥ threshold).
+        embedder = FakeEmbedder({_ONBOARDING: [float("nan"), 1.0], _PIVOTED: [0.0, 1.0]})
+        result = compare_business_model(
+            "drift-009", "Helvetia Trading AG", _ONBOARDING, _PIVOTED, embedder=embedder,
+        )
+        assert result.skipped is True
+        assert result.skipped_reason == "degenerate_embedding"
+        assert result.signal is None
+        # Degenerate vectors are NOT returned for persistence (next scan re-embeds).
+        assert result.wayback_embedding is None
+        assert result.current_embedding is None
 
     def test_no_embedder_available_skips(self, monkeypatch):
         # Default backend unavailable (model2vec missing) and none injected.

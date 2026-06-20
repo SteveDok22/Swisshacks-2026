@@ -122,13 +122,17 @@ class Model2VecEmbedder:
     def __init__(self, model_name: str = _MODEL_NAME) -> None:
         self._model_name = model_name
         self._model: object | None = None
+        # Instance lock so a single embedder shared across threads loads once.
+        self._load_lock = threading.Lock()
 
     def _load(self) -> object:
         if self._model is None:
-            from model2vec import StaticModel  # local import: optional dependency
+            with self._load_lock:
+                if self._model is None:  # re-check under the lock
+                    from model2vec import StaticModel  # local import: optional dependency
 
-            self._model = StaticModel.from_pretrained(self._model_name)
-            logger.info("business_model_embedder_loaded", model=self._model_name)
+                    self._model = StaticModel.from_pretrained(self._model_name)
+                    logger.info("business_model_embedder_loaded", model=self._model_name)
         return self._model
 
     def encode(self, texts: list[str]) -> np.ndarray:
@@ -203,9 +207,11 @@ def _get_default_embedder() -> Embedder | None:
 def cosine_distance(a: np.ndarray, b: np.ndarray) -> float:
     """Cosine distance ``1 - cos(a, b)`` clamped to ``[0.0, 2.0]``.
 
-    A zero-norm or non-finite vector (degenerate embedding) yields the maximum
-    distance of ``1.0`` — "no measurable similarity" — rather than a
-    divide-by-zero or a NaN that would silently read as "identical" (since every
+    A zero-norm or non-finite vector (degenerate embedding) yields the neutral
+    orthogonal distance of ``1.0`` — "no measurable similarity" (NOT the true
+    maximum of ``2.0``, which is reserved for genuinely opposite vectors) —
+    rather than a divide-by-zero or a NaN that would silently read as "identical"
+    (since every
     NaN comparison is False, an un-guarded NaN slips through the clamp as 1.0 → a
     spurious distance of 0.0). Guarding here keeps a bad embedding visible as
     "different", never as a false match.
@@ -262,7 +268,7 @@ class BusinessModelComparison:
     / ``current_embedding`` always carry the embeddings actually used (freshly
     computed or reused) so the caller can persist them for the next scan; they are
     ``None`` only on a skipped comparison. ``skipped_reason`` is machine-readable:
-    ``"empty_text"`` | ``"no_embedder"`` | ``None`` (compared).
+    ``"empty_text"`` | ``"no_embedder"`` | ``"degenerate_embedding"`` | ``None`` (compared).
     """
 
     drift_id: str
@@ -297,6 +303,10 @@ def _resolve_embedding(
 
 
 def _severity_for(distance: float) -> float:
+    # The 0.0 lower bound is defensive only: callers reach this via
+    # ``distance >= threshold`` (≥ 0.35 by default) and cosine distance is
+    # non-negative, so the realistic floor is ~0.655. The clamp guards a
+    # hypothetical negative ``threshold`` override, never normal operation.
     return float(np.clip(_SEVERITY_BASE + _SEVERITY_SLOPE * distance, 0.0, _SEVERITY_CAP))
 
 
@@ -379,9 +389,25 @@ def compare_business_model(
     wb_emb = _resolve_embedding(wb, wayback_cache, active)
     cur_emb = _resolve_embedding(cur, current_cache, active)
 
-    distance = cosine_distance(
-        np.asarray(wb_emb.vector), np.asarray(cur_emb.vector)
-    )
+    wb_vec = np.asarray(wb_emb.vector, dtype=np.float64)
+    cur_vec = np.asarray(cur_emb.vector, dtype=np.float64)
+    # A model emitting NaN/inf (corrupt weights, tokenizer overflow) would make
+    # cosine_distance fall back to its 1.0 sentinel — which is ≥ threshold and
+    # would fire a MAX-severity false positive. Degrade to a skip instead, and do
+    # NOT return the embeddings (so the bad vectors are never cached and the next
+    # scan re-embeds), honouring the "never emit a signal from noise" contract.
+    if not (np.isfinite(wb_vec).all() and np.isfinite(cur_vec).all()):
+        logger.warning("business_model_degenerate_embedding", drift_id=drift_id)
+        return BusinessModelComparison(
+            drift_id=drift_id,
+            name=name,
+            distance=0.0,
+            is_change=False,
+            signal=None,
+            skipped_reason="degenerate_embedding",
+        )
+
+    distance = cosine_distance(wb_vec, cur_vec)
     is_change = distance >= threshold
 
     signal: PublicSignal | None = None

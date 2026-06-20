@@ -18,18 +18,18 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 ## Use Case Coverage
 
-| # | Use Case | Status | What exists | What's needed |
-|---|---|---|---|---|
-| 1 | Negative news spike | ⚠️ PARTIAL | Lexicon classifier + confirmation lift; no live feed | EventRegistry adapter + BOCPD on event time-series |
-| 2 | Cross-border transfer anomaly | ✅ WORKS | BOCPD + velocity on synthetic data | — |
-| 3 | Multiple entities + sudden flows | ⚠️ PARTIAL | Contagion + causal; no named layering detector | GLEIF / OpenCorporates for real UBO graph |
-| 4 | Jurisdiction / legal form change | 🔶 INDIRECT | `jurisdiction.py` is rule-pack selector, not change detector | ZEFIX / GLEIF diff vs. KYC baseline |
-| 5 | New shareholders / UBOs | ⚠️ PARTIAL | PageRank over synthetic graph; no real UBO lookup | OpenCorporates / GLEIF / OpenSanctions screening |
-| 6 | Large funding round / expansion | ⚠️ PARTIAL | `funding_event` template + causal; no live feed | Crunchbase adapter + scale-jump ratio |
-| 7 | Dormant company activates | ✅ WORKS | `drift/dormancy.py` explicit detector (near-zero baseline → volume burst); wired into the drift score + surfaced in API; `dormancy_break` scenario in the book | — |
-| 8 | Legal entity name change | ❌ MISSING | Not implemented | ZEFIX + GLEIF diff; `name_changed` signal |
-| 9 | Domain switch / website change | ❌ MISSING | Not implemented | WHOIS + Wayback + Firecrawl |
-| 10 | Public business model pivot | ❌ MISSING | Not implemented | EventRegistry + Firecrawl + sentence-transformer cosine |
+| # | Use Case | Signal | Status | What exists | What's needed | Real-world example |
+|---|---|---|---|---|---|---|
+| 1 | Negative news spike | Reputational risk | ⚠️ PARTIAL | Lexicon classifier + confirmation lift; no live feed | EventRegistry adapter + BOCPD on event time-series | **Wirecard** — adverse media, whistle-blower allegations, and accounting red flags accumulated in public signals 2 years before collapse |
+| 2 | Cross-border transfer anomaly | Behavioural anomaly | ✅ WORKS | BOCPD + velocity on synthetic data | — | **Deutsche Bank mirror trades** — $10B moved Russia→UK via back-to-back exchange orders, evading cross-border transfer controls (2011–2015) |
+| 3 | Multiple entities + sudden flows | Structuring / layering | ⚠️ PARTIAL | Contagion + causal; no named layering detector | GLEIF / OpenCorporates for real UBO graph | **Danske Estonia** — 15,000 non-resident shell-company customers, hidden UBO chains, €200B in suspicious cross-border flows |
+| 4 | Jurisdiction / legal form change | Structural risk | 🔶 INDIRECT | `jurisdiction.py` is rule-pack selector, not change detector | ZEFIX / GLEIF diff vs. KYC baseline | **Long Blockchain Corp** — Long Island Iced Tea rebranded to exploit crypto hype; name change triggered mandatory re-KYC across its banking relationships |
+| 5 | New shareholders / UBOs | Ownership KYC drift | ⚠️ PARTIAL | PageRank over synthetic graph; no real UBO lookup | OpenCorporates / GLEIF / OpenSanctions screening | **1MDB** — beneficial ownership routed through multiple layers of Cayman/BVI shells; each UBO change further obscured the true principal |
+| 6 | Large funding round / expansion | Scale risk | ⚠️ PARTIAL | `funding_event` template + causal; no live feed | Crunchbase adapter + scale-jump ratio | **FTX** — $900M raise at $18B valuation; transaction volumes never matched claimed revenue; scale jump was the leading AML signal |
+| 7 | Dormant company activates | Suspicious activation | ✅ WORKS | `drift/dormancy.py` explicit detector (near-zero baseline → volume burst); wired into the drift score + surfaced in API; `dormancy_break` scenario in the book | — | **Azerbaijani Laundromat** — EU shell companies dormant for years, suddenly activated 2012–2014 to route $2.9B out of Azerbaijan |
+| 8 | Legal entity name change | Re-KYC required | ❌ MISSING | Not implemented | ZEFIX + GLEIF diff; `name_changed` signal | **Mossack Fonseca shelf cycling** — systematic renaming of shelf companies every 12–18 months to reset KYC review clocks |
+| 9 | Domain switch / website change | Business activity change | ❌ MISSING | Not implemented | WHOIS + Wayback + Firecrawl | **N26** — rapid international expansion and domain/product proliferation outpaced AML monitoring; BaFin appointed a special monitor |
+| 10 | Public business model pivot | Material business change | ❌ MISSING | Not implemented | EventRegistry + Firecrawl + sentence-transformer cosine | **Centra Tech** — pivoted from debit-card fintech to ICO in 90 days; existing AML profile captured none of the new business model risk |
 
 ---
 

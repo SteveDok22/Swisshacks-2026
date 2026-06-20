@@ -202,7 +202,7 @@ class WhoisAdapter(CostMixin, RegistryAdapter):
     async def _get_domain(self, domain: str) -> dict[str, Any] | None:
         try:
             resp = await self._http.get(f"/domain/{domain}")
-        except (httpx.TransportError, httpx.TimeoutException):
+        except httpx.TransportError:
             return None
         if not resp.is_success:
             return None
@@ -264,7 +264,7 @@ def _normalize_domain(value: Any) -> str | None:
     match = _DOMAIN_RE.match(text)
     if not match:
         return None
-    domain = match.group(1).strip(".")
+    domain = match.group(1).split(":")[0].strip(".")
     return domain or None
 
 

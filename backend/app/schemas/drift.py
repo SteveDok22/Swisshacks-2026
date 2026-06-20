@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 from app.schemas.enums import DecisionAction
@@ -141,6 +143,16 @@ class DriftCustomerDetail(BaseModel):
     stability: StabilityOut | None = None
 
 
+class LLMAdjudicationOut(BaseModel):
+    """One T2 LLM adjudication executed during a drift scan."""
+
+    customer_id: str
+    customer_name: str
+    llm_mode: str = Field(description="real | mock")
+    was_cached: bool = False
+    response: dict[str, Any] = Field(default_factory=dict)
+
+
 class CascadeCostReport(BaseModel):
     """Cost-cascade report for a scan pass."""
 
@@ -152,6 +164,10 @@ class CascadeCostReport(BaseModel):
     # Comparison baseline
     llm_on_everything_cost: float
     savings_pct: float
+    actual_t2_llm_calls: int = 0
+    real_t2_llm_calls: int = 0
+    mock_t2_llm_calls: int = 0
+    llm_adjudications: list[LLMAdjudicationOut] = Field(default_factory=list)
 
 
 class ContagionNode(BaseModel):

@@ -228,7 +228,52 @@ class AnthropicClient:
         prompt_lower = prompt.lower()
         
         # Pattern-match on prompt content to return relevant mock text
-        if "executive summary" in prompt_lower:
+        if "adjudicate this t2 kyc drift case" in prompt_lower:
+            verdict = "ambiguous"
+            confidence = 0.52
+            action = "Request information"
+            evidence = [
+                "T2 cascade routing indicates elevated or uncertain drift.",
+                "Structured evidence should be reviewed by a compliance officer.",
+            ]
+            rationale = (
+                "Mock adjudication based only on the supplied drift evidence. "
+                "A human analyst should resolve remaining uncertainty before action."
+            )
+            if '"label": "risk"' in prompt_lower or '"is_suspicious": true' in prompt_lower:
+                verdict = "risk"
+                confidence = 0.78
+                action = "Escalate to enhanced due diligence"
+                evidence = [
+                    "Causal assessment or suspicious-stability context indicates risk-shaped drift.",
+                    "The case reached T2_LLM under the cascade routing policy.",
+                ]
+                rationale = (
+                    "The provided evidence leans toward risk-shaped drift, but "
+                    "the recommendation remains a human compliance review."
+                )
+            elif '"label": "benign"' in prompt_lower:
+                verdict = "benign"
+                confidence = 0.66
+                action = "Monitor and document business rationale"
+                evidence = [
+                    "Causal assessment labels the drift as benign.",
+                    "The case still reached T2_LLM because the cascade found enough uncertainty or risk.",
+                ]
+                rationale = (
+                    "The supplied causal evidence is more consistent with a "
+                    "benign business-change hypothesis than a risk hypothesis."
+                )
+            return json.dumps(
+                {
+                    "verdict": verdict,
+                    "confidence": confidence,
+                    "rationale": rationale,
+                    "key_evidence": evidence,
+                    "recommended_action": action,
+                }
+            )
+        elif "executive summary" in prompt_lower:
             return (
                 "This case exhibits multiple risk indicators that warrant "
                 "elevated scrutiny. The transaction amount significantly "

@@ -322,6 +322,24 @@ export interface CascadeCostReport {
   summary: string;
   llm_on_everything_cost: number;
   savings_pct: number;
+  actual_t2_llm_calls: number;
+  real_t2_llm_calls: number;
+  mock_t2_llm_calls: number;
+  llm_adjudications: LLMAdjudication[];
+}
+
+export interface LLMAdjudication {
+  customer_id: string;
+  customer_name: string;
+  llm_mode: "real" | "mock";
+  was_cached: boolean;
+  response: {
+    verdict: "risk" | "benign" | "ambiguous";
+    confidence: number;
+    rationale: string;
+    key_evidence: string[];
+    recommended_action: string;
+  };
 }
 
 export interface ContagionNode {

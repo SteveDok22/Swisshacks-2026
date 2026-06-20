@@ -12,13 +12,14 @@
 
 ## Status: partial implementation
 
-Four adapters are fully implemented (real HTTP calls):
+Five adapters are fully implemented (real HTTP calls):
 - **GLEIF** — free, no key required (PR #25)
 - **ZEFIX** — FREEMIUM, free Basic-auth account; degrades gracefully (`None`/`[]`) when credentials absent (PR #23)
 - **Event Registry** — FREEMIUM, key-gated; returns `[]` when key absent (PR #24)
-- **OpenSanctions** — FREEMIUM, key optional; unauthenticated non-commercial free tier works without a key (this PR)
+- **OpenSanctions** — FREEMIUM, key optional; unauthenticated non-commercial free tier works without a key (PR #27)
+- **Wayback Machine** — free, no key required; `fetch_signals()` returns `[]` by design (signals via `drift/business_model.py`) (PR #26)
 
-All other adapters remain carcasses — no real network I/O yet:
+Remaining carcasses — no real network I/O yet:
 
 - `base.py` — the shared contract: `RegistryAdapter` ABC, `EntitySnapshot`,
   the canonical `PublicSignal`, and the `SnapshotDiff` / `diff_snapshots()`
@@ -65,7 +66,7 @@ status == PLANNED   <=>   cost == FREE or FREEMIUM
 | **GDELT 2.0** | Global news article lists + volume time-series (free news feed) | FREE | no | ✅ IMPLEMENT |
 | **Event Registry** | News clustered into de-duplicated *events*, primary news source (hackathon key) | FREEMIUM³ | yes | ✅ BUILT (key-gated) |
 | **Firecrawl** | Live website → markdown (current page content) | FREEMIUM | yes² | ✅ IMPLEMENT |
-| **Wayback** | Historical website snapshot at the onboarding date | FREE | no | ✅ IMPLEMENT |
+| **Wayback** | Historical website snapshot at the onboarding date | FREE | no | ✅ BUILT |
 | **WHOIS / RDAP** | Domain age + registrant change | FREE | no | ✅ IMPLEMENT |
 | **OpenCorporates** | Officers / directors in non-LEI jurisdictions | PAID | yes | ⛔ SKIP |
 | **Crunchbase** | Funding rounds, investors, amounts | PAID | yes | ⛔ SKIP |
@@ -105,7 +106,7 @@ structured sentiment.
 | OpenCorporates | 3, 4, 5, 7 | **GLEIF** entity-level ownership (parent/child LEIs) + **ZEFIX** company fields. ⚠️ Natural-person **officers/directors** are a real gap — no free source (incl. ZEFIX) exposes them; entity-level UBO only. |
 | Crunchbase | 6 | **Event Registry** (structured funding articles) + **GDELT** (free fallback) |
 
-Net: **8 adapters to run (4 built — GLEIF, ZEFIX, Event Registry, OpenSanctions — 4 carcasses),
+Net: **8 adapters to run (5 built — GLEIF, ZEFIX, Event Registry, OpenSanctions, Wayback — 3 carcasses),
 2 skipped.** No use case is fully dropped; officer/director-level resolution
 (part of Cases 3/5) is degraded to entity-level ownership only — the one
 capability lost by skipping the paid OpenCorporates. Event Registry is the

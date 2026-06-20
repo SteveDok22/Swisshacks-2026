@@ -18,7 +18,7 @@ export function InfoHint({ text, className }: InfoHintProps) {
             type="button"
             aria-label={text}
             className={cn(
-              "inline-flex h-5 w-5 items-center justify-center rounded-full border border-paper-line bg-paper text-ink-muted transition-colors hover:border-accent/40 hover:text-accent focus:outline-none focus:ring-2 focus:ring-accent/20",
+              "inline-flex h-5 w-5 -translate-y-1 items-center justify-center rounded-full border border-paper-line bg-paper text-ink-muted transition-colors hover:border-accent/40 hover:text-accent focus:outline-none focus:ring-2 focus:ring-accent/20",
               className,
             )}
           >

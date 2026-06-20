@@ -37,8 +37,8 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 ### P0 — Already done ✅
 
-- [x] Wire audit log into drift pipeline — `drift_customer_analyzed`, `drift_scan_completed`, `drift_replay_executed`, etc.
-- [x] DecisionBar on drift page — `POST /decisions` accepts `customer_id`; drift recommendations derived server-side
+- [x] Wire audit log into drift pipeline — `drift_subject_analyzed`, `drift_scan_completed`, `drift_replay_executed`, etc.
+- [x] DecisionBar on drift page — `POST /decisions` accepts `drift_id`; drift recommendations derived server-side
 - [x] T2 LLM adjudication — `AnthropicClient` called for T2 customers in `drift/service.py:scan()`
 - [x] Audit log frontend page — `GET /api/v1/audit` + `/audit` route in Next.js
 - [x] Backend Docker — multi-stage, non-root, healthcheck
@@ -53,7 +53,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 **1. Engine (no external deps)**
 - [x] **Case 7: Dormancy-break detector** — `drift/dormancy.py` detects near-zero baseline → volume jump (`dormancy_break = dormancy_depth × activation_strength`); wired into `drift/service.py` (score floor) and surfaced via `DormancyOut` on summary/detail + T2 evidence; `dormancy_break` scenario + "Dormant Holdings AG" seeded in the book; unit + end-to-end tests. **Case 7 PARTIAL → WORKS.** (PR #10)
-- [x] **Fix BOCPD changepoint visual marker** — `bocpd_changepoint` is now derived in `DriftEngine.get_customer` by mapping `bocpd_changepoint_day` to its month window (via `SyntheticCustomer.day_to_month`); `DriftTimeline.tsx` renders a violet dashed "Regime change" marker at that month. Unit tests in `test_drift_changepoint_marker.py`. **DONE.** (PR #11)
+- [x] **Fix BOCPD changepoint visual marker** — `bocpd_changepoint` is now derived in `DriftEngine.get_subject` by mapping `bocpd_changepoint_day` to its month window (via `SyntheticCustomer.day_to_month`); `DriftTimeline.tsx` renders a violet dashed "Regime change" marker at that month. Unit tests in `test_drift_changepoint_marker.py`. **DONE.** (PR #11)
 
 **2. Prerequisites (build these before adapters)**
 - [x] **`db/kyc_baseline.py`** — `EntitySnapshotDB` SQLModel table + `store_snapshot`, `load_latest_snapshot`, `load_onboarding_snapshot`, `load_snapshot_history`, `load_all_baselines` CRUD helpers; registered in `session.py` so the table is auto-created on startup; 24 unit tests covering all helpers and seeding behaviour (PR #11)
@@ -78,7 +78,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 - [ ] **Train drift XGBoost model** — `ml/training.py` has no drift training; feed synthetic book (8 scenarios × time windows ≈ 200 samples) through `DriftFeatureExtractor` → label → `XGBClassifier.fit()`
 
 **5. UX / explainability**
-- [ ] **DormancyPanel.tsx** — `DormancyOut` is computed by the engine and included in `DriftCustomerDetail` (API), but the frontend has no panel for it and the TS types are stale: add `DormancyVerdict` interface to `api.ts`; add `dormancy: DormancyVerdict | null` to `DriftCustomerDetail` and `dormancy_break: number` + `is_dormancy_break: boolean` to `DriftCustomerSummary`; create `DormancyPanel.tsx` mirroring `StabilityPanel.tsx` (depth × activation-strength product, flagged banner when `is_dormancy_break`)
+- [ ] **DormancyPanel.tsx** — `DormancyOut` is computed by the engine and included in `DriftSubjectDetail` (API), but the frontend has no panel for it and the TS types are stale: add `DormancyVerdict` interface to `api.ts`; add `dormancy: DormancyVerdict | null` to `DriftSubjectDetail` and `dormancy_break: number` + `is_dormancy_break: boolean` to `DriftSubjectSummary`; create `DormancyPanel.tsx` mirroring `StabilityPanel.tsx` (depth × activation-strength product, flagged banner when `is_dormancy_break`)
 - [x] **Source citations on signal cards** — `source_url` field on canonical `PublicSignal` in `sources/base.py` and `PublicSignalOut` in `schemas/drift.py`; synthetic demo signals emit deterministic source references; `PublicSignal` TS type includes `source_url`; `TwoLayerPanel.tsx` renders clickable source links.
 - [x] **Drift explainability** — option A chosen: drift attribution is a per-layer LLR contribution breakdown (7 layers × `LayerContribution.llr` + `CausalVerdictOut.contributions` per metric). Per-variable SHAP is case-scoring only; applying it to drift time-series would explain the wrong thing (transaction features ≠ behavioural drift features).
 
@@ -91,9 +91,9 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 - [x] Move 6 magic-number layer weights from `service.py` to named constants in `core/config.py`
 - [x] Add single-worker warning to the global `_engine` singleton (unsafe under multi-process)
-- [x] Remove duplicate timeline endpoint — `GET /drift/customers/{id}` already returns the timeline
+- [x] Remove duplicate timeline endpoint — `GET /drift/subjects/{drift_id}` already returns the timeline
 - [x] Fix `db_store.py` — `len(list(...all()))` loads all case IDs for count; replaced with `COUNT(*)` query via `func.count()`
-- [x] `list_customers()` recomputes all 10 customers on every request — added 30 s TTL cache on `DriftEngine`
+- [x] `list_subjects()` recomputes all 10 subjects on every request — added 30 s TTL cache on `DriftEngine`
 - [x] Qualify "real-time signals" language in README and pitch — signals are simulated for MVP; architecture is slot-swap ready
 
 ---

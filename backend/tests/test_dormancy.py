@@ -112,7 +112,7 @@ class TestDormancyScenarioEndToEnd:
 
     def test_simulator_dormancy_break_customer_is_flagged(self):
         cust = generate_customer(
-            customer_id="t-dorm",
+            drift_id="t-dorm",
             name="Dormant Test AG",
             scenario="dormancy_break",
             drift_start_month=9,
@@ -128,7 +128,7 @@ class TestDormancyScenarioEndToEnd:
         # baseline/active split (month 9) if not snapped. generate_customer
         # snaps it, so an injected dormancy break must still fire.
         cust = generate_customer(
-            customer_id="t-inject",
+            drift_id="t-inject",
             name="Injected Dormant AG",
             scenario="dormancy_break",  # no drift_start_month override
             seed=11,

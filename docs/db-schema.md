@@ -44,7 +44,7 @@ erDiagram
     DECISION {
         uuid id PK
         uuid case_id FK "nullable — null for drift decisions"
-        string customer_id "nullable — set for drift-engine decisions"
+        string drift_id "nullable — set for drift-engine decisions"
         string action
         string officer_id
         string rationale
@@ -60,7 +60,7 @@ erDiagram
         uuid id PK
         uuid case_id FK
         uuid client_id FK
-        string customer_id
+        string drift_id
         string event_type
         string actor_id
         string actor_type
@@ -72,7 +72,7 @@ erDiagram
 
     ENTITY_SNAPSHOT {
         uuid id PK
-        string customer_id
+        string drift_id
         date snapshot_date
         string snapshot_type "onboarding|annual_review|triggered|seeded"
         string source "internal|zefix|gleif|open_corporates|..."
@@ -156,7 +156,7 @@ Two distinct decision paths share the same `decisions` table:
 | Field | Case-review workflow | Drift-engine workflow |
 |---|---|---|
 | `case_id` | Set (UUID FK → cases) | `NULL` |
-| `customer_id` | `NULL` | Set (drift customer string ID) |
+| `drift_id` | `NULL` | Set (drift customer string ID) |
 | `ai_recommended_action` | Derived from `case.risk_score` thresholds | Derived by the backend from the current drift analysis |
 | `analysis_snapshot` | Case type, jurisdiction, confidence | Score, risk level, tier, causal evidence, stability, and analysis version |
 | Audit event type | `decision_recorded` | `drift_decision_recorded` |
@@ -181,9 +181,9 @@ drift (name change, legal form change, UBO change, etc.).
 
 | Query | Function |
 |---|---|
-| Latest snapshot for a customer | `load_latest_snapshot(session, customer_id)` |
-| Onboarding baseline | `load_onboarding_snapshot(session, customer_id)` |
-| Full change history | `load_snapshot_history(session, customer_id)` |
+| Latest snapshot for a customer | `load_latest_snapshot(session, drift_id)` |
+| Onboarding baseline | `load_onboarding_snapshot(session, drift_id)` |
+| Full change history | `load_snapshot_history(session, drift_id)` |
 | Book-wide latest baselines | `load_all_baselines(session)` |
 
 **Snapshot types:**

@@ -63,13 +63,13 @@ async def session(engine) -> AsyncSession:
 
 
 def _make_snapshot(
-    customer_id: str = "drift-001",
+    drift_id: str = "drift-001",
     snapshot_type: str = "onboarding",
     name: str = "Test Corp AG",
     days_offset: int = 0,
 ) -> EntitySnapshotDB:
     return EntitySnapshotDB(
-        customer_id=customer_id,
+        drift_id=drift_id,
         snapshot_date=date(2023, 1, 1) + timedelta(days=days_offset),
         snapshot_type=snapshot_type,
         source="internal",
@@ -95,19 +95,19 @@ class TestStoreSnapshot:
         assert result is snap
 
     async def test_row_is_queryable_after_flush(self, session):
-        snap = _make_snapshot(customer_id="drift-042")
+        snap = _make_snapshot(drift_id="drift-042")
         await store_snapshot(session, snap, flush=True)
         row = await session.get(EntitySnapshotDB, snap.id)
         assert row is not None
-        assert row.customer_id == "drift-042"
+        assert row.drift_id == "drift-042"
 
     async def test_multiple_snapshots_same_customer(self, session):
-        s1 = _make_snapshot(customer_id="c-1", snapshot_type="onboarding")
-        s2 = _make_snapshot(customer_id="c-1", snapshot_type="annual_review", days_offset=365)
+        s1 = _make_snapshot(drift_id="c-1", snapshot_type="onboarding")
+        s2 = _make_snapshot(drift_id="c-1", snapshot_type="annual_review", days_offset=365)
         await store_snapshot(session, s1, flush=True)
         await store_snapshot(session, s2, flush=True)
         result = await session.execute(
-            select(EntitySnapshotDB).where(EntitySnapshotDB.customer_id == "c-1")
+            select(EntitySnapshotDB).where(EntitySnapshotDB.drift_id == "c-1")
         )
         assert len(result.scalars().all()) == 2
 
@@ -122,7 +122,7 @@ class TestLoadLatestSnapshot:
         assert await load_latest_snapshot(session, "unknown") is None
 
     async def test_returns_the_only_snapshot(self, session):
-        snap = _make_snapshot(customer_id="c-2")
+        snap = _make_snapshot(drift_id="c-2")
         await store_snapshot(session, snap, flush=True)
         result = await load_latest_snapshot(session, "c-2")
         assert result is not None
@@ -130,9 +130,9 @@ class TestLoadLatestSnapshot:
 
     async def test_returns_latest_by_insertion_order(self, session):
         t0 = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        s1 = _make_snapshot(customer_id="c-3", snapshot_type="onboarding")
+        s1 = _make_snapshot(drift_id="c-3", snapshot_type="onboarding")
         s1.created_at = t0
-        s2 = _make_snapshot(customer_id="c-3", snapshot_type="annual_review")
+        s2 = _make_snapshot(drift_id="c-3", snapshot_type="annual_review")
         s2.created_at = t0 + timedelta(seconds=1)  # guarantee ordering
         await store_snapshot(session, s1, flush=True)
         await store_snapshot(session, s2, flush=True)
@@ -141,7 +141,7 @@ class TestLoadLatestSnapshot:
         assert result.snapshot_type == "annual_review"
 
     async def test_does_not_return_other_customer(self, session):
-        await store_snapshot(session, _make_snapshot(customer_id="cx"), flush=True)
+        await store_snapshot(session, _make_snapshot(drift_id="cx"), flush=True)
         assert await load_latest_snapshot(session, "cy") is None
 
 
@@ -158,13 +158,13 @@ class TestLoadOnboardingSnapshot:
         # Only annual_review rows — no baseline anchor — must return None.
         await store_snapshot(
             session,
-            _make_snapshot(customer_id="c-4", snapshot_type="annual_review"),
+            _make_snapshot(drift_id="c-4", snapshot_type="annual_review"),
             flush=True,
         )
         assert await load_onboarding_snapshot(session, "c-4") is None
 
     async def test_matches_onboarding_type(self, session):
-        s = _make_snapshot(customer_id="c-4b", snapshot_type="onboarding")
+        s = _make_snapshot(drift_id="c-4b", snapshot_type="onboarding")
         await store_snapshot(session, s, flush=True)
         result = await load_onboarding_snapshot(session, "c-4b")
         assert result is not None
@@ -172,7 +172,7 @@ class TestLoadOnboardingSnapshot:
 
     async def test_matches_seeded_type(self, session):
         # "seeded" rows are the synthetic-book equivalent of onboarding baselines.
-        s = _make_snapshot(customer_id="c-4c", snapshot_type="seeded")
+        s = _make_snapshot(drift_id="c-4c", snapshot_type="seeded")
         await store_snapshot(session, s, flush=True)
         result = await load_onboarding_snapshot(session, "c-4c")
         assert result is not None
@@ -180,11 +180,11 @@ class TestLoadOnboardingSnapshot:
 
     async def test_returns_first_onboarding_when_multiple(self, session):
         t0 = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        s1 = _make_snapshot(customer_id="c-5", snapshot_type="onboarding")
+        s1 = _make_snapshot(drift_id="c-5", snapshot_type="onboarding")
         s1.created_at = t0
         await store_snapshot(session, s1, flush=True)
         # A second onboarding snapshot added later (rare but possible in re-KYC)
-        s2 = _make_snapshot(customer_id="c-5", snapshot_type="onboarding", days_offset=90)
+        s2 = _make_snapshot(drift_id="c-5", snapshot_type="onboarding", days_offset=90)
         s2.created_at = t0 + timedelta(seconds=1)
         await store_snapshot(session, s2, flush=True)
         result = await load_onboarding_snapshot(session, "c-5")
@@ -204,7 +204,7 @@ class TestLoadSnapshotHistory:
     async def test_returns_all_snapshots_newest_first(self, session):
         t0 = datetime(2024, 1, 1, tzinfo=timezone.utc)
         types = ("onboarding", "annual_review", "triggered")
-        snaps = [_make_snapshot(customer_id="c-6", snapshot_type=t) for t in types]
+        snaps = [_make_snapshot(drift_id="c-6", snapshot_type=t) for t in types]
         for i, s in enumerate(snaps):
             s.created_at = t0 + timedelta(seconds=i)
             await store_snapshot(session, s, flush=True)
@@ -215,8 +215,8 @@ class TestLoadSnapshotHistory:
         assert history[-1].snapshot_type == "onboarding"
 
     async def test_does_not_include_other_customer_rows(self, session):
-        await store_snapshot(session, _make_snapshot(customer_id="ca"), flush=True)
-        await store_snapshot(session, _make_snapshot(customer_id="cb"), flush=True)
+        await store_snapshot(session, _make_snapshot(drift_id="ca"), flush=True)
+        await store_snapshot(session, _make_snapshot(drift_id="cb"), flush=True)
         assert len(await load_snapshot_history(session, "ca")) == 1
 
 
@@ -231,15 +231,15 @@ class TestLoadAllBaselines:
 
     async def test_one_entry_per_customer(self, session):
         for cid in ("d-1", "d-2", "d-3"):
-            await store_snapshot(session, _make_snapshot(customer_id=cid), flush=True)
+            await store_snapshot(session, _make_snapshot(drift_id=cid), flush=True)
         result = await load_all_baselines(session)
         assert set(result.keys()) == {"d-1", "d-2", "d-3"}
 
     async def test_returns_latest_per_customer(self, session):
         t0 = datetime(2024, 1, 1, tzinfo=timezone.utc)
-        s1 = _make_snapshot(customer_id="d-4", snapshot_type="onboarding")
+        s1 = _make_snapshot(drift_id="d-4", snapshot_type="onboarding")
         s1.created_at = t0
-        s2 = _make_snapshot(customer_id="d-4", snapshot_type="annual_review")
+        s2 = _make_snapshot(drift_id="d-4", snapshot_type="annual_review")
         s2.created_at = t0 + timedelta(seconds=1)
         await store_snapshot(session, s1, flush=True)
         await store_snapshot(session, s2, flush=True)
@@ -255,7 +255,7 @@ class TestLoadAllBaselines:
 class TestEntitySnapshotFields:
     def test_defaults_are_safe(self):
         s = EntitySnapshotDB(
-            customer_id="x",
+            drift_id="x",
             snapshot_date=date.today(),
             name="Test Entity",
         )
@@ -268,7 +268,7 @@ class TestEntitySnapshotFields:
 
     def test_behavioral_baseline_fields_stored(self):
         s = EntitySnapshotDB(
-            customer_id="y",
+            drift_id="y",
             snapshot_date=date.today(),
             name="Baseline Corp",
             avg_monthly_volume_chf=12_345.67,
@@ -283,7 +283,7 @@ class TestEntitySnapshotFields:
 
     def test_raw_data_accepts_arbitrary_dict(self):
         s = EntitySnapshotDB(
-            customer_id="z",
+            drift_id="z",
             snapshot_date=date.today(),
             name="Raw Corp",
             raw_data={"lei": "529900T8BM49AURSDO55", "ubo_count": 3},
@@ -317,8 +317,8 @@ class TestKycBaselineSeeding:
 
         book = generate_book()
         for customer in book:
-            assert customer.customer_id in baselines, (
-                f"No baseline seeded for {customer.customer_id} ({customer.name})"
+            assert customer.drift_id in baselines, (
+                f"No baseline seeded for {customer.drift_id} ({customer.name})"
             )
 
     async def test_seeded_snapshots_have_behavioral_baseline(self, engine):

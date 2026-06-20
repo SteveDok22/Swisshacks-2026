@@ -117,9 +117,9 @@ class CaseDB(SQLModel, table=True):
 
 class DecisionDB(SQLModel, table=True):
     """
-    A compliance officer's decision — on a case or a drift customer.
+    A compliance officer's decision — on a case or a drift subject.
 
-    Exactly one of case_id / customer_id is set (enforced by DB CHECK constraint
+    Exactly one of case_id / drift_id is set (enforced by DB CHECK constraint
     and Pydantic validator on DecisionCreate).
 
     Append-only: once recorded, never updated.
@@ -132,14 +132,14 @@ class DecisionDB(SQLModel, table=True):
     __tablename__ = "decisions"
     __table_args__ = (
         CheckConstraint(
-            "(case_id IS NULL) != (customer_id IS NULL)",
+            "(case_id IS NULL) != (drift_id IS NULL)",
             name="ck_decision_exactly_one_id",
         ),
     )
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     case_id: UUID | None = Field(default=None, foreign_key="cases.id", index=True)
-    customer_id: str | None = Field(default=None, index=True)  # drift-engine customer
+    drift_id: str | None = Field(default=None, index=True)  # drift-engine subject
     
     action: DecisionAction
     
@@ -193,7 +193,7 @@ class AuditEntryDB(SQLModel, table=True):
     # What it relates to
     case_id: UUID | None = Field(default=None, index=True)
     client_id: UUID | None = Field(default=None, index=True)
-    customer_id: str | None = Field(default=None, index=True)
+    drift_id: str | None = Field(default=None, index=True)
     
     # Who did it (None if system event)
     actor_id: str | None = Field(default=None, index=True)

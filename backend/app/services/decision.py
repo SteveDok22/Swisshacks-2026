@@ -41,7 +41,7 @@ class DecisionService:
 
         Two workflows are supported:
         - Case workflow (case_id set): looks up the case, captures AI state.
-        - Drift workflow (customer_id set): validates the customer against the
+        - Drift workflow (drift_id set): validates the subject against the
           live drift engine and captures its server-derived analysis state.
         """
         if payload.case_id is not None:
@@ -131,7 +131,7 @@ class DecisionService:
         return DecisionRead(
             id=decision.id,
             case_id=decision.case_id,
-            customer_id=decision.customer_id,
+            drift_id=decision.drift_id,
             action=decision.action,
             officer_id=decision.officer_id,
             rationale=decision.rationale,
@@ -144,15 +144,15 @@ class DecisionService:
         )
 
     async def _record_drift_decision(self, payload: DecisionCreate) -> DecisionRead:
-        """Drift path — validate the customer and snapshot server analysis."""
+        """Drift path — validate the subject and snapshot server analysis."""
         from app.drift.service import DRIFT_ANALYSIS_VERSION, get_drift_engine
 
-        customer_id = payload.customer_id
-        assert customer_id is not None
+        drift_id = payload.drift_id
+        assert drift_id is not None
 
-        detail = get_drift_engine().get_customer(customer_id)
+        detail = get_drift_engine().get_subject(drift_id)
         if detail is None:
-            raise ValueError(f"Drift customer {customer_id!r} not found")
+            raise ValueError(f"Drift subject {drift_id!r} not found")
 
         ai_recommended = detail.recommended_action
         overrode_ai = ai_recommended != payload.action
@@ -164,7 +164,7 @@ class DecisionService:
 
         snapshot = {
             "analysis_version": DRIFT_ANALYSIS_VERSION,
-            "customer_name": detail.name,
+            "drift_name": detail.name,
             "drift_score": detail.drift_score,
             "risk_level": detail.risk_level,
             "reached_tier": detail.reached_tier,
@@ -182,7 +182,7 @@ class DecisionService:
         }
 
         decision = DecisionDB(
-            customer_id=customer_id,
+            drift_id=drift_id,
             action=payload.action,
             officer_id=payload.officer_id,
             rationale=payload.rationale,
@@ -199,13 +199,13 @@ class DecisionService:
 
         await self.audit.log(
             event_type="drift_decision_recorded",
-            customer_id=customer_id,
+            drift_id=drift_id,
             actor_id=payload.officer_id,
             actor_type="compliance_officer",
             risk_score=detail.drift_score,
             risk_level=detail.risk_level,
             payload={
-                "customer_id": customer_id,
+                "drift_id": drift_id,
                 "action": payload.action.value,
                 "overrode_ai": overrode_ai,
                 "ai_recommended_action": ai_recommended.value,
@@ -217,7 +217,7 @@ class DecisionService:
 
         logger.info(
             "drift_decision_recorded",
-            customer_id=customer_id,
+            drift_id=drift_id,
             action=payload.action.value,
             overrode_ai=overrode_ai,
             officer_id=payload.officer_id,
@@ -226,7 +226,7 @@ class DecisionService:
         return DecisionRead(
             id=decision.id,
             case_id=decision.case_id,
-            customer_id=decision.customer_id,
+            drift_id=decision.drift_id,
             action=decision.action,
             officer_id=decision.officer_id,
             rationale=decision.rationale,
@@ -238,13 +238,13 @@ class DecisionService:
             created_at=decision.created_at,
         )
     
-    async def list_decisions_for_customer(
-        self, customer_id: str
+    async def list_decisions_for_subject(
+        self, drift_id: str
     ) -> list[DecisionDB]:
-        """Get all drift-engine decisions for a customer (chronological)."""
+        """Get all drift-engine decisions for a subject (chronological)."""
         statement = (
             select(DecisionDB)
-            .where(DecisionDB.customer_id == customer_id)
+            .where(DecisionDB.drift_id == drift_id)
             .order_by(DecisionDB.created_at)
         )
         result = await self.session.execute(statement)

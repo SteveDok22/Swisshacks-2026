@@ -145,7 +145,7 @@ async def _seed_kyc_baselines(session: AsyncSession) -> None:
         baseline_margin = customer.margin_ratio[:cutoff]
 
         snapshot = EntitySnapshotDB(
-            customer_id=customer.customer_id,
+            drift_id=customer.drift_id,
             snapshot_date=snapshot_date,
             snapshot_type="seeded",
             source="internal",

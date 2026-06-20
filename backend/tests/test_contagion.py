@@ -49,8 +49,8 @@ class TestOwnershipGraphPropagation:
     def test_ranked_customers_excludes_seeds(self):
         g, _, _ = _simple_graph()
         result = g.propagate(["seed"])
-        customer_ids = [cid for cid, _ in result.ranked_customers]
-        assert "seed" not in customer_ids
+        drift_ids = [cid for cid, _ in result.ranked_customers]
+        assert "seed" not in drift_ids
 
     def test_ranked_customers_sorted_descending(self):
         g, _, _ = _simple_graph()

@@ -47,7 +47,7 @@ class EntitySnapshotDB(SQLModel, table=True):
     """
     Point-in-time KYC snapshot for one customer.
 
-    Composite index on (customer_id, created_at) makes both common reads —
+    Composite index on (drift_id, created_at) makes both common reads —
     "latest snapshot" and "onboarding baseline" — index-only range scans.
 
     Append-only: snapshots are never updated or deleted. When a source adapter
@@ -59,7 +59,7 @@ class EntitySnapshotDB(SQLModel, table=True):
         # Composite index covers the two most common access patterns:
         #   load_latest_snapshot  → ORDER BY created_at DESC LIMIT 1
         #   load_onboarding_snapshot → WHERE snapshot_type = 'onboarding' ORDER BY created_at ASC
-        Index("ix_entity_snapshots_customer_created", "customer_id", "created_at"),
+        Index("ix_entity_snapshots_drift_created", "drift_id", "created_at"),
         CheckConstraint(
             f"snapshot_type IN {_VALID_SNAPSHOT_TYPES}",
             name="ck_entity_snapshots_snapshot_type",
@@ -75,7 +75,7 @@ class EntitySnapshotDB(SQLModel, table=True):
     # The drift engine uses string IDs ("drift-001") for synthetic customers;
     # the case-management system uses UUID strings for ClientDB rows.
     # We store both as strings so this table works for both.
-    customer_id: str
+    drift_id: str
 
     # When this snapshot was taken and what triggered it
     snapshot_date: date
@@ -169,7 +169,7 @@ async def store_snapshot(
         await session.flush()
         logger.info(
             "entity_snapshot_stored",
-            customer_id=snapshot.customer_id,
+            drift_id=snapshot.drift_id,
             snapshot_type=snapshot.snapshot_type,
             source=snapshot.source,
             snapshot_date=str(snapshot.snapshot_date),
@@ -179,10 +179,10 @@ async def store_snapshot(
 
 async def load_latest_snapshot(
     session: AsyncSession,
-    customer_id: str,
+    drift_id: str,
 ) -> EntitySnapshotDB | None:
     """
-    Return the most recently created snapshot for `customer_id`, or None.
+    Return the most recently created snapshot for `drift_id`, or None.
 
     'Most recent' is determined by `created_at` (wall-clock insertion order),
     not by `snapshot_date`. This means an out-of-order back-fill won't
@@ -190,7 +190,7 @@ async def load_latest_snapshot(
     """
     result = await session.execute(
         select(EntitySnapshotDB)
-        .where(EntitySnapshotDB.customer_id == customer_id)
+        .where(EntitySnapshotDB.drift_id == drift_id)
         .order_by(EntitySnapshotDB.created_at.desc())
         .limit(1)
     )
@@ -199,10 +199,10 @@ async def load_latest_snapshot(
 
 async def load_onboarding_snapshot(
     session: AsyncSession,
-    customer_id: str,
+    drift_id: str,
 ) -> EntitySnapshotDB | None:
     """
-    Return the oldest baseline snapshot for `customer_id`, or None.
+    Return the oldest baseline snapshot for `drift_id`, or None.
 
     Matches both 'onboarding' (real adapter) and 'seeded' (synthetic demo)
     types, as both represent the initial KYC reference point the drift engine
@@ -212,7 +212,7 @@ async def load_onboarding_snapshot(
     result = await session.execute(
         select(EntitySnapshotDB)
         .where(
-            EntitySnapshotDB.customer_id == customer_id,
+            EntitySnapshotDB.drift_id == drift_id,
             EntitySnapshotDB.snapshot_type.in_(("onboarding", "seeded")),
         )
         .order_by(EntitySnapshotDB.created_at.asc())
@@ -223,17 +223,17 @@ async def load_onboarding_snapshot(
 
 async def load_snapshot_history(
     session: AsyncSession,
-    customer_id: str,
+    drift_id: str,
 ) -> list[EntitySnapshotDB]:
     """
-    Return all snapshots for `customer_id`, newest-first.
+    Return all snapshots for `drift_id`, newest-first.
 
     Used by the diff layer to build a change timeline and by the time-travel
     audit to verify that only data available at each point was used.
     """
     result = await session.execute(
         select(EntitySnapshotDB)
-        .where(EntitySnapshotDB.customer_id == customer_id)
+        .where(EntitySnapshotDB.drift_id == drift_id)
         .order_by(EntitySnapshotDB.created_at.desc())
     )
     return list(result.scalars().all())
@@ -243,7 +243,7 @@ async def load_all_baselines(
     session: AsyncSession,
 ) -> dict[str, EntitySnapshotDB]:
     """
-    Return a mapping of customer_id → latest EntitySnapshot for every customer
+    Return a mapping of drift_id → latest EntitySnapshot for every customer
     that has at least one snapshot.
 
     Uses a SQL-side MAX(created_at) subquery so only the matching rows are
@@ -251,17 +251,17 @@ async def load_all_baselines(
     """
     subq = (
         select(
-            EntitySnapshotDB.customer_id,
+            EntitySnapshotDB.drift_id,
             func.max(EntitySnapshotDB.created_at).label("max_ts"),
         )
-        .group_by(EntitySnapshotDB.customer_id)
+        .group_by(EntitySnapshotDB.drift_id)
         .subquery()
     )
     result = await session.execute(
         select(EntitySnapshotDB).join(
             subq,
-            (EntitySnapshotDB.customer_id == subq.c.customer_id)
+            (EntitySnapshotDB.drift_id == subq.c.drift_id)
             & (EntitySnapshotDB.created_at == subq.c.max_ts),
         )
     )
-    return {row.customer_id: row for row in result.scalars().all()}
+    return {row.drift_id: row for row in result.scalars().all()}

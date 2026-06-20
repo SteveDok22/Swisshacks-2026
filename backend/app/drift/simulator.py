@@ -51,7 +51,7 @@ HIGH_RISK = ["RU", "IR", "AE"]
 
 @dataclass
 class SyntheticCustomer:
-    customer_id: str
+    drift_id: str
     name: str
     scenario: str
     months: int
@@ -117,7 +117,7 @@ class SyntheticCustomer:
 
 
 def generate_customer(
-    customer_id: str,
+    drift_id: str,
     name: str,
     scenario: str,
     months: int = 18,
@@ -161,7 +161,7 @@ def generate_customer(
         causal_truth = "risk"
 
     cust = SyntheticCustomer(
-        customer_id=customer_id,
+        drift_id=drift_id,
         name=name,
         scenario=scenario,
         months=months,
@@ -286,7 +286,7 @@ def generate_book(
     for scenario, name in names_drift.items():
         book.append(
             generate_customer(
-                customer_id=f"drift-{idx:03d}",
+                drift_id=f"drift-{idx:03d}",
                 name=name,
                 scenario=scenario,
                 seed=seed + idx,
@@ -298,7 +298,7 @@ def generate_book(
     # different face of the same idea: reaction that doesn't match the world.
     book.append(
         generate_customer(
-            customer_id=f"drift-{idx:03d}",
+            drift_id=f"drift-{idx:03d}",
             name="Irina Volkova",
             scenario="suspicious_stability",
             seed=seed + 200,
@@ -310,7 +310,7 @@ def generate_book(
     # the dormancy detector's baseline/active split, so it always flags.
     book.append(
         generate_customer(
-            customer_id=f"drift-{idx:03d}",
+            drift_id=f"drift-{idx:03d}",
             name="Dormant Holdings AG",
             scenario="dormancy_break",
             seed=seed + 300,
@@ -320,7 +320,7 @@ def generate_book(
     for i in range(n_stable):
         book.append(
             generate_customer(
-                customer_id=f"drift-{idx:03d}",
+                drift_id=f"drift-{idx:03d}",
                 name=stable_names[i % len(stable_names)],
                 scenario="stable",
                 seed=seed + idx,

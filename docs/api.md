@@ -9,13 +9,13 @@ Total API endpoints: 27
 ```mermaid
 flowchart TB
     subgraph Drift["Drift Engine  — /drift"]
-        D1["GET /customers\nScan full customer book\nReturns risk-ranked list"]
-        D2["GET /customers/{customer_id}\nFull per-customer analysis\nAll 7 layers + causal evidence + timeline"]
+        D1["GET /subjects\nScan full subject book\nReturns risk-ranked list"]
+        D2["GET /subjects/{drift_id}\nFull per-subject analysis\nAll 7 layers + causal evidence + timeline"]
         D3["POST /scan\nRun cost cascade scan\nReturns CascadeCostReport"]
         D4["GET /contagion\nOwnership graph + PageRank scores"]
-        D5["GET /replay/{customer_id}\nTime-travel as-of replay"]
+        D5["GET /replay/{drift_id}\nTime-travel as-of replay"]
         D6["POST /inject\nInject public signal\nBody: scenario, name"]
-        D7["POST /rfi/{customer_id}\nGenerate RFI\nValue-of-Information ordering"]
+        D7["POST /rfi/{drift_id}\nGenerate RFI\nValue-of-Information ordering"]
     end
 
     subgraph Cases["Cases  — /cases"]
@@ -36,9 +36,9 @@ flowchart TB
     end
 
     subgraph Governance["Governance"]
-        G1["POST /decisions\nLog officer decision\nBody: case_id OR customer_id, action, officer_id\nOptional: rationale"]
+        G1["POST /decisions\nLog officer decision\nBody: case_id OR drift_id, action, officer_id\nOptional: rationale"]
         G2["GET /decisions/case/{case_id}\nList all decisions for a case"]
-        G7["GET /decisions/customer/{customer_id}\nList all drift-engine decisions for a customer"]
+        G7["GET /decisions/subject/{drift_id}\nList all drift-engine decisions for a subject"]
         G3["GET /audit\nAudit log — paginated"]
         G4["GET /jurisdictions\nList all loaded rule packs"]
         G5["GET /jurisdictions/{code}\nGet rules for CH / EU / HK / AE"]
@@ -58,8 +58,8 @@ flowchart TB
 ```mermaid
 flowchart LR
     subgraph DriftSchemas["Drift Schemas"]
-        DS1["DriftCustomerSummary\ncustomer_id · name · score · velocity\naction · risk_level"]
-        DS2["DriftCustomerDetail\n+ LayerContribution[]\n+ CausalVerdictOut\n+ StabilityOut\n+ DriftTimelinePoint[]\n+ contagion_score"]
+        DS1["DriftSubjectSummary\ndrift_id · name · score · velocity\naction · risk_level"]
+        DS2["DriftSubjectDetail\n+ LayerContribution[]\n+ CausalVerdictOut\n+ StabilityOut\n+ DriftTimelinePoint[]\n+ contagion_score"]
         DS3["ReplayResult\nas_of_score · current_score\nlead_time_months"]
         DS4["CascadeCostReport\ntier_counts · costs · total_customers\n+ actual_t2_llm_calls\n+ llm_adjudications[]"]
     end
@@ -99,4 +99,4 @@ Case-explanation LLM calls pass through `anonymizer.py` so raw names and exact a
 - `actual_t2_llm_calls`
 - `real_t2_llm_calls`
 - `mock_t2_llm_calls`
-- `llm_adjudications[]` with customer id, customer name, mode, cache flag, and parsed JSON adjudication.
+- `llm_adjudications[]` with `drift_id`, `drift_name`, mode, cache flag, and parsed JSON adjudication.

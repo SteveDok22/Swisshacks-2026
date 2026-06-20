@@ -206,7 +206,7 @@ flowchart TD
 
 T2 adjudication is an actual execution path in `drift/service.py`: every customer routed to `T2_LLM` is sent through the shared `AnthropicClient`. The adjudicator compares risk-shaped drift, benign business change, and ambiguous/insufficient-evidence hypotheses, and returns parsed JSON with verdict, confidence, rationale, key evidence, and a human compliance action. In development, the same client runs in mock mode when no Anthropic API key is configured.
 
-The scan response keeps `llm_on_everything_cost` as a counterfactual baseline and separately reports `actual_t2_llm_calls`, `real_t2_llm_calls`, `mock_t2_llm_calls`, and `llm_adjudications[]`.
+The scan response keeps `llm_on_everything_cost` as a counterfactual baseline and separately reports `actual_t2_llm_calls`, `real_t2_llm_calls`, `mock_t2_llm_calls`, `tokens_used` (total input+output tokens across all T2 calls; 0 in mock/cached mode), `model` (the configured adjudication model; `null`/`None` when all calls were mock or cached), and `llm_adjudications[]` (per-customer breakdown including per-call `tokens_used`).
 
 **Result:** 96% cost reduction vs LLM-on-everything at equal high-risk recall (H4, validated on the synthetic book).
 

@@ -4,12 +4,19 @@ from __future__ import annotations
 
 import json
 
+from app.core.config import settings
 from app.drift.cascade import CascadeRouter
 from app.drift.service import DriftEngine
 
 
 class FakeAnthropicClient:
-    def __init__(self, *, is_mock: bool = True, response: str | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        is_mock: bool = True,
+        response: str | None = None,
+        tokens_per_call: int = 0,
+    ) -> None:
         self.is_mock = is_mock
         self.response = response or json.dumps(
             {
@@ -20,11 +27,12 @@ class FakeAnthropicClient:
                 "recommended_action": "Escalate to enhanced due diligence",
             }
         )
+        self.tokens_per_call = tokens_per_call
         self.calls: list[dict[str, object]] = []
 
-    def complete(self, prompt: str, **kwargs):
+    def complete(self, prompt: str, **kwargs) -> tuple[str, bool, int]:
         self.calls.append({"prompt": prompt, "kwargs": kwargs})
-        return self.response, False
+        return self.response, False, self.tokens_per_call
 
 
 def test_scan_calls_llm_for_t2_customers_only(monkeypatch):
@@ -76,3 +84,64 @@ def test_invalid_llm_json_returns_safe_fallback(monkeypatch):
         "key_evidence": [],
         "recommended_action": "Request information",
     }
+
+
+def test_tokens_used_zero_in_mock_mode(monkeypatch):
+    """Mock calls report zero tokens; CascadeCostReport aggregates correctly."""
+    engine = DriftEngine()
+    fake = FakeAnthropicClient(is_mock=True, tokens_per_call=0)
+    monkeypatch.setattr("app.drift.service.get_anthropic_client", lambda: fake)
+
+    report = engine.scan()
+
+    assert report.tokens_used == 0
+    assert report.model is None
+    for adj in report.llm_adjudications:
+        assert adj.tokens_used == 0
+
+
+def test_tokens_used_aggregated_in_real_mode(monkeypatch):
+    """Simulated real calls: tokens_used sums across all T2 adjudications."""
+    engine = DriftEngine()
+    fake = FakeAnthropicClient(is_mock=False, tokens_per_call=350)
+    monkeypatch.setattr("app.drift.service.get_anthropic_client", lambda: fake)
+
+    report = engine.scan()
+
+    assert len(fake.calls) > 0
+    assert report.tokens_used == len(fake.calls) * 350
+    assert report.model == settings.anthropic_model_main
+    for adj in report.llm_adjudications:
+        assert adj.tokens_used == 350
+
+
+def test_tokens_used_zero_when_no_t2_calls(monkeypatch):
+    """When no customer reaches T2, tokens_used stays zero."""
+    engine = DriftEngine()
+    engine._router = CascadeRouter(t1_drift_threshold=999.0, t2_drift_threshold=999.0)
+    fake = FakeAnthropicClient(is_mock=True, tokens_per_call=500)
+    monkeypatch.setattr("app.drift.service.get_anthropic_client", lambda: fake)
+
+    report = engine.scan()
+
+    assert report.tokens_used == 0
+    assert report.model is None
+
+
+def test_real_mode_cache_hit_does_not_count_as_real_call(monkeypatch):
+    """A cached response on a real-mode client must not increment real_t2_llm_calls."""
+    engine = DriftEngine()
+    fake = FakeAnthropicClient(is_mock=False, tokens_per_call=0)
+    # Simulate all completions being served from cache (was_cached=True, tokens=0)
+    fake.complete = lambda prompt, **kw: (fake.response, True, 0)
+    monkeypatch.setattr("app.drift.service.get_anthropic_client", lambda: fake)
+
+    report = engine.scan()
+
+    assert report.real_t2_llm_calls == 0, (
+        "Cache hits on a real-mode client must not be counted as real API calls"
+    )
+    assert report.model is None, (
+        "model must be None when no uncached real API call was made"
+    )
+    assert report.tokens_used == 0

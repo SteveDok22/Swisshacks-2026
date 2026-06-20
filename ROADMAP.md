@@ -9,7 +9,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 | Criterion | Weight | Status |
 |---|---|---|
 | **AI Intelligence Quality** | 25% | ✅ Strong — 7 real algorithms, causal separation, suspicious stability |
-| **Cost Efficiency** | 20% | ⚠️ Partial — T2 LLM works; no per-workflow token count yet |
+| **Cost Efficiency** | 20% | ✅ Good — T2 LLM cascade works; per-workflow `tokens_used` + `model` tracked on every scan |
 | **UX & Explainability** | 20% | ✅ Good — 7 visualisations solid; drift uses per-layer LLR contribution breakdown; signal cards include source citations |
 | **Compliance & Safety** | 20% | ✅ Good — audit log wired; DecisionBar on drift; source citations surfaced |
 | **Engineering & Architecture** | 15% | ✅ Good — modular engine, clean API, async, unit + BDD tests; no CI/CD |
@@ -83,7 +83,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 - [x] **Drift explainability** — option A chosen: drift attribution is a per-layer LLR contribution breakdown (7 layers × `LayerContribution.llr` + `CausalVerdictOut.contributions` per metric). Per-variable SHAP is case-scoring only; applying it to drift time-series would explain the wrong thing (transaction features ≠ behavioural drift features).
 
 **6. Cost tracking**
-- [ ] **Token usage per workflow** — add `tokens_used: int` and `model: str` to `CascadeCostReport` in `schemas/drift.py`; populate from `anthropic_client.py` response metadata
+- [x] **Token usage per workflow** — add `tokens_used: int` and `model: str` to `CascadeCostReport` in `schemas/drift.py`; populate from `anthropic_client.py` response metadata
 
 ---
 

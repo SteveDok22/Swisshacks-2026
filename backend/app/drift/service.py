@@ -28,6 +28,7 @@ from app.core.config import (
     DRIFT_INTERNAL_CONTAGION_WEIGHT,
     DRIFT_INTERNAL_VELOCITY_WEIGHT,
     DRIFT_PUBLIC_RISK_WEIGHT,
+    settings,
 )
 from app.core.logging import get_logger
 from app.drift.bocpd import BOCPD, standardize
@@ -465,7 +466,7 @@ class DriftEngine:
         """Execute the real or mock Anthropic T2 adjudication path."""
         llm = get_anthropic_client()
         llm_mode = "mock" if llm.is_mock else "real"
-        text, was_cached = llm.complete(
+        text, was_cached, tokens_used = llm.complete(
             self._build_t2_adjudication_prompt(cust, analysis),
             system=T2_LLM_SYSTEM_MESSAGE,
             max_tokens=700,
@@ -476,6 +477,7 @@ class DriftEngine:
             "drift_name": cust.name,
             "llm_mode": llm_mode,
             "was_cached": was_cached,
+            "tokens_used": tokens_used,
             "response": self._parse_llm_json(text),
         }
 
@@ -636,11 +638,15 @@ class DriftEngine:
 
         actual_t2_llm_calls = len(llm_adjudications)
         real_t2_llm_calls = sum(
-            1 for item in llm_adjudications if item["llm_mode"] == "real"
+            1 for item in llm_adjudications
+            if item["llm_mode"] == "real" and not item["was_cached"]
         )
         mock_t2_llm_calls = sum(
             1 for item in llm_adjudications if item["llm_mode"] == "mock"
         )
+        total_tokens_used = sum(item["tokens_used"] for item in llm_adjudications)
+        # Model reflects current config; set only when at least one uncached real call was made.
+        adjudication_model = settings.anthropic_model_main if real_t2_llm_calls > 0 else None
         llm_all = len(signals) * 0.05
         savings = 100.0 * (1 - report.total_cost / llm_all) if llm_all > 0 else 0.0
         summary = (
@@ -659,6 +665,8 @@ class DriftEngine:
             actual_t2_llm_calls=actual_t2_llm_calls,
             real_t2_llm_calls=real_t2_llm_calls,
             mock_t2_llm_calls=mock_t2_llm_calls,
+            tokens_used=total_tokens_used,
+            model=adjudication_model,
             llm_adjudications=llm_adjudications,
         )
 

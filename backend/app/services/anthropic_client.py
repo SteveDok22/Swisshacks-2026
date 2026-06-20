@@ -104,16 +104,19 @@ class AnthropicClient:
         max_tokens: int | None = None,
         system: str | None = None,
         use_cache: bool = True,
-    ) -> tuple[str, bool]:
+    ) -> tuple[str, bool, int]:
         """
         Non-streaming completion.
-        
+
         Returns:
-            (text, was_cached)
+            (text, was_cached, tokens_used)
+            tokens_used is input+output tokens for real calls; 0 for mock/cached.
         """
-        model = model or settings.anthropic_model_main
-        max_tokens = max_tokens or settings.anthropic_max_tokens
-        
+        if model is None:
+            model = settings.anthropic_model_main
+        if max_tokens is None:
+            max_tokens = settings.anthropic_max_tokens
+
         # === Cache lookup ===
         cache_key = self._cache_key(
             f"{system or ''}::{prompt}", model, max_tokens
@@ -122,22 +125,26 @@ class AnthropicClient:
             entry = self._cache[cache_key]
             if not entry.is_expired:
                 logger.info("anthropic_cache_hit", model=model)
-                return entry.value, True
+                return entry.value, True, 0
             else:
                 del self._cache[cache_key]
-        
+
         # === Mock mode ===
         if self.is_mock:
             response = self._mock_response(prompt, system)
             self._cache[cache_key] = _CacheEntry(response)
-            return response, False
-        
+            return response, False, 0
+
         # === Real API call ===
-        assert self._client is not None
-        
+        if self._client is None:
+            raise RuntimeError(
+                "AnthropicClient._client is None but is_mock is False — "
+                "this indicates a construction bug."
+            )
+
         start = time.perf_counter()
         messages: list[dict[str, str]] = [{"role": "user", "content": prompt}]
-        
+
         try:
             response = self._client.messages.create(
                 model=model,
@@ -145,30 +152,32 @@ class AnthropicClient:
                 system=system or "",
                 messages=messages,
             )
-            
+
             text = ""
             for block in response.content:
                 if block.type == "text":
                     text += block.text
-            
+
+            tokens_used = response.usage.input_tokens + response.usage.output_tokens
             elapsed_ms = (time.perf_counter() - start) * 1000
             logger.info(
                 "anthropic_completion",
                 model=model,
                 input_tokens=response.usage.input_tokens,
                 output_tokens=response.usage.output_tokens,
+                tokens_used=tokens_used,
                 elapsed_ms=round(elapsed_ms),
             )
-            
+
             if use_cache:
                 self._cache[cache_key] = _CacheEntry(text)
-            
-            return text, False
-            
+
+            return text, False, tokens_used
+
         except anthropic.APIError as e:
             logger.error("anthropic_api_error", error=str(e))
-            # Graceful fallback to mock
-            return self._mock_response(prompt, system), False
+            # Partial token charges may have been incurred before the error; 0 is a safe undercount.
+            return self._mock_response(prompt, system), False, 0
     
     # === Async streaming ===
     

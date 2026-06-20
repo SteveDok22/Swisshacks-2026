@@ -66,7 +66,7 @@ Decision rule: **free/free-tier sources + Event Registry** (hackathon API key pr
 See [`docs/sources.md`](docs/sources.md) for full cost/access breakdown.
 
 *Implement these (status: `PLANNED`):*
-- [ ] **`sources/event_registry.py`** — structured news events, entity-aware queries (Cases 1, 6, 8, 10) · PAID — **hackathon API key provided; PRIMARY news source**
+- [x] **`sources/event_registry.py`** — FREEMIUM, key-gated · `EVENT_REGISTRY_API_KEY` (Cases 1, 6, 8, 10) · Fully implemented; enriches GDELT with event-level de-duplication and structured sentiment when a key is present. Returns `[]` gracefully when no key is set so GDELT remains the always-on fallback.
 - [x] **`sources/zefix.py`** — Swiss commercial register (Cases 4, 7, 8, 10) · FREEMIUM (free, but needs a free registered Basic-auth account — verified live 401 without creds; no officers/UBO in the API). **`fetch` + `fetch_signals` implemented** against the live OpenAPI schema; Basic-auth from `ZEFIX_USERNAME`/`ZEFIX_PASSWORD`, graceful degradation without creds; unit tests mock the HTTP layer (`tests/test_zefix.py`). Engine wiring tracked in the UC4/UC8 close-out tasks below.
 - [ ] **`sources/gleif.py`** — Global LEI Foundation (Cases 3, 4, 5, 8, 10) · FREE
 - [ ] **`sources/opensanctions.py`** — OFAC / EU / UN sanctions + PEP screening (Cases 2, 5) · FREEMIUM
@@ -77,7 +77,7 @@ See [`docs/sources.md`](docs/sources.md) for full cost/access breakdown.
 
 *Paid — skipped (carcasses exist and document the decision):*
 - [x] ~~**`sources/open_corporates.py`**~~ — PAID — SKIP (covered by GLEIF + ZEFIX)
-- [x] ~~**`sources/crunchbase.py`**~~ — PAID — SKIP (funding news covered by Event Registry)
+- [x] ~~**`sources/crunchbase.py`**~~ — PAID — SKIP (funding news covered by Event Registry + GDELT)
 
 **4. Adapter implementation specs — what each connector must fetch and return**
 
@@ -321,6 +321,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | Wayback Machine | 9, 10 | FREE | 🔲 PLANNED |
 | Firecrawl | 9, 10 | FREEMIUM | 🔲 PLANNED |
 | OpenCorporates | 3, 4, 5, 7 | PAID | ⛔ SKIPPED |
+| EventRegistry / NewsAPI.ai | 1, 6, 8, 10 | FREEMIUM (key-gated) | ✅ IMPLEMENTED |
 | Crunchbase | 6 | PAID | ⛔ SKIPPED |
 | Internal transactions | 2, 3, 7 | — | ✅ Built |
 

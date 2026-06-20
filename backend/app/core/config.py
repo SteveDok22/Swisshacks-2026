@@ -69,6 +69,11 @@ class Settings(BaseSettings):
     zefix_username: str = ""
     zefix_password: str = ""
 
+    # === External news sources ===
+    # Optional paid enhancement alongside free GDELT. When absent the adapter
+    # returns [] and GDELT remains the always-on fallback.
+    event_registry_api_key: str = ""
+
     # === ML ===
     model_dir: str = "./data/models"
     enable_dice_counterfactuals: bool = True

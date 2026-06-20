@@ -12,9 +12,12 @@
 
 ## Status: partial implementation
 
-GLEIF (real HTTP, no key) and ZEFIX (real HTTP, free Basic-auth account; degrades
-gracefully without credentials) are **implemented**. All other adapters remain
-carcasses — no real network I/O yet:
+Three adapters are fully implemented (real HTTP calls):
+- **GLEIF** — free, no key required (PR #25)
+- **ZEFIX** — FREEMIUM, free Basic-auth account; degrades gracefully (`None`/`[]`) when credentials absent (PR #23)
+- **Event Registry** — FREEMIUM, key-gated; returns `[]` when key absent (PR #24)
+
+All other adapters remain carcasses — no real network I/O yet:
 
 - `base.py` — the shared contract: `RegistryAdapter` ABC, `EntitySnapshot`,
   the canonical `PublicSignal`, and the `SnapshotDiff` / `diff_snapshots()`
@@ -59,10 +62,10 @@ status == PLANNED   <=>   cost == FREE or FREEMIUM
 | **GLEIF** | Global LEI: name, status, jurisdiction, parent/children ownership graph | FREE | no | ✅ BUILT |
 | **OpenSanctions** | OFAC/EU/UN sanctions + PEP screening with match scores | FREEMIUM | yes¹ | ✅ IMPLEMENT |
 | **GDELT 2.0** | Global news article lists + volume time-series (free news feed) | FREE | no | ✅ IMPLEMENT |
+| **Event Registry** | News clustered into de-duplicated *events*, primary news source (hackathon key) | FREEMIUM³ | yes | ✅ BUILT (key-gated) |
 | **Firecrawl** | Live website → markdown (current page content) | FREEMIUM | yes² | ✅ IMPLEMENT |
 | **Wayback** | Historical website snapshot at the onboarding date | FREE | no | ✅ IMPLEMENT |
 | **WHOIS / RDAP** | Domain age + registrant change | FREE | no | ✅ IMPLEMENT |
-| **Event Registry** | News clustered into de-duplicated *events* | FREEMIUM³ | yes | ✅ IMPLEMENT (carcass, hackathon key) |
 | **OpenCorporates** | Officers / directors in non-LEI jurisdictions | PAID | yes | ⛔ SKIP |
 | **Crunchbase** | Funding rounds, investors, amounts | PAID | yes | ⛔ SKIP |
 
@@ -84,23 +87,25 @@ matcher are **free for non-commercial use** and self-hostable. Commercial use
 needs a paid bulk-data licence — flag for production.
 ² Firecrawl: cloud free tier ~1,000 pages/month (no card); self-host is AGPL-3.0.
 ³ Event Registry: previously treated as paid (one-time trial allowance only). The
-SwissHacks 2026 hackathon provides a full-access API key, making it FREEMIUM and
-usable. The adapter remains a carcass (`fetch`/`fetch_signals` not yet
-implemented); GDELT serves as a free, key-less news fallback in the meantime.
+SwissHacks 2026 hackathon provides a full-access key (2,500 req/day), making it
+FREEMIUM and fully implemented. When `EVENT_REGISTRY_API_KEY` is set it runs as
+the primary news source; when absent it returns `[]` gracefully and GDELT is the
+always-on free fallback. The two adapters complement each other — GDELT covers
+free baseline article counts; Event Registry adds event-level de-duplication and
+structured sentiment.
 
 ### Why each skip is safe (coverage is not lost)
 
 | Skipped (paid) | Use cases | Free source that covers it |
 |---|---|---|
 | OpenCorporates | 3, 4, 5, 7 | **GLEIF** entity-level ownership (parent/child LEIs) + **ZEFIX** company fields. ⚠️ Natural-person **officers/directors** are a real gap — no free source (incl. ZEFIX) exposes them; entity-level UBO only. |
-| Crunchbase | 6 | **GDELT** (funding/expansion as news — weaker, no structured amount) |
+| Crunchbase | 6 | **Event Registry** (structured funding articles) + **GDELT** (free fallback) |
 
-Net: **8 adapters to run (2 built — GLEIF, ZEFIX — 6 carcasses), 2 skipped.**
-No use case is fully dropped, but
-officer/director-level resolution (part of Cases 3/5) is degraded to entity-level
-ownership only — the one capability lost by skipping the paid OpenCorporates.
-Event Registry is now PLANNED (hackathon key available); GDELT remains its free
-fallback when the key is absent.
+Net: **8 adapters to run (3 built — GLEIF, ZEFIX, Event Registry — 5 carcasses),
+2 skipped.** No use case is fully dropped; officer/director-level resolution
+(part of Cases 3/5) is degraded to entity-level ownership only — the one
+capability lost by skipping the paid OpenCorporates. Event Registry is the
+key-gated primary news source; GDELT remains the always-on free fallback.
 
 ---
 
@@ -152,7 +157,7 @@ to the free sources:
 
 1. **Registry** — `zefix` (free Basic-auth account), `gleif` (no key); highest signal → Cases 4, 7, 8, 10, 3, 5
 2. **Screening** — `opensanctions` (free non-commercial / self-host yente) → Cases 2, 5
-3. **News** — `gdelt` + BOCPD on the article time-series → Cases 1, 6
+3. **News** — `gdelt` (free baseline) + `event_registry` (key-gated enhancement, event-level de-duplication) → Cases 1, 6, 8, 10
 4. **Web** — `firecrawl` + `wayback` + `whois` → Cases 8, 9, 10
 
 Prerequisite for all of them: `db/kyc_baseline.py` to store/load the

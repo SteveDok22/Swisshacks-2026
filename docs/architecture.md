@@ -106,6 +106,7 @@ flowchart TD
         velocity["velocity.py\nKL Divergence"]
         contagion["contagion.py\nPageRank"]
         pubintel["public_intel.py\nConfirmation Lift"]
+        bizmodel["business_model.py\nWebsite Cosine Drift"]
         causal["causal.py\nLikelihood Ratio"]
         stability["stability.py\nSlow-Walker"]
         dormancy["dormancy.py\nDormancy Break"]

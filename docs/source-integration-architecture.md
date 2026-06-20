@@ -341,6 +341,17 @@ flowchart TB
     J -->|< 0.30| M[no signal]
 ```
 
+**Implementation note** (`drift/business_model.py`, BUILT): the comparator embeds
+both texts with **model2vec `minishlab/potion-base-8M`** — a static MiniLM-class
+distillation that runs on **pure NumPy (no torch, no onnxruntime)**, ~30 MB and
+fully offline once cached — rather than `sentence-transformers`/torch (~2 GB).
+It fires a single `business_model_change` at **cosine distance ≥ 0.35** with
+severity `clip(0.20 + 1.30 × distance, 0, 0.95)` (the §5 formula), superseding the
+two-band sketch above. The embedder is optional (`embeddings` extra) and pluggable
+behind an `Embedder` protocol; absent → the comparator degrades to *no signal*. It
+is a DB-free pure function — the aggregator injects the two `website_text` values
+and persists the returned embeddings (fingerprint-keyed) for re-scan reuse.
+
 ---
 
 ### 4g. WHOIS / RDAP — Domain Registration (Case 9)
@@ -699,7 +710,7 @@ backend/app/
 ├── drift/
 │   ├── public_intel.py             ← becomes aggregation layer not generation
 │   ├── dormancy.py                 ← NEW: explicit dormancy-break detector
-│   └── business_model.py           ← NEW: sentence-transformer cosine comparator
+│   └── business_model.py           ← BUILT: website cosine comparator (model2vec static embeddings, pure NumPy / no torch)
 │
 ├── ml/
 │   └── extractors/

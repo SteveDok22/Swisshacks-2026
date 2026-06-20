@@ -42,8 +42,7 @@ Do these in order:
 1. **Aggregator refactor — `drift/public_intel.py`** _(highest leverage; unblocks UC 1, 3, 4, 5, 6, 8, 9, 10 at once)_
    Replace `generate_signals_for_customer()` synthetic templates with real adapter dispatch through `sources/registry.py`. Aggregator picks Event Registry when `EVENT_REGISTRY_API_KEY` is set, else falls back to GDELT (now built). This is the single change that makes all 8 adapters actually run.
 
-2. **`drift/business_model.py` — Wayback↔Firecrawl cosine comparator** _(closes UC 9)_
-   Embed onboarding (Wayback) vs current (Firecrawl) website text with `all-MiniLM-L6-v2`; cosine distance ≥ 0.35 → `business_model_change` signal. Wayback + Firecrawl + WHOIS adapters are already shipped and waiting on this.
+2. ~~**`drift/business_model.py` — Wayback↔Firecrawl cosine comparator** _(closes UC 9 comparator)_~~ ✅ **DONE** — embeds onboarding (Wayback) vs current (Firecrawl) website text with **model2vec static embeddings (pure NumPy, no torch; `sentence-transformers` swapped to keep the image lean)**; cosine distance ≥ 0.35 → `business_model_change`. Pure DB-free module + unit tests. **Remaining for UC 9 = aggregator wiring** (load the two texts per customer, persist embeddings) — folded into item 1.
 
 3. **Score-flooring + scenarios** _(turns wired signals into table-flipping outcomes)_
    `jurisdiction_change`/`legal_form_change` floor score at 50; `name_changed` floors at 60 (UC 4, 8). Add `news_spike`, `name_cycling`, `domain_pivot`, `pivot` synthetic scenarios to `simulator.py` so the demo exercises each path.
@@ -228,7 +227,7 @@ Each adapter has two methods to implement. `fetch()` returns a current `EntitySn
 **5. Integration glue — wire adapters into the engine**
 
 - [ ] ⬅ **NEXT: Refactor `public_intel.py` into aggregator** — `service.py` calls `generate_signals_for_customer()` which returns synthetic templates; replace with real adapter calls dispatched through `sources/registry.py`. This is the single step that makes every adapter actually run in the engine. **Top of the Next Steps list above.**
-- [ ] **`drift/business_model.py`** — load Wayback text + Firecrawl text for a customer; embed both with `sentence-transformers/all-MiniLM-L6-v2` (14 MB, fully offline); `cosine_distance(wayback_embed, firecrawl_embed)` ≥ 0.35 → `PublicSignal(signal_type="business_model_change")`; store embeddings in `EntitySnapshotDB.extra` to skip re-embedding on re-scan.
+- [x] **`drift/business_model.py`** — loads Wayback text + Firecrawl text for a customer and emits `PublicSignal(signal_type="business_model_change")` when `cosine_distance(wayback_embed, firecrawl_embed) ≥ 0.35` (severity `clip(0.20 + 1.30 × distance, 0, 0.95)`). Embeds with **model2vec `minishlab/potion-base-8M`** — a static MiniLM-class distillation running on **pure NumPy (no torch)**, ~30 MB, fully offline — instead of `sentence-transformers` (torch ~2 GB). Optional `embeddings` extra; absent → degrades to no signal. Pluggable `Embedder` protocol; re-embedding cache keyed by SHA-256 fingerprint (caller persists vectors in `EntitySnapshotDB.raw_data`). DB-free pure module; unit tests in `tests/test_business_model.py`. **Aggregator wiring (loading texts + persisting embeddings) tracked under §5 public_intel refactor / UC 9.** (PR pending)
 - [ ] **`ml/extractors/drift.py`** — `DriftFeatureExtractor` with 20-dim feature vector; wire XGBoost to drift scoring (currently wired to case management only)
 - [ ] **Train drift XGBoost model** — `ml/training.py` has no drift training path; feed synthetic book (8 scenarios × time windows ≈ 200 samples) through `DriftFeatureExtractor` → label → `XGBClassifier.fit()`
 
@@ -278,7 +277,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 - [x] Implement `WaybackAdapter.fetch` (historical snapshot path — see spec above)
 - [x] Implement `FirecrawlAdapter.fetch` (current content path — key-optional: cloud `/scrape` → plain-HTTP HTML strip → empty snapshot; `fetch_signals` is a no-op by design)
 - [x] Implement `WhoisAdapter.fetch_signals` domain registrant diff path
-- [ ] Implement `drift/business_model.py` cosine comparator (Wayback text vs Firecrawl text via `all-MiniLM-L6-v2`)
+- [x] Implement `drift/business_model.py` cosine comparator (Wayback text vs Firecrawl text; **model2vec static embeddings, pure NumPy, no torch** — see §5)
 - [ ] Add `is_business_model_change: bool` + `business_model_distance: float` to `DriftSubjectDetail` API response and surface in `TwoLayerPanel.tsx` alongside other public signals
 - [ ] Add `domain_pivot` synthetic scenario to `simulator.py` — WHOIS registrant change at month 8 + high cosine distance; causal label `"risk"`
 
@@ -323,6 +322,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | Causal Drift | `drift/causal.py` | Neyman-Pearson likelihood-ratio |
 | Suspicious Stability | `drift/stability.py` | CV × environmental movement |
 | Dormancy Break | `drift/dormancy.py` | Near-zero baseline × activation burst |
+| Business-Model Drift | `drift/business_model.py` | Wayback↔Firecrawl website cosine distance ≥ 0.35; model2vec static embeddings (pure NumPy, no torch); DB-free comparator |
 | Cost-Aware Cascade | `drift/cascade.py` | T0 rules → T1 LLR layer scoring → T2 LLM |
 | Time-Travel Audit | `drift/timetravel.py` | No look-ahead bias on replay |
 | Drift Engine | `drift/service.py` | All 7 layers, confirmation lift, LLM adjudication |
@@ -349,7 +349,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | GDELT | 1, 6, 8, 10 | FREE | ✅ IMPLEMENTED — `fetch_signals` live (BOCPD volume + funding/pivot title classification); free fallback when ER key absent |
 | RDAP/WHOIS | 8, 9 | FREE | ✅ IMPLEMENTED — `fetch()` + `fetch_signals()` live; no key required |
 | Wayback Machine | 9, 10 | FREE | ✅ IMPLEMENTED — `fetch()` live; `fetch_signals()` returns `[]` by design |
-| Firecrawl | 9, 10 | FREEMIUM | ✅ IMPLEMENTED — key-optional (cloud → plain-HTTP fallback); comparator wiring pending |
+| Firecrawl | 9, 10 | FREEMIUM | ✅ IMPLEMENTED — key-optional (cloud → plain-HTTP fallback); comparator built (`drift/business_model.py`); aggregator wiring pending |
 | OpenCorporates | 3, 4, 5, 7 | PAID | ⛔ SKIPPED |
 | Crunchbase | 6 | PAID | ⛔ SKIPPED |
 | Internal transactions | 2, 3, 7 | — | ✅ Built |

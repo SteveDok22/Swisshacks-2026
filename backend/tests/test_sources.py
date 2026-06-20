@@ -113,15 +113,16 @@ class TestRegistryClassification:
 class TestCarcassBehaviour:
     async def test_planned_adapter_raises_not_implemented(self):
         # Free source whose carcass is not built yet — both entry points.
-        # GDELT is a representative still-unbuilt PLANNED adapter (ZEFIX and
-        # GLEIF are now implemented; ZEFIX without credentials degrades to
-        # None/[] rather than raising — see test_zefix.py).
-        from app.sources.gdelt import GdeltAdapter
+        # Firecrawl is a representative still-unbuilt PLANNED adapter (ZEFIX,
+        # GLEIF, OpenSanctions, Event Registry, Wayback and GDELT are now
+        # implemented; ZEFIX without credentials degrades to None/[] rather
+        # than raising — see test_zefix.py).
+        from app.sources.firecrawl import FirecrawlAdapter
 
         with pytest.raises(NotImplementedError):
-            await GdeltAdapter().fetch("c", "Helvetia AG")
+            await FirecrawlAdapter().fetch("c", "Helvetia AG")
         with pytest.raises(NotImplementedError):
-            await GdeltAdapter().fetch_signals("c", "Helvetia AG")
+            await FirecrawlAdapter().fetch_signals("c", "Helvetia AG")
 
     async def test_zefix_without_credentials_degrades_quietly(self):
         # The one implemented free adapter: no account configured → graceful

@@ -35,23 +35,20 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 ## ▶ Next Steps (current focus)
 
-**Where we are:** 7 of 8 free/freemium source adapters are implemented and unit-tested (385 source tests green); GDELT is in progress. **The blocker is integration, not more adapters** — every shipped adapter is currently dead code from the engine's perspective: `drift/public_intel.py` still emits synthetic templates and nothing in `service.py` calls `sources/`.
+**Where we are:** all 8 free/freemium source adapters are implemented and unit-tested (GDELT is now built — the last adapter). **The blocker is now integration, not more adapters** — every shipped adapter is currently dead code from the engine's perspective: `drift/public_intel.py` still emits synthetic templates and nothing in `service.py` calls `sources/`.
 
 Do these in order:
 
 1. **Aggregator refactor — `drift/public_intel.py`** _(highest leverage; unblocks UC 1, 3, 4, 5, 6, 8, 9, 10 at once)_
-   Replace `generate_signals_for_customer()` synthetic templates with real adapter dispatch through `sources/registry.py`. Aggregator picks Event Registry when `EVENT_REGISTRY_API_KEY` is set, else falls back to GDELT. This is the single change that makes all 7 adapters actually run.
+   Replace `generate_signals_for_customer()` synthetic templates with real adapter dispatch through `sources/registry.py`. Aggregator picks Event Registry when `EVENT_REGISTRY_API_KEY` is set, else falls back to GDELT (now built). This is the single change that makes all 8 adapters actually run.
 
 2. **`drift/business_model.py` — Wayback↔Firecrawl cosine comparator** _(closes UC 9)_
    Embed onboarding (Wayback) vs current (Firecrawl) website text with `all-MiniLM-L6-v2`; cosine distance ≥ 0.35 → `business_model_change` signal. Wayback + Firecrawl + WHOIS adapters are already shipped and waiting on this.
 
-3. **Finish `sources/gdelt.py`** _(in progress — free fallback)_
-   `fetch_signals` volume + funding + pivot modes; `User-Agent` header mandatory; wire into the aggregator fallback path from step 1. Lower urgency than 1–2 because Event Registry (primary) already works with the hackathon key.
-
-4. **Score-flooring + scenarios** _(turns wired signals into table-flipping outcomes)_
+3. **Score-flooring + scenarios** _(turns wired signals into table-flipping outcomes)_
    `jurisdiction_change`/`legal_form_change` floor score at 50; `name_changed` floors at 60 (UC 4, 8). Add `news_spike`, `name_cycling`, `domain_pivot`, `pivot` synthetic scenarios to `simulator.py` so the demo exercises each path.
 
-5. **Drift ML path** _(optional polish)_
+4. **Drift ML path** _(optional polish)_
    `ml/extractors/drift.py` (`DriftFeatureExtractor`, 20-dim) + drift training path in `ml/training.py`. Not on the UC critical path; defer if time-boxed.
 
 > Detailed per-task breakdowns live under **P1 §5 (Integration glue)** and **P1 §6 (Use case close-out)** below.
@@ -96,9 +93,9 @@ See [`docs/sources.md`](docs/sources.md) for full cost/access breakdown.
 - [x] **`sources/gleif.py`** — Global LEI Foundation (Cases 3, 4, 5, 8, 10) · FREE · `fetch()` fully implemented (legal name, jurisdiction, LEI status, parent + child LEIs); `fetch_signals()` returns `[]` by design — signals emitted by service layer via `diff_snapshots()`
 - [x] **`sources/whois.py`** — RDAP domain age + registrant change (Cases 8, 9) · FREE · `fetch()` + `fetch_signals()` implemented against `rdap.org`; no key required; unit tests in `tests/test_whois.py`.
 
-*Still to implement (carcasses exist):*
+*All free / free-tier adapters implemented:*
 - [x] **`sources/opensanctions.py`** — OFAC / EU / UN sanctions + PEP screening (Cases 2, 5) · FREEMIUM
-- [ ] 🚧 **`sources/gdelt.py`** — GDELT 2.0 free news feed (Cases 1, 6, 8, 10) · FREE — **fallback** when Event Registry key absent · **IN PROGRESS** (on a feature branch; not yet pushed/merged)
+- [x] **`sources/gdelt.py`** — GDELT 2.0 free news feed (Cases 1, 6, 8, 10) · FREE — **fallback** when Event Registry key absent · `fetch()→None`; `fetch_signals()` runs BOCPD over the raw article-count timeline (UC1) + classifies one `article_search` into funding (UC6) and pivot-cluster (UC10) signals via the `gdeltdoc` client; every query degrades to `[]` on error; unit tests in `tests/test_gdelt.py`
 - [x] **`sources/firecrawl.py`** — website-to-markdown scraping, current content (Cases 9, 10) · FREEMIUM — key-optional (cloud `/scrape` → plain-HTTP strip → empty fallback)
 - [x] **`sources/wayback.py`** — Internet Archive historical snapshot at onboarding date (Cases 9, 10) · FREE
 
@@ -183,6 +180,7 @@ Each adapter has two methods to implement. `fetch()` returns a current `EntitySn
   - **Funding events (UC 6)**: `GET ?query={name} funding OR investment OR raised&mode=artlist&format=json&MAXRECORDS=10` → articles within `since_month` window → emit `PublicSignal(signal_type="funding_event", severity="medium", source_url=article_url)`
   - **Pivot/rebrand (UC 10)**: `GET ?query={name} pivot OR rebranding OR "new product" OR "business model"&mode=artlist` → cluster of ≥ 3 articles within 60-day window → emit `PublicSignal(signal_type="business_model_change", severity="high")`
 - **Auth**: none. **Must** send `User-Agent: Sentinel/1.0 (hackathon)` header or the API returns nothing. Respect 429 with 5 s backoff.
+- **✅ IMPLEMENTED** (`sources/gdelt.py`). The shipped adapter uses the **`gdeltdoc`** client (synchronous, wrapped in `asyncio.to_thread`) instead of raw GETs: news-volume runs BOCPD over the `timelinevolraw` count series with severity derived from `timelinetone`; a single `article_search` covers funding (UC 6) and pivot (UC 10) via client-side title classification, with the pivot signal gated on a cluster of ≥ 3 articles inside a ~60-day window. `gdeltdoc` sets its own `User-Agent`; each query independently degrades to `[]` on any error. A `GdeltDoc` client is injectable for tests. The aggregator-selection / explicit-`User-Agent` / 429-backoff notes above predate the `gdeltdoc` switch.
 
 ---
 
@@ -242,7 +240,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 
 > **UC 1 — Negative news spike** (⚠️ PARTIAL → ✅)
 - [x] Implement `EventRegistryAdapter.fetch_signals` — adverse-media / news-spike modes (primary; hackathon key)
-- [ ] Implement `GdeltAdapter.fetch_signals` — volume + adverse-media modes (free fallback when key absent)
+- [x] Implement `GdeltAdapter.fetch_signals` — volume + adverse-media modes (free fallback when key absent)
 - [ ] Aggregator selects EventRegistry if `EVENT_REGISTRY_API_KEY` is set, else falls back to GDELT — single call site in `public_intel.py`
 - [ ] Run BOCPD on weekly event-count series in `service.py:_analyze_customer`; surface `news_spike_month` in the analysis dict; feed into the confirmation-lift temporal window alongside internal BOCPD changepoint
 - [ ] Add `news_spike` synthetic scenario to `simulator.py` — customer whose public_risk surges at month 9 via a news event-count spike; causal label `"risk"`
@@ -265,7 +263,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 
 > **UC 6 — Large funding round / expansion** (⚠️ PARTIAL → ✅)
 - [x] Implement `EventRegistryAdapter.fetch_signals` — funding-events mode (primary)
-- [ ] Implement `GdeltAdapter.fetch_signals` — funding mode (free fallback)
+- [x] Implement `GdeltAdapter.fetch_signals` — funding mode (free fallback)
 - [ ] Compute scale-jump ratio (`active_volume / baseline_volume`) in `causal.py`; if ratio ≥ 5× and a `funding_event` signal exists in the same window, raise `causal_p_risk` (corroborating that the volume jump is acquisition-driven rather than laundering)
 
 > **UC 8 — Legal entity name change** (❌ MISSING → ✅)
@@ -286,7 +284,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 
 > **UC 10 — Public business model pivot** (❌ MISSING → ✅)
 - [x] Implement `EventRegistryAdapter.fetch_signals` — pivot/rebrand mode (primary)
-- [ ] Implement `GdeltAdapter.fetch_signals` — pivot mode (free fallback)
+- [x] Implement `GdeltAdapter.fetch_signals` — pivot mode (free fallback)
 - [ ] In the aggregator: if Event Registry reports a pivot-adjacent event cluster AND cosine distance ≥ 0.35, elevate signal severity to `"critical"` (two independent corroborating sources)
 - [ ] Add `pivot` synthetic scenario to `simulator.py` — news pivot signals fire at month 9; website cosine distance fires; causal label `"risk"` with `funding_event` co-occurrence (Centra Tech pattern)
 
@@ -348,7 +346,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | GLEIF | 3, 4, 5, 8, 10 | FREE | ✅ IMPLEMENTED — `fetch()` live; signals via `diff_snapshots()` |
 | OpenSanctions | 2, 5 | FREEMIUM | ✅ IMPLEMENTED — `fetch_signals` live; key optional (non-commercial free tier) |
 | Event Registry / NewsAPI.ai | 1, 6, 8, 10 | FREEMIUM (hackathon key) | ✅ IMPLEMENTED — **primary news source** |
-| GDELT | 1, 6, 8, 10 | FREE | 🚧 IN PROGRESS — fallback when ER key absent |
+| GDELT | 1, 6, 8, 10 | FREE | ✅ IMPLEMENTED — `fetch_signals` live (BOCPD volume + funding/pivot title classification); free fallback when ER key absent |
 | RDAP/WHOIS | 8, 9 | FREE | ✅ IMPLEMENTED — `fetch()` + `fetch_signals()` live; no key required |
 | Wayback Machine | 9, 10 | FREE | ✅ IMPLEMENTED — `fetch()` live; `fetch_signals()` returns `[]` by design |
 | Firecrawl | 9, 10 | FREEMIUM | ✅ IMPLEMENTED — key-optional (cloud → plain-HTTP fallback); comparator wiring pending |

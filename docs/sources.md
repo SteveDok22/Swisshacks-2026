@@ -65,7 +65,7 @@ status == PLANNED   <=>   cost == FREE or FREEMIUM
 | **ZEFIX** | Swiss commercial register: name, legal form, seat, status, purpose (Zweck), SHAB mutation log | FREEMIUM | yes⁰ | ✅ BUILT |
 | **GLEIF** | Global LEI: name, status, jurisdiction, parent/children ownership graph | FREE | no | ✅ BUILT |
 | **OpenSanctions** | OFAC/EU/UN sanctions + PEP screening with match scores | FREEMIUM | yes¹ | ✅ BUILT (key optional) |
-| **GDELT 2.0** | Global news article lists + volume time-series (free news feed) | FREE | no | ✅ IMPLEMENT |
+| **GDELT 2.0** | Global news article lists + volume time-series (free news feed) | FREE | no | ✅ BUILT |
 | **Event Registry** | News clustered into de-duplicated *events*, primary news source (hackathon key) | FREEMIUM³ | yes | ✅ BUILT (key-gated) |
 | **Firecrawl** | Live website → markdown (current page content) | FREEMIUM | yes² | ✅ BUILT (key-optional) |
 | **Wayback** | Historical website snapshot at the onboarding date | FREE | no | ✅ BUILT |
@@ -119,7 +119,7 @@ structured sentiment.
 | OpenCorporates | 3, 4, 5, 7 | **GLEIF** entity-level ownership (parent/child LEIs) + **ZEFIX** company fields. ⚠️ Natural-person **officers/directors** are a real gap — no free source (incl. ZEFIX) exposes them; entity-level UBO only. |
 | Crunchbase | 6 | **Event Registry** (structured funding articles) + **GDELT** (free fallback) |
 
-Net: **8 adapters to run (7 built — GLEIF, ZEFIX, Event Registry, OpenSanctions, Wayback, WHOIS/RDAP, Firecrawl — 1 carcass),
+Net: **8 adapters to run (all 8 built — GLEIF, ZEFIX, Event Registry, OpenSanctions, Wayback, WHOIS/RDAP, Firecrawl, GDELT — 0 carcasses),
 2 skipped.** No use case is fully dropped; officer/director-level resolution
 (part of Cases 3/5) is degraded to entity-level ownership only — the one
 capability lost by skipping the paid OpenCorporates. Event Registry is the

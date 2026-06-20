@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatCompact } from "@/lib/utils";
 import { InfoHint } from "@/components/ui/InfoHint";
 import { ZoomablePanel } from "@/components/ui/ZoomablePanel";
 import type { DriftCustomerDetail } from "@/types/api";
@@ -310,14 +311,14 @@ export function DriftTimeline({ detail }: DriftTimelineProps) {
         <span className="text-ink-muted">
           Velocity{" "}
           <span className="font-mono text-ink tabular">
-            {current.velocity.toFixed(2)}
+            {formatCompact(current.velocity)}
           </span>{" "}
           bits/mo
         </span>
         <span className="text-ink-muted">
           Drift{" "}
           <span className="font-mono text-ink tabular">
-            {current.drift_bits.toFixed(2)}
+            {formatCompact(current.drift_bits)}
           </span>{" "}
           bits
         </span>

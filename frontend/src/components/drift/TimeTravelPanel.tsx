@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { driftApi } from "@/lib/api";
-import { cn } from "@/lib/utils";
+import { cn, formatCompact } from "@/lib/utils";
 import { InfoHint } from "@/components/ui/InfoHint";
 import { ZoomablePanel } from "@/components/ui/ZoomablePanel";
 import { History, Loader2 } from "lucide-react";
@@ -249,8 +249,8 @@ export function TimeTravelPanel({ driftId }: TimeTravelPanelProps) {
         </div>
         <div className="grid grid-cols-4 gap-2 text-center">
           <AsOfStat label="Score" value={cur.as_of_score.toFixed(0)} highlight={cur.as_of_score >= data.alert_threshold} />
-          <AsOfStat label="Velocity" value={cur.velocity.toFixed(1)} />
-          <AsOfStat label="Public" value={cur.public_risk.toFixed(2)} />
+          <AsOfStat label="Velocity" value={formatCompact(cur.velocity)} />
+          <AsOfStat label="Public risk" value={`${Math.round(cur.public_risk * 100)}`} />
           <AsOfStat label="Contagion" value={cur.contagion_active ? "active" : "—"} />
         </div>
       </div>

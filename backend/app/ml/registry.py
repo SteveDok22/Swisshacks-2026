@@ -17,7 +17,7 @@ from pathlib import Path
 from app.core.config import settings
 from app.core.logging import get_logger
 from app.ml.base import RiskModel
-from app.ml.extractors import SocialEngineeringFeatureExtractor
+from app.ml.extractors import DriftFeatureExtractor, SocialEngineeringFeatureExtractor
 from app.schemas.enums import CaseType
 
 logger = get_logger(__name__)
@@ -111,9 +111,22 @@ class ModelRegistry:
                 ),
             )
         
+        # === Drift model ===
+        drift_path = model_dir / "drift_v1.joblib"
+        if drift_path.exists():
+            drift_extractor = DriftFeatureExtractor()
+            drift_model = RiskModel.load(drift_path, drift_extractor)
+            self.register(drift_model)
+        else:
+            logger.warning(
+                "model_file_missing",
+                path=str(drift_path),
+                hint="Run: python -m app.ml.training train-drift",
+            )
+
         # TODO: Add Julius Baer model loading here
         # TODO: Add Ripple model loading here
-        
+
         logger.info(
             "registry_loaded",
             loaded_count=len(self._models),

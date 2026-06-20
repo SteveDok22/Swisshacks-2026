@@ -49,6 +49,7 @@ ADAPTER_SIGNAL_TYPES = (
     "address_change",
     "status_change",
     "domain_change",
+    "domain_age",
     "business_model_change",
     "dormancy_break",
 )

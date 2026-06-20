@@ -25,7 +25,7 @@ COST / ACCESS  →  FREE, no API key (PLANNED — implement now)
 
 from __future__ import annotations
 
-from app.sources.base import AdapterStatus, EntitySnapshot, RegistryAdapter, SourceCost
+from app.sources.base import AdapterStatus, EntitySnapshot, RawRecord, RegistryAdapter, SourceCost
 
 
 class GdeltAdapter(RegistryAdapter):
@@ -46,10 +46,8 @@ class GdeltAdapter(RegistryAdapter):
     use_cases = (1, 6, 8, 10)
     signal_types = ("news", "adverse_media", "funding_event")
 
-    def fetch(self, entity_id: str) -> dict:
-        self._carcass()
-        raise AssertionError("unreachable")  # pragma: no cover
+    def fetch(self, entity_id: str) -> RawRecord:
+        return self._carcass()
 
-    def normalize(self, raw: dict) -> EntitySnapshot:
-        self._carcass()
-        raise AssertionError("unreachable")  # pragma: no cover
+    def normalize(self, raw: RawRecord) -> EntitySnapshot:
+        return self._carcass()

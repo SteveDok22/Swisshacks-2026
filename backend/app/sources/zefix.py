@@ -28,7 +28,7 @@ This is a carcass: ``fetch``/``normalize`` are unimplemented. The field-level
 
 from __future__ import annotations
 
-from app.sources.base import AdapterStatus, EntitySnapshot, RegistryAdapter, SourceCost
+from app.sources.base import AdapterStatus, EntitySnapshot, RawRecord, RegistryAdapter, SourceCost
 
 
 class ZefixAdapter(RegistryAdapter):
@@ -54,10 +54,8 @@ class ZefixAdapter(RegistryAdapter):
         # entity_id is the Swiss UID, e.g. "CHE-123.456.789".
         return f"https://www.zefix.admin.ch/en/search/entity/list?name={entity_id}"
 
-    def fetch(self, entity_id: str) -> dict:
-        self._carcass()
-        raise AssertionError("unreachable")  # pragma: no cover
+    def fetch(self, entity_id: str) -> RawRecord:
+        return self._carcass()
 
-    def normalize(self, raw: dict) -> EntitySnapshot:
-        self._carcass()
-        raise AssertionError("unreachable")  # pragma: no cover
+    def normalize(self, raw: RawRecord) -> EntitySnapshot:
+        return self._carcass()

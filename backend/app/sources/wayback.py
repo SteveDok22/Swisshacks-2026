@@ -23,7 +23,7 @@ COST / ACCESS  →  FREE, no API key (PLANNED — implement now)
 
 from __future__ import annotations
 
-from app.sources.base import AdapterStatus, EntitySnapshot, RegistryAdapter, SourceCost
+from app.sources.base import AdapterStatus, EntitySnapshot, RawRecord, RegistryAdapter, SourceCost
 
 
 class WaybackAdapter(RegistryAdapter):
@@ -47,10 +47,8 @@ class WaybackAdapter(RegistryAdapter):
         # entity_id is the domain/URL.
         return f"https://web.archive.org/web/*/{entity_id}"
 
-    def fetch(self, entity_id: str) -> dict:
-        self._carcass()
-        raise AssertionError("unreachable")  # pragma: no cover
+    def fetch(self, entity_id: str) -> RawRecord:
+        return self._carcass()
 
-    def normalize(self, raw: dict) -> EntitySnapshot:
-        self._carcass()
-        raise AssertionError("unreachable")  # pragma: no cover
+    def normalize(self, raw: RawRecord) -> EntitySnapshot:
+        return self._carcass()

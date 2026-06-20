@@ -86,6 +86,15 @@ class TestRegistryClassification:
             assert a.use_cases, a.source_id
             assert a.signal_types, a.source_id
 
+    def test_declared_signal_types_are_known(self):
+        # Every docstring claims signal_types is a subset of ADAPTER_SIGNAL_TYPES;
+        # guard it so a future typo can't drift undetected.
+        from app.sources.base import ADAPTER_SIGNAL_TYPES
+
+        known = set(ADAPTER_SIGNAL_TYPES)
+        for a in ALL_ADAPTERS:
+            assert set(a.signal_types) <= known, (a.source_id, a.signal_types)
+
     def test_get_adapter_roundtrip(self):
         assert get_adapter("zefix") is ZefixAdapter
         with pytest.raises(KeyError):
@@ -124,6 +133,12 @@ class TestCarcassBehaviour:
         cls = get_adapter("crunchbase")
         with pytest.raises(SourceUnavailableError):
             cls().fetch_and_diff("x", _snapshot())
+
+    def test_fetch_and_diff_on_planned_raises_not_implemented(self):
+        # Free source: the orchestration reaches the unbuilt fetch and surfaces
+        # NotImplementedError (not SourceUnavailableError).
+        with pytest.raises(NotImplementedError):
+            ZefixAdapter().fetch_and_diff("CHE-1", _snapshot())
 
 
 # --------------------------------------------------------------------------- #
@@ -175,10 +190,47 @@ class TestGenericDiff:
         assert signals[0].signal_type == "ownership_change"
         assert signals[0].raw_evidence["added"] == "Boris Newman"
 
-    def test_removed_owner_is_not_an_added_owner_signal(self):
+    def test_removed_owner_emits_ownership_change(self):
+        # A departing UBO/officer is as AML-relevant as a new one.
         a = ZefixAdapter()
-        current = _snapshot(owners=[])  # owner dropped, none added
-        assert a.diff(_snapshot(), current) == []
+        current = _snapshot(owners=[])  # the sole owner is gone
+        signals = a.diff(_snapshot(), current)
+        assert len(signals) == 1
+        assert signals[0].signal_type == "ownership_change"
+        assert signals[0].raw_evidence == {"field": "owners", "removed": "Anna Muster"}
+
+    def test_owner_swap_emits_one_add_and_one_remove(self):
+        a = ZefixAdapter()
+        current = _snapshot(owners=["Boris Newman"])  # Anna out, Boris in
+        evidence = {tuple(s.raw_evidence.items()) for s in a.diff(_snapshot(), current)}
+        assert evidence == {
+            (("field", "owners"), ("added", "Boris Newman")),
+            (("field", "owners"), ("removed", "Anna Muster")),
+        }
+
+    def test_registered_address_change_is_address_not_jurisdiction(self):
+        # An office move within the same country must NOT read as a jurisdiction
+        # change — it has its own signal type.
+        a = ZefixAdapter()
+        current = _snapshot(registered_address="Paradeplatz 2, 8001 Zürich")
+        signals = a.diff(_snapshot(), current)
+        assert [s.signal_type for s in signals] == ["address_change"]
+
+    def test_explicit_source_url_on_snapshot_wins_over_entity_url(self):
+        # current.source_url takes precedence over the adapter's entity_url().
+        a = ZefixAdapter()
+        current = _snapshot(legal_name="X AG", source_url="https://example.test/cited")
+        assert a.diff(_snapshot(), current)[0].source_url == "https://example.test/cited"
+
+    def test_unknown_field_rule_fails_loudly(self):
+        # A typo'd FieldRule.field must raise, not silently drop the signal.
+        from app.sources.base import FieldRule
+
+        class BrokenAdapter(ZefixAdapter):
+            field_rules = (FieldRule("not_a_field", "name_change", 0.5, "{old}->{new}"),)
+
+        with pytest.raises(AttributeError):
+            BrokenAdapter().diff(_snapshot(), _snapshot())
 
     def test_month_is_propagated_to_signals(self):
         a = ZefixAdapter()

@@ -31,7 +31,7 @@ COST / ACCESS  →  FREEMIUM, API key for hosted (PLANNED — implement now)
 
 from __future__ import annotations
 
-from app.sources.base import AdapterStatus, EntitySnapshot, RegistryAdapter, SourceCost
+from app.sources.base import AdapterStatus, EntitySnapshot, RawRecord, RegistryAdapter, SourceCost
 
 
 class OpenSanctionsAdapter(RegistryAdapter):
@@ -55,10 +55,8 @@ class OpenSanctionsAdapter(RegistryAdapter):
     def entity_url(self, entity_id: str) -> str | None:
         return f"https://www.opensanctions.org/entities/{entity_id}/"
 
-    def fetch(self, entity_id: str) -> dict:
-        self._carcass()
-        raise AssertionError("unreachable")  # pragma: no cover
+    def fetch(self, entity_id: str) -> RawRecord:
+        return self._carcass()
 
-    def normalize(self, raw: dict) -> EntitySnapshot:
-        self._carcass()
-        raise AssertionError("unreachable")  # pragma: no cover
+    def normalize(self, raw: RawRecord) -> EntitySnapshot:
+        return self._carcass()

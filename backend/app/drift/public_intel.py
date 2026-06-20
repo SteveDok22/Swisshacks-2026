@@ -26,6 +26,7 @@ in production this slot takes an embedding classifier or an LLM call at T1/T2).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 import numpy as np
 
@@ -74,17 +75,19 @@ class PublicSignal:
     source_url: str | None = None
     # Adapter-specific raw evidence behind the signal (the changed fields,
     # match score, article ids, ...). Kept opaque; surfaced in audit/debug.
-    raw_evidence: dict = field(default_factory=dict)
+    raw_evidence: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> dict:
-        out = {
+    def to_dict(self) -> dict[str, Any]:
+        out: dict[str, Any] = {
             "month": self.month,
             "signal_type": self.signal_type,
             "headline": self.headline,
             "severity": round(self.severity, 2),
             "source": self.source,
         }
-        if self.source_url is not None:
+        # Truthy checks (not ``is not None``) so an empty URL/evidence — never a
+        # useful citation — is omitted, consistently for both optional fields.
+        if self.source_url:
             out["source_url"] = self.source_url
         if self.raw_evidence:
             out["raw_evidence"] = self.raw_evidence

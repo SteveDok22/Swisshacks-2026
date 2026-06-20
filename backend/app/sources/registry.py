@@ -14,7 +14,7 @@ Decision rule (see ``docs/sources.md`` for the per-source rationale):
 
 from __future__ import annotations
 
-from app.sources.base import AdapterStatus, RegistryAdapter, SourceCost
+from app.sources.base import RegistryAdapter, SourceCost
 from app.sources.crunchbase import CrunchbaseAdapter
 from app.sources.event_registry import EventRegistryAdapter
 from app.sources.firecrawl import FirecrawlAdapter
@@ -52,15 +52,15 @@ def get_adapter(source_id: str) -> type[RegistryAdapter]:
 
 def usable_adapters() -> tuple[type[RegistryAdapter], ...]:
     """Adapters we intend to run — free or free-tier (``status == PLANNED``)."""
-    return tuple(a for a in ALL_ADAPTERS if a.status is AdapterStatus.PLANNED)
+    return tuple(a for a in ALL_ADAPTERS if a.is_usable())
 
 
 def skipped_adapters() -> tuple[type[RegistryAdapter], ...]:
     """Adapters intentionally not implemented — paid/restricted (``SKIPPED``)."""
-    return tuple(a for a in ALL_ADAPTERS if a.status is AdapterStatus.SKIPPED)
+    return tuple(a for a in ALL_ADAPTERS if a.is_skipped())
 
 
-def catalogue() -> list[dict]:
+def catalogue() -> list[dict[str, object]]:
     """Serializable catalogue of every source — for docs and the API surface."""
     return [
         {

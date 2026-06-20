@@ -24,7 +24,7 @@ WHY WE SKIP IT  →  PAID / approval-gated (status = SKIPPED)
 
 from __future__ import annotations
 
-from app.sources.base import AdapterStatus, EntitySnapshot, RegistryAdapter, SourceCost
+from app.sources.base import AdapterStatus, EntitySnapshot, RawRecord, RegistryAdapter, SourceCost
 
 
 class OpenCorporatesAdapter(RegistryAdapter):
@@ -40,10 +40,8 @@ class OpenCorporatesAdapter(RegistryAdapter):
     use_cases = (3, 4, 5, 7)
     signal_types = ("ownership_change", "name_change", "jurisdiction_change")
 
-    def fetch(self, entity_id: str) -> dict:
-        self._carcass()  # raises SourceUnavailableError (paid/skipped)
-        raise AssertionError("unreachable")  # pragma: no cover
+    def fetch(self, entity_id: str) -> RawRecord:
+        return self._carcass()  # raises SourceUnavailableError (paid/skipped)
 
-    def normalize(self, raw: dict) -> EntitySnapshot:
-        self._carcass()
-        raise AssertionError("unreachable")  # pragma: no cover
+    def normalize(self, raw: RawRecord) -> EntitySnapshot:
+        return self._carcass()

@@ -30,6 +30,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from enum import StrEnum
+from typing import Any, NoReturn
 
 from app.drift.public_intel import PublicSignal
 
@@ -40,9 +41,13 @@ __all__ = [
     "EntitySnapshot",
     "FieldRule",
     "RegistryAdapter",
+    "RawRecord",
     "ADAPTER_SIGNAL_TYPES",
     "PublicSignal",
 ]
+
+# A raw upstream payload as returned by ``fetch`` (JSON object, RDAP record, ...).
+RawRecord = dict[str, Any]
 
 # Signal types the adapter layer can emit. A superset of the five named in the
 # AMINA brief (kept in ``public_intel.SIGNAL_TYPES``) plus the registry/web
@@ -56,6 +61,7 @@ ADAPTER_SIGNAL_TYPES = (
     "name_change",
     "legal_form_change",
     "jurisdiction_change",
+    "address_change",
     "status_change",
     "domain_change",
     "business_model_change",
@@ -126,9 +132,9 @@ class EntitySnapshot:
     # Citation URL for the human-readable record on the source's own site.
     source_url: str | None = None
     # Untouched upstream payload, for audit/debug and adapter-specific diffing.
-    raw: dict = field(default_factory=dict)
+    raw: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "entity_id": self.entity_id,
             "source_id": self.source_id,
@@ -192,7 +198,7 @@ class RegistryAdapter(ABC):
                   "Legal form changed: '{old}' -> '{new}'"),
         FieldRule("jurisdiction", "jurisdiction_change", 0.70,
                   "Jurisdiction changed: '{old}' -> '{new}'"),
-        FieldRule("registered_address", "jurisdiction_change", 0.55,
+        FieldRule("registered_address", "address_change", 0.55,
                   "Registered address changed: '{old}' -> '{new}'"),
         FieldRule("status", "status_change", 0.60,
                   "Status changed: '{old}' -> '{new}'"),
@@ -201,22 +207,25 @@ class RegistryAdapter(ABC):
     )
 
     # --- Convenience predicates ---
-    @property
-    def is_free(self) -> bool:
-        return self.cost is SourceCost.FREE
+    # Classmethods (not properties) because ``cost``/``status`` are class
+    # attributes — this lets both instances AND the registry's class-level
+    # filters (usable_adapters/skipped_adapters) share one implementation.
+    @classmethod
+    def is_free(cls) -> bool:
+        return cls.cost is SourceCost.FREE
 
-    @property
-    def is_skipped(self) -> bool:
-        return self.status is AdapterStatus.SKIPPED
+    @classmethod
+    def is_skipped(cls) -> bool:
+        return cls.status is AdapterStatus.SKIPPED
 
-    @property
-    def is_usable(self) -> bool:
+    @classmethod
+    def is_usable(cls) -> bool:
         """True when we intend to run this source (free or free-tier)."""
-        return self.status is AdapterStatus.PLANNED
+        return cls.status is AdapterStatus.PLANNED
 
     # --- The contract every concrete adapter implements ---
     @abstractmethod
-    def fetch(self, entity_id: str) -> dict:
+    def fetch(self, entity_id: str) -> RawRecord:
         """Fetch the current raw record for ``entity_id`` from the source.
 
         Carcasses raise: ``NotImplementedError`` for a planned (free) source,
@@ -224,7 +233,7 @@ class RegistryAdapter(ABC):
         """
 
     @abstractmethod
-    def normalize(self, raw: dict) -> EntitySnapshot:
+    def normalize(self, raw: RawRecord) -> EntitySnapshot:
         """Map a raw upstream payload onto the canonical :class:`EntitySnapshot`."""
 
     # --- Shared, overridable fundamentals ---
@@ -253,10 +262,14 @@ class RegistryAdapter(ABC):
         """
         signals: list[PublicSignal] = []
         url = current.source_url or self.entity_url(current.entity_id)
+        source = self.display_name or self.source_id
 
         for rule in self.field_rules:
-            old = getattr(baseline, rule.field, None)
-            new = getattr(current, rule.field, None)
+            # No getattr default: ``rule.field`` must be a real EntitySnapshot
+            # attribute. A typo'd/stale field should fail loudly here, not
+            # silently disable a whole signal class.
+            old = getattr(baseline, rule.field)
+            new = getattr(current, rule.field)
             if old is None or new is None or old == new:
                 continue
             signals.append(
@@ -265,24 +278,33 @@ class RegistryAdapter(ABC):
                     signal_type=rule.signal_type,
                     headline=rule.headline.format(old=old, new=new),
                     severity=rule.severity,
-                    source=self.display_name or self.source_id,
+                    source=source,
                     source_url=url,
                     raw_evidence={"field": rule.field, "old": old, "new": new},
                 )
             )
 
-        # Ownership is a set, not a scalar: a newly added owner is a signal.
-        added_owners = [o for o in current.owners if o not in set(baseline.owners)]
-        for owner in added_owners:
+        # Ownership is a set, not a scalar. Both directions are AML-relevant:
+        # a NEW beneficial owner/officer and a DEPARTING one each signal control
+        # drift. Hoist the membership sets out of the loops (O(n+m), not O(n*m)).
+        baseline_owners = set(baseline.owners)
+        current_owners = set(current.owners)
+        for owner in (o for o in current.owners if o not in baseline_owners):
             signals.append(
                 PublicSignal(
-                    month=month,
-                    signal_type="ownership_change",
+                    month=month, signal_type="ownership_change",
                     headline=f"New owner/officer recorded: {owner}",
-                    severity=0.50,
-                    source=self.display_name or self.source_id,
-                    source_url=url,
+                    severity=0.50, source=source, source_url=url,
                     raw_evidence={"field": "owners", "added": owner},
+                )
+            )
+        for owner in (o for o in baseline.owners if o not in current_owners):
+            signals.append(
+                PublicSignal(
+                    month=month, signal_type="ownership_change",
+                    headline=f"Owner/officer no longer recorded: {owner}",
+                    severity=0.50, source=source, source_url=url,
+                    raw_evidence={"field": "owners", "removed": owner},
                 )
             )
 
@@ -300,7 +322,7 @@ class RegistryAdapter(ABC):
         Skipped (paid) sources fail fast with :class:`SourceUnavailableError`
         before any network call.
         """
-        if self.is_skipped:
+        if self.is_skipped():
             raise SourceUnavailableError(
                 f"{self.source_id}: paid/restricted source, skipped for the MVP"
             )
@@ -309,15 +331,16 @@ class RegistryAdapter(ABC):
         return self.diff(baseline, current, month=month)
 
     # --- Carcass helpers ---
-    def _carcass(self) -> None:
-        """Guard for unimplemented adapter bodies.
+    def _carcass(self) -> NoReturn:
+        """Guard for unimplemented adapter bodies — always raises.
 
         Skipped (paid) sources raise :class:`SourceUnavailableError`; planned
         (free) sources raise ``NotImplementedError``. Concrete ``fetch``/
-        ``normalize`` carcasses call this so the free-vs-paid intent is explicit
-        and uniform.
+        ``normalize`` carcasses ``return self._carcass()`` so the free-vs-paid
+        intent is explicit and uniform; the ``NoReturn`` type tells the checker
+        the method never falls through, so no unreachable filler is needed.
         """
-        if self.is_skipped:
+        if self.is_skipped():
             raise SourceUnavailableError(
                 f"{self.source_id}: paid/restricted source, intentionally not "
                 f"implemented (cost={self.cost.value}). See docs/sources.md."

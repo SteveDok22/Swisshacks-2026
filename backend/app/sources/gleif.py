@@ -28,7 +28,7 @@ COST / ACCESS  →  FREE, no API key (PLANNED — implement now)
 
 from __future__ import annotations
 
-from app.sources.base import AdapterStatus, EntitySnapshot, RegistryAdapter, SourceCost
+from app.sources.base import AdapterStatus, EntitySnapshot, RawRecord, RegistryAdapter, SourceCost
 
 
 class GleifAdapter(RegistryAdapter):
@@ -54,10 +54,8 @@ class GleifAdapter(RegistryAdapter):
         # entity_id is the 20-char LEI.
         return f"https://search.gleif.org/#/record/{entity_id}"
 
-    def fetch(self, entity_id: str) -> dict:
-        self._carcass()
-        raise AssertionError("unreachable")  # pragma: no cover
+    def fetch(self, entity_id: str) -> RawRecord:
+        return self._carcass()
 
-    def normalize(self, raw: dict) -> EntitySnapshot:
-        self._carcass()
-        raise AssertionError("unreachable")  # pragma: no cover
+    def normalize(self, raw: RawRecord) -> EntitySnapshot:
+        return self._carcass()

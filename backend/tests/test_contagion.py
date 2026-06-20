@@ -4,7 +4,32 @@ from __future__ import annotations
 
 import pytest
 
-from app.drift.contagion import ContagionResult, OwnershipGraph, OwnershipEdge
+from app.drift.contagion import (
+    OwnershipEdge,
+    OwnershipGraph,
+    build_graph_from_snapshots,
+)
+from app.sources.base import EntitySnapshot
+
+
+def _snap(
+    drift_id: str,
+    *,
+    lei: str | None = None,
+    parents: list[str] | None = None,
+    children: list[str] | None = None,
+    name: str | None = None,
+) -> EntitySnapshot:
+    """Build a GLEIF-shaped EntitySnapshot (parent LEI in beneficial_owners,
+    child LEIs in officers, own LEI in raw_data)."""
+    return EntitySnapshot(
+        drift_id=drift_id,
+        name=name or drift_id,
+        source="gleif",
+        beneficial_owners=list(parents or []),
+        officers=list(children or []),
+        raw_data={"lei": lei} if lei else {},
+    )
 
 
 def _simple_graph() -> tuple[OwnershipGraph, str, str]:
@@ -86,6 +111,62 @@ class TestOwnershipGraphBuilding:
         result = g.propagate(["a"])
         assert "b" in result.propagated_risk
         assert "c" in result.propagated_risk
+
+
+class TestBuildGraphFromSnapshots:
+    """Build a real ownership graph from GLEIF EntitySnapshots (use case 3)."""
+
+    def test_empty_snapshots_returns_none(self):
+        assert build_graph_from_snapshots({}) is None
+
+    def test_no_ownership_links_returns_none(self):
+        # Customers with neither parent nor child LEIs carry no edges.
+        snaps = {"drift-001": _snap("drift-001", lei="LEI001")}
+        assert build_graph_from_snapshots(snaps) is None
+
+    def test_parent_link_creates_owner_to_customer_edge(self):
+        snaps = {"drift-001": _snap("drift-001", lei="LEI001", parents=["PARENTLEI"])}
+        g = build_graph_from_snapshots(snaps)
+        assert g is not None
+        # Parent owns the customer → contagion from the parent reaches it.
+        result = g.propagate(["PARENTLEI"])
+        assert result.propagated_risk["drift-001"] > 0.1
+        assert result.hops_from_seed["drift-001"] == 1
+
+    def test_customer_node_is_flagged_as_customer(self):
+        snaps = {"drift-001": _snap("drift-001", lei="LEI001", parents=["PARENTLEI"])}
+        g = build_graph_from_snapshots(snaps)
+        assert g is not None
+        assert g.customers() == ["drift-001"]
+
+    def test_external_parent_is_not_a_customer(self):
+        snaps = {"drift-001": _snap("drift-001", lei="LEI001", parents=["PARENTLEI"])}
+        g = build_graph_from_snapshots(snaps)
+        assert g is not None
+        assert g.g.nodes["PARENTLEI"]["is_customer"] is False
+
+    def test_child_link_creates_customer_to_child_edge(self):
+        snaps = {"drift-001": _snap("drift-001", lei="LEI001", children=["CHILDLEI"])}
+        g = build_graph_from_snapshots(snaps)
+        assert g is not None
+        assert g.g.has_edge("drift-001", "CHILDLEI")
+
+    def test_cross_customer_link_via_shared_lei(self):
+        # drift-001's child LEI is drift-002's own LEI → they share one node and
+        # contagion can flow from one customer to the other.
+        snaps = {
+            "drift-001": _snap("drift-001", lei="LEI001", children=["LEI002"]),
+            "drift-002": _snap("drift-002", lei="LEI002"),
+        }
+        g = build_graph_from_snapshots(snaps)
+        assert g is not None
+        assert g.g.has_edge("drift-001", "drift-002")
+        assert "LEI002" not in g.g  # resolved to the customer node, not duplicated
+
+    def test_self_parent_link_is_ignored(self):
+        # A snapshot that lists its own LEI as parent must not create a self-loop.
+        snaps = {"drift-001": _snap("drift-001", lei="LEI001", parents=["LEI001"])}
+        assert build_graph_from_snapshots(snaps) is None
 
 
 class TestToCytoscape:

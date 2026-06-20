@@ -15,6 +15,8 @@ remain stable within one process. This mutable demo state is process-local.
 
 from __future__ import annotations
 
+import asyncio
+import concurrent.futures
 import json
 import time
 import zlib
@@ -35,7 +37,11 @@ from app.core.logging import get_logger
 from app.drift.bocpd import BOCPD, standardize
 from app.drift.cascade import CascadeRouter, CustomerSignal, Tier
 from app.drift.causal import causal_assessment
-from app.drift.contagion import OwnershipGraph, build_demo_graph
+from app.drift.contagion import (
+    OwnershipGraph,
+    build_demo_graph,
+    build_graph_from_snapshots,
+)
 from app.drift.dormancy import assess_dormancy
 from app.drift.public_intel import (
     PublicSignal,
@@ -67,6 +73,8 @@ from app.schemas.drift import (
 )
 from app.schemas.enums import DecisionAction
 from app.services.anthropic_client import get_anthropic_client
+from app.sources.base import EntitySnapshot
+from app.sources.gleif import gather_ownership_snapshots, ownership_change_signals
 
 logger = get_logger(__name__)
 
@@ -86,6 +94,9 @@ LLM_PARSE_FALLBACK = {
 
 # Sanctioned seed entity for the contagion demo
 SANCTIONED_SEED = "SANCTIONED_ENTITY"
+# Wall-clock cap for the startup GLEIF ownership fetch (live mode only). On any
+# timeout or failure the engine falls back to the synthetic demo graph.
+_GLEIF_FETCH_TIMEOUT_S = 30.0
 # Customers wired into the ownership graph as contagion-affected
 CONTAGION_AFFECTED = {"drift-004", "drift-002"}
 DRIFT_ANALYSIS_VERSION = "drift-v1"
@@ -238,9 +249,13 @@ class DriftEngine:
     def __init__(self) -> None:
         self._book: list[SyntheticCustomer] = generate_book()
         self._router = CascadeRouter()
-        self._graph: OwnershipGraph = build_demo_graph(
-            [c.drift_id for c in self._book]
-        )
+        # GLEIF ownership data (live mode only). ``_gleif_snapshots`` holds each
+        # customer's current ownership chain (parent + child LEIs); the engine
+        # diffs it against ``_gleif_baselines`` (persisted GLEIF KYC baselines) to
+        # emit ownership_change signals. Both stay empty in offline/mock mode.
+        self._gleif_snapshots: dict[str, EntitySnapshot] = {}
+        self._gleif_baselines: dict[str, EntitySnapshot] = {}
+        self._graph: OwnershipGraph = self._build_ownership_graph()
         # Contagion is computed once (sanctions already hit in demo state)
         self._contagion = self._graph.propagate(seeds=[SANCTIONED_SEED])
         # Cohort volatility reference for Suspicious Stability (computed once
@@ -270,6 +285,77 @@ class DriftEngine:
             return None
 
     # ------------------------------------------------------------------ #
+    # Ownership-contagion graph (Layer 3) — real GLEIF vs synthetic demo
+    # ------------------------------------------------------------------ #
+    def _build_ownership_graph(self) -> OwnershipGraph:
+        """Build the ownership-contagion graph from real LEI data when possible.
+
+        Live mode (``external_apis_enabled``): fetch each customer's current GLEIF
+        ownership chain (ultimate-parent + direct-child LEIs) and build a real
+        graph via :func:`build_graph_from_snapshots`. Offline/mock mode, or any
+        case where GLEIF resolves no ownership links (e.g. unmatched synthetic
+        names, a rate-limited API, or a transport error), degrades to the
+        synthetic :func:`build_demo_graph` so the contagion demo always has a
+        topology to propagate over.
+        """
+        drift_ids = [c.drift_id for c in self._book]
+        if not settings.external_apis_enabled:
+            return build_demo_graph(drift_ids)
+
+        self._gleif_snapshots = self._fetch_gleif_snapshots(
+            [(c.drift_id, c.name) for c in self._book]
+        )
+        graph = build_graph_from_snapshots(self._gleif_snapshots)
+        if graph is None:
+            logger.info(
+                "ownership_graph_fallback_demo",
+                reason="gleif_returned_no_ownership_links",
+            )
+            return build_demo_graph(drift_ids)
+        logger.info(
+            "ownership_graph_from_gleif", customers=len(self._gleif_snapshots)
+        )
+        return graph
+
+    @staticmethod
+    def _fetch_gleif_snapshots(
+        entities: list[tuple[str, str]],
+    ) -> dict[str, EntitySnapshot]:
+        """Synchronous bridge to the async GLEIF ownership fetch.
+
+        Mirrors the public-intel sync bridge: runs the async fetch in a dedicated
+        thread with its own event loop, so it is safe to call from the synchronous
+        engine constructor even under a running FastAPI loop. Any failure (timeout
+        included) degrades to an empty mapping; the caller then falls back to the
+        demo graph. ``shutdown(wait=False)`` so a hung worker never re-blocks us.
+        """
+        pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        future = pool.submit(asyncio.run, gather_ownership_snapshots(entities))
+        try:
+            return future.result(timeout=_GLEIF_FETCH_TIMEOUT_S)
+        except Exception:  # noqa: BLE001 — honour the graceful-degradation contract
+            logger.warning("gleif_ownership_fetch_failed", exc_info=True)
+            return {}
+        finally:
+            pool.shutdown(wait=False)
+
+    def _gleif_ownership_signals(self, cust: SyntheticCustomer) -> list[PublicSignal]:
+        """Emit ``ownership_change`` signals from the GLEIF ownership-chain diff.
+
+        Diffs the customer's current GLEIF snapshot against its persisted GLEIF
+        KYC baseline (same source) via :func:`ownership_change_signals`. Returns
+        ``[]`` when either side is absent — offline mode, an unmatched customer,
+        or before a GLEIF onboarding baseline has been persisted (the demo seed
+        currently writes ``internal``-source baselines, which the same-source
+        contract correctly excludes from this diff).
+        """
+        baseline = self._gleif_baselines.get(cust.drift_id)
+        current = self._gleif_snapshots.get(cust.drift_id)
+        if baseline is None or current is None:
+            return []
+        return ownership_change_signals(baseline, current)
+
+    # ------------------------------------------------------------------ #
     # Public-intelligence acquisition (live vs offline)
     # ------------------------------------------------------------------ #
     def _public_signals(self, cust: SyntheticCustomer) -> list[PublicSignal]:
@@ -286,7 +372,12 @@ class DriftEngine:
         always yields the same signals across requests.
         """
         if settings.external_apis_enabled:
-            return gather_public_signals_sync(cust.drift_id, cust.name)
+            signals = gather_public_signals_sync(cust.drift_id, cust.name)
+            # The aggregator cannot carry per-source KYC baselines, so the GLEIF
+            # ownership-chain diff (use case 3) is layered in here alongside the
+            # other adapters' signals, then re-sorted by month.
+            signals.extend(self._gleif_ownership_signals(cust))
+            return sorted(signals, key=lambda s: s.month)
         return generate_signals_for_customer(
             cust.drift_id,
             cust.name,

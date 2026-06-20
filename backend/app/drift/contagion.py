@@ -23,6 +23,8 @@ from dataclasses import dataclass, field
 
 import networkx as nx
 
+from app.sources.base import EntitySnapshot
+
 
 @dataclass
 class OwnershipEdge:
@@ -106,7 +108,7 @@ class OwnershipGraph:
             return ContagionResult(propagated_risk={}, ranked_customers=[], seeds=[])
 
         # Personalization vector concentrated on seeds
-        personalization = {n: 0.0 for n in self.g.nodes}
+        personalization = dict.fromkeys(self.g.nodes, 0.0)
         for s in seeds:
             personalization[s] = 1.0 / len(seeds)
 
@@ -225,4 +227,80 @@ def build_demo_graph(drift_ids: list[str]) -> OwnershipGraph:
     # A clean holding owning a stable customer (control)
     g.add_ownership("CleanHolding", "drift-005", 0.5) if "drift-005" in drift_ids else None
 
+    return g
+
+
+# GLEIF's relationship endpoints expose the existence of a parent/child link but
+# not the numeric ownership fraction. We default both edge stakes to a neutral
+# mid weight so PageRank contagion still flows along real links; refine once a
+# source carrying actual stake percentages (e.g. OpenCorporates) is wired in.
+_GLEIF_PARENT_STAKE = 0.5
+_GLEIF_CHILD_STAKE = 0.5
+
+
+def build_graph_from_snapshots(
+    snapshots: dict[str, EntitySnapshot],
+) -> OwnershipGraph | None:
+    """
+    Build an ownership graph from real GLEIF ``EntitySnapshot``s (Use case 3).
+
+    Each snapshot is one bank customer keyed by ``drift_id``. The GLEIF adapter
+    stores the ultimate-parent LEI in ``beneficial_owners`` (entity-level UBO
+    proxy) and the direct-child LEIs in ``officers`` (subsidiary nodes), with the
+    customer's own LEI in ``raw_data["lei"]``. We add each customer as a graph
+    node and link it to its parent/child LEI nodes via ownership edges. When a
+    parent/child LEI matches another customer's own LEI, the edge connects the
+    two customers directly so risk contagion can flow across the book.
+
+    Returns ``None`` when no snapshot carries any ownership link — the caller
+    then falls back to :func:`build_demo_graph`. This is the real-LEI replacement
+    for the synthetic contagion graph.
+    """
+    if not snapshots:
+        return None
+
+    # Map every customer's own LEI to its drift_id so a parent/child LEI that
+    # belongs to another customer in the book resolves to that customer's node
+    # (a shared node) rather than a duplicate external one.
+    lei_to_drift_id: dict[str, str] = {}
+    for drift_id, snap in snapshots.items():
+        lei = snap.raw_data.get("lei")
+        if lei:
+            lei_to_drift_id[lei] = drift_id
+
+    g = OwnershipGraph()
+    for drift_id, snap in snapshots.items():
+        g.add_entity(
+            drift_id,
+            name=snap.name or drift_id,
+            is_customer=True,
+            entity_type="company",
+        )
+
+    def _resolve(lei: str) -> str:
+        """Map a LEI to a book customer's node, or add it as an external node."""
+        node = lei_to_drift_id.get(lei, lei)
+        if node not in g.g:
+            g.add_entity(node, name=lei, is_customer=False, entity_type="company")
+        return node
+
+    edge_count = 0
+    for drift_id, snap in snapshots.items():
+        # Ultimate parent owns the customer (parent -> customer).
+        for parent_lei in snap.beneficial_owners:
+            parent = _resolve(parent_lei)
+            if parent == drift_id:
+                continue  # ignore a self-referential parent
+            g.add_ownership(parent, drift_id, _GLEIF_PARENT_STAKE)
+            edge_count += 1
+        # Customer owns each direct child (customer -> child).
+        for child_lei in snap.officers:
+            child = _resolve(child_lei)
+            if child == drift_id:
+                continue
+            g.add_ownership(drift_id, child, _GLEIF_CHILD_STAKE)
+            edge_count += 1
+
+    if edge_count == 0:
+        return None
     return g

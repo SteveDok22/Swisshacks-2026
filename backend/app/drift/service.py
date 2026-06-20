@@ -9,21 +9,32 @@ For the hackathon MVP, the customer book is the synthetic suite from
 simulator.py (deterministic, ground-truth-labeled). In production this would
 read from the bank's transaction store and registry feeds.
 
-The engine is stateless across calls but caches the generated book so the
-same customer IDs are stable within a process lifetime.
+The engine retains the generated customer book so IDs and injected scenarios
+remain stable within one process. This mutable demo state is process-local.
 """
 
 from __future__ import annotations
 
 import json
+import time
 from typing import Any
 
 import numpy as np
 
+from app.core.config import (
+    DRIFT_CONFIRMATION_LIFT_RANGE,
+    DRIFT_CONFIRMATION_MAX_AMPLIFICATION,
+    DRIFT_INTERNAL_ACCUMULATED_WEIGHT,
+    DRIFT_INTERNAL_CONTAGION_WEIGHT,
+    DRIFT_INTERNAL_VELOCITY_WEIGHT,
+    DRIFT_PUBLIC_RISK_WEIGHT,
+)
+from app.core.logging import get_logger
 from app.drift.bocpd import BOCPD, standardize
 from app.drift.cascade import CascadeRouter, CustomerSignal, Tier
 from app.drift.causal import causal_assessment
-from app.drift.contagion import build_demo_graph, OwnershipGraph
+from app.drift.contagion import OwnershipGraph, build_demo_graph
+from app.drift.dormancy import assess_dormancy
 from app.drift.public_intel import (
     assess_public_risk,
     confirmation_lift,
@@ -31,27 +42,27 @@ from app.drift.public_intel import (
 )
 from app.drift.simulator import SyntheticCustomer, generate_book, generate_customer
 from app.drift.stability import assess_stability, cohort_volatility
-from app.drift.dormancy import assess_dormancy
 from app.drift.timetravel import replay_trajectory
 from app.drift.velocity import compute_drift_series, velocity_band
 from app.ml.base import score_to_level
 from app.schemas.drift import (
+    AsOfPointOut,
     CascadeCostReport,
     CausalVerdictOut,
     ContagionGraph,
     DormancyOut,
-    DriftCustomerDetail,
-    DriftCustomerSummary,
+    DriftSubjectDetail,
+    DriftSubjectSummary,
     DriftTimelinePoint,
     LayerContribution,
     PublicSignalOut,
-    StabilityOut,
-    AsOfPointOut,
     ReplayResult,
+    StabilityOut,
 )
 from app.schemas.enums import DecisionAction
 from app.services.anthropic_client import get_anthropic_client
 
+logger = get_logger(__name__)
 
 T2_LLM_SYSTEM_MESSAGE = (
     "You are a careful AML/KYC compliance analyst. Return valid JSON only. "
@@ -91,20 +102,38 @@ def recommend_drift_action(
     return DecisionAction.ALLOW
 
 
+def confirmation_amplification(lift: float) -> float:
+    """Map a confirmation lift (>= 1) to a multiplicative score amplification.
+
+    The lift's excess over 1 is mapped, over a window of
+    ``DRIFT_CONFIRMATION_LIFT_RANGE``, into up to
+    ``DRIFT_CONFIRMATION_MAX_AMPLIFICATION`` of additional weight, e.g. a lift of
+    ``1 + DRIFT_CONFIRMATION_LIFT_RANGE`` (or higher) saturates at the maximum.
+    """
+    return 1.0 + min(
+        (lift - 1.0) / DRIFT_CONFIRMATION_LIFT_RANGE,
+        1.0,
+    ) * DRIFT_CONFIRMATION_MAX_AMPLIFICATION
+
+
 class DriftEngine:
     """Orchestrates drift detection over the customer book."""
+
+    _LIST_CACHE_TTL: float = 30.0  # seconds — controls list_subjects() hot-path cache
 
     def __init__(self) -> None:
         self._book: list[SyntheticCustomer] = generate_book()
         self._router = CascadeRouter()
         self._graph: OwnershipGraph = build_demo_graph(
-            [c.customer_id for c in self._book]
+            [c.drift_id for c in self._book]
         )
         # Contagion is computed once (sanctions already hit in demo state)
         self._contagion = self._graph.propagate(seeds=[SANCTIONED_SEED])
         # Cohort volatility reference for Suspicious Stability (computed once
         # over the whole book — the norm against which smoothness is judged).
         self._cohort_cv = cohort_volatility([c.monthly_volume for c in self._book])
+        self._list_cache: list[DriftSubjectSummary] | None = None
+        self._list_cache_at: float = 0.0
 
     # ------------------------------------------------------------------ #
     # Core per-customer analysis
@@ -142,18 +171,23 @@ class DriftEngine:
         else:
             internal_peak_month = None
 
-        prop_risk = self._contagion.propagated_risk.get(cust.customer_id, 0.0)
+        prop_risk = self._contagion.propagated_risk.get(cust.drift_id, 0.0)
 
         # Internal risk 0..1: velocity (leading) + accumulated drift + contagion
         vel_norm = min(max_velocity / 3.0, 1.0)
         drift_norm = min(final_drift / 20.0, 1.0)
-        internal_risk = min(0.6 * vel_norm + 0.25 * drift_norm + 0.4 * prop_risk, 1.0)
+        internal_risk = min(
+            DRIFT_INTERNAL_VELOCITY_WEIGHT * vel_norm
+            + DRIFT_INTERNAL_ACCUMULATED_WEIGHT * drift_norm
+            + DRIFT_INTERNAL_CONTAGION_WEIGHT * prop_risk,
+            1.0,
+        )
 
         # --- PUBLIC: external signals ---
         signals = generate_signals_for_customer(
-            cust.customer_id, cust.name, cust.scenario, months=cust.months,
+            cust.drift_id, cust.name, cust.scenario, months=cust.months,
             drift_start_month=cust.drift_start_month,
-            seed=hash(cust.customer_id) % 9999,
+            seed=hash(cust.drift_id) % 9999,
         )
         pi = assess_public_risk(signals, months=cust.months)
 
@@ -165,9 +199,9 @@ class DriftEngine:
 
         # --- Fused score 0..100 ---
         # Base from the stronger of the two layers, then amplified by lift.
-        base = max(internal_risk, pi.public_risk * 0.85)
+        base = max(internal_risk, pi.public_risk * DRIFT_PUBLIC_RISK_WEIGHT)
         # Lift in [1, ~4]; map its excess over 1 into up to +35% amplification
-        amplification = 1.0 + min((lift - 1.0) / 3.0, 1.0) * 0.35
+        amplification = confirmation_amplification(lift)
         score = min(base * amplification * 100.0, 100.0)
 
         # --- CAUSAL: is this drift risk-shaped or life-shaped? ---
@@ -276,7 +310,7 @@ class DriftEngine:
                 status="deviation" if prop > 0.1 else "ok",
                 detail=(
                     f"Propagated risk {prop:.2f} from sanctioned entity "
-                    f"({self._contagion.hops_from_seed.get(cust.customer_id, '-')} hops)"
+                    f"({self._contagion.hops_from_seed.get(cust.drift_id, '-')} hops)"
                     if prop > 0.01 else "No ownership path to flagged entities"
                 ),
             ),
@@ -310,7 +344,7 @@ class DriftEngine:
         signature = causal.signature
         context: dict[str, Any] = {
             "customer": {
-                "id": cust.customer_id,
+                "id": cust.drift_id,
                 "name": cust.name,
                 "scenario": cust.scenario,
             },
@@ -438,8 +472,8 @@ class DriftEngine:
         )
 
         return {
-            "customer_id": cust.customer_id,
-            "customer_name": cust.name,
+            "drift_id": cust.drift_id,
+            "drift_name": cust.name,
             "llm_mode": llm_mode,
             "was_cached": was_cached,
             "response": self._parse_llm_json(text),
@@ -448,19 +482,23 @@ class DriftEngine:
     # ------------------------------------------------------------------ #
     # Public API methods
     # ------------------------------------------------------------------ #
-    def list_customers(self) -> list[DriftCustomerSummary]:
-        out: list[DriftCustomerSummary] = []
+    def list_subjects(self) -> list[DriftSubjectSummary]:
+        now = time.monotonic()
+        if self._list_cache is not None and now - self._list_cache_at < self._LIST_CACHE_TTL:
+            return list(self._list_cache)
+
+        out: list[DriftSubjectSummary] = []
         for cust in self._book:
             a = self._analyze_customer(cust)
             signal = CustomerSignal(
-                customer_id=cust.customer_id,
+                drift_id=cust.drift_id,
                 drift_score=a["drift_score"],
                 propagated_risk=a["propagated_risk"],
             )
             decision = self._router.route_one(signal)
             out.append(
-                DriftCustomerSummary(
-                    customer_id=cust.customer_id,
+                DriftSubjectSummary(
+                    drift_id=cust.drift_id,
                     name=cust.name,
                     drift_score=round(a["drift_score"], 1),
                     drift_velocity=round(a["max_velocity"], 3),
@@ -480,17 +518,19 @@ class DriftEngine:
                 )
             )
         out.sort(key=lambda c: c.drift_score, reverse=True)
-        return out
+        self._list_cache = out
+        self._list_cache_at = time.monotonic()
+        return list(out)
 
-    def get_customer(self, customer_id: str) -> DriftCustomerDetail | None:
-        cust = next((c for c in self._book if c.customer_id == customer_id), None)
+    def get_subject(self, drift_id: str) -> DriftSubjectDetail | None:
+        cust = next((c for c in self._book if c.drift_id == drift_id), None)
         if cust is None:
             return None
         a = self._analyze_customer(cust)
         ds = a["drift_series"]
 
         signal = CustomerSignal(
-            customer_id=cust.customer_id,
+            drift_id=cust.drift_id,
             drift_score=a["drift_score"],
             propagated_risk=a["propagated_risk"],
         )
@@ -518,8 +558,8 @@ class DriftEngine:
             for i in range(len(ds.windows))
         ]
 
-        return DriftCustomerDetail(
-            customer_id=cust.customer_id,
+        return DriftSubjectDetail(
+            drift_id=cust.drift_id,
             name=cust.name,
             drift_score=round(a["drift_score"], 1),
             drift_velocity=round(a["max_velocity"], 3),
@@ -576,10 +616,10 @@ class DriftEngine:
         analyses: dict[str, tuple[SyntheticCustomer, dict]] = {}
         for cust in self._book:
             a = self._analyze_customer(cust)
-            analyses[cust.customer_id] = (cust, a)
+            analyses[cust.drift_id] = (cust, a)
             signals.append(
                 CustomerSignal(
-                    customer_id=cust.customer_id,
+                    drift_id=cust.drift_id,
                     drift_score=a["drift_score"],
                     propagated_risk=a["propagated_risk"],
                 )
@@ -589,7 +629,7 @@ class DriftEngine:
         for decision in report.decisions:
             if decision.reached_tier != Tier.T2_LLM:
                 continue
-            cust, analysis = analyses[decision.customer_id]
+            cust, analysis = analyses[decision.drift_id]
             llm_adjudications.append(
                 self._run_t2_llm_adjudication(cust, analysis)
             )
@@ -630,13 +670,13 @@ class DriftEngine:
             seeds=self._contagion.seeds,
         )
 
-    def replay(self, customer_id: str) -> ReplayResult | None:
+    def replay(self, drift_id: str) -> ReplayResult | None:
         """Time-Travel Audit: as-of replay proving no look-ahead bias."""
-        cust = next((c for c in self._book if c.customer_id == customer_id), None)
+        cust = next((c for c in self._book if c.drift_id == drift_id), None)
         if cust is None:
             return None
 
-        prop = self._contagion.propagated_risk.get(customer_id, 0.0)
+        prop = self._contagion.propagated_risk.get(drift_id, 0.0)
         # The seed entity is sanctioned at the customer's sanctions_month;
         # before that, contagion risk does not exist (no look-ahead).
         listing_month = cust.sanctions_month
@@ -648,7 +688,7 @@ class DriftEngine:
         )
 
         return ReplayResult(
-            customer_id=cust.customer_id,
+            drift_id=cust.drift_id,
             name=cust.name,
             points=[
                 AsOfPointOut(
@@ -667,25 +707,34 @@ class DriftEngine:
             alert_threshold=traj["alert_threshold"],
         )
 
-    def inject_scenario(self, scenario: str, name: str) -> DriftCustomerDetail:
+    def inject_scenario(self, scenario: str, name: str) -> DriftSubjectDetail:
         """Red-team: add a synthetic customer with a chosen drift scenario."""
         new_id = f"injected-{len(self._book) + 1:03d}"
         cust = generate_customer(
-            customer_id=new_id, name=name, scenario=scenario,
+            drift_id=new_id, name=name, scenario=scenario,
             seed=hash(new_id) % 10000,
         )
         self._book.append(cust)
-        detail = self.get_customer(new_id)
+        detail = self.get_subject(new_id)
         assert detail is not None
         return detail
 
 
-# Process-level singleton (book is stable within a run)
+# Process-local singleton: mutable demo state (injected scenarios) is not shared
+# across worker processes. Deploy this MVP with exactly one API worker; replace
+# the in-memory state with a shared store before scaling out.
 _engine: DriftEngine | None = None
 
 
 def get_drift_engine() -> DriftEngine:
     global _engine
     if _engine is None:
+        logger.warning(
+            "drift_engine_single_worker_required",
+            reason=(
+                "DriftEngine uses process-local mutable state; configure exactly "
+                "one API worker until state is moved to a shared store."
+            ),
+        )
         _engine = DriftEngine()
     return _engine

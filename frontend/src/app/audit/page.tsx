@@ -34,7 +34,7 @@ const EVENT_META: Record<
   counterfactuals_generated:  { label: "Counterfactuals",          category: "case" },
   jurisdiction_compared:      { label: "Jurisdiction Compared",    category: "case" },
   data_exported:              { label: "Data Exported",            category: "export" },
-  drift_customer_analyzed:    { label: "Drift Analyzed",           category: "drift" },
+  drift_subject_analyzed:     { label: "Drift Analyzed",           category: "drift" },
   drift_scan_completed:       { label: "Drift Scan",               category: "drift" },
   drift_replay_executed:      { label: "Replay Executed",          category: "drift" },
   drift_scenario_injected:    { label: "Scenario Injected",        category: "drift" },
@@ -119,8 +119,8 @@ function PayloadRow({ entry }: { entry: AuditEntry }) {
           )}
         </td>
         <td className="px-3 py-2.5 font-mono text-2xs text-ink-muted">
-          {entry.customer_id ? (
-            <span title={entry.customer_id}>{entry.customer_id}</span>
+          {entry.drift_id ? (
+            <span title={entry.drift_id}>{entry.drift_id}</span>
           ) : (
             <span className="text-ink-faint">—</span>
           )}
@@ -162,7 +162,7 @@ const EVENT_TYPE_OPTIONS = [
   { value: "counterfactuals_generated", label: "Counterfactuals" },
   { value: "jurisdiction_compared", label: "Jurisdiction Compared" },
   { value: "data_exported", label: "Data Exported" },
-  { value: "drift_customer_analyzed", label: "Drift Analyzed" },
+  { value: "drift_subject_analyzed", label: "Drift Analyzed" },
   { value: "drift_scan_completed", label: "Drift Scan" },
   { value: "drift_replay_executed", label: "Replay Executed" },
   { value: "drift_scenario_injected", label: "Scenario Injected" },
@@ -181,7 +181,7 @@ interface Filters {
   event_type: string;
   risk_level: string;
   actor_id: string;
-  customer_id: string;
+  drift_id: string;
   from_date: string;
   to_date: string;
 }
@@ -190,7 +190,7 @@ const DEFAULT_FILTERS: Filters = {
   event_type: "",
   risk_level: "",
   actor_id: "",
-  customer_id: "",
+  drift_id: "",
   from_date: "",
   to_date: "",
 };
@@ -214,7 +214,7 @@ export default function AuditLogPage() {
         event_type: appliedFilters.event_type || undefined,
         risk_level: appliedFilters.risk_level || undefined,
         actor_id: appliedFilters.actor_id || undefined,
-        customer_id: appliedFilters.customer_id || undefined,
+        drift_id: appliedFilters.drift_id || undefined,
         from_date: appliedFilters.from_date || undefined,
         to_date: appliedFilters.to_date || undefined,
         page,
@@ -347,9 +347,9 @@ export default function AuditLogPage() {
               <input
                 type="text"
                 placeholder="e.g. drift-002"
-                value={filters.customer_id}
+                value={filters.drift_id}
                 onChange={(e) =>
-                  setFilters((f) => ({ ...f, customer_id: e.target.value }))
+                  setFilters((f) => ({ ...f, drift_id: e.target.value }))
                 }
                 className="h-8 rounded border border-paper-line bg-paper text-xs text-ink px-2 min-w-[130px] placeholder:text-ink-faint focus:outline-none focus:ring-1 focus:ring-accent/30"
               />
@@ -411,8 +411,8 @@ export default function AuditLogPage() {
               {appliedFilters.actor_id && (
                 <Chip label={`actor: ${appliedFilters.actor_id}`} />
               )}
-              {appliedFilters.customer_id && (
-                <Chip label={`customer: ${appliedFilters.customer_id}`} />
+              {appliedFilters.drift_id && (
+                <Chip label={`subject: ${appliedFilters.drift_id}`} />
               )}
               {appliedFilters.from_date && (
                 <Chip label={`from: ${appliedFilters.from_date}`} />

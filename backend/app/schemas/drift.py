@@ -51,7 +51,7 @@ class StabilityOut(BaseModel):
     suspicion: float = Field(description="0-1 product of the two factors")
     stability_anomaly: float = Field(description="0-1 how unnaturally smooth")
     environmental_movement: float = Field(description="0-1 how much surroundings move")
-    own_volatility: float = Field(description="customer coefficient of variation")
+    own_volatility: float = Field(description="subject coefficient of variation")
     cohort_volatility: float = Field(description="cohort median CV (reference)")
     is_suspicious: bool
     detail: str
@@ -84,7 +84,7 @@ class AsOfPointOut(BaseModel):
 class ReplayResult(BaseModel):
     """Time-Travel Audit: full as-of replay proving no look-ahead bias."""
 
-    customer_id: str
+    drift_id: str
     name: str
     points: list[AsOfPointOut]
     alert_month: int | None
@@ -93,10 +93,10 @@ class ReplayResult(BaseModel):
     alert_threshold: float
 
 
-class DriftCustomerSummary(BaseModel):
-    """Book-overview row: one customer's drift snapshot."""
+class DriftSubjectSummary(BaseModel):
+    """Book-overview row: one drift subject's snapshot."""
 
-    customer_id: str
+    drift_id: str
     name: str
     drift_score: float = Field(description="0-100 fused drift score")
     drift_velocity: float = Field(description="bits/month, latest")
@@ -116,7 +116,7 @@ class DriftCustomerSummary(BaseModel):
 
 
 class DriftTimelinePoint(BaseModel):
-    """One month in a customer's drift timeline (the scrubber data)."""
+    """One month in a drift subject's timeline (the scrubber data)."""
 
     month: int
     drift_bits: float
@@ -125,10 +125,10 @@ class DriftTimelinePoint(BaseModel):
     bocpd_changepoint: bool = False
 
 
-class DriftCustomerDetail(BaseModel):
-    """Full drift analysis for one customer."""
+class DriftSubjectDetail(BaseModel):
+    """Full drift analysis for one drift subject."""
 
-    customer_id: str
+    drift_id: str
     name: str
     drift_score: float
     drift_velocity: float
@@ -164,8 +164,8 @@ class DriftCustomerDetail(BaseModel):
 class LLMAdjudicationOut(BaseModel):
     """One T2 LLM adjudication executed during a drift scan."""
 
-    customer_id: str
-    customer_name: str
+    drift_id: str
+    drift_name: str
     llm_mode: str = Field(description="real | mock")
     was_cached: bool = False
     response: dict[str, Any] = Field(default_factory=dict)
@@ -228,7 +228,7 @@ class InjectScenarioRequest(BaseModel):
 class RFIResponse(BaseModel):
     """Value-of-Information ranked request-for-information (Layer 7)."""
 
-    customer_id: str
+    drift_id: str
     questions: list[str]
     rationale: str
     estimated_info_gain_bits: float

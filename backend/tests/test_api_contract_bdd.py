@@ -38,12 +38,12 @@ def assert_response_status(status: int, context: dict) -> None:
     )
 
 
-@then("customers are sorted by drift_score descending")
-def assert_customers_sorted(context: dict) -> None:
-    customers = context["response"].json()
-    scores = [c["drift_score"] for c in customers]
+@then("subjects are sorted by drift_score descending")
+def assert_subjects_sorted(context: dict) -> None:
+    subjects = context["response"].json()
+    scores = [s["drift_score"] for s in subjects]
     assert scores == sorted(scores, reverse=True), (
-        f"Customers are not sorted by drift_score descending: {scores}"
+        f"Subjects are not sorted by drift_score descending: {scores}"
     )
 
 

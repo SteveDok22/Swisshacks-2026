@@ -49,10 +49,9 @@ flowchart TB
     UI --> DriftWS & CaseWS
     DriftWS & CaseWS --> APIClient
     APIClient -->|HTTP + SSE| Router
-    Router --> Svcs & DE
+    Router --> Svcs & DE & ML
     DE --> BOCPD & Vel & Con & PI & Caus & Stab & Dorm
     BOCPD & Vel & Con & PI & Caus & Stab & Dorm --> Casc
-    Casc --> ML
     Casc -->|High-stakes| AnonSvc
     AnonSvc -->|Pseudonymized| Claude
     Svcs & ML --> DB
@@ -91,7 +90,7 @@ flowchart TD
     end
 
     subgraph API["api/v1/"]
-        R1["drift.py\n8 endpoints"]
+        R1["drift.py\n7 endpoints"]
         R2[cases.py]
         R3[scoring.py]
         R4["explanations.py\nSSE"]

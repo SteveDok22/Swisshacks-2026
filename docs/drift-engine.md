@@ -68,7 +68,7 @@ with a Normal-Inverse-Gamma conjugate model giving a Student-t posterior predict
 
 **Detection.** In practice a changepoint manifests as a sharp **drop in the MAP run length** (posterior mass jumping to short runs), not as P(r=0) crossing a threshold — the mass spreads over r = 0..k. This distinction matters: it is why the detector catches gradual drift that threshold rules structurally miss. A customer who raised average volume from 5K to 9K over six months never crosses a 10K threshold, but the distribution shift is plainly visible to the run-length posterior.
 
-**Surfacing.** BOCPD runs over the concatenated *daily* volume series, so its detected changepoint is a **day index** (`bocpd_changepoint_day`). The Drift Timeline is indexed by **month**, so `DriftEngine.get_customer` maps the day to its month window (`SyntheticCustomer.day_to_month`, i.e. `day // days_per_month`) and flags that month's timeline point with `bocpd_changepoint=True`. The UI renders it as a violet dashed **"Regime change"** marker, distinct from the (solid) alert and sanctions markers. A changepoint landing inside the baseline window — before the first timeline point — is intentionally not drawn.
+**Surfacing.** BOCPD runs over the concatenated *daily* volume series, so its detected changepoint is a **day index** (`bocpd_changepoint_day`). The Drift Timeline is indexed by **month**, so `DriftEngine.get_subject` maps the day to its month window (`SyntheticCustomer.day_to_month`, i.e. `day // days_per_month`) and flags that month's timeline point with `bocpd_changepoint=True`. The UI renders it as a violet dashed **"Regime change"** marker, distinct from the (solid) alert and sanctions markers. A changepoint landing inside the baseline window — before the first timeline point — is intentionally not drawn.
 
 ---
 
@@ -103,6 +103,8 @@ computed over an undirected, stake-weighted view so risk flows both ways (an own
 
 Five public-signal categories (news, sanctions, adverse media, ownership changes, funding events) are classified by severity and aggregated into a public-risk score, severity- and recency-weighted.
 
+Each public signal carries a `source` and optional `source_url`. In the MVP these URLs are deterministic demo references generated with the synthetic signal; real feed adapters can replace them with article, registry, or sanctions-record citations without changing the API.
+
 **Confirmation Lift** is the differentiator. Two weak, independent signals that co-occur in time provide more evidence together than the product of their parts:
 
 ```
@@ -110,6 +112,18 @@ Lift = P(risk | public AND internal) / [ P(risk | public) · P(risk | internal) 
 ```
 
 A temporal-coincidence factor amplifies the joint when the peak public signal and peak internal drift fall within a few months — because the external story and the internal behavior are plausibly the same event seen from two sides. The lift is gated: it is only meaningful when **both** signals clear a floor; two near-zero risks coinciding is the absence of evidence, not its presence.
+
+The current hand-tuned fusion parameters are centralized in
+`app/core/config.py`:
+
+| Constant | Value | Role |
+|---|---:|---|
+| `DRIFT_INTERNAL_VELOCITY_WEIGHT` | 0.60 | Leading drift contribution |
+| `DRIFT_INTERNAL_ACCUMULATED_WEIGHT` | 0.25 | Accumulated divergence contribution |
+| `DRIFT_INTERNAL_CONTAGION_WEIGHT` | 0.40 | Ownership-propagated risk contribution |
+| `DRIFT_PUBLIC_RISK_WEIGHT` | 0.85 | Public-risk scaling before fusion |
+| `DRIFT_CONFIRMATION_LIFT_RANGE` | 3.0 | Lift excess mapped to the amplification range |
+| `DRIFT_CONFIRMATION_MAX_AMPLIFICATION` | 0.35 | Maximum confirmation-lift score increase |
 
 ---
 
@@ -170,7 +184,7 @@ flowchart TD
     Start([Customer])
 
     T0{"Tier 0\nRule Engine\nFree — ~95% of customers"}
-    T1{"Tier 1\nML · XGBoost + SHAP\n~$0.0002 per customer"}
+    T1{"Tier 1\nStatistical · LLR layer scoring\n~$0.0002 per customer"}
     T2{"Tier 2\nLLM · Claude adjudication\n~$0.05 per customer"}
 
     Clear["Clear\nLow-risk — no action"]
@@ -216,7 +230,7 @@ flowchart LR
         AML[AML flag history]
     end
 
-    CL["Confirmation Lift\nMultiplied when signals\nco-occur within ±30 days"]
+    CL["Confirmation Lift\nMultiplied when signals\nco-occur within 3 months"]
 
     FusedScore["Fused Drift Score\nWeighted combination\nof all 7 layers"]
 
@@ -236,21 +250,34 @@ sequenceDiagram
     participant O as Officer
     participant TT as timetravel.py
     participant DE as Drift Engine
-    participant DB as Database
 
-    O->>TT: replay(customer_id, as_of_date)
-    TT->>DB: Fetch data WHERE timestamp ≤ as_of_date
-    TT->>DB: Fetch public signals WHERE date ≤ as_of_date
-    TT->>DB: Fetch contagion edges WHERE listed_at ≤ as_of_date
+    O->>DE: replay(drift_id)
+    DE->>TT: replay_trajectory(subject snapshot)
+    TT->>TT: Truncate metrics and public signals at month T
+    TT->>TT: Activate contagion only after sanctions listing
 
     note over TT: Strictly truncates future data —<br/>no look-ahead bias
 
-    TT->>DE: run_full_analysis(truncated_snapshot)
-    DE-->>TT: Historical drift score + evidence
-    TT-->>O: ReplayResult<br/>(score, lead_time, what_was_known)
+    TT->>TT: Apply shared internal/public weights<br/>and replay-specific causal factor
+    note over TT: Replay does not apply confirmation lift<br/>or stability/dormancy anomaly floors
+    TT-->>DE: Historical score points + lead time
+    DE-->>O: ReplayResult<br/>(score, lead_time, what_was_known)
 
     note over O: Proves the system would<br/>have flagged this customer<br/>without hindsight
 ```
+
+---
+
+## Runtime State and Worker Model
+
+The MVP keeps its synthetic customer book and injected scenarios in the
+process-local `DriftEngine` singleton. Run the API with exactly one worker so
+all requests see the same demo state. The current Docker and Compose commands
+already use one Uvicorn worker.
+
+Before scaling to multiple workers, move mutable engine state to a shared
+database or cache. `get_drift_engine()` emits a warning when it creates the
+singleton to make this deployment constraint visible in application logs.
 
 ---
 

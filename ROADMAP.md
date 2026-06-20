@@ -10,8 +10,8 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 |---|---|---|
 | **AI Intelligence Quality** | 25% | ✅ Strong — 7 real algorithms, causal separation, suspicious stability |
 | **Cost Efficiency** | 20% | ⚠️ Partial — T2 LLM works; no per-workflow token count yet |
-| **UX & Explainability** | 20% | ⚠️ Gap — 7 visualisations solid; SHAP disconnected from drift; source citations missing |
-| **Compliance & Safety** | 20% | ✅ Good — audit log wired; DecisionBar on drift; source citations still missing |
+| **UX & Explainability** | 20% | ✅ Good — 7 visualisations solid; drift uses per-layer LLR contribution breakdown; signal cards include source citations |
+| **Compliance & Safety** | 20% | ✅ Good — audit log wired; DecisionBar on drift; source citations surfaced |
 | **Engineering & Architecture** | 15% | ✅ Good — modular engine, clean API, async, unit + BDD tests; no CI/CD |
 
 ---
@@ -37,8 +37,8 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 ### P0 — Already done ✅
 
-- [x] Wire audit log into drift pipeline — `drift_customer_analyzed`, `drift_scan_completed`, `drift_replay_executed`, etc.
-- [x] DecisionBar on drift page — `POST /decisions` accepts `customer_id`; drift recommendations derived server-side
+- [x] Wire audit log into drift pipeline — `drift_subject_analyzed`, `drift_scan_completed`, `drift_replay_executed`, etc.
+- [x] DecisionBar on drift page — `POST /decisions` accepts `drift_id`; drift recommendations derived server-side
 - [x] T2 LLM adjudication — `AnthropicClient` called for T2 customers in `drift/service.py:scan()`
 - [x] Audit log frontend page — `GET /api/v1/audit` + `/audit` route in Next.js
 - [x] Backend Docker — multi-stage, non-root, healthcheck
@@ -53,7 +53,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 
 **1. Engine (no external deps)**
 - [x] **Case 7: Dormancy-break detector** — `drift/dormancy.py` detects near-zero baseline → volume jump (`dormancy_break = dormancy_depth × activation_strength`); wired into `drift/service.py` (score floor) and surfaced via `DormancyOut` on summary/detail + T2 evidence; `dormancy_break` scenario + "Dormant Holdings AG" seeded in the book; unit + end-to-end tests. **Case 7 PARTIAL → WORKS.** (PR #10)
-- [x] **Fix BOCPD changepoint visual marker** — `bocpd_changepoint` is now derived in `DriftEngine.get_customer` by mapping `bocpd_changepoint_day` to its month window (via `SyntheticCustomer.day_to_month`); `DriftTimeline.tsx` renders a violet dashed "Regime change" marker at that month. Unit tests in `test_drift_changepoint_marker.py`. **DONE.** (PR #11)
+- [x] **Fix BOCPD changepoint visual marker** — `bocpd_changepoint` is now derived in `DriftEngine.get_subject` by mapping `bocpd_changepoint_day` to its month window (via `SyntheticCustomer.day_to_month`); `DriftTimeline.tsx` renders a violet dashed "Regime change" marker at that month. Unit tests in `test_drift_changepoint_marker.py`. **DONE.** (PR #11)
 
 **2. Prerequisites (build these before adapters)**
 - [x] **`db/kyc_baseline.py`** — `EntitySnapshotDB` SQLModel table + `store_snapshot`, `load_latest_snapshot`, `load_onboarding_snapshot`, `load_snapshot_history`, `load_all_baselines` CRUD helpers; registered in `session.py` so the table is auto-created on startup; 24 unit tests covering all helpers and seeding behaviour (PR #12)
@@ -87,8 +87,9 @@ See [`docs/sources.md`](docs/sources.md). Carcass classes exist for all of them.
 - [ ] **Train drift XGBoost model** — `ml/training.py` has no drift training; feed synthetic book (8 scenarios × time windows ≈ 200 samples) through `DriftFeatureExtractor` → label → `XGBClassifier.fit()`
 
 **5. UX / explainability**
-- [ ] **Source citations on signal cards** — add `source_url` field to `PublicSignalOut` in `public_intel.py`; display in `TwoLayerPanel.tsx`
-- [ ] **SHAP wired to drift** — option A (fast): reword docs to "per-layer contribution breakdown", drop per-variable SHAP claim; option B (correct): route T1 drift customers through `RiskEngine.score_case`, attach SHAP values to `DriftCustomerDetail`
+- [ ] **DormancyPanel.tsx** — `DormancyOut` is computed by the engine and included in `DriftSubjectDetail` (API), but the frontend has no panel for it and the TS types are stale: add `DormancyVerdict` interface to `api.ts`; add `dormancy: DormancyVerdict | null` to `DriftSubjectDetail` and `dormancy_break: number` + `is_dormancy_break: boolean` to `DriftSubjectSummary`; create `DormancyPanel.tsx` mirroring `StabilityPanel.tsx` (depth × activation-strength product, flagged banner when `is_dormancy_break`)
+- [x] **Source citations on signal cards** — `source_url` field on canonical `PublicSignal` in `sources/base.py` and `PublicSignalOut` in `schemas/drift.py`; synthetic demo signals emit deterministic source references; `PublicSignal` TS type includes `source_url`; `TwoLayerPanel.tsx` renders clickable source links.
+- [x] **Drift explainability** — option A chosen: drift attribution is a per-layer LLR contribution breakdown (7 layers × `LayerContribution.llr` + `CausalVerdictOut.contributions` per metric). Per-variable SHAP is case-scoring only; applying it to drift time-series would explain the wrong thing (transaction features ≠ behavioural drift features).
 
 **6. Cost tracking**
 - [ ] **Token usage per workflow** — add `tokens_used: int` and `model: str` to `CascadeCostReport` in `schemas/drift.py`; populate from `anthropic_client.py` response metadata
@@ -97,12 +98,12 @@ See [`docs/sources.md`](docs/sources.md). Carcass classes exist for all of them.
 
 ### P2 — Engineering cleanups
 
-- [ ] Move 6 magic-number layer weights from `service.py:104–163` to named constants in `core/config.py`
-- [ ] Add single-worker warning to `service.py:426` global `_engine` singleton (unsafe under multi-process)
-- [ ] Remove duplicate timeline endpoint — `GET /drift/customers/{id}/timeline` returns same payload as `GET /drift/customers/{id}`
-- [ ] Fix `audit.py:138` — `len(list(...all()))` loads entire table; replace with `COUNT(*)` query
-- [ ] `list_customers()` recomputes all 10 customers on every request — add short-lived TTL cache
-- [ ] Qualify "real-time signals" language in README and pitch — signals are simulated for MVP; architecture is slot-swap ready
+- [x] Move 6 magic-number layer weights from `service.py` to named constants in `core/config.py`
+- [x] Add single-worker warning to the global `_engine` singleton (unsafe under multi-process)
+- [x] Remove duplicate timeline endpoint — `GET /drift/subjects/{drift_id}` already returns the timeline
+- [x] Fix `db_store.py` — `len(list(...all()))` loads all case IDs for count; replaced with `COUNT(*)` query via `func.count()`
+- [x] `list_subjects()` recomputes all 10 subjects on every request — added 30 s TTL cache on `DriftEngine`
+- [x] Qualify "real-time signals" language in README and pitch — signals are simulated for MVP; architecture is slot-swap ready
 
 ---
 
@@ -125,13 +126,13 @@ See [`docs/sources.md`](docs/sources.md). Carcass classes exist for all of them.
 | Ownership Contagion | `drift/contagion.py` | NetworkX personalized PageRank |
 | Causal Drift | `drift/causal.py` | Neyman-Pearson likelihood-ratio |
 | Suspicious Stability | `drift/stability.py` | CV × environmental movement |
-| Cost-Aware Cascade | `drift/cascade.py` | T0 rules → T1 XGBoost → T2 LLM |
+| Cost-Aware Cascade | `drift/cascade.py` | T0 rules → T1 LLR layer scoring → T2 LLM |
 | Time-Travel Audit | `drift/timetravel.py` | No look-ahead bias on replay |
 | Drift Engine | `drift/service.py` | All 7 layers, confirmation lift, LLM adjudication |
 | Synthetic Book | `drift/simulator.py` | 8 scenarios with ground-truth labels |
-| REST API | `api/v1/` | 28 endpoints, all functional |
+| REST API | `api/v1/` | 27 endpoints, all functional |
 | Frontend | `src/app/drift/`, `src/app/audit/` | 7 drift visualisations + audit log page |
-| XGBoost + SHAP | `ml/base.py` | Wired to case management only — not drift yet |
+| XGBoost + SHAP | `ml/base.py` | Wired to case management only; drift uses per-layer LLR breakdown |
 | Audit service | `services/audit.py` | Append-only, queried by customer and event type |
 | Claude AI | `services/anthropic_client.py` | T2 adjudication + case explanations; mock mode works without key |
 | Jurisdiction packs | `services/jurisdiction.py` | CH / EU / HK / AE |

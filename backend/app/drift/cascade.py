@@ -45,7 +45,7 @@ TIER_COST = {
 class TierDecision:
     """Why a customer was (or wasn't) escalated."""
 
-    customer_id: str
+    drift_id: str
     reached_tier: Tier
     drift_score: float
     escalation_reasons: list[str] = field(default_factory=list)
@@ -76,7 +76,7 @@ class CascadeReport:
 class CustomerSignal:
     """Inputs the cascade router decides on (produced by the passive layers)."""
 
-    customer_id: str
+    drift_id: str
     drift_score: float            # 0..100, from velocity + BOCPD fusion (T0)
     sanctions_hit: bool = False   # Layer 1 deterministic (T0)
     propagated_risk: float = 0.0  # Layer 3 contagion (computed in T1)
@@ -135,7 +135,7 @@ class CascadeRouter:
                 )
 
         return TierDecision(
-            customer_id=signal.customer_id,
+            drift_id=signal.drift_id,
             reached_tier=tier,
             drift_score=signal.drift_score,
             escalation_reasons=reasons,

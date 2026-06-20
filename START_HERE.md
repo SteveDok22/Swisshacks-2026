@@ -9,9 +9,9 @@ navigate it.
 
 ## What this is
 
-An AI system that spots financial risk early by combining real-time public
-signals (news, sanctions, adverse media, ownership changes, funding events)
-with internal KYC/AML data. Its core is **KYC drift detection** — catching the
+An AI system that spots financial risk early by combining public signals (news,
+sanctions, adverse media, ownership changes, funding events — simulated for
+MVP; live-feed adapters are slot-swap ready) with internal KYC/AML data. Its core is **KYC drift detection** — catching the
 slow structural changes that quietly invalidate a customer's original risk
 profile, often months before a sanctions listing.
 

@@ -34,7 +34,7 @@ const EVENT_META: Record<
   counterfactuals_generated:  { label: "Counterfactuals",          category: "case" },
   jurisdiction_compared:      { label: "Jurisdiction Compared",    category: "case" },
   data_exported:              { label: "Data Exported",            category: "export" },
-  drift_customer_analyzed:    { label: "Drift Analyzed",           category: "drift" },
+  drift_subject_analyzed:     { label: "Drift Analyzed",           category: "drift" },
   drift_scan_completed:       { label: "Drift Scan",               category: "drift" },
   drift_replay_executed:      { label: "Replay Executed",          category: "drift" },
   drift_scenario_injected:    { label: "Scenario Injected",        category: "drift" },
@@ -162,7 +162,7 @@ const EVENT_TYPE_OPTIONS = [
   { value: "counterfactuals_generated", label: "Counterfactuals" },
   { value: "jurisdiction_compared", label: "Jurisdiction Compared" },
   { value: "data_exported", label: "Data Exported" },
-  { value: "drift_customer_analyzed", label: "Drift Analyzed" },
+  { value: "drift_subject_analyzed", label: "Drift Analyzed" },
   { value: "drift_scan_completed", label: "Drift Scan" },
   { value: "drift_replay_executed", label: "Replay Executed" },
   { value: "drift_scenario_injected", label: "Scenario Injected" },
@@ -412,7 +412,7 @@ export default function AuditLogPage() {
                 <Chip label={`actor: ${appliedFilters.actor_id}`} />
               )}
               {appliedFilters.drift_id && (
-                <Chip label={`customer: ${appliedFilters.drift_id}`} />
+                <Chip label={`subject: ${appliedFilters.drift_id}`} />
               )}
               {appliedFilters.from_date && (
                 <Chip label={`from: ${appliedFilters.from_date}`} />

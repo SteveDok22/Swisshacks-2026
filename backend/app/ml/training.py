@@ -303,7 +303,7 @@ def train_social_engineering_model(
 
 # Scenarios flagged as risk (label=1); everything else is label=0.
 _DRIFT_RISK_SCENARIOS = frozenset(
-    {"volume_creep", "counterparty_migration", "corridor_shift", "combined", "dormancy_break", "suspicious_stability"}
+    {"volume_creep", "counterparty_migration", "corridor_shift", "combined", "dormancy_break", "suspicious_stability", "news_spike"}
 )
 
 
@@ -329,7 +329,8 @@ def generate_drift_training_data(
 
     Labels:
         1 — risk scenarios (volume_creep, counterparty_migration,
-            corridor_shift, combined, dormancy_break, suspicious_stability)
+            corridor_shift, combined, dormancy_break, suspicious_stability,
+            news_spike)
         0 — benign / stable (stable, benign_expansion)
     """
     from app.drift.service import compute_drift_analysis

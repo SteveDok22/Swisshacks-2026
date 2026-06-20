@@ -212,12 +212,18 @@ class TestDriftTrainingData:
         assert set(df["label"].unique()) == {0, 1}
 
     def test_training_data_risk_ratio(self):
-        """6 risk scenarios + 2 benign → 75% risk rate."""
-        from app.ml.training import generate_drift_training_data
+        """Risk rate matches the proportion of risk scenarios in SCENARIOS.
 
+        Derived from the canonical sets rather than hardcoded so adding a
+        scenario (e.g. ``news_spike``) keeps this test honest instead of brittle.
+        """
+        from app.drift.simulator import SCENARIOS
+        from app.ml.training import _DRIFT_RISK_SCENARIOS, generate_drift_training_data
+
+        expected = len(_DRIFT_RISK_SCENARIOS) / len(SCENARIOS)
         df = generate_drift_training_data(n_per_scenario=10)
         risk_rate = df["label"].mean()
-        assert abs(risk_rate - 0.75) < 0.01
+        assert abs(risk_rate - expected) < 0.01
 
     def test_training_features_all_finite(self):
         from app.ml.training import generate_drift_training_data

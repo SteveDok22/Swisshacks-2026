@@ -144,6 +144,60 @@ def test_confirmation_amplification_consumes_both_constants():
     )
 
 
+# --- UC 1: news-spike month surfacing + confirmation-lift wiring ---
+
+
+def _news_spike_analysis():
+    """Run the shared analysis for a news_spike customer with its synthetic news."""
+    from app.drift.public_intel import generate_signals_for_customer
+    from app.drift.service import compute_drift_analysis
+    from app.drift.stability import cohort_volatility
+
+    cust = generate_customer("uc1", "Wirecard Holdings AG", "news_spike", seed=3)
+    refs = [generate_customer(f"ref-{i}", "Ref", "stable", seed=900 + i) for i in range(8)]
+    cohort_cv = cohort_volatility([c.monthly_volume for c in refs])
+    signals = generate_signals_for_customer(
+        cust.drift_id, cust.name, cust.scenario,
+        months=cust.months, drift_start_month=cust.drift_start_month, seed=3,
+    )
+    return compute_drift_analysis(cust, cohort_cv=cohort_cv, public_signals=signals)
+
+
+def test_news_spike_month_is_surfaced_in_analysis():
+    """A sustained news spike surfaces a non-None news_spike_month (UC 1)."""
+    analysis = _news_spike_analysis()
+    assert analysis["news_spike_month"] is not None
+    assert analysis["public_risk"] > 0.5
+
+
+def test_news_spike_month_is_none_without_signals():
+    """No public signals → no news spike month, neutral confirmation lift."""
+    from app.drift.service import compute_drift_analysis
+
+    cust = generate_customer("quiet", "Quiet AG", "stable", seed=1)
+    analysis = compute_drift_analysis(cust, cohort_cv=0.2, public_signals=None)
+    assert analysis["news_spike_month"] is None
+    assert analysis["confirmation_lift"] == 1.0
+
+
+def test_news_spike_month_anchors_confirmation_lift(monkeypatch):
+    """The detected spike month — not the peak-severity month — must drive the
+    confirmation-lift temporal window when a spike is present."""
+    import app.drift.service as service
+
+    captured: dict = {}
+
+    def _spy(public_risk, internal_risk, public_peak, internal_peak, **kw):
+        captured["public_peak"] = public_peak
+        return 1.0
+
+    monkeypatch.setattr(service, "detect_news_spike_month", lambda *a, **k: 7)
+    monkeypatch.setattr(service, "confirmation_lift", _spy)
+
+    _news_spike_analysis()
+    assert captured["public_peak"] == 7
+
+
 async def test_timeline_is_available_only_on_canonical_subject_route(client):
     canonical_response = await client.get("/api/v1/drift/subjects/drift-001")
     removed_response = await client.get("/api/v1/drift/subjects/drift-001/timeline")

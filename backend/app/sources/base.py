@@ -287,9 +287,13 @@ class RegistryAdapter(ABC):
         # Ownership is a set, not a scalar. Both directions are AML-relevant:
         # a NEW beneficial owner/officer and a DEPARTING one each signal control
         # drift. Hoist the membership sets out of the loops (O(n+m), not O(n*m)).
+        # ``dict.fromkeys`` dedups (a normalize() that yields a repeated owner
+        # must not produce duplicate signals) while preserving first-seen order.
         baseline_owners = set(baseline.owners)
         current_owners = set(current.owners)
-        for owner in (o for o in current.owners if o not in baseline_owners):
+        added = dict.fromkeys(o for o in current.owners if o not in baseline_owners)
+        removed = dict.fromkeys(o for o in baseline.owners if o not in current_owners)
+        for owner in added:
             signals.append(
                 PublicSignal(
                     month=month, signal_type="ownership_change",
@@ -298,7 +302,7 @@ class RegistryAdapter(ABC):
                     raw_evidence={"field": "owners", "added": owner},
                 )
             )
-        for owner in (o for o in baseline.owners if o not in current_owners):
+        for owner in removed:
             signals.append(
                 PublicSignal(
                     month=month, signal_type="ownership_change",

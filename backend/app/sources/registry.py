@@ -14,7 +14,7 @@ Decision rule (see ``docs/sources.md`` for the per-source rationale):
 
 from __future__ import annotations
 
-from app.sources.base import RegistryAdapter, SourceCost
+from app.sources.base import RegistryAdapter
 from app.sources.crunchbase import CrunchbaseAdapter
 from app.sources.event_registry import EventRegistryAdapter
 from app.sources.firecrawl import FirecrawlAdapter
@@ -69,7 +69,7 @@ def catalogue() -> list[dict[str, object]]:
             "cost": a.cost.value,
             "status": a.status.value,
             "requires_api_key": a.requires_api_key,
-            "is_free": a.cost is SourceCost.FREE,
+            "is_free": a.is_free(),
             "use_cases": list(a.use_cases),
             "signal_types": list(a.signal_types),
             "base_url": a.base_url,

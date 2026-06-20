@@ -30,7 +30,11 @@ from typing import Any
 
 import numpy as np
 
-# Five public-signal categories named in the AMINA brief
+# Five public-signal categories named in the AMINA brief. NOTE: the source
+# adapters emit a SUPERSET of these — ``app.sources.base.ADAPTER_SIGNAL_TYPES``
+# adds registry/web change types (name_change, address_change, domain_change,
+# ...). When this module becomes the adapter aggregator, the fusion code must
+# accept the superset, not just these five, or those signals get dropped.
 SIGNAL_TYPES = (
     "news",
     "sanctions",

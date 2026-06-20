@@ -73,12 +73,14 @@ class TestRegistryClassification:
         for a in usable_adapters():
             assert a.cost in (SourceCost.FREE, SourceCost.FREEMIUM)
 
-    def test_freemium_sources_require_a_key(self):
-        # OpenSanctions (hosted) and Firecrawl (cloud) are the free-tier ones
-        # that still need a key; the fully-free ones must not.
+    def test_key_requirement_matches_cost_tier(self):
+        # Fully-free sources must not need a key; the free-tier (FREEMIUM) ones
+        # — OpenSanctions (hosted) and Firecrawl (cloud) — do.
         for a in ALL_ADAPTERS:
             if a.cost is SourceCost.FREE:
                 assert a.requires_api_key is False, a.source_id
+            elif a.cost is SourceCost.FREEMIUM:
+                assert a.requires_api_key is True, a.source_id
 
     def test_every_adapter_has_complete_metadata(self):
         for a in ALL_ADAPTERS:
@@ -94,6 +96,14 @@ class TestRegistryClassification:
         known = set(ADAPTER_SIGNAL_TYPES)
         for a in ALL_ADAPTERS:
             assert set(a.signal_types) <= known, (a.source_id, a.signal_types)
+
+    def test_adapter_signal_types_superset_of_brief_five(self):
+        # ADAPTER_SIGNAL_TYPES must stay a superset of the AMINA brief's five
+        # (base.py documents this); keep the two lists from drifting apart.
+        from app.drift.public_intel import SIGNAL_TYPES
+        from app.sources.base import ADAPTER_SIGNAL_TYPES
+
+        assert set(SIGNAL_TYPES) <= set(ADAPTER_SIGNAL_TYPES)
 
     def test_get_adapter_roundtrip(self):
         assert get_adapter("zefix") is ZefixAdapter
@@ -208,6 +218,14 @@ class TestGenericDiff:
             (("field", "owners"), ("removed", "Anna Muster")),
         }
 
+    def test_duplicate_owner_does_not_duplicate_signal(self):
+        # A normalize() that yields a repeated owner must emit only one signal.
+        a = ZefixAdapter()
+        current = _snapshot(owners=["Anna Muster", "Boris Newman", "Boris Newman"])
+        signals = a.diff(_snapshot(), current)
+        assert len(signals) == 1
+        assert signals[0].raw_evidence == {"field": "owners", "added": "Boris Newman"}
+
     def test_registered_address_change_is_address_not_jurisdiction(self):
         # An office move within the same country must NOT read as a jurisdiction
         # change — it has its own signal type.
@@ -255,6 +273,34 @@ class TestEntitySnapshot:
         assert snap.owners == []
         assert snap.raw == {}
         assert snap.legal_name is None
+
+
+class TestPublicSignalSerialization:
+    """The adapter-facing PublicSignal fields (source_url / raw_evidence) are
+    omitted from to_dict when empty and present when set."""
+
+    def test_to_dict_omits_empty_optional_fields(self):
+        sig = PublicSignal(month=1, signal_type="news", headline="h",
+                           severity=0.3, source="src")
+        d = sig.to_dict()
+        assert "source_url" not in d
+        assert "raw_evidence" not in d
+
+    def test_to_dict_includes_set_optional_fields(self):
+        sig = PublicSignal(
+            month=1, signal_type="name_change", headline="h", severity=0.85,
+            source="ZEFIX", source_url="https://z/abc",
+            raw_evidence={"field": "legal_name"},
+        )
+        d = sig.to_dict()
+        assert d["source_url"] == "https://z/abc"
+        assert d["raw_evidence"] == {"field": "legal_name"}
+
+    def test_to_dict_omits_empty_string_source_url(self):
+        # Parity: a falsy URL is not a useful citation, so it is dropped.
+        sig = PublicSignal(month=1, signal_type="news", headline="h",
+                           severity=0.3, source="src", source_url="")
+        assert "source_url" not in sig.to_dict()
 
 
 def test_registry_adapter_is_abstract():

@@ -60,7 +60,7 @@ Challenge: [AMINA Bank · SwissHacks 2026 · Challenge 4](https://github.com/Swi
 - [x] **Seed KYC baselines** — `seed.py:_seed_kyc_baselines()` populates `entity_snapshots` from the synthetic drift book at startup; behavioral baseline (volume, counterparty/corridor risk, margin) computed from the pre-drift window so adapters have a numeric anchor to diff against (PR #12)
 - [x] **`sources/base.py` + cost layer** — `RegistryAdapter` ABC + `EntitySnapshot` + canonical `PublicSignal` + `SnapshotDiff`/`diff_snapshots`; `sources/cost.py` (`SourceCost`/`AdapterStatus` enums, `CostMixin`); `sources/registry.py` free-vs-paid catalogue; carcass classes for all adapters. (PR #13)
 
-**3. Source adapters — carcasses exist in `backend/app/sources/`; `fetch`/`fetch_signals` are stubs**
+**3. Source adapters — implemented adapters plus remaining carcasses in `backend/app/sources/`**
 
 Decision rule: **free/free-tier sources + Event Registry** (hackathon API key provided); other paid sources remain `SKIPPED`.
 See [`docs/sources.md`](docs/sources.md) for full cost/access breakdown.
@@ -69,13 +69,13 @@ See [`docs/sources.md`](docs/sources.md) for full cost/access breakdown.
 - [x] **`sources/event_registry.py`** — structured news events, entity-aware queries (Cases 1, 6, 8, 10) · FREEMIUM — **hackathon API key; PRIMARY news source** · adverse-media, funding, name-change/pivot modes; returns `[]` gracefully when key absent
 - [x] **`sources/zefix.py`** — Swiss commercial register (Cases 4, 7, 8, 10) · FREEMIUM · `fetch` + `fetch_signals` implemented against the live OpenAPI schema; Basic-auth from `ZEFIX_USERNAME`/`ZEFIX_PASSWORD`, graceful degradation without creds; unit tests in `tests/test_zefix.py`. Engine wiring tracked in UC4/UC8 close-out tasks below.
 - [x] **`sources/gleif.py`** — Global LEI Foundation (Cases 3, 4, 5, 8, 10) · FREE · `fetch()` fully implemented (legal name, jurisdiction, LEI status, parent + child LEIs); `fetch_signals()` returns `[]` by design — signals emitted by service layer via `diff_snapshots()`
+- [x] **`sources/whois.py`** — RDAP domain age + registrant change (Cases 8, 9) · FREE · `fetch()` + `fetch_signals()` implemented against `rdap.org`; no key required; unit tests in `tests/test_whois.py`.
 
 *Still to implement (carcasses exist):*
 - [x] **`sources/opensanctions.py`** — OFAC / EU / UN sanctions + PEP screening (Cases 2, 5) · FREEMIUM
 - [ ] **`sources/gdelt.py`** — GDELT 2.0 free news feed (Cases 1, 6, 8, 10) · FREE — **fallback** when Event Registry key absent
 - [ ] **`sources/firecrawl.py`** — website-to-markdown scraping, current content (Cases 9, 10) · FREEMIUM
 - [x] **`sources/wayback.py`** — Internet Archive historical snapshot at onboarding date (Cases 9, 10) · FREE
-- [ ] **`sources/whois.py`** — RDAP domain age + registrant change (Cases 8, 9) · FREE
 
 *Paid — skipped (carcasses exist and document the decision):*
 - [x] ~~**`sources/open_corporates.py`**~~ — PAID — SKIP (covered by GLEIF + ZEFIX)
@@ -172,6 +172,7 @@ Each adapter has two methods to implement. `fetch()` returns a current `EntitySn
   - `registrant_org` changed → `signal_type="domain_change"`, severity=`"high"`, detail=`f"Registrant changed: {old} → {new}"`
   - Domain age < 180 days but company claims > 2 years established → `signal_type="domain_change"`, severity=`"medium"`, detail=`"Domain registered recently vs claimed company age"`
 - **Rate limit**: rdap.org allows ~10 req / 10 s. For higher volume, read IANA bootstrap `https://data.iana.org/rdap/dns.json` and query TLD-specific servers directly.
+- **✅ IMPLEMENTED** (`sources/whois.py`). The shipped adapter uses the free RDAP path (`rdap.org`, no key): `fetch(domain=...)` normalizes registration date, last-changed date, registrar, registrant org, status, and RDAP handle into `EntitySnapshot.raw_data`; absent domain falls back to `url`/`website` kwargs and then `{name_slug}.com`. `fetch_signals` diffs a caller-injected same-source baseline for registrant-org changes and emits young-domain signals only when the caller provides a company-age hint (`claimed_company_age_days` or `company_founded_at`) showing the company claims to be older than two years. Unit tests in `tests/test_whois.py`.
 
 ---
 
@@ -244,7 +245,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 > **UC 8 — Legal entity name change** (❌ MISSING → ✅)
 - [x] Implement `ZefixAdapter.fetch` + `fetch_signals` name-change diff path (see spec above)
 - [x] Implement `GleifAdapter.fetch` name-change diff path — `fetch()` done; `fetch_signals()` returns `[]` by design; service layer calls `diff_snapshots()` to emit signals
-- [ ] Implement `WhoisAdapter.fetch` + `fetch_signals` domain registrant diff path (see spec above)
+- [x] Implement `WhoisAdapter.fetch` + `fetch_signals` domain registrant diff path (see spec above)
 - [ ] Add `name_changed: bool` to the analysis dict in `service.py:_analyze_customer`; a confirmed name change floors the drift score at 60 regardless of other signals
 - [ ] Add `name_cycling` synthetic scenario to `simulator.py` — customer whose legal name changes at month 6 (Mossack Fonseca pattern); ZEFIX + WHOIS signals fire; causal label `"risk"`
 - [ ] Add `name` badge in `DriftRadar.tsx` (amber, mirrors `dormant` badge) when `is_name_changed` is true on the subject summary
@@ -252,7 +253,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 > **UC 9 — Domain switch / website change** (❌ MISSING → ✅)
 - [x] Implement `WaybackAdapter.fetch` (historical snapshot path — see spec above)
 - [ ] Implement `FirecrawlAdapter.fetch` (current content path — see spec above)
-- [ ] Implement `WhoisAdapter.fetch_signals` domain registrant diff path
+- [x] Implement `WhoisAdapter.fetch_signals` domain registrant diff path
 - [ ] Implement `drift/business_model.py` cosine comparator (Wayback text vs Firecrawl text via `all-MiniLM-L6-v2`)
 - [ ] Add `is_business_model_change: bool` + `business_model_distance: float` to `DriftSubjectDetail` API response and surface in `TwoLayerPanel.tsx` alongside other public signals
 - [ ] Add `domain_pivot` synthetic scenario to `simulator.py` — WHOIS registrant change at month 8 + high cosine distance; causal label `"risk"`
@@ -303,7 +304,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | Drift Engine | `drift/service.py` | All 7 layers, confirmation lift, LLM adjudication |
 | Synthetic Book | `drift/simulator.py` | 8 scenarios with ground-truth labels |
 | KYC Baseline Store | `db/kyc_baseline.py` | `EntitySnapshotDB` — onboarding + history snapshots |
-| Source Adapter Layer | `sources/` | `RegistryAdapter` ABC; GLEIF + EventRegistry fully implemented; 6 planned carcasses; 2 SKIPPED |
+| Source Adapter Layer | `sources/` | `RegistryAdapter` ABC; GLEIF, ZEFIX, EventRegistry, and WHOIS/RDAP implemented; 4 planned carcasses; 2 SKIPPED |
 | REST API | `api/v1/` | 27 endpoints, all functional |
 | Frontend | `src/app/drift/`, `src/app/audit/` | 8 drift panels + audit log page + dormancy-break panel |
 | XGBoost + SHAP | `ml/base.py` | Wired to case management only; drift uses per-layer LLR breakdown |
@@ -322,7 +323,7 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 | OpenSanctions | 2, 5 | FREEMIUM | ✅ IMPLEMENTED — `fetch_signals` live; key optional (non-commercial free tier) |
 | Event Registry / NewsAPI.ai | 1, 6, 8, 10 | FREEMIUM (hackathon key) | ✅ IMPLEMENTED — **primary news source** |
 | GDELT | 1, 6, 8, 10 | FREE | 🔲 PLANNED — fallback when ER key absent |
-| RDAP/WHOIS | 8, 9 | FREE | 🔲 PLANNED |
+| RDAP/WHOIS | 8, 9 | FREE | ✅ IMPLEMENTED — `fetch()` + `fetch_signals()` live; no key required |
 | Wayback Machine | 9, 10 | FREE | ✅ IMPLEMENTED — `fetch()` live; `fetch_signals()` returns `[]` by design |
 | Firecrawl | 9, 10 | FREEMIUM | 🔲 PLANNED |
 | OpenCorporates | 3, 4, 5, 7 | PAID | ⛔ SKIPPED |

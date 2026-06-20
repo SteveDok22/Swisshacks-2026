@@ -31,8 +31,11 @@ class Settings(BaseSettings):
     - Easy to test (override via env vars)
     """
 
+    # Load team-shared defaults (.env.shared, tracked in git) first, then let a
+    # developer's personal .env (gitignored) override them. Real OS env vars take
+    # precedence over both.
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=(".env.shared", ".env"),
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
@@ -43,6 +46,15 @@ class Settings(BaseSettings):
     environment: Literal["development", "staging", "production"] = "development"
     debug: bool = True
     api_v1_prefix: str = "/api/v1"
+
+    # === External API master switch ===
+    # When False (the default) the platform makes ZERO outbound calls to any
+    # third-party service: public-intel source adapters are bypassed in favour of
+    # the deterministic synthetic generator, and the Anthropic client is forced
+    # into mock mode regardless of any key. Flip to True (EXTERNAL_APIS_ENABLED=1)
+    # only once the required keys/credentials below are configured. This is the
+    # single lever for "offline demo / mock data" vs "live integrations".
+    external_apis_enabled: bool = False
 
     # === CORS ===
     # Frontend URL for CORS - в проде это будет наш domain
@@ -87,6 +99,12 @@ class Settings(BaseSettings):
     # zero-cost plain-HTTP + HTML-strip fallback, so the engine still produces a
     # current-website snapshot without a key.
     firecrawl_api_key: str = ""
+
+    # === Domain registration (WHOIS) ===
+    # whoisjson.com key. RESERVED: the current WhoisAdapter uses keyless RDAP
+    # (rdap.org) and does NOT consume this yet. Stored so the team has it once a
+    # whoisjson-backed adapter (or RDAP fallback) is wired.
+    whoisjson_api_key: str = ""
 
     # === ML ===
     model_dir: str = "./data/models"

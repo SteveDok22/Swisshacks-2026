@@ -403,7 +403,7 @@ sequenceDiagram
 
 This means the existing confirmation-lift gate handles news spikes automatically:
 if the internal BOCPD fires on volume **and** the news BOCPD fires on event count
-within the same 30-day window, lift amplifies both signals.
+within the same three-month window, lift amplifies both signals.
 
 ---
 
@@ -436,16 +436,17 @@ flowchart TB
     end
 
     subgraph LIFT["Confirmation Lift"]
-        CL["lift = f(public_risk, internal_risk,<br/>public_peak_month, internal_peak_month)<br/>gates on min-floor · temporal window ±1 month"]
+        CL["lift = f(public_risk, internal_risk,<br/>public_peak_month, internal_peak_month)<br/>gates on min-floor · temporal window ≤3 months"]
     end
 
     subgraph SCORE["Score Assembly"]
-        SC1["base = max(internal_risk, public_risk × 0.85)"]
-        SC2["amplification = 1.0 + clip((lift-1)/3, 0, 1) × 0.35"]
+        SC1["base = max(internal_risk,<br/>public_risk × DRIFT_PUBLIC_RISK_WEIGHT)"]
+        SC2["amplification = 1 + clip((lift-1) /<br/>DRIFT_CONFIRMATION_LIFT_RANGE, 0, 1)<br/>× DRIFT_CONFIRMATION_MAX_AMPLIFICATION"]
         SC3["score = base × amplification × 100"]
         SC4["score = score × causal_factor"]
         SC5["if stability.is_suspicious: score = max(score, 50 + suspicion×40)"]
-        SC1 --> SC2 --> SC3 --> SC4 --> SC5
+        SC6["if dormancy.is_dormancy_break:<br/>score = max(score, 55 + dormancy_break×35)"]
+        SC1 --> SC2 --> SC3 --> SC4 --> SC5 --> SC6
     end
 
     subgraph XGBOOST["XGBoost Fusion (replaces manual weights)"]
@@ -461,6 +462,10 @@ flowchart TB
     SCORE --> XGBOOST
     XGBOOST --> CASCADE[Cost-Aware Cascade]
 ```
+
+Time-travel replay reuses the internal/public weighting constants and causal
+factor, but intentionally omits confirmation lift plus the stability and
+dormancy anomaly floors.
 
 ---
 
@@ -507,10 +512,11 @@ graph LR
     XGB --> SHAP["SHAP values → UI layer cards<br/>with source_url citations"]
 ```
 
-**Why XGBoost replaces manual weights:** `service.py` currently uses 6 hardcoded
-magic-number weights (`0.6 × vel_norm + 0.25 × drift_norm + 0.4 × prop_risk`).
-With 20 real features these weights become unmanageable and opaque. XGBoost
-learns interaction weights from the labeled synthetic book (ground-truth scenarios),
+**Why XGBoost replaces manual weights:** the current scoring model uses six
+hand-tuned parameters, centralized as named `DRIFT_*` constants in
+`core/config.py`. This keeps the MVP formula explicit and maintainable, but with
+20 real features manual weights become unmanageable and opaque. XGBoost learns
+interaction weights from the labeled synthetic book (ground-truth scenarios),
 and SHAP makes each weight explainable — the officer sees "score driven 40% by
 `news_spike`, 30% by `ownership_changed`, 20% by `drift_velocity`."
 
@@ -597,10 +603,12 @@ sequenceDiagram
     SIG->>ENG: signals=[name_change×2], internal_drift_score=38
     ENG->>ENG: public_risk = 0.85
     ENG->>ENG: confirmation_lift = 1.8  (two sources confirm same event)
-    ENG->>ENG: base = max(internal_risk, 0.85×0.85) = 0.72
-    ENG->>ENG: score = 0.72 × 1.13 × 100 = 81.4
+    ENG->>ENG: base = max(internal_risk, public_risk×DRIFT_PUBLIC_RISK_WEIGHT) = max(internal_risk, 0.85×0.85) = 0.7225
+    ENG->>ENG: amplification = 1 + ((1.8-1)/3.0)×0.35 = 1.093
+    ENG->>ENG: causal_factor = 1.0; stability floor inactive
+    ENG->>ENG: score = 0.7225 × 1.093 × 100 = 79.0
 
-    ENG->>CAS: route(score=81.4, name_changed=True)
+    ENG->>CAS: route(score=79.0, name_changed=True)
     CAS->>CAS: T0: name_changed=True → skip to ESCALATE
     CAS-->>UI: reached_tier=T2_LLM, recommended_action=ESCALATE
 
@@ -608,7 +616,7 @@ sequenceDiagram
     LLM-->>ENG: verdict=risk, confidence=0.91, recommended_action=Trigger KYC refresh
     Note over LLM,ENG: rationale: Legal entity rename without disclosed business reason<br/>internal drift elevated — re-KYC required
 
-    ENG->>AUD: log(drift_subject_analyzed, drift_id, score=81.4, name_changed=True)
+    ENG->>AUD: log(drift_subject_analyzed, drift_id, score=79.0, name_changed=True)
     UI->>UI: render DecisionBar with AI recommendation=ESCALATE
     UI->>AUD: officer submits ESCALATE + rationale
     AUD->>AUD: append-only: drift_decision_recorded

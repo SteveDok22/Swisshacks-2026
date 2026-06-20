@@ -49,10 +49,9 @@ flowchart TB
     UI --> DriftWS & CaseWS
     DriftWS & CaseWS --> APIClient
     APIClient -->|HTTP + SSE| Router
-    Router --> Svcs & DE
+    Router --> Svcs & DE & ML
     DE --> BOCPD & Vel & Con & PI & Caus & Stab & Dorm
     BOCPD & Vel & Con & PI & Caus & Stab & Dorm --> Casc
-    Casc --> ML
     Casc -->|High-stakes| AnonSvc
     AnonSvc -->|Pseudonymized| Claude
     Svcs & ML --> DB
@@ -91,7 +90,7 @@ flowchart TD
     end
 
     subgraph API["api/v1/"]
-        R1["drift.py\n8 endpoints"]
+        R1["drift.py\n7 endpoints"]
         R2[cases.py]
         R3[scoring.py]
         R4["explanations.py\nSSE"]
@@ -138,12 +137,21 @@ flowchart TD
         seed[seed.py]
     end
 
+    subgraph Sources["sources/"]
+        src_base["base.py\nRegistryAdapter ABC\nEntitySnapshot · PublicSignal\nSnapshotDiff · diff_snapshots"]
+        src_zefix["zefix.py (TODO)"]
+        src_gleif["gleif.py (TODO)"]
+        src_opensanc["opensanctions.py (TODO)"]
+    end
+
     Main --> API
     R1 --> service
     service --> bocpd & velocity & contagion & pubintel & causal & stability & dormancy & cascade & timetravel
     cascade --> ML & claude_c
     R3 & R4 & R5 --> Svc
     Svc & API --> Data
+    src_zefix & src_gleif & src_opensanc --> src_base
+    service --> Sources
 ```
 
 ---

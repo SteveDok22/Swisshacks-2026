@@ -442,7 +442,7 @@ def elevate_corroborated_pivots(signals: list[PublicSignal]) -> list[PublicSigna
         website_pivots=len(website_pivots),
     )
     return [
-        replace(s, severity=max(s.severity, _CRITICAL_SEVERITY))
+        replace(s, severity=max(s.severity, _CRITICAL_SEVERITY), corroborated=True)
         if s.signal_type == _PIVOT_SIGNAL_TYPE
         else s
         for s in signals

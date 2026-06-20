@@ -150,20 +150,40 @@ export function TwoLayerPanel({ detail }: TwoLayerPanelProps) {
           <ul className="space-y-1.5">
             {public_signals.map((s, i) => {
               const Icon = SIGNAL_ICON[s.signal_type] ?? Newspaper;
+              // UC 10: a business-model pivot lifted to the critical band by two
+              // independent sources (news event cluster + website cosine shift).
+              // Two-source corroboration is far stronger than any single signal,
+              // so give it a distinct critical treatment, not generic styling.
+              const corroborated = s.corroborated;
               return (
                 <li
                   key={i}
-                  className="flex items-start gap-2.5 py-1.5 border-b border-paper-line/50 last:border-0"
+                  className={cn(
+                    "flex items-start gap-2.5 py-1.5 border-b border-paper-line/50 last:border-0",
+                    corroborated &&
+                      "border-b-0 border border-risk-critical/30 bg-risk-critical-bg rounded px-2",
+                  )}
                 >
                   <span className="font-mono text-2xs text-ink-faint w-8 shrink-0 pt-0.5">
                     m{s.month}
                   </span>
                   <Icon
-                    className={cn("h-3.5 w-3.5 shrink-0 mt-0.5", sevColor(s.severity))}
+                    className={cn(
+                      "h-3.5 w-3.5 shrink-0 mt-0.5",
+                      corroborated ? "text-risk-critical" : sevColor(s.severity),
+                    )}
                     strokeWidth={2}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-ink leading-snug">{s.headline}</p>
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-xs text-ink leading-snug">{s.headline}</p>
+                      {corroborated && (
+                        <span className="inline-flex shrink-0 items-center gap-1 rounded-sm bg-risk-critical/15 px-1.5 py-0.5 text-2xs font-semibold uppercase tracking-wide text-risk-critical">
+                          <Link2 className="h-2.5 w-2.5" strokeWidth={2.5} />
+                          2-source corroborated
+                        </span>
+                      )}
+                    </div>
                     <div className="flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5 text-2xs text-ink-muted">
                       <span className="min-w-0 break-words">
                         {SIGNAL_LABEL[s.signal_type] ?? s.signal_type}

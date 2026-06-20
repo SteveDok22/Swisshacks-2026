@@ -110,6 +110,12 @@ class PublicSignal:
     severity: float    # 0..1 from lexicon or source-provided confidence
     source: str        # human-readable source name, e.g. "Reuters" or "OFAC"
     source_url: str | None = None  # deep-link to the original record
+    # True when this signal was lifted to the critical band by cross-source
+    # corroboration (UC 10): a business-model pivot confirmed by two independent
+    # lenses (a news event cluster AND the website cosine shift). Severity alone
+    # cannot distinguish a corroborated-critical pivot from a single high-severity
+    # signal, so the corroboration state is carried explicitly for the signal card.
+    corroborated: bool = False
     # Optional structured provenance for signals whose headline is not enough on
     # its own. Used by OpenSanctions UBO screening (Case 5) to carry the screened
     # UBO name, the matched watchlist entity, and the match score so the API can
@@ -132,6 +138,7 @@ class PublicSignal:
             "severity": round(self.severity, 2),
             "source": self.source,
             "source_url": self.source_url,
+            "corroborated": self.corroborated,
         }
 
 

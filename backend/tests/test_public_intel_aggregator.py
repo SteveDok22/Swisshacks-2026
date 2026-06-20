@@ -869,9 +869,22 @@ class TestElevateCorroboratedPivots:
         pivots = [s for s in out if s.signal_type == "business_model_change"]
         assert pivots, "expected pivot signals"
         assert all(s.severity == _CRITICAL_SEVERITY for s in pivots)
-        # Non-pivot signal is left exactly as-is.
+        # UC 10: the corroboration state is carried explicitly so the signal
+        # card can distinguish it from a lone high-severity signal.
+        assert all(s.corroborated for s in pivots)
+        # Non-pivot signal is left exactly as-is (not flagged corroborated).
         news = next(s for s in out if s.signal_type == "news")
         assert news.severity == 0.2
+        assert news.corroborated is False
+        # The flag rides through the serialization contract (to_dict).
+        assert pivots[0].to_dict()["corroborated"] is True
+
+    def test_uncorroborated_pivots_keep_corroborated_false(self):
+        # A news-only lead is not corroborated — the flag must stay False so the
+        # UI does not over-state confidence.
+        signals = [_news_pivot(8), _news_pivot(9)]
+        out = elevate_corroborated_pivots(signals)
+        assert all(s.corroborated is False for s in out)
 
     def test_news_only_is_not_elevated(self):
         # A news cluster with no website corroboration stays as a lead.

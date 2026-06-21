@@ -169,11 +169,13 @@ def _source_url(
 ) -> str:
     """Return a real, clickable deep-link for a synthetic public signal.
 
-    Maps each signal type to the canonical open-data source that would carry it
-    in a live run:
-    - News / adverse media / corridor alerts / funding events → GDELT document
-      search (always-free, no key required).
-    - Sanctions / ownership changes → OpenSanctions entity search.
+    Maps each signal type to the canonical, human-browsable open source that
+    would carry it in a live run. Every URL below resolves to a real, working
+    page (verified): no placeholder/example.com links, and the news links point
+    at a readable search page rather than a raw JSON/HTML API dump.
+    - News / adverse media / corridor alerts / funding events → Google News
+      search (clean, always-free, no key).
+    - Sanctions / ownership changes → OpenSanctions search.
     - Name / legal-form / jurisdiction changes → GLEIF LEI record (or search
       when no LEI is available yet).
     - Domain changes → ICANN WHOIS lookup.
@@ -181,7 +183,7 @@ def _source_url(
     """
     encoded = urllib.parse.quote_plus(name)
     if signal_type in ("news", "adverse_media", "corridor_alert", "funding_event"):
-        return f"https://gdeltproject.org/api/v2/doc/doc?query={encoded}&mode=artlist&format=html"
+        return f"https://news.google.com/search?q={encoded}"
     if signal_type in ("sanctions", "ownership_change"):
         return f"https://www.opensanctions.org/search/?q={encoded}"
     if signal_type in ("name_change", "legal_form_change", "jurisdiction_change"):
@@ -190,12 +192,12 @@ def _source_url(
         return f"https://search.gleif.org/#/search?query={encoded}"
     if signal_type == "domain_change":
         d = domain or f"{name.lower().replace(' ', '-')}.com"
-        return f"https://lookup.icann.org/lookup?name={d}"
+        return f"https://lookup.icann.org/en/lookup?name={d}"
     if signal_type == "business_model_change":
         d = domain or f"{name.lower().replace(' ', '-')}.com"
         return f"https://web.archive.org/web/*/{d}"
-    # Default: GDELT article search for anything else
-    return f"https://gdeltproject.org/api/v2/doc/doc?query={encoded}&mode=artlist&format=html"
+    # Default: Google News search for anything else
+    return f"https://news.google.com/search?q={encoded}"
 
 
 def generate_signals_for_customer(
@@ -338,17 +340,42 @@ def generate_signals_for_customer(
         ]
 
     if scenario == "ownership_shift":
-        # UC8 — new beneficial owner appears (potential sanctioned UBO).
+        # UC8 — a new beneficial owner appears and screens as a sanctioned entity.
+        # Mirror the live OpenSanctions path exactly: a definitive `sanctions`
+        # hit PLUS a UBO-tagged `ownership_change`. The screened name really does
+        # match OpenSanctions (verified against api.opensanctions.org), so the
+        # synthetic signals are a faithful offline stand-in. The `meta` block lets
+        # the API populate the UBO-screening panel without re-parsing headlines,
+        # and the `sanctions` signal + score floor make the entity flag critical
+        # even though its transaction profile is deliberately benign (structural
+        # change only).
         m = min(drift_start_month, months - 1)
+        ubo = "ROSNEFT TRADING S.A."
         oc_headline = (
-            f"Corporate filing: new beneficial owner added to {name} structure. "
-            f"New UBO: ROSNEFT TRADING S.A. (synthetic demo — real OFAC-listed entity)"
+            f"UBO sanctions match: {ubo} — screened as new beneficial owner of "
+            f"{name} (synthetic demo — real OFAC/EU-listed entity)"
+        )
+        sanctions_headline = (
+            f"Sanctions match: {ubo} added to the {name} ownership structure "
+            f"(score 0.95)"
         )
         return [
             PublicSignal(
                 month=m, signal_type="ownership_change", headline=oc_headline,
-                severity=0.90, source="corporate registry",
+                severity=0.90, source="OpenSanctions",
                 source_url=_source_url(name, "ownership_change"),
+                meta={
+                    "kind": "ubo_screening",
+                    "ubo_name": ubo,
+                    "matched_entity": ubo,
+                    "score": 0.95,
+                    "definitive": True,
+                },
+            ),
+            PublicSignal(
+                month=m, signal_type="sanctions", headline=sanctions_headline,
+                severity=0.95, source="OpenSanctions",
+                source_url=_source_url(name, "sanctions"),
             ),
         ]
 
@@ -366,15 +393,33 @@ def generate_signals_for_customer(
     for month, stype, source in sig_plan:
         if month >= months:
             continue
-        # For combined scenario on drift-011 (Castor Trade Finance AG), the
-        # ownership_change signal includes the sanctioned UBO detail.
+        # For the combined scenario (drift-011, Castor Trade Finance AG), the
+        # ownership_change IS the sanctioned-UBO hit: give it the same UBO
+        # `meta` + severity as the live OpenSanctions path so the UBO-screening
+        # panel populates and the signal carries real weight (classify_severity
+        # on a registry headline would otherwise score it near-zero).
         if stype == "ownership_change" and scenario == "combined":
-            headline = (
-                f"Corporate filing: new beneficial owner added to {name} structure. "
-                f"New UBO: ROSNEFT TRADING S.A. (synthetic demo — real OFAC-listed entity)"
+            ubo = "ROSNEFT TRADING S.A."
+            signals.append(
+                PublicSignal(
+                    month=int(month), signal_type="ownership_change",
+                    headline=(
+                        f"UBO sanctions match: {ubo} — screened as new beneficial "
+                        f"owner of {name} (synthetic demo — real OFAC/EU-listed entity)"
+                    ),
+                    severity=0.90, source="OpenSanctions",
+                    source_url=_source_url(name, "ownership_change"),
+                    meta={
+                        "kind": "ubo_screening",
+                        "ubo_name": ubo,
+                        "matched_entity": ubo,
+                        "score": 0.95,
+                        "definitive": True,
+                    },
+                )
             )
-        else:
-            headline = rng.choice(_HEADLINES[stype]).format(name=first)
+            continue
+        headline = rng.choice(_HEADLINES[stype]).format(name=first)
         signals.append(
             PublicSignal(
                 month=int(month), signal_type=stype, headline=headline,

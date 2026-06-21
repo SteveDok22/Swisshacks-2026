@@ -1,0 +1,232 @@
+{
+  "key_raw": "search:Rosneft Trading S.A.:Company:default",
+  "cached_at": "2026-06-21T07:06:21.798741+00:00",
+  "data": [
+    {
+      "id": "NK-AWheksnBqBkWEkHc2wav3K",
+      "caption": "Rosneft Trading S.A.",
+      "schema": "Company",
+      "properties": {
+        "name": [
+          "ROSNEFT TRADING S.A.",
+          "Rosneft Trading S.A.",
+          "Rosneft Trading SA"
+        ],
+        "address": [
+          "Rue Place du Lac 2, 1204, Geneva",
+          "Avenue Jules-Crosnier 8, GENEVE, GENEVE, 1206, Switzerland",
+          "2, Rue Place du Lac, 1204 Geneva",
+          "Place du Lac 2, 1204 Genf",
+          "2, RUE PLACE DU LAC, 1204, GENEVA"
+        ],
+        "registrationNumber": [
+          "CHE-309.842.573",
+          "CH-660.0.257.011-8"
+        ],
+        "legalForm": [
+          "Società anonima"
+        ],
+        "leiCode": [
+          "391200PN90HUDEAMB912"
+        ],
+        "modifiedAt": [
+          "2022-03-02"
+        ],
+        "jurisdiction": [
+          "ch"
+        ],
+        "country": [
+          "ch"
+        ],
+        "sourceUrl": [
+          "https://home.treasury.gov/news/press-releases/sm909",
+          "https://war-sanctions.gur.gov.ua/en/sanctions/companies/5629",
+          "https://home.treasury.gov/news/press-releases/sm937",
+          "https://permid.org/1-5030694788",
+          "https://war-sanctions.gur.gov.ua/sanctions/companies/5629",
+          "https://sanctionssearch.ofac.treas.gov/Details.aspx?id=18299"
+        ],
+        "opencorporatesUrl": [
+          "https://opencorporates.com/companies/ch/1007528"
+        ],
+        "incorporationDate": [
+          "2011-01-24"
+        ],
+        "status": [
+          "Active"
+        ],
+        "permId": [
+          "5030694788"
+        ],
+        "addressEntity": [
+          "addr-881a8ac46db7a815b723fe03ba053414365a76f8"
+        ],
+        "notes": [
+          "For more information on directives, please visit the following link: http://www.treasury.gov/resource-center/sanctions/Programs/Pages/ukraine.aspx#directives."
+        ],
+        "taxNumber": [
+          "CHE-309.842.573"
+        ],
+        "topics": [
+          "sanction",
+          "export.control",
+          "debarment"
+        ],
+        "programId": [
+          "US-SSI",
+          "US-BIS-EL",
+          "US-UKRRUS-REL"
+        ],
+        "website": [
+          "http://www.rosneft.com/"
+        ],
+        "uniqueEntityId": [
+          "FD7YHXK7DF27",
+          "N98ZRTJMY5A5"
+        ],
+        "createdAt": [
+          "2017-01-26"
+        ]
+      },
+      "datasets": [
+        "us_sam_exclusions",
+        "permid",
+        "opencorporates",
+        "ext_us_ofac_press_releases",
+        "ext_gleif",
+        "ua_war_sanctions",
+        "us_ofac_cons",
+        "us_trade_csl",
+        "us_ofac_sdn"
+      ],
+      "referents": [
+        "ofac-pr-27631772fe3014f9624497cee3d27d3cc848e498",
+        "usgsa-s4mr5cs5b",
+        "oc-companies-ch-1007528",
+        "ua-ws-entity-5629",
+        "trade-csl-5541ec8534c47836ceb41171ef17fdd21765902cf1825d5e9cee0a3c",
+        "ofac-pr-1a8aaaf9740ac0fc6b69996bc41f00d930aad762",
+        "lei-391200PN90HUDEAMB912",
+        "usgsa-s4mr5ctb1",
+        "usgsa-28df25567452ddb7e04b6738d18f7ffc29f915da",
+        "ofac-18299",
+        "usgsa-f148b9b92b271da099b46704b8ed395e2a312723"
+      ],
+      "target": true,
+      "first_seen": "2023-04-20T10:27:20",
+      "last_seen": "2026-06-17T06:35:02",
+      "last_change": "2026-06-16T10:09:37"
+    },
+    {
+      "id": "NK-jQUGniz27adosM4y7ntjiD",
+      "caption": "PetroChina Co Ltd",
+      "schema": "Company",
+      "properties": {
+        "topics": [
+          "export.risk",
+          "sanction.linked"
+        ],
+        "weakAlias": [
+          "PetroChina"
+        ],
+        "description": [
+          "legal entity"
+        ],
+        "leiCode": [
+          "529900RPY4YG47TRSV05"
+        ],
+        "mainCountry": [
+          "cn"
+        ],
+        "name": [
+          "PetroChina Co Ltd"
+        ],
+        "registrationNumber": [
+          "121373"
+        ],
+        "legalForm": [
+          "Co Ltd"
+        ],
+        "country": [
+          "cn"
+        ],
+        "permId": [
+          "4295864860"
+        ],
+        "alias": [
+          "中國石油天然氣股份有限公司"
+        ],
+        "website": [
+          "http://www.petrochina.com.cn/ptr/",
+          "https://www.petrochina.com.cn/"
+        ],
+        "address": [
+          "Beijing Shi, China"
+        ],
+        "notes": [
+          "CalSTRs Portfolio of companies identified as possibly having ties to Iran and from which CalSTRs has divested from and restricted in 2018. In 2009, CalSTRS designated PetroChina as “Divested and Restricted” and has maintained that designation in 2018. (https://www.calstrs.com/sites/main/files/file-attachments/calstrs_investment_reports_2018.pdf)",
+          "In 2011, PetroChina was added to the Pennsylvania Treasury's List of Scrutinized Companies Determined as Having Involvement in Iran because of oil-related investment of US $20 million since 1996. (https://www.patreasury.gov/pdf/divestment/2011-Annual-Divestment-Report-print.pdf)",
+          "As of May 28, 2020, the Florida State Board of Administration (“SBA”) continues to list PetroChina on its list of “Scrutinized companies with Activities in the Iran Petroleum Energy Sector. (https://www.sbafla.com/fsb/Portals/FSB/Content/GlobalGovernanceMandates/QuarterlyReports/2020/Global_Governance_Mandates_and_Florida Statutes_2020_05_28.pdf?ver=2020-05-28-122524-540)",
+          "On January 31, 2019, Petrochina responded to the Minnesota State Board of Investment with the following: \"PetroChina and its subsidiaries strictly comply with the relevant regulations of the United Nations and respect the principles of the U.S. and other western investors that prohibit investing\nin companies operating in conflict-prone and sensitive regions. PetroChina and its subsidiaries do not have any assets or operations in sensitive and conflict-prone countries, including Iran, and does not communicate or have relationships with these countries and governments. Regarding the two companies mentioned in your letter, we would like to clarify that (https://www.lrl.mn.gov/docs/2020/mandated/200121.pdf)",
+          "In 2013, 2014, 2015, 2016 and 2017 Petrochina was listed on the Texas Pension Review Board List of Scrutinized Companies doing business in Iran pursuant to Chapter 807.054, Government Code.   (https://comptroller.texas.gov/purchasing/publications/divestment.php)",
+          "In 2018 and 2019 Tennessee used the New York list of “Entities determined to be non-responsive bidders/offerers pursuant to the New York State Iran Divestment Act of 2012.” Petrochina was included on this list in 2018 and 2019. Tennessee states \"Inclusion on this list would make a person ineligible to contract with the state of Tennessee, if a person ceases its engagement in investment activities in Iran, it may be removed from the list.\" (https://www.tn.gov/content/dam/tn/generalservices/documents/cpo/other/List_of_persons_pursuant_to_Tenn._Code_Ann._12-12-106_Iran_Divestment_Act_updated_with%20NY09.26.18.docx) (https://www.tn.gov/content/dam/tn/generalservices/documents/cpo/other/List_of_persons_pursuant_to_Tenn._Code_Ann._12-12-106_Iran_Divestment_Act_updated_with%20NY09.20.19.pdfhttps://www.tn.gov/content/dam/tn/generalservices/documents/cpo/other/List_of_persons_pursuant_to_Tenn._Code_Ann._12-12-106_Iran_Divestment_Act_updated_with%20NY09.20.19.pdf)",
+          "As of December 31, 2019, the Alaska Retirement Management Board lists PetroChina as a company doing material business with Iran.   (https://treasury.dor.alaska.gov/Portals/3/docs/resolutions/ARMB Iran Divestment List 12-31-19.pdf)",
+          "PetroChina is a subsidiary of CNPC (China National Petroleum Corporation). (https://unitedagainstnucleariran.com/company/cnpc)",
+          "As of August 27, 2019, Petrochina is listed on the Illinois Investment Policy Board list of Iran restricted companies. (https://www2.illinois.gov/sites/iipb/Pages/ProhibitedInvestmentList.aspx)",
+          "On January 20, 2020, Minnesota SBI listed PetroChina as a scrutinized investment. The managers are explicitly instructed to refrain from purchasing securities on this list.  (https://www.leg.state.mn.us/docs/2020/mandated/200121.pdf)",
+          "In January 2021, the State of New Jersey Department of the Treasury listed PetroChina as a company engaged in prohibited activities in Iran pursuant to P.L. 2012, c. 25 (\"Chapter 25\").  (https://www.nj.gov/treasury/purchase/pdf/Chapter25List.pdf)",
+          "According to its 2018 Annual Report filed with the SEC in 2019: \"During the reporting period, our controlling shareholder, CNPC, held indirect interests in certain oil and gas development projects in Iran, namely, (i) the MIS oil fields in which CNPC obtained a 75% interest in 2005, (ii) the North Azadegan oilfield, in which CNPC obtained a 100% interest in 2009 and (iii) the South Pars gas field project, in which CNPC obtained a 100% interest in 2009. After temporarily ceasing participation in the South Pars gas field project in 2012, CNPC in July 2017 regained a 30% investment and operating interest in the project under a new Iran Petroleum Contract (the “IPC”), in which Total S.A. (“Total”) held a 50.01% interest. In November 2018, Total withdrew from the project, and CNPC took over its interest pursuant to the IPC. Operation with respect to the South Pars project is currently suspended. In 2018, the MIS oilfield and the North Azadgan oilfield were in production, and CNPC extracted oil in order to recover its investment as per the project agreements. After the U.S. reimposed the sanctions, CNPC has been providing minimum support and services to the two oilfields pursuant to the SRE issued to China. In 2018, CNPC transported back to China approximately 2.3 million tons of crude oil that it extracted from the two oilfields, of which approximately 1.1 million tons were resold to our company’s refineries. In 2018, crude oil that we processed from the foregoing source accounted for 0.7% of the total oil processed by our refineries and contributed 0.1% of our total revenue.\" (https://sec.report/Document/0001193125-19-123907/d676237d20f.htm)",
+          "As of April 15, 2020, PetroChina is included on the Tennessee list of persons it determines engage in investment activities in Iran, as described in § 12-12-105.  (https://www.tn.gov/content/dam/tn/generalservices/documents/cpo/other/list-of-persons-pursuant-to-tenn-code-iran-divestment/List_of_persons_pursuant_to_Tenn._Code_Ann._12-12-106_Iran_Divestment_Act_updated_with NY04.15.20.pdf)",
+          "On January 13, 2020, the South Dakota Investment Council submitted a report to the Executive Board of the Legislative Research Council regarding compliance with SDCL 4-5-48 to 4-5-60, Iran Divestiture. Included in this report is an Iran Scrutinized Companies list of all prohibited investments for which the internal managers and direct external managers are instructed not to purchase any company on the list. PetroChina is included on this list.   (https://sdlegislature.gov/docs/referencematerials/requiredreports/RR901152020.pdf)",
+          "\"A fresh round of talks has kicked off with PetroChina Company Limited over resumption of cooperation in Iran’s petrochemical industry. Following the three-billion-dollar financing contract with China’s Sinopec for development, renovation and optimization of Azadan refinery complex, the East Asian country is reopening Lines of Credit (LOCs) and finances to the Iranian petrochemical industries. In other words, following the signing of a cooperation agreement with CNPC in South Pars Phase 11, Chinese companies have become further determined to bolster cooperation in Iran’s oil refinery and petrochemical sectors.\" (February 15, 2017). (http://en.mehrnews.com/news/123588/PetroChina-to-resume-petchem-activity-in-Iran)",
+          "PetroChina is listed as a prohibited company in the March 2020 and March 2021 Report to the New Jersey Legislature Iran Divestment Act.  (https://web.archive.org/web/20201016170109/https://www.nj.gov/treasury/doinvest/pdf/index/Iran_Progress_Report.pdf) (https://www.nj.gov/treasury/doinvest/pdf/index/Iran_Progress_Report.pdf)",
+          "\"PetroChina is linked to Iran through its parent, China National Petroleum Corp. (CNPC), which has interests in several Iranian oil and gas projects. Additionally, PetroChina is reportedly continuing work to develop the Azadegan Field in Iran. In 2009, CalSTRS designated PetroChina as “Divested and Restricted” and maintained that status in 2020.\" (https://www.calstrs.com/sites/main/files/file-attachments/calstrs-investment-reports-2020.pdf?1609284307)",
+          "In 2009, the California State Teachers’ Retirement System (“CalSTRS”), designated PetroChina as “Divested and restricted” for ties to Iran through its parent, China National Petroleum Corp. (CNPC), which has interests in several Iranian oil and gas projects. Additionally, PetroChina is reportedly continuing work to develop the Azadegan Field in Iran. CalSTRS maintained the Divested and restricted designation in 2019.  (https://www.calstrs.com/sites/main/files/file-attachments/calstrs-investment-reports-2019.pdf?1577750493)",
+          "On September 19, 2007, PetroChina was added to the Florida State Board of Administration List of Prohibited Investments (Scrutinized Companies) due to its involvement in Iran. As of March 9, 2021, PetroChina remains on the SBA list of prohibited investments.  (https://www.sbafla.com/fsb/Portals/FSB/Content/Performance/Quarterly/2021_03_09_Web_Update_PFIA_Prohibited_List.pdf?ver=2021-03-09-134849-587)",
+          "As of June 8, 2020, PetroChina is listed on the Pennsylvania Department of General Services Iran Free Procurement List. Entities included on this list are ineligible to enter into a contract with the Commonwealth of Pennsylvania for goods and services worth at least $1,000,000 per sections 3501-3506 of the Commonwealth Procurement Code, 62 Pa. C.S. §§ 3501-3506.   (https://www.dgs.pa.gov/Documents/Procurement Forms/ProposedIranFreeProcurementList.pdf)",
+          "As of July 1, 2020, PetroChina is listed as an entity “determined, based on credible information available to the public, to be engaged in prohibited activities in Iran pursuant to New Jersey P.L. 2012, c.25 (“Chapter 25”).  (https://www.nj.gov/treasury/purchase/pdf/Cas hapter25List.pdf)",
+          "According to its Annual Report filed with the SEC for fiscal year 2019: \"To maintain efficient operations of our facilities and lower production costs, we have endeavored to achieve the most cost-efficient proportions of various types of crude oil in our refining process. We purchase a portion of our crude oil requirements from third-party international suppliers located in different countries and regions. In 2019, we purchased crude oil sourced from Iran and Russian companies which are subject to U.S. economic sanctions, and Sudan which is designated as a State Sponser of Terrorism by the U.S., for use in our refining operations. The revenue generated from our refineries from the crude oil sourced from the Russian companies Rosneft and Transneft, Iran and Sudan accounted for 3.2%, 0.08% and 0.1% of our total revenue in 2019. See “Item 3 — Key Information — Risk Factors — Risks Related to Outbound Investments and Trading.”\" (https://www.sec.gov/Archives/edgar/data/1108329/000119312520125304/d836220d20f.htm)",
+          "In the future, PetroChina and its subsidiaries will continue to handle our investments and business activities in a prudent and responsible manner, in compliance with related laws and regulations, and always take our shareholders’ rights into consideration.\"",
+          "Petrochina was removed from the May 15, 2019 Iowa Public Employees' Retirement System Iran Prohibited Companies List. (https://www.ipers.org/sites/default/files/IPERS%27%20Iran%20Prohibited%20Companies%202Q19%20-%20REVISED.pdf)",
+          "According to its Annual Report filed with the SEC in 2013 and 2014: \"In July 2012, the U.S. Treasury Department’s Office of Foreign Assets Control, OFAC, added Bank of Kunlun Co., Ltd., or Kunlun Bank, an affiliate of our company due to common control by CNPC, to its “List of Foreign Financial Institutions Subject to Part 561” pursuant to the Comprehensive Iran Sanctions, Accountability, and Divestment Act of 2010. OFAC reported that Kunlun Bank provided financial services to at least six Iranian banks that were on OFAC’s sanctions list during 2012. These financial services included holding accounts, making transfers, and in particular, transfer of a total of US$0.1 billion for Bank Tejarat during early 2012, and paying letters of credit on behalf of the designated banks. Kunlun Bank has not informed us the revenue and profit it generated from such activities in relation to Iran and whether it will discontinue such activities. Our company has no involvement in or control over the activities of Kunlun Bank or CNPC and CNPC subsidiaries and affiliates, and we have never received any revenue or profit derived from these activities.\" (https://www.sec.gov/Archives/edgar/data/1108329/000119312513177465/d521425d20f.htm) (https://www.sec.gov/Archives/edgar/data/1108329/000119312514160165/d715321d20f.htm)",
+          "In 2016 and 2017 Tennessee used the South Carolina list of \"Entities Ineligible to Contract with the State of South Carolina or any Political Subdivision of the State per the Iran Divestment Act of 2014, S.C. Code Ann.\" as its list of persons it determines engage in investment activities in Iran. Petrochina was included on this list in 2016 and 2017. \"Inclusion on this list would make a person ineligible to contract with the state of Tennessee, if a person ceases its engagement in investment activities in Iran, it may be removed from the list.\" (https://www.tn.gov/content/dam/tn/generalservices/documents/cpo/cpo-library/public-information-library/List%20of%20persons%20pursuant%20to%20Tenn.%20Code%20Ann.%2012-12-106%20Iran%20Divestment%20Act.pdf) (https://www.tn.gov/content/dam/tn/generalservices/documents/cpo/cpo-library/public-information-library/List_of_persons_pursuant_to_Tenn._Code_Ann._12-12-106_Iran_Divestment_Act_updated_7.7.17.pdf)",
+          "On June 30, 2019, New Jersey listed Petrochina on its state list of entities determined, based on credible information, to be engaged in prohibited activities in Iran. (https://www.state.nj.us/treasury/purchase/pdf/Chapter25List.pdf)",
+          "As of October 2019, PetroChina remains on the Pennsylvania Treasury's List of Scrutinized Companies Determined as Having Involvement In Iran because of oil-related investment of US $20 million since 1996.  (https://www.patreasury.gov/pdf/divestment/2019-Annual-Divestment-Report.pdf)",
+          "Petrochina is listed on the June 2019 Alaska Retirement Management Board, Companies Doing Material Business with Iran list. (http://treasury.dor.alaska.gov/Portals/3/docs/resolutions/ARMB%20Iran%20Divestment%20List%206-30-19.pdf)",
+          "On May 15, 2019, the IPERS removed PetroChina from its Iran Prohibited Companies List (“the List”).    (https://www.ipers.org/about-us/investments/iran-investment-restrictions)",
+          "Petrochina is listed on the June 4, 2019 and July 12, 2019 Florida State Board of Administration list of prohibited investments (Scrutinized companies) for Iran related business. (https://www.sbafla.com/fsb/Portals/FSB/Content/Performance/Quarterly/2019_06_04_Web_Update_PFIA_Prohibited_List.pdf?ver=2019-06-04-162911-617) (https://www.sbafla.com/fsb/Portals/FSB/Content/Performance/Quarterly/2019_07_12_Web_Update_PFIA_Prohibited_List.pdf?ver=2019-07-12-114201-343)",
+          "As of April 15, 2020, PetroChina is included as an entity determined to be non-responsive bidders/offerers pursuant to The New York State Iran Divestment Act of 2012.   (https://ogs.ny.gov/system/files/documents/2020/04/iran_divestment_act_list_of_entities.pdf)",
+          "On October 14, 2020, PetroChina remained on the Tennesse Department of General Services list of persons it determines engage in investment activities in Iran, as described in 12-12-105. (https://www.tn.gov/content/dam/tn/generalservices/documents/cpo/cpo-library/List_of_persons_pursuant_to_Tenn._Code_Ann._12-12-106_Iran_Divestment_Act_updated_with%20NY10.14.20.pdf)",
+          "\"Iran is taking steps to ramp up oil exports ahead of an end to U.S.-led sanctions, extending crude contracts with its top two Chinese buyers into 2016 and starting talks with other potential buyers there, sources involved in the talks said... Iranian oil officials have met in the last two months with traders at PetroChina, the country's second-largest state refiner... PetroChina's parent company CNPC started pumping oil at Iran's North Azadegan field around October with estimated flow of 75,000 bpd. An easing of sanctions could allow the company to start lifting its share of production, company sources said.\" (Reuters, \"Iran renews oil contracts with China, taps new buyers,\" 12/3/15) (http://www.reuters.com/article/us-china-iran-oil-idUSKBN0TM0CN20151203)",
+          "Petrochina is listed in the March 1, 2019, Report to the New Jersey Legislature Iran Divestment Act.  (https://www.nj.gov/treasury/doinvest/pdf/index/Iran_Progress_Report.pdf)",
+          "In 2020, the U.S. state of Mississippi listed PetroChina on its state lists of Companies Doing Business with the Iranian Petroleum/Natural Gas, Nuclear and Military Sectors, rendering it ineligible for investment and/or state contracting. (https://www.dfa.ms.gov/media/sd1ccddh/businesses-doing-business-with-iran-12-4.docx)",
+          "On June 1, 2020, the Ohio Police & Fire Pension Fund (“OP&F”) listed PetroChina on its scrutinized companies Iran/Sudan list.    (https://www.op-f.org/Files/Scrutinized Companies Iran Sudan.pdf)",
+          "Petrochina is listed on the March 2019 Alaska Retirement Management Board, Companies Doing Material Business with Iran list. (http://treasury.dor.alaska.gov/Portals/3/docs/resolutions/ARMB%20Iran%20Divestment%20List%203-31-19.pdf)"
+        ],
+        "ticker": [
+          "NYSE:PTR"
+        ],
+        "sector": [
+          "Energy"
+        ],
+        "sourceUrl": [
+          "https://www.unitedagainstnucleariran.com/company/petrochina"
+        ]
+      },
+      "datasets": [
+        "ir_uani_business_registry",
+        "gem_energy_ownership",
+        "ann_graph_topics"
+      ],
+      "referents": [
+        "ir-br-co-1fa912eb7886d12f638020df895f295a3a3fb463",
+        "gem-own-e100000000245",
+        "ir-br-co-0b23411873cdb1bbab9b7525c947898e4eeac59c"
+      ],
+      "target": true,
+      "first_seen": "2024-06-30T00:00:00",
+      "last_seen": "2026-06-17T00:52:56",
+      "last_change": "2026-06-09T13:06:46"
+    }
+  ]
+}

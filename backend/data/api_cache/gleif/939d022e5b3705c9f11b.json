@@ -1,0 +1,150 @@
+{
+  "key_raw": "record:529900A8LX4KL0YUTH71",
+  "cached_at": "2026-06-21T07:24:55.082286+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "529900A8LX4KL0YUTH71",
+      "attributes": {
+        "lei": "529900A8LX4KL0YUTH71",
+        "entity": {
+          "legalName": {
+            "name": "Wirecard AG",
+            "language": "de"
+          },
+          "otherNames": [],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "de",
+            "addressLines": [
+              "Einsteinring 35"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Aschheim",
+            "region": null,
+            "country": "DE",
+            "postalCode": "85609"
+          },
+          "headquartersAddress": {
+            "language": "de",
+            "addressLines": [
+              "Einsteinring 35"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Aschheim",
+            "region": null,
+            "country": "DE",
+            "postalCode": "85609"
+          },
+          "registeredAt": {
+            "id": "RA000304",
+            "other": null
+          },
+          "registeredAs": "HRB 169227",
+          "jurisdiction": "DE",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "6QQB",
+            "other": null
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": null,
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": []
+        },
+        "registration": {
+          "initialRegistrationDate": "2013-07-26T12:07:03Z",
+          "lastUpdateDate": "2020-11-13T18:00:13Z",
+          "status": "LAPSED",
+          "nextRenewalDate": "2020-11-13T13:23:14Z",
+          "managingLou": "529900F6BNUR3RJ2WH29",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000304",
+            "other": null
+          },
+          "validatedAs": "HRB 169227",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": null,
+        "qcc": "QDE2M9M1Q4",
+        "spglobal": [
+          "741774"
+        ],
+        "conformityFlag": "NON_CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/529900A8LX4KL0YUTH71/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/529900A8LX4KL0YUTH71/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/529900A8LX4KL0YUTH71/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "reporting-exception": "https://api.gleif.org/api/v1/lei-records/529900A8LX4KL0YUTH71/direct-parent-reporting-exception"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "reporting-exception": "https://api.gleif.org/api/v1/lei-records/529900A8LX4KL0YUTH71/ultimate-parent-reporting-exception"
+          }
+        },
+        "direct-children": {
+          "links": {
+            "relationship-records": "https://api.gleif.org/api/v1/lei-records/529900A8LX4KL0YUTH71/direct-child-relationships",
+            "related": "https://api.gleif.org/api/v1/lei-records/529900A8LX4KL0YUTH71/direct-children"
+          }
+        },
+        "ultimate-children": {
+          "links": {
+            "relationship-records": "https://api.gleif.org/api/v1/lei-records/529900A8LX4KL0YUTH71/ultimate-child-relationships",
+            "related": "https://api.gleif.org/api/v1/lei-records/529900A8LX4KL0YUTH71/ultimate-children"
+          }
+        },
+        "isins": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/529900A8LX4KL0YUTH71/isins"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/529900A8LX4KL0YUTH71"
+      }
+    }
+  }
+}

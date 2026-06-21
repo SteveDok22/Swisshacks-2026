@@ -1,0 +1,12 @@
+{
+  "key_raw": "search:Evil Corp AG:Company:default",
+  "cached_at": "2026-06-21T07:06:52.004266+00:00",
+  "data": [
+    {
+      "id": "ofac-abc",
+      "caption": "Evil Corp AG",
+      "score": 0.92,
+      "schema": "Company"
+    }
+  ]
+}

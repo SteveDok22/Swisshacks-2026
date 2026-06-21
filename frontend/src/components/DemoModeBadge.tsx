@@ -18,11 +18,14 @@ const FALLBACK: ConfigMode = {
 /**
  * Mode-aware badge in the top-right corner of the workspace.
  *
- * Shows SYNTHETIC (amber) or LIVE (green pulsing) depending on the backend
- * config mode. Clicking opens a small dropdown with mode details and the
- * welcome-modal reset escape hatch.
+ * Shows SYNTHETIC (amber) or LIVE (green pulsing). The currently-open entity's
+ * mode wins when provided: the platform default can be SYNTHETIC while a
+ * specific subject (e.g. the seeded live entity) pulls real cached API data, so
+ * the badge must reflect what the user is actually looking at. Falls back to the
+ * backend `/config` platform mode when no entity mode is supplied (e.g. on the
+ * case queue). Clicking opens a small dropdown with mode details.
  */
-export function DemoModeBadge() {
+export function DemoModeBadge({ entityMode }: { entityMode?: string } = {}) {
   const [showHelp, setShowHelp] = useState(false);
 
   const { data, isError, isLoading } = useQuery({
@@ -32,7 +35,9 @@ export function DemoModeBadge() {
   });
 
   const config: ConfigMode = isError || isLoading || !data ? FALLBACK : data;
-  const isLive = config.mode === "live";
+  // The open entity's mode takes precedence over the platform default.
+  const entityIsLive = entityMode === "live";
+  const isLive = entityIsLive || config.mode === "live";
 
   const resetWelcome = () => {
     try {
@@ -70,6 +75,12 @@ export function DemoModeBadge() {
             <div className="text-xs font-semibold text-ink">
               {isLive ? "Live API mode" : "Synthetic demo mode"}
             </div>
+            {entityIsLive && config.mode !== "live" && (
+              <p className="text-2xs text-accent mt-0.5 leading-relaxed">
+                This entity pulls real cached API data while the platform default
+                stays synthetic.
+              </p>
+            )}
             <p className="text-2xs text-ink-muted mt-0.5 leading-relaxed">
               {isLive
                 ? config.active_adapters.length > 0

@@ -458,4 +458,35 @@ def generate_book(
     temenos.mode = "live"
     book.append(temenos)
 
+    # --- Live entity: Rosneft Trading S.A. (UC2 / UC5 / UC8) ---
+    # A REAL OFAC/EU/SECO-listed entity (the same name seeded as the sanctioned
+    # UBO on drift-008 / drift-011). In live mode the OpenSanctions adapter
+    # screens the name against the live watchlist and returns a genuine,
+    # clickable `sanctions` match (opensanctions.org/entities/<id>/), which the
+    # SANCTIONS_SCORE_FLOOR escalates to critical — the cross-border sanctioned
+    # counterparty pattern (Deutsche Bank mirror-trades / Danske Estonia). GLEIF
+    # supplies the real ownership chain. Cached under data/api_cache/ for offline.
+    rosneft = generate_customer(
+        drift_id="drift-live-002",
+        name="Rosneft Trading S.A.",
+        scenario="corridor_shift",
+        seed=seed + 100,
+    )
+    rosneft.mode = "live"
+    book.append(rosneft)
+
+    # --- Live entity: Wirecard AG (UC1 — negative-news spike) ---
+    # The canonical adverse-media analogue from the roadmap. A real entity with a
+    # real LEI; Event Registry returns real articles about the missing €1.9 B /
+    # collapse, surfaced with their real titles and article URLs.
+    wirecard = generate_customer(
+        drift_id="drift-live-003",
+        name="Wirecard AG",
+        scenario="news_spike",
+        seed=seed + 101,
+    )
+    wirecard.domain = "wirecard.com"
+    wirecard.mode = "live"
+    book.append(wirecard)
+
     return book

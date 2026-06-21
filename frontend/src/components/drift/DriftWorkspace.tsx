@@ -41,11 +41,16 @@ export function DriftWorkspace() {
     queryFn: driftApi.customers,
   });
 
-  const { data: detail } = useQuery({
+  const { data: detail, isFetching: detailFetching } = useQuery({
     queryKey: ["drift-customer", selectedId],
     queryFn: () => driftApi.customer(selectedId!),
     enabled: !!selectedId,
   });
+
+  // A customer is selected but its detail hasn't arrived yet. Live entities
+  // (mode="live") call real external APIs and can take several seconds, so an
+  // explicit loader replaces the "Select a customer" placeholder during fetch.
+  const detailLoading = !!selectedId && !detail && detailFetching;
 
   const { data: scan } = useQuery({
     queryKey: ["drift-scan"],
@@ -76,7 +81,7 @@ export function DriftWorkspace() {
 
   return (
     <div className="flex h-screen overflow-hidden relative z-10">
-      <DemoModeBadge />
+      <DemoModeBadge entityMode={detail?.mode} />
       <Sidebar />
 
       {/* Left work column */}
@@ -151,7 +156,15 @@ export function DriftWorkspace() {
 
       {/* Right detail column */}
       <main className="flex-1 min-w-0 bg-paper overflow-y-auto">
-        {detail ? (
+        {detailLoading ? (
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-ink-muted">
+            <Loader2 className="h-6 w-6 animate-spin text-accent" />
+            <div className="text-sm font-medium text-ink-soft">Analysing drift subject…</div>
+            <div className="text-2xs text-ink-faint">
+              Running the 7-layer engine · live entities query real external APIs
+            </div>
+          </div>
+        ) : detail ? (
           <div className="p-6 space-y-5">
             {/* Live-data banner for real entities */}
             {detail.mode === "live" && (

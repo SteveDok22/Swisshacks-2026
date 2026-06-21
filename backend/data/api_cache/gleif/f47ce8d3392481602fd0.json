@@ -1,0 +1,138 @@
+{
+  "key_raw": "record:5493007L7F6LM3VFER58",
+  "cached_at": "2026-06-21T07:25:20.442911+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "5493007L7F6LM3VFER58",
+      "attributes": {
+        "lei": "5493007L7F6LM3VFER58",
+        "entity": {
+          "legalName": {
+            "name": "KREDITFORENINGEN DANMARKS PENSIONSAFVIKLINGSKASSE",
+            "language": "da"
+          },
+          "otherNames": [],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "da",
+            "addressLines": [
+              "C/O Realkredit Danmark A/S",
+              "Lersø Parkallé 100",
+              "København Ø"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Copenhagen",
+            "region": "DK-84",
+            "country": "DK",
+            "postalCode": "2100"
+          },
+          "headquartersAddress": {
+            "language": "da",
+            "addressLines": [
+              "C/O Realkredit Danmark A/S",
+              "Lersø Parkallé 100"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Copenhagen",
+            "region": "DK-84",
+            "country": "DK",
+            "postalCode": "2100"
+          },
+          "registeredAt": {
+            "id": "RA000170",
+            "other": null
+          },
+          "registeredAs": "71977013",
+          "jurisdiction": "DK",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "9999",
+            "other": "PENSION_FUND"
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": null,
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": []
+        },
+        "registration": {
+          "initialRegistrationDate": "2015-08-01T01:33:00Z",
+          "lastUpdateDate": "2023-10-19T15:14:00Z",
+          "status": "LAPSED",
+          "nextRenewalDate": "2020-02-12T00:18:00Z",
+          "managingLou": "549300O897ZC5H7CY412",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000170",
+            "other": null
+          },
+          "validatedAs": "71977013",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": "dk/71977013",
+        "qcc": "QDK39USVTP",
+        "spglobal": [
+          "145369355"
+        ],
+        "conformityFlag": "NON_CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/5493007L7F6LM3VFER58/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/5493007L7F6LM3VFER58/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/5493007L7F6LM3VFER58/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/5493007L7F6LM3VFER58/direct-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/5493007L7F6LM3VFER58/direct-parent"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/5493007L7F6LM3VFER58/ultimate-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/5493007L7F6LM3VFER58/ultimate-parent"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/5493007L7F6LM3VFER58"
+      }
+    }
+  }
+}

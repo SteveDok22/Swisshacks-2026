@@ -47,6 +47,7 @@ SIGNAL FLOW
 from __future__ import annotations
 
 import asyncio
+import difflib
 import logging
 from typing import Any
 
@@ -73,6 +74,46 @@ _SEVERITY_CRITICAL = 0.95   # direct sanctions hit, score ≥ 0.85
 _SEVERITY_HIGH = 0.75       # direct sanctions hit, score 0.70–0.85
 _SEVERITY_UBO_CRITICAL = 0.90   # UBO hit, score ≥ 0.85 (indirect → slightly lower)
 _SEVERITY_UBO_HIGH = 0.70       # UBO hit, score 0.70–0.85
+
+# Topics that mark an OpenSanctions entity as an actual watchlist target (vs an
+# incidental search match). Used to gate the derived score below.
+_SANCTION_TOPICS = frozenset(
+    {"sanction", "sanction.linked", "debarment", "export.control", "asset.frozen"}
+)
+
+
+def _is_sanctions_target(hit: dict[str, Any]) -> bool:
+    """True when a search hit is an actual sanctions/watchlist target.
+
+    OpenSanctions tags listed entities with ``target: true`` and sanction-related
+    ``properties.topics``. Gating on this stops an incidental fuzzy name match
+    against a non-sanctioned entity from being scored as a hit.
+    """
+    if hit.get("target") is True:
+        return True
+    topics = (hit.get("properties") or {}).get("topics") or hit.get("topics") or []
+    return any(t in _SANCTION_TOPICS or t.startswith("sanction") for t in topics)
+
+
+def _derive_match_score(hit: dict[str, Any], query_name: str) -> float:
+    """Return a 0..1 screening score for a search hit.
+
+    The ``/search`` endpoint (unlike ``/match``) returns no ``score`` field, so
+    we derive one from the name similarity between the query and the hit caption,
+    gated on the hit being a real sanctions target (otherwise 0.0, so incidental
+    non-sanction matches are discarded). When the API *does* provide a score —
+    the ``/match`` endpoint or a test fixture — that authoritative value wins.
+    """
+    raw = hit.get("score")
+    if raw is not None:
+        return float(raw)
+    if not _is_sanctions_target(hit):
+        return 0.0
+    caption = (hit.get("caption") or "").lower().strip()
+    query = query_name.lower().strip()
+    if not caption or not query:
+        return 0.0
+    return difflib.SequenceMatcher(None, query, caption).ratio()
 
 
 class OpenSanctionsAdapter(CostMixin, RegistryAdapter):
@@ -181,7 +222,7 @@ class OpenSanctionsAdapter(CostMixin, RegistryAdapter):
             return []
 
         for hit in hits:
-            score: float = float(hit.get("score") or 0.0)
+            score: float = _derive_match_score(hit, name)
             if score < _THRESHOLD_LOW:
                 continue
             caption: str = hit.get("caption") or name
@@ -208,7 +249,7 @@ class OpenSanctionsAdapter(CostMixin, RegistryAdapter):
                 continue
 
             for hit in ubo_hits:
-                score = float(hit.get("score") or 0.0)
+                score = _derive_match_score(hit, ubo_name)
                 if score < _THRESHOLD_LOW:
                     continue
                 caption = hit.get("caption") or ubo_name

@@ -52,6 +52,7 @@ ADAPTER_SIGNAL_TYPES = (
     "domain_age",
     "business_model_change",
     "dormancy_break",
+    "corridor_alert",
 )
 
 

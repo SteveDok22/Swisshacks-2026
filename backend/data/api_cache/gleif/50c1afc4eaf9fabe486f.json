@@ -1,0 +1,133 @@
+{
+  "key_raw": "record:391200PN90HUDEAMB912",
+  "cached_at": "2026-06-21T07:06:21.441047+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "391200PN90HUDEAMB912",
+      "attributes": {
+        "lei": "391200PN90HUDEAMB912",
+        "entity": {
+          "legalName": {
+            "name": "Rosneft Trading S.A.",
+            "language": "de"
+          },
+          "otherNames": [],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "de",
+            "addressLines": [
+              "Place du Lac 2"
+            ],
+            "addressNumber": "2",
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Genf",
+            "region": null,
+            "country": "CH",
+            "postalCode": "1204"
+          },
+          "headquartersAddress": {
+            "language": "de",
+            "addressLines": [
+              "Place du Lac 2"
+            ],
+            "addressNumber": "2",
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Genf",
+            "region": null,
+            "country": "CH",
+            "postalCode": "1204"
+          },
+          "registeredAt": {
+            "id": "RA000549",
+            "other": null
+          },
+          "registeredAs": "CHE-309.842.573",
+          "jurisdiction": "CH",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "MVII",
+            "other": null
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": null,
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": []
+        },
+        "registration": {
+          "initialRegistrationDate": "2015-10-26T11:10:55Z",
+          "lastUpdateDate": "2022-03-02T08:33:36Z",
+          "status": "LAPSED",
+          "nextRenewalDate": "2020-10-26T11:10:55Z",
+          "managingLou": "39120001KULK7200U106",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000549",
+            "other": null
+          },
+          "validatedAs": "CHE-309.842.573",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": null,
+        "qcc": "QCHQ39DWA6",
+        "spglobal": [
+          "271271784"
+        ],
+        "conformityFlag": "NON_CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/391200PN90HUDEAMB912/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/391200PN90HUDEAMB912/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/391200PN90HUDEAMB912/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "reporting-exception": "https://api.gleif.org/api/v1/lei-records/391200PN90HUDEAMB912/direct-parent-reporting-exception"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "reporting-exception": "https://api.gleif.org/api/v1/lei-records/391200PN90HUDEAMB912/ultimate-parent-reporting-exception"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/391200PN90HUDEAMB912"
+      }
+    }
+  }
+}

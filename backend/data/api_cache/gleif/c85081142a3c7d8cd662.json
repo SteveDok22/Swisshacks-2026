@@ -1,0 +1,137 @@
+{
+  "key_raw": "record:213800GQJ44W8M4UUB39",
+  "cached_at": "2026-06-21T06:36:13.212617+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "213800GQJ44W8M4UUB39",
+      "attributes": {
+        "lei": "213800GQJ44W8M4UUB39",
+        "entity": {
+          "legalName": {
+            "name": "KONY IT SERVICES PRIVATE LIMITED",
+            "language": "en"
+          },
+          "otherNames": [],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "en",
+            "addressLines": [
+              "9TH FLOOR, B 6- SOUTH TOWER, DIVYASREE ORION",
+              "SY.NO. 66/1, RAIDURGAM"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "HYDERABAD",
+            "region": "IN-TS",
+            "country": "IN",
+            "postalCode": "500032"
+          },
+          "headquartersAddress": {
+            "language": "en",
+            "addressLines": [
+              "C/O TEMENOS HEADQUARTER SA",
+              "2 RUE DE L'ECOLE DE CHIMIE"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "GENEVA",
+            "region": "CH-GE",
+            "country": "CH",
+            "postalCode": "1205"
+          },
+          "registeredAt": {
+            "id": "RA000394",
+            "other": null
+          },
+          "registeredAs": "U72200TG2012PTC083034",
+          "jurisdiction": "IN",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "YSP9",
+            "other": null
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": null,
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": []
+        },
+        "registration": {
+          "initialRegistrationDate": "2020-03-27T00:00:00Z",
+          "lastUpdateDate": "2023-12-15T08:08:15Z",
+          "status": "LAPSED",
+          "nextRenewalDate": "2022-03-27T00:00:00Z",
+          "managingLou": "213800WAVVOPS85N2205",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000394",
+            "other": null
+          },
+          "validatedAs": "U72200TG2012PTC083034",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": "in/U72200TG2012PTC083034",
+        "qcc": "QINYE4MB3A",
+        "spglobal": [
+          "662549327"
+        ],
+        "conformityFlag": "NON_CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/213800GQJ44W8M4UUB39/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/213800GQJ44W8M4UUB39/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/213800GQJ44W8M4UUB39/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/213800GQJ44W8M4UUB39/direct-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/213800GQJ44W8M4UUB39/direct-parent"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/213800GQJ44W8M4UUB39/ultimate-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/213800GQJ44W8M4UUB39/ultimate-parent"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/213800GQJ44W8M4UUB39"
+      }
+    }
+  }
+}

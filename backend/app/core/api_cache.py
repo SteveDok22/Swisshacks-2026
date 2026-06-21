@@ -34,6 +34,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -43,6 +44,21 @@ import pandas as pd
 from app.core.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+def _cache_disabled() -> bool:
+    """True when the disk cache must be bypassed.
+
+    Under pytest the cache is disabled so adapter unit tests (which mock the
+    HTTP layer) see their mocked responses instead of a stale value written to
+    the bind-mounted ``data/api_cache/`` by an earlier test or a live run — and
+    so tests never pollute the committed cache. ``API_CACHE_DISABLED=1`` forces
+    the same behaviour explicitly.
+    """
+    return bool(
+        os.environ.get("API_CACHE_DISABLED")
+        or os.environ.get("PYTEST_CURRENT_TEST")
+    )
 
 
 def _cache_key(raw: str) -> str:
@@ -72,6 +88,8 @@ class DiskCache:
 
     def get(self, key: str) -> Any | None:
         """Return the cached value or None on a miss."""
+        if _cache_disabled():
+            return None
         p = self._path(key)
         if not p.exists():
             return None
@@ -84,6 +102,8 @@ class DiskCache:
 
     def set(self, key: str, data: Any) -> None:
         """Persist *data* under *key*. Silently ignores serialisation errors."""
+        if _cache_disabled():
+            return
         p = self._path(key)
         try:
             p.write_text(

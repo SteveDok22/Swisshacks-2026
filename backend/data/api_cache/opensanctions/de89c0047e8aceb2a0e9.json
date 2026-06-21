@@ -1,0 +1,121 @@
+{
+  "key_raw": "search:Rosneft Trading SA:Company:default",
+  "cached_at": "2026-06-21T07:03:17.867257+00:00",
+  "data": [
+    {
+      "id": "NK-AWheksnBqBkWEkHc2wav3K",
+      "caption": "Rosneft Trading S.A.",
+      "schema": "Company",
+      "properties": {
+        "name": [
+          "ROSNEFT TRADING S.A.",
+          "Rosneft Trading S.A.",
+          "Rosneft Trading SA"
+        ],
+        "address": [
+          "Rue Place du Lac 2, 1204, Geneva",
+          "Avenue Jules-Crosnier 8, GENEVE, GENEVE, 1206, Switzerland",
+          "2, Rue Place du Lac, 1204 Geneva",
+          "Place du Lac 2, 1204 Genf",
+          "2, RUE PLACE DU LAC, 1204, GENEVA"
+        ],
+        "registrationNumber": [
+          "CHE-309.842.573",
+          "CH-660.0.257.011-8"
+        ],
+        "legalForm": [
+          "Società anonima"
+        ],
+        "leiCode": [
+          "391200PN90HUDEAMB912"
+        ],
+        "modifiedAt": [
+          "2022-03-02"
+        ],
+        "jurisdiction": [
+          "ch"
+        ],
+        "country": [
+          "ch"
+        ],
+        "sourceUrl": [
+          "https://home.treasury.gov/news/press-releases/sm909",
+          "https://war-sanctions.gur.gov.ua/en/sanctions/companies/5629",
+          "https://home.treasury.gov/news/press-releases/sm937",
+          "https://permid.org/1-5030694788",
+          "https://war-sanctions.gur.gov.ua/sanctions/companies/5629",
+          "https://sanctionssearch.ofac.treas.gov/Details.aspx?id=18299"
+        ],
+        "opencorporatesUrl": [
+          "https://opencorporates.com/companies/ch/1007528"
+        ],
+        "incorporationDate": [
+          "2011-01-24"
+        ],
+        "status": [
+          "Active"
+        ],
+        "permId": [
+          "5030694788"
+        ],
+        "addressEntity": [
+          "addr-881a8ac46db7a815b723fe03ba053414365a76f8"
+        ],
+        "notes": [
+          "For more information on directives, please visit the following link: http://www.treasury.gov/resource-center/sanctions/Programs/Pages/ukraine.aspx#directives."
+        ],
+        "taxNumber": [
+          "CHE-309.842.573"
+        ],
+        "topics": [
+          "sanction",
+          "export.control",
+          "debarment"
+        ],
+        "programId": [
+          "US-SSI",
+          "US-BIS-EL",
+          "US-UKRRUS-REL"
+        ],
+        "website": [
+          "http://www.rosneft.com/"
+        ],
+        "uniqueEntityId": [
+          "FD7YHXK7DF27",
+          "N98ZRTJMY5A5"
+        ],
+        "createdAt": [
+          "2017-01-26"
+        ]
+      },
+      "datasets": [
+        "ua_war_sanctions",
+        "us_ofac_cons",
+        "permid",
+        "us_trade_csl",
+        "us_sam_exclusions",
+        "opencorporates",
+        "ext_gleif",
+        "us_ofac_sdn",
+        "ext_us_ofac_press_releases"
+      ],
+      "referents": [
+        "usgsa-f148b9b92b271da099b46704b8ed395e2a312723",
+        "ofac-pr-1a8aaaf9740ac0fc6b69996bc41f00d930aad762",
+        "usgsa-28df25567452ddb7e04b6738d18f7ffc29f915da",
+        "usgsa-s4mr5ctb1",
+        "ofac-pr-27631772fe3014f9624497cee3d27d3cc848e498",
+        "trade-csl-5541ec8534c47836ceb41171ef17fdd21765902cf1825d5e9cee0a3c",
+        "lei-391200PN90HUDEAMB912",
+        "ofac-18299",
+        "usgsa-s4mr5cs5b",
+        "ua-ws-entity-5629",
+        "oc-companies-ch-1007528"
+      ],
+      "target": true,
+      "first_seen": "2023-04-20T10:27:20",
+      "last_seen": "2026-06-17T06:35:02",
+      "last_change": "2026-06-16T10:09:37"
+    }
+  ]
+}

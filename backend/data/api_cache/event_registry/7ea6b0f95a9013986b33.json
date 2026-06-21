@@ -1,0 +1,86 @@
+{
+  "key_raw": "article/getArticles:53b5917acf57bcab",
+  "cached_at": "2026-06-21T07:24:56.642964+00:00",
+  "data": {
+    "articles": {
+      "results": [
+        {
+          "uri": "9356895891",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-14",
+          "time": "04:57:20",
+          "dateTime": "2026-06-14T04:57:20Z",
+          "dateTimePub": "2026-06-14T04:41:49Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://siliconcanals.com/sc-v-wirecards-2-1b-in-missing-cash-was-supposedly-held-in-philippine-banks-that-say-they-never-had-an-account/",
+          "title": "Wirecard's $2.1B in 'missing' cash was supposedly held in Philippine banks that say they never had an account - Silicon Canals",
+          "body": "When EY finally refused to sign Wirecard's 2019 accounts, two Philippine banks issued a one-sentence denial that ended Europe's biggest fintech: the €1.9 billion in escrow had never been on their books. The forensic story of how the missing cash was never missing -- because it never existed.\n\nInside EY's Munich office in the spring of 2020, auditors had spent months chasing a single piece of paper. They wanted an original, direct confirmation from two Philippine banks that €1.9 billion in escrow cash existed where Wirecard's books said it did. What they kept receiving were copies, scans, and PDFs routed through intermediaries -- never the document, never from the bank, never directly.\n\nOn 18 June, they stopped waiting. EY refused to sign off on Wirecard's 2019 accounts. Within hours, BDO Unibank and the Bank of the Philippine Islands issued statements of their own: the documents purporting to confirm the balances were forgeries, and neither institution had ever held an account for Wirecard.\n\nThe cash did not exist. It had never existed.\n\nShortly after, Wirecard AG, at one point Germany's most valuable fintech and briefly worth more than Deutsche Bank, conceded in an ad-hoc disclosure that the €1.9 billion likely did not exist. Within days the company filed for insolvency. CEO Markus Braun resigned and was arrested. COO Jan Marsalek vanished and was later reported to be in Moscow.\n\nThe trustee, the islands, and a Manila address\n\nTo understand how a DAX-listed company persuaded auditors, regulators, journalists, and short sellers' opponents that two billion euros existed inside Philippine banks, you have to follow a thin chain of paperwork that ran through Singapore, Dubai, the British Virgin Islands, and finally a small office in Manila.\n\nWirecard's business in Asia was structured around what it called \"third-party acquiring\" partners: outside firms that, on paper, processed payments in jurisdictions where Wirecard did not hold its own licences. The revenue from those partners, the company said, was held in trustee escrow accounts on Wirecard's behalf. By 2019, those escrow accounts held more than half of Wirecard's reported cash and effectively all of its reported profit.\n\nThe trustee named on the documents was a Filipino lawyer. The banks named on the balance confirmation letters were BDO and BPI, the two largest financial institutions in the Philippines. The auditor was EY, which had signed off on Wirecard's accounts for years.\n\nNone of the architecture survived contact with the banks themselves.\n\nSeven days in June\n\nThe collapse compressed into a single week. On 18 June, EY refused to sign off on Wirecard's 2019 accounts, telling the company it could not obtain sufficient audit evidence that the escrow cash existed. Wirecard delayed its annual report. The share price fell sharply in a single session.\n\nThe same day, BDO and BPI went public. Both lenders said the documents naming them as custodians of the Wirecard funds were fraudulent and bore forged signatures of bank officers. BPI said an internal review confirmed no Wirecard account had ever been opened. BDO said the same.\n\nSilicon Canals' full investigation examines how the payments processor's elaborate scheme unraveled through forged bank confirmations and unexplained fund transfers.\n\nDays later, the central bank weighed in. Bangko Sentral ng Pilipinas governor Benjamin Diokno told reporters there was no evidence that the $2.1 billion ever entered the Philippine financial system in the first place. Not through correspondent banking. Not through wire transfers. Not through any channel BSP could trace. The money had not been moved out of the Philippines because it had never arrived.\n\nOn 22 June, Wirecard's management board issued the disclosure that ended the company. On 25 June, it filed for insolvency at the Munich district court.\n\nWhat the forged documents actually said\n\nThe fabricated balance confirmation letters that EY had been shown in earlier audit cycles were not subtle forgeries. They named real bank officers, used letterhead approximations, and quoted nine- and ten-figure balances denominated in euros, an unusual currency for a Philippine domestic escrow account. According to the KPMG special investigation report commissioned by Wirecard's own supervisory board and published in April 2020, the auditors had spent months trying to obtain direct, original confirmations of the trustee balances from the banks. They could not. The documents Wirecard's management produced were copies, scans, and PDFs routed through intermediaries.\n\nKPMG's report concluded that for the third-party acquiring business in the years 2016 through 2018, no positive evidence of revenues could be established. The auditors could not verify that the customers existed, that the transactions had taken place, or that the cash was real. The report was published in April 2020, before the June collapse, and the share price initially rose after its release -- a detail that captures, more cleanly than any subsequent analysis, how completely the market had decided which side of the story to believe.\n\nWhy the system did not catch it sooner\n\nThe Wirecard story is often told as a failure of audit, and EY's role is the subject of ongoing litigation in Germany. But the deeper failure was a regulatory one. In February 2019, Germany's financial regulator BaFin issued a general administrative act banning new short positions in Wirecard stock for two months, an unprecedented step taken against a single company. BaFin also filed criminal complaints against Financial Times journalists, alleging market manipulation. The German establishment had decided, in effect, that the threat to Wirecard came from the people questioning it.\n\nThe work that ultimately undid the company was done by Dan McCrum and a small group of colleagues at the FT. The multi-year investigation came at a personal cost: surveillance, hacking attempts, lawsuits, and a criminal probe in Munich opened against the journalists themselves.\n\nThe Philippine angle was central to McCrum's reporting from 2019 onward. The FT obtained internal Wirecard spreadsheets that showed the third-party acquirers, companies in Dubai, Singapore, and Manila, accounted for almost all of the group's profit. When reporters travelled to the registered addresses of the partner firms, they found a retired sea captain's house in the Philippines, a former bus company office, and shell entities with no operations.\n\nHow forensic accounting actually finds the holes\n\nThe Wirecard case has become a reference point in the forensic accounting profession. The mechanism -- fabricated escrow documents, a captive trustee, a chain of intermediaries between the auditor and the underlying banks -- is now studied alongside Parmalat and Satyam as a model of how confirmation procedures break when the auditor accepts documents from the audited company rather than directly from the institution holding the funds.\n\nThe discipline has changed since. A recent overview of forensic analysis in fraud detection notes that direct, electronic bank confirmation, sent and received through encrypted third-party platforms rather than via paper letters routed through the client, has become standard practice for material balances. The same shift toward direct verification has reached commercial contracting, with services like LSEG Risk Intelligence's real-time bank account verification inside Docusign now embedded in routine corporate workflows.\n\nData analytics has done the rest. A March 2026 Forbes analysis of recent DOJ indictments describes how predictive modelling, pattern recognition, link analysis and anomaly detection now find fraud patterns that no manual review could surface. The same toolkit, applied to Wirecard's customer files, would have flagged years earlier that the bulk of reported transaction volume traced to a handful of shell companies sharing addresses, directors, and bank routing details.\n\nThe cognitive piece\n\nNone of which explains why so many sophisticated people, auditors, regulators, fund managers, board directors, believed the escrow accounts were real for as long as they did. The KPMG report had been public since April. The FT's reporting on the Philippine shell companies had been public for months. Short sellers had been raising concerns for years.\n\nThe tendency to credit information that supports an existing belief and discount information that contradicts it is a well-documented pattern. A December 2025 Psychology Today essay on reversing misinformation describes the mechanism plainly: people only accept information that reinforces what they already believe. For German regulators and institutional shareholders, the belief was that Wirecard was the country's fintech champion. Each new piece of damning evidence got reinterpreted as further proof of an Anglo-Saxon short-selling conspiracy.\n\nThe two Philippine banks understood this dynamic from the other side. When the forged documents naming them surfaced in 2020, both moved within hours to deny any relationship, knowing that silence would be read as confirmation, and that a fabricated paper trail had momentum that only an immediate, public, unambiguous denial could stop.\n\nWhere the money was, and where it never was\n\nSome of the missing €1.9 billion is now understood to have been pure phantom revenue: accounting entries with no corresponding cash, accumulated over years of fictitious third-party acquiring transactions. Some of it appears to have been real money that flowed out of Wirecard's genuine operating business and was diverted, through the same intermediaries, into accounts controlled by individuals close to the company. The Munich prosecutors' indictment of Markus Braun, whose trial verdict is expected in 2026, separates the two categories. Braun has denied wrongdoing and maintains he was deceived by Marsalek and others.\n\nMarsalek, the COO who controlled the Asian business, has not responded publicly to the allegations. The German federal police wanted notice for him remains active. Subsequent reporting by Der Spiegel, ZDF, The Insider and PBS Frontline has placed him in Moscow under the protection of Russian intelligence services, with documentation of his role connecting the Wirecard structure to operations including the Novichok files the FT obtained in July 2020 and the UK spy-ring convictions handed down at the Old Bailey in March 2025.\n\nSo the question that remains is not really about Wirecard. It is about every other DAX-listed, FTSE-listed, S&P-listed company whose auditors today still accept balance confirmations as PDFs routed through management. How many regulators are currently filing complaints against the journalists asking the awkward questions rather than the executives refusing to answer them? How many supervisory boards are reading a KPMG-style special investigation right now and watching the share price rise?\n\nThe two Philippine banks needed a single afternoon to establish what years of audit, regulation and analyst coverage had failed to: that the accounts did not exist. The uncomfortable part of the Wirecard case is not what was missed. It is how easily it could have been checked, and by whom, and how long the people whose job it was to check kept choosing not to.",
+          "source": {
+            "uri": "siliconcanals.com",
+            "dataType": "news",
+            "title": "Silicon Canals"
+          },
+          "authors": [
+            {
+              "uri": "silicon_canals_editorial_team@siliconcanals.com",
+              "name": "Silicon Canals Editorial Team",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://siliconcanals.com/wp-content/uploads/2026/06/wirecard-s-2-1b-in-missing-cash-was-supp.jpg",
+          "eventUri": null,
+          "sentiment": -0.08235294117647063,
+          "wgt": 519109040,
+          "relevance": 1
+        },
+        {
+          "uri": "2026-05-1177610971",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-05-22",
+          "time": "23:36:30",
+          "dateTime": "2026-05-22T23:36:30Z",
+          "dateTimePub": "2026-05-22T08:00:06Z",
+          "dataType": "news",
+          "sim": 0.6196078658103943,
+          "url": "https://www.bloomberg.com/news/articles/2026-05-22/-the-assassin-fahmi-quadir-on-how-to-survive-as-a-short-seller",
+          "title": "'The Assassin' Fahmi Quadir on How to Survive as a Short-Seller",
+          "userHasPermissions": false,
+          "body": "'The Assassin' Fahmi Quadir on How to Survive as a Short-Seller\n\nArrow Right\n\n31:40\n\nListen to Odd Lots on Apple Podcasts\n\nListen to Odd Lots on Spotify\n\nWatch Odd Lots on YouTube\n\nSubscribe to the newsletter\n\nA short-seller is a gum shoe who roots out a particular story about a specific company and ...",
+          "source": {
+            "uri": "bloomberg.com",
+            "dataType": "news",
+            "title": "Bloomberg Business",
+            "private": true
+          },
+          "authors": [
+            {
+              "uri": "tracy_alloway@bloomberg.com",
+              "name": "Tracy Alloway",
+              "type": "author",
+              "isAgency": false
+            },
+            {
+              "uri": "joe_weisenthal@bloomberg.com",
+              "name": "Joe Weisenthal",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://assets.bwbx.io/images/users/iqjWHBFdfxIU/i.blqHF3c43k/v1/1200x776.png",
+          "eventUri": "eng-11678970",
+          "sentiment": -0.1450980392156863,
+          "wgt": 517188990,
+          "relevance": 1
+        }
+      ],
+      "totalResults": 2,
+      "page": 1,
+      "count": 2,
+      "pages": 1
+    }
+  }
+}

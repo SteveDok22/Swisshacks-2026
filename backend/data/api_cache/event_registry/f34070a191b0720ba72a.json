@@ -1,0 +1,117 @@
+{
+  "key_raw": "article/getArticles:599edd3e41ceb791",
+  "cached_at": "2026-06-21T07:23:53.304510+00:00",
+  "data": {
+    "articles": {
+      "results": [
+        {
+          "uri": "2026-06-1202679590",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-18",
+          "time": "12:49:48",
+          "dateTime": "2026-06-18T12:49:48Z",
+          "dateTimePub": "2026-06-18T12:31:29Z",
+          "dataType": "news",
+          "sim": 0.6078431606292725,
+          "url": "https://www.bloomberg.com/news/articles/2026-06-18/orlando-bravo-built-a-software-investing-empire-now-ai-is-changing-the-rules",
+          "title": "Software Buyout King Orlando Bravo Attempts an AI-Era Reboot",
+          "userHasPermissions": false,
+          "body": "Orlando Bravo was quick to see the disruptive potential of software, making a series of lucrative bets on the sector that turned him into a billionaire and transformed the buyout shop he leads, Thoma Bravo, into an industry powerhouse. Now, the disruption is coming for his own firm.\n\nThe Miami-based ...",
+          "source": {
+            "uri": "bloomberg.com",
+            "dataType": "news",
+            "title": "Bloomberg Business",
+            "private": true
+          },
+          "authors": [
+            {
+              "uri": "davide_scigliuzzo@bloomberg.com",
+              "name": "Davide Scigliuzzo",
+              "type": "author",
+              "isAgency": false
+            },
+            {
+              "uri": "allison_mcneely@bloomberg.com",
+              "name": "Allison McNeely",
+              "type": "author",
+              "isAgency": false
+            },
+            {
+              "uri": "preeti_singh@bloomberg.com",
+              "name": "Preeti Singh",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://assets.bwbx.io/images/users/iqjWHBFdfxIU/ii5REIVgqmqg/v0/1200x800.jpg",
+          "eventUri": "eng-11755177",
+          "sentiment": 0.1372549019607843,
+          "wgt": 519482988,
+          "relevance": 1
+        },
+        {
+          "uri": "9351108873",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-09",
+          "time": "13:50:50",
+          "dateTime": "2026-06-09T13:50:50Z",
+          "dateTimePub": "2026-06-09T13:48:43Z",
+          "dataType": "news",
+          "sim": 0.8117647171020508,
+          "url": "https://www.americanbanker.com/news/convicted-ftx-founder-bankman-fried-asks-for-trump-pardon",
+          "title": "Convicted FTX founder Bankman-Fried asks for Trump pardon",
+          "body": "* Key insight: Former FTX founder Sam Bankman-Fried, sentenced in 2023 to 25 years for financial fraud, applied for a presidential pardon on Monday.\n\n* Expert quote: \"The pardon of one more celebrity white collar criminal would not surprise me.\" -Dan Greenberg, senior legal fellow, Cato Institute\n\n* Forward look: President Trump suggested in January he would not pardon Bankman-Fried, but he has issued more than 1,400 pardons in his second term.\n\nSam Bankman-Fried really wants to get out of jail.\n\nThe convicted FTX founder applied for a presidential pardon on Monday, three years into his 25-year prison sentence for the $10 billion fraud he orchestrated through his cryptocurrency empire. It is the latest in a series of moves by Bankman-Fried and his team to try and shorten his sentence.\n\nBankman-Fried's application is pending, according to the Justice Department's pardon office website. The petition sought \"Pardon after Completion of Sentence\" -- rather than a commutation, which would shorten the amount of time he serves -- and did not specify who filed the request. Attorneys who represented Bankman-Fried in his criminal trial did not respond to a request for comment. In a statement to American Banker, a DOJ spokesperson wrote that \"Anyone is eligible to apply for a pardon and POTUS is the ultimate decider.\"\n\nIn contrast to the 2008 financial crisis, former White House chief ethics lawyer Richard Painter says that the \"criminal\" nature of \"FTX was a pretty clear case\" and he wouldn't grant the crypto founder a pardon. However, Painter added that he does not believe that \"President Trump, with all due respect, makes decisions about pardons based on their merits.\"\n\nThe June 8 appeal marks another step in Bankman-Fried's resistance to his sentencing. His legal team is currently awaiting a verdict on their appeal before the U.S. Second Circuit Court of Appeals which concluded oral arguments in November 2025. Earlier this year, Bankman-Fried's mother also submitted a pro se motion for reconsideration to the Southern District of New York Federal Court, echoing her son's frequent claims that he was denied a fair trial.\n\nRepresentatives of the White House directed a request for comment to President Donald Trump's remarks from a January interview with The New York Times, where he stated that he had no intention of pardoning the convicted crypto founder. \"I don't know [Bankman-Fried] at all,\" Trump told the Times.\n\nWith his typically disheveled hair and baggy clothes, Bankman-Fried painted a picture of himself as a trading savant who left Wall Street for the magic of bitcoin. He ran the exchange FTX and trading firm Alameda, appeared on magazine covers and in ads with Gisele Bundchen. But behind the scenes he was manipulating the finances of both companies, behavior that was eventually exposed. The 34-year-old Bankman-Fried was convicted in 2023 on seven counts of fraud and conspiracy for orchestrating a scheme through his cryptocurrency exchange empire that prosecutors say cost customers, lenders, and investors more than $10 billion.\n\nWhile Trump said he didn't know Bankman-Fried, he has been very generous with the pardon power. Trump has issued more than 1,400 pardons and commutations in his second term alone -- six times the 238 he granted across his entire first term, according to DOJ records. He also pardoned well-known figures in the crypto world, including Silk Road founder Ross Ulbricht and Binance CEO Changpeng Zhao. The scope and pace has drawn sharp criticism from legal scholars and political pundits, who argue he is abusing the presidential pardon power.\n\nCato Institute senior legal fellow Dan Greenberg said that the formal \"bureaucracy\" for clemency applicants in previous presidencies has been replaced by an \"informal process\" that \"disproportionately favors famous people.\"\n\n\"At this point the president has pardoned or granted clemency to so many white collar criminals who are clearly guilty and who have clearly done bad things that at this point, the pardon of one more celebrity white collar criminal would not surprise me,\" Greenberg said.\n\nBy his analysis, Trump is \"more likely to be swayed when people say nice or complimentary things about him.\" Greenberg added that there are \"a number of factors that make it a little bit more likely that President Trump is going to pardon Sam Bankman-Fried.\"\n\nWhile formerly a Democratic megadonor, Bankman-Fried has made numerous public and private appeals to Trump regarding clemency. On Monday morning he told Fox Business that he \"absolutely\" wants a presidential pardon, before adding \"It would be obviously, you know, ultimately up to the president, not up to me.\"\n\nFrom his prison cell in California, Bankman-Fried has taken to social media to praise Trump's economic policies and decisions in the Iran War. His representatives have also courted Republican strategists with close ties to the Trump administration, according to the Financial Times.\n\n\"Now they're putting on the red hats, and it really looks fake because they're all so left wing,\" Painter added, citing Bankman-Fried and his parents' extensive donations to the Democratic party in the 2020 and 2022 elections. \"It's so obvious he's kissing up to Trump ... you look at his X posts and he's suddenly become a complete Trumper. It's so fake.\"\n\n\"If Trump pardons [Bankman-Fried], all the power to him,\" Painter laughed. \"But it's all a farce.\"",
+          "source": {
+            "uri": "americanbanker.com",
+            "dataType": "news",
+            "title": "American Banker"
+          },
+          "authors": [],
+          "image": "https://arizent.brightspotcdn.com/dims4/default/bff0c6a/2147483647/strip/true/crop/4000x2250+0+0/resize/1200x675!/quality/90/?url=https%3A%2F%2Fsource-media-brightspot.s3.us-east-1.amazonaws.com%2Fca%2Fdd%2F8ade039946bd82975e0f211b1340%2F405170470.jpg",
+          "eventUri": "eng-11724435",
+          "sentiment": 0.01960784313725483,
+          "wgt": 518709050,
+          "relevance": 1
+        },
+        {
+          "uri": "9346274144",
+          "lang": "eng",
+          "isDuplicate": true,
+          "date": "2026-06-05",
+          "time": "11:07:34",
+          "dateTime": "2026-06-05T11:07:34Z",
+          "dateTimePub": "2026-06-05T11:00:07Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://us.cnn.com/2026/06/05/business/big-banks-crypto-regulation",
+          "title": "Big banks' gloves come off in their fight with crypto | CNN Business",
+          "body": "* JPMorgan Chase CEO Jamie Dimon called out Coinbase CEO Brian Armstrong over crypto legislation.\n\n* The dispute centers on the Clarity Act, which would let crypto firms offer rewards without bank-level consumer protections.\n\n* Critics warn the bill could weave crypto's volatility into traditional finance and expose everyone to future crises.\n\nAI-generated summary was reviewed by a CNN editor.\n\nNew York --\n\nEven for Jamie Dimon, the banking titan who's not known to mince words, it was a surprising shot across the bow when he described a fellow financier as \"full of sh*t.\"\n\n\"No one's gonna bow down to this guy or that company,\" Dimon told Fox Business last week. \"This guy\" being Brian Armstrong, and \"that company\" being cryptocurrency exchange Coinbase.\n\nThe Dimon-Armstrong tension isn't new, but it is boiling over publicly as the Senate inches closer to a floor vote on the crypto industry's No. 1 legislative priority, known as the Clarity Act.\n\nDimon, a longtime crypto skeptic, broadly supports crypto regulation but takes issue with a provision in the Clarity Act that would allow companies like Coinbase to \"effectively pay interest on deposits... without the protection they should have.\"\n\nThe spicy comment about Armstrong came after Dimon rattled off other concerns about the Clarity Act, including what he sees as its insufficient anti-money-laundering and know-your-customer safeguards that banks have had in place for decades.\n\nShortly after Dimon's \"full of sh*t\" moment made the rounds on social media, Armstrong responded on X, posting an apparently AI-generated \"Heated Rivalry\" meme depicting himself and Dimon as hockey players. On Wednesday, he told Politico that he was \"perplexed\" by Dimon's rebuke over the bill that Armstrong believes will ultimately be \"good for the banks.\"\n\n\"I've got a lot of respect for Jamie Dimon, so it was kind of sad to hear that,\" Armstrong said.\n\nBrian Armstrong, CEO of Coinbase, has been the public face of crypto's lobbying effort.\n\nAaron Schwartz/Bloomberg/Getty Images\n\nIn a statement to CNN, Coinbase's chief policy officer, Faryar Shirzad, said that \"at the end of the day, we all share the same goal: improving the financial lives of Americans.\"\n\nThe Clarity Act is rattling Wall Street and consumer advocates alike because of its promise to weave crypto -- a historically self-contained financial system prone to stomach-churning booms and busts -- more fully into the machinery of traditional finance.\n\n\"It's not just a crypto story, it's a broad deregulation of our securities markets story,\" Hilary Allen, a law professor at American University who specializes in banking and cryptocurrency, said in an interview. And that should concern everyone, Allen says, even if they have no investments at all, because \"if we get a financial crisis in this space... no one comes out of that unscathed.\"\n\nWhat is the Clarity Act?\n\nThe legislation was drafted in 2025 to settle a long-running turf war over which regulatory body should oversee digital assets, like bitcoin or stablecoins.\n\nFor years, the crypto industry has argued that it can't be regulated by the Securities and Exchange Commission -- the default watchdog for the investing world -- because its novel technology is fundamentally at odds with the agency's 90-year-old rulebook. (Critics, including some lawmakers, regulators and consumer advocates, say that argument is just an attempt to bypass the rules everyone else plays by and craft a custom framework that puts almost no limits on crypto companies.)\n\nIn 2022, lawmakers introduced the Digital Commodities Consumer Protection Act, known on Capitol Hill at the time as \"Sam's bill,\" or the \"SBF\" bill after its most prominent backer, Sam Bankman-Fried. Perhaps unsurprisingly, lawmakers lost interest in that legislation in late 2022 when Bankman-Fried's FTX trading platform collapsed.\n\nA view of the US Capitol in Washington, DC, on June 4, 2026.\n\nKent Nishimura/AFP/Getty Images\n\nThe Clarity Act revives a key goal of the earlier effort: to ensure thatthe Commodity Futures Trading Commission, and not the SEC, is in charge of regulating the bulk of crypto markets. Earlier this year, Bankman-Fried, who is serving a 25-year prison sentence for fraud and conspiracy, tweeted via a proxy his support for the Clarity Act, calling it a \"huge milestone\" for crypto.\n\nThe Clarity Act is billed as \"comprehensive market structure legislation that establishes a clear regulatory framework for digital assets,\" according to Republican backers on the Senate Banking Committee.\n\nWhich is the technical way of saying it allows crypto companies to operate, at long last, in compliance with US rules, rather than what they have been doing -- essentially running their businesses within a patchwork of state and federal legal gray areas.\n\nIn short: Clarity aims to create broad rules of the road for crypto and establishes the CFTC as the primary industry regulator, rather than the SEC. The bill cleared the House last year and is expected to receive a floor vote in the Senate in the coming weeks.\n\nWhy banks are seething\n\nDimon and other banking leaders, including the American Banking Association, broadly support the Clarity Act, but they take issue with provisions that would effectively allow crypto companies to act like banks without the consumer protections and regulatory oversight that banks must adhere to.\n\nThe bill would allow crypto firms to offer financial rewards to customers for using stablecoins, a kind of digital proxy for US dollars. Which sounds a lot like how chartered banks, such as JPMorgan, offer interest-bearing bank accounts.\n\nJPMorgan Chase headquarters in New York.\n\nZamek/VIEWpress/Corbis /Getty Images\n\n\"If (Armstrong) takes deposits like a bank, he should have bank rules,\" Dimon said in the Fox Business interview.\n\nCoinbase disputes the idea that it is engaging in bank-like behavior just because it accepts customer funds.\n\n\"If you have a brokerage account at Charles Schwab, that's regulated differently than a bank account is,\" Shirzad said in an interview. \"If you have a Starbucks card, that's regulated differently than a bank account because they're different products.\"\n\nThe immediate concern from banks (and many consumer advocates) is that crypto exchanges like Coinbase would, in the grand tradition of Silicon Valley innovation, lure customers in with huge rewards and then phase those benefits out over time.\n\nDeposits in a crypto exchange are also not insured by the federal government the way bank deposits are, but that's the kind of fine print that customers tend to overlook until it's too late.\n\nJPMorgan Chase spokesperson Trish Wexler underscored that the bank wants the bill to pass, with some \"fixes,\" like prohibiting rewards on stablecoin holdings and strengthening anti-money-laundering guardrails.\n\n\"Our focus is on educating the senators... and hopefully when it gets to the floor, you're going to start to see some amendments where rational heads will prevail.\"\n\nWhy consumer advocates hate it\n\nUltimately, both Dimon and Armstrong want to see the Clarity Act passed in one form or another, and President Donald Trump, whose crypto portfolio now eclipses his real estate holdings, has championed the bill.\n\nBut opponents abound. Sen. Elizabeth Warren has said that the bill \"declares open season\" on crypto investors by wiping out state-level protections against fraud, while failing to \"lift even the tiniest finger to address the Trump Administration's crypto-related corruption.\"\n\nSen. Elizabeth Warren is a fierce opponent of the Clarity Act.\n\nKent Nishimura/Los Angeles Times/Getty Images\n\nMany experts are concerned about the way the bill would increase everyone's exposure to crypto, whether they invest in it or not.\n\n\"What they're doing is opening the door to getting crypto more integrated with mainstream banks,\" said Amanda Fischer, chief operating officer for the nonprofit Better Markets. She notes that the FTX implosion of 2022 was bad for crypto investors -- Bitcoin lost nearly a quarter of its value in the span of two days -- but the fallout was largely contained within the digital asset ecosystem.\n\nBut as more traditional banks invest in crypto under the halo of federal regulation, future blow-ups may not stay so confined.\n\n\"Our banking system is meant to support lending to households and businesses,\" Fischer says. \"Not this casino-like activity.\"",
+          "source": {
+            "uri": "us.cnn.com",
+            "dataType": "news",
+            "title": "CNN"
+          },
+          "authors": [
+            {
+              "uri": "allison_morrow@us.cnn.com",
+              "name": "Allison Morrow",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://media.cnn.com/api/v1/images/stellar/prod/gettyimages-2269242688.jpg?c=16x9&q=w_800,c_fill",
+          "eventUri": null,
+          "sentiment": 0.1686274509803922,
+          "wgt": 518353654,
+          "relevance": 1
+        }
+      ],
+      "totalResults": 7,
+      "page": 1,
+      "count": 3,
+      "pages": 3
+    }
+  }
+}

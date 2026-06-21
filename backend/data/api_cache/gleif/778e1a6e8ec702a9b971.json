@@ -1,0 +1,135 @@
+{
+  "key_raw": "record:529900VH0MQZASU8AR79",
+  "cached_at": "2026-06-21T07:24:55.657145+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "529900VH0MQZASU8AR79",
+      "attributes": {
+        "lei": "529900VH0MQZASU8AR79",
+        "entity": {
+          "legalName": {
+            "name": "Wirecard Sales International Holding GmbH",
+            "language": "de-DE"
+          },
+          "otherNames": [],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "de-DE",
+            "addressLines": [
+              "Einsteinring 35"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Aschheim",
+            "region": "DE-BY",
+            "country": "DE",
+            "postalCode": "85609"
+          },
+          "headquartersAddress": {
+            "language": "de-DE",
+            "addressLines": [
+              "Einsteinring 35"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Aschheim",
+            "region": "DE-BY",
+            "country": "DE",
+            "postalCode": "85609"
+          },
+          "registeredAt": {
+            "id": "RA000304",
+            "other": null
+          },
+          "registeredAs": "HRB 187465",
+          "jurisdiction": "DE",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "2HBR",
+            "other": null
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": null,
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": []
+        },
+        "registration": {
+          "initialRegistrationDate": "2019-08-12T15:03:19Z",
+          "lastUpdateDate": "2021-08-11T23:30:03Z",
+          "status": "LAPSED",
+          "nextRenewalDate": "2021-08-12T15:03:19Z",
+          "managingLou": "5299000J2N45DDNE4Y28",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000304",
+            "other": null
+          },
+          "validatedAs": "HRB 187465",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": null,
+        "qcc": "QDE9WTH4Q9",
+        "spglobal": [
+          "37981628"
+        ],
+        "conformityFlag": "NON_CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/529900VH0MQZASU8AR79/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/529900VH0MQZASU8AR79/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/529900VH0MQZASU8AR79/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/529900VH0MQZASU8AR79/direct-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/529900VH0MQZASU8AR79/direct-parent"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/529900VH0MQZASU8AR79/ultimate-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/529900VH0MQZASU8AR79/ultimate-parent"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/529900VH0MQZASU8AR79"
+      }
+    }
+  }
+}

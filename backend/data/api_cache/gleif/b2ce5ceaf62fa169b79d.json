@@ -1,0 +1,141 @@
+{
+  "key_raw": "record:335800KZD83A4J84YH80",
+  "cached_at": "2026-06-21T07:24:55.650430+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "335800KZD83A4J84YH80",
+      "attributes": {
+        "lei": "335800KZD83A4J84YH80",
+        "entity": {
+          "legalName": {
+            "name": "HERMES I TICKETS PRIVATE LIMITED",
+            "language": "en"
+          },
+          "otherNames": [],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "en",
+            "addressLines": [
+              "UNIT NO 301&302, 3RD FLOOR CAMPUS 3B",
+              "RMZ MILLENIA BUSINESS PARK-II",
+              "MGR MAIN ROAD",
+              "PERUNGUDI"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "CHENNAI",
+            "region": "IN-TN",
+            "country": "IN",
+            "postalCode": "600096"
+          },
+          "headquartersAddress": {
+            "language": "en",
+            "addressLines": [
+              "UNIT NO 301&302, 3RD FLOOR CAMPUS 3B",
+              "RMZ MILLENIA BUSINESS PARK-II",
+              "MGR MAIN ROAD",
+              "PERUNGUDI"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "CHENNAI",
+            "region": "IN-TN",
+            "country": "IN",
+            "postalCode": "600096"
+          },
+          "registeredAt": {
+            "id": "RA000394",
+            "other": null
+          },
+          "registeredAs": "U63040TN2006PTC082562",
+          "jurisdiction": "IN",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "YSP9",
+            "other": null
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": null,
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": []
+        },
+        "registration": {
+          "initialRegistrationDate": "2019-01-31T12:04:43Z",
+          "lastUpdateDate": "2021-01-31T18:01:09Z",
+          "status": "LAPSED",
+          "nextRenewalDate": "2021-01-30T18:30:00Z",
+          "managingLou": "335800FVH4MOKZS9VH40",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000394",
+            "other": null
+          },
+          "validatedAs": "U63040TN2006PTC082562",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": "in/U63040TN2006PTC082562",
+        "qcc": "QIN3TTRA2K",
+        "spglobal": [
+          "282095871"
+        ],
+        "conformityFlag": "NON_CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/335800KZD83A4J84YH80/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/335800KZD83A4J84YH80/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/335800KZD83A4J84YH80/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/335800KZD83A4J84YH80/direct-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/335800KZD83A4J84YH80/direct-parent"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/335800KZD83A4J84YH80/ultimate-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/335800KZD83A4J84YH80/ultimate-parent"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/335800KZD83A4J84YH80"
+      }
+    }
+  }
+}

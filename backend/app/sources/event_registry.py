@@ -317,6 +317,69 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
             )
         return signals
 
+    async def fetch_recent_news(
+        self, drift_id: str, name: str, since_month: int = 0, max_articles: int = 8
+    ) -> list[PublicSignal]:
+        """Best-effort REAL recent articles about *name* as news signals.
+
+        Unlike ``fetch_signals`` (which gates the adverse-media scan on negative
+        event sentiment), this returns the latest real articles with their REAL
+        title and REAL ``source_url`` — so a live entity's signal cards link
+        straight to the actual article instead of a search page, even when the
+        sentiment-gated scan finds nothing. Returns ``[]`` without a key or on
+        any error. Cached via ``_post``.
+        """
+        if not self._is_configured:
+            return []
+        since_month = max(0, min(11, since_month))
+        date_from = _month_offset_to_date(since_month)
+        date_to = datetime.now(UTC).strftime("%Y-%m-%d")
+        payload: dict[str, Any] = {
+            "action": "getArticles",
+            "keyword": name,
+            "dateStart": date_from,
+            "dateEnd": date_to,
+            "lang": "eng",
+            "resultType": "articles",
+            "articlesCount": max_articles,
+            "articlesSortBy": "date",
+            "returnInfo": {"articleInfo": {"sentiment": True, "bodyLen": 0}},
+        }
+        try:
+            data = await self._post("article/getArticles", payload)
+        except (httpx.HTTPStatusError, httpx.RequestError):
+            return []
+
+        articles = (data.get("articles") or {}).get("results", [])
+        signals: list[PublicSignal] = []
+        for art in articles:
+            url = art.get("url")
+            title = art.get("title")
+            if not url or not title:
+                continue
+            sentiment = art.get("sentiment")
+            severity = _sentiment_to_severity(sentiment)
+            stype = (
+                "adverse_media"
+                if (sentiment is not None and sentiment < -0.2)
+                else "news"
+            )
+            month = _date_str_to_month(
+                str(art.get("dateTime", date_from))[:10], since_month
+            )
+            source_name = (art.get("source") or {}).get("title") or self.display_name
+            signals.append(
+                PublicSignal(
+                    month=month,
+                    signal_type=stype,
+                    headline=str(title)[:200],
+                    severity=severity,
+                    source=source_name,
+                    source_url=url,
+                )
+            )
+        return signals
+
     async def _fetch_name_pivot_articles(
         self, name: str, date_from: str, date_to: str, since_month: int
     ) -> list[PublicSignal]:

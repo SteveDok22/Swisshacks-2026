@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import time
 from collections.abc import AsyncIterator
 from datetime import UTC, datetime, timedelta
@@ -25,6 +26,7 @@ from datetime import UTC, datetime, timedelta
 import anthropic
 from anthropic.types import MessageParam
 
+from app.core.api_cache import DiskCache
 from app.core.config import settings
 from app.core.logging import get_logger
 
@@ -62,6 +64,10 @@ class AnthropicClient:
         self._client: anthropic.Anthropic | None = None
         self._async_client: anthropic.AsyncAnthropic | None = None
         self._cache: dict[str, _CacheEntry] = {}
+        # Persistent disk cache for real completions — survives restarts and is
+        # committed to the repo so the demo replays real adjudications offline
+        # without re-spending tokens. Auto-disabled under pytest (see DiskCache).
+        self._disk = DiskCache("anthropic")
         # Snapshot real-vs-mock ONCE at construction. The SDK clients below are
         # created (or not) based on this, so is_mock must read the same snapshot —
         # otherwise a later flip of settings.external_apis_enabled would make
@@ -79,12 +85,18 @@ class AnthropicClient:
             )
     
     def _is_real_mode(self) -> bool:
-        """Real API calls only if external APIs are enabled AND a valid-looking
-        key is set. The master switch forces mock mode when offline regardless
-        of any configured key, so the offline demo never reaches Anthropic."""
+        """Real API calls whenever a valid-looking key is configured.
+
+        Decoupled from ``EXTERNAL_APIS_ENABLED`` on purpose: the LLM is invoked
+        per-call for T2 adjudication (the same per-entity-live philosophy as the
+        source adapters) and every real completion is disk-cached, so using real
+        Claude does not force all the other adapters live and the offline demo
+        stays cheap and reproducible. ``ANTHROPIC_FORCE_MOCK=1`` pins mock mode
+        for CI / no-network runs; tests have no key and so are mock anyway."""
+        if os.environ.get("ANTHROPIC_FORCE_MOCK"):
+            return False
         return bool(
-            settings.external_apis_enabled
-            and self._api_key
+            self._api_key
             and self._api_key.startswith("sk-ant-")
             and len(self._api_key) > 20
         )
@@ -138,6 +150,15 @@ class AnthropicClient:
             else:
                 del self._cache[cache_key]
 
+        # Persistent disk cache — survives restarts; committed for the offline
+        # demo. A hit costs zero tokens and never re-counts as a real call.
+        if use_cache:
+            disk_hit = self._disk.get(cache_key)
+            if isinstance(disk_hit, str):
+                self._cache[cache_key] = _CacheEntry(disk_hit)
+                logger.info("anthropic_disk_cache_hit", model=model)
+                return disk_hit, True, 0
+
         # === Mock mode ===
         if self.is_mock:
             mock_text = self._mock_response(prompt, system)
@@ -181,6 +202,9 @@ class AnthropicClient:
 
             if use_cache:
                 self._cache[cache_key] = _CacheEntry(text)
+                # Persist real completions only (never mock text) so the
+                # committed cache replays genuine adjudications offline.
+                self._disk.set(cache_key, text)
 
             return text, False, tokens_used
 

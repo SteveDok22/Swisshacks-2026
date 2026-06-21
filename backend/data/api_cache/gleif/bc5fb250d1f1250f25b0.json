@@ -1,0 +1,135 @@
+{
+  "key_raw": "record:529900NB6TN7EHS4MA55",
+  "cached_at": "2026-06-21T07:24:55.565835+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "529900NB6TN7EHS4MA55",
+      "attributes": {
+        "lei": "529900NB6TN7EHS4MA55",
+        "entity": {
+          "legalName": {
+            "name": "Wirecard Processing FZ-LLC",
+            "language": "en"
+          },
+          "otherNames": [],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "ar",
+            "addressLines": [
+              "3801-3822, Floor 38, Al Shatha Tower"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Dubai",
+            "region": "AE-DU",
+            "country": "AE",
+            "postalCode": null
+          },
+          "headquartersAddress": {
+            "language": "ar",
+            "addressLines": [
+              "3801-3822, Floor 38, Al Shatha Tower"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Dubai",
+            "region": "AE-DU",
+            "country": "AE",
+            "postalCode": null
+          },
+          "registeredAt": {
+            "id": "RA000573",
+            "other": null
+          },
+          "registeredAs": "19856",
+          "jurisdiction": "AE",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "8888",
+            "other": "Free Zone Company"
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": null,
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": []
+        },
+        "registration": {
+          "initialRegistrationDate": "2019-08-14T10:10:54Z",
+          "lastUpdateDate": "2024-10-21T09:30:32Z",
+          "status": "LAPSED",
+          "nextRenewalDate": "2020-08-14T10:10:54Z",
+          "managingLou": "5299000J2N45DDNE4Y28",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000573",
+            "other": null
+          },
+          "validatedAs": "19856",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": null,
+        "qcc": "QAE9YCTC7P",
+        "spglobal": [
+          "127262873"
+        ],
+        "conformityFlag": "NON_CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/529900NB6TN7EHS4MA55/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/529900NB6TN7EHS4MA55/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/529900NB6TN7EHS4MA55/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/529900NB6TN7EHS4MA55/direct-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/529900NB6TN7EHS4MA55/direct-parent"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/529900NB6TN7EHS4MA55/ultimate-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/529900NB6TN7EHS4MA55/ultimate-parent"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/529900NB6TN7EHS4MA55"
+      }
+    }
+  }
+}

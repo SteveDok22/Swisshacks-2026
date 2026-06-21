@@ -1,0 +1,974 @@
+{
+  "key_raw": "search:Bank Rossiya:Company:default",
+  "cached_at": "2026-06-21T07:03:17.977661+00:00",
+  "data": [
+    {
+      "id": "NK-XwWisWZ6gohqkrckJUbBfi",
+      "caption": "Bank Rossiya",
+      "schema": "Company",
+      "properties": {
+        "createdAt": [
+          "2003-11-29"
+        ],
+        "notes": [
+          "Date of assignment of state registration number: 2002-08-05",
+          "(also BANK ROSSIYA)",
+          "Fondée le 27/06/1990\nSite internet: Abr.ru\nPersonnes associées: Yuriy KOVALCHUK (actionnaire principal)\nCourriel: bank@abr.ru\nNuméro de licence: 328\nINN: 7831000122\nOGRN: 1027800000084",
+          "License number: 328",
+          "Disqualified",
+          "Bank Rossiya is the personal bank of Senior Officials of the Russian Federation. In this capacity, Bank Rossiya supports and benefits from Russian decision-makers responsible for the annexation of Crimea or the destabilisation of Eastern Ukraine. Associated with Yuriy Valentinovich Kovalchuk, largest shareholder of Bank Rossiya. Bank Rossiya has important stakes in the National Media Group which, in turn, controls television stations which actively support the Russian government’s policies of destabilisation of Ukraine. Since the illegal annexation of Crimea, Bank Rossiya has opened branches across Crimea and Sevastopol. Bank Rossiya also provided a loan to Federal State Unitary Enterprise “Crimea Railway” and supports the construction of the railway over the Crimean bridge. Therefore, Bank Rossiya supports financially actions which undermine and threaten the territorial integrity of Ukraine.",
+          "(Date of UN designation: 2022-02-23)",
+          "Email: bank@abr.ru",
+          "Associated individuals: Yuriy Kovalchuk (largest shareholder)",
+          "Website: Abr.ru",
+          "Дата присвоения государственного регистрационного номера: 2002-08-05",
+          "(also AKTSIONERNY BANK RUSSIAN FEDERATION)",
+          "1027800000084 (regnumber-Registration Number) (OGRN)",
+          "Founded on 27.6.1990;  Associated individuals: Yuriy KOVALCHUK (largest shareholder)\nLicense number: 328",
+          "Bank Rossiya is the personal bank of Senior Officials of the Russian Federation.",
+          "7831000122 (fiscalcode-National Fiscal Code) (INN)",
+          "Numéro de licence : 328",
+          "Personnes associées: Yuriy Kovalchuk (actionnaire principal) - Bank Rossiya est la banque personnelle des hauts fonctionnaires de la Fédération de Russie. En cette qualité, Bank Rossiya apporte un soutien aux décideurs russes responsables de l’annexion de la Crimée ou de la déstabilisation de l’est de l’Ukraine et tire avantage de ces décideurs. Bank Rossiya détient d’importantes participations dans le National Media Group, qui contrôle des chaînes de télévision soutenant activement les politiques du gouvernement russe visant à déstabiliser l’Ukraine. Depuis l’annexion illégale de la Crimée, Bank Rossiya a ouvert des succursales en Crimée et à Sébastopol. Bank Rossiya a également accordé un prêt à l’entreprise unitaire publique fédérale “Crimea Railway” et soutient la construction de la voie ferrée sur le pont de Crimée. Par conséquent, Bank Rossiya apporte un soutien financier à des actions qui compromettent et menacent l’intégrité territoriale de l’Ukraine. Associée à Yuriy Valentinovich Kovalchuk, actionnaire principal de Bank Rossiya.",
+          "Personal bank for senior officials of the Russian Federation Registration ID: 1027800000084 (Russia) Government Gazette Number: 09804148 (Russia) Tax ID No.: 7831000122 (Russia) Email: bank@abr.ru Website: www.abr.ru SWIFT/BIC: ROSYRU2P SWIFT/BIC: ROSYRU2PXXX Legal Entity Identifier (LEI): 534006WDUE2J9S01D70",
+          "OGRN: 1027800000084",
+          "INN: 7831000122",
+          "The prohibition on correspondent banking relationships and processing payments was imposed on 15/12/2023. The Director Disqualification Sanction was imposed on 09/04/2025."
+        ],
+        "name": [
+          "Акционерное общество \"Акционерный Банк \"РОССИЯ\"",
+          "Bank Rossiya",
+          "открытое акционерное общество «Акционерный банк «Россия»",
+          "Bank Rossija",
+          "Банк “Россия”",
+          "Акціонерне товариство \"Акціонерний банк \"Росія\"",
+          "BANK 'ROSSIYA'",
+          "Banca Rossiya",
+          "Aktsionerny Bank Russian Federation",
+          "BANK ROSSIYA",
+          "Відкрите акціонерне товариство \"Акціонерний банк \"Росія\"",
+          "Rossiya bank",
+          "АО \"АБ \"РОССИЯ\"",
+          "Banco Rossiya",
+          "Банка „Русия“",
+          "Відкрите акціонерне товариство «Акціонерний банк «Росія»",
+          "バンク・ロシア",
+          "Banka Rusko",
+          "Bank of Russia",
+          "открытое акционерное общество \"Акционерный банк \"Россия\"",
+          "Russia Bank",
+          "BANK \"ROSSIYA",
+          "AB Rossiya AO"
+        ],
+        "alias": [
+          "Банк “Россия\"",
+          "Bank Rossiya",
+          "Joint-Stock Bank Rossiya",
+          "Bank Rossija",
+          "Open Joint Stock Company Rosiya Joint-Stock Bank",
+          "Otkrytoe Aktsionernoe Obshchestvo Aktsionerny Bank Rossiya",
+          "Banca Rossiya",
+          "Aktsionerny Bank Russian Federation",
+          "Banco Rossiya",
+          "OTKRYTOE AKTSIONERNOE OBSHCHESTVO AKTSIONERNY BANK ROSSIYA",
+          "Банка „Русия“",
+          "Banka Rusko",
+          "Bank of Russia",
+          "AB ROSSIYA, OAO",
+          "AB Rossiya, OAO",
+          "Russia Bank",
+          "Акционерное общество 'Акционерный Банк 'РОССИЯ''",
+          "Банк «Россия»",
+          "Aktsionerne tovarystvo \"Aktsionernyi bank \"Rosiia\""
+        ],
+        "addressEntity": [
+          "addr-65167e7d53513af3e4bd1b45637baebbd3ca2997",
+          "NK-cG4UCrH7jQ6vzNDKJLGfNb",
+          "NK-3tkZRSrDqgyHZvMuQE4nWv",
+          "addr-ae42144f557e1913342492119b309728b7fd1d48"
+        ],
+        "programId": [
+          "SG-MAS",
+          "EU-UKR",
+          "AU-RUSSIA",
+          "GB-RUS",
+          "UA-SA1644",
+          "NZ-RSA2022",
+          "US-UKRRUS-REL",
+          "CA-SEMA",
+          "SECO-UKRAINE"
+        ],
+        "topics": [
+          "sanction",
+          "debarment",
+          "fin.bank",
+          "corp.disqual"
+        ],
+        "address": [
+          "п. Растрелли, д. 2, лит. А, Санкт-Петербург, SPE, 191124",
+          "2 Rastrelli Square, Liter A, St. Petersburg, 191124, Russian Federation",
+          "Pl Rastrelli 2 Liter A, Saint Petersburg, RUSSIAN FEDERATION, 191124",
+          "Російська Федерація, 191124, місто Санкт-Петербург, площа Растреллі, 2, літ. А",
+          "191124, Російська Федерація, м. Санкт-Петербург, пл. Растреллі, 2а",
+          "191124, г. Санкт-Петербург, пл. Растрелли, д. 2, стр. 1",
+          "площадь Растрелли, дом 2, корп.лит. А, Санкт-Петербург, SPE, 191124",
+          "ГОРОД САНКТ-ПЕТЕРБУРГ, ПЛ. РАСТРЕЛЛИ, Д. 2, СТР. 1",
+          "2 Liter A Pl. Tastrelli, St Petersburg 191124, Russia",
+          "м. Сімферополь, вул. Набережна імені 60-річчя СРСР, буд. 34, АР Крим, Україна",
+          "Rastrelli Square, 2a, Saint-Petersburg, Russia, 191124",
+          "p. Rastrelli, d. 2, lit. A, SAINT PETERSBURG, 191124, Russia",
+          "RASTRELLI SQ 2 LITER A ST PETERSBURG 191124 RUSSIAN FEDERATION",
+          "2 LITER A PL. RASTRELLI, SAINT PETERSBURG, 191124",
+          "2 Liter A Pl. Rastrelli, Saint Petersburg, 191124",
+          "Pl Rastrelli 2 Liter A Saint-Pétersbourg, 191124 RUSSIE",
+          "ploshchad' Rastrelli, dom 2, korp.lit. A, SAINT PETERSBURG, 191124, Russia",
+          "RASTRELLI SQ. 2 LITER A ST. PETERSBURG 191124 ST. PETERSBURG RUSSIAN FEDERATION",
+          "Rastrelli Square, 2A, Saint-Petersburg, Russia, 191124",
+          "ПЛ. РАСТРЕЛЛИ Д. 2 СТР. 1, Г.САНКТ-ПЕТЕРБУРГ, 191124",
+          "Pl Rastrelli 2 Liter A Saint Petersburg, 191124",
+          "Pl Rastrelli 2 Liter A, St. Petersburg, Russian Federation, 191124"
+        ],
+        "sourceUrl": [
+          "https://war-sanctions.gur.gov.ua/sanctions/companies/111",
+          "https://gels-avoirs.dgtresor.gouv.fr/Gels/RegistreDetail?idRegistre=3839",
+          "https://find-and-update.company-information.service.gov.uk/disqualified-officers/corporate/5WD37zQ6KHZ04ZCfJ-xGj6_tmpQ",
+          "https://sanctionssearch.ofac.treas.gov/Details.aspx?id=16681",
+          "https://war-sanctions.gur.gov.ua/en/sanctions/companies/111",
+          "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=OJ%3AL_202500527&qid=1742218670627",
+          "https://permid.org/1-4298198475"
+        ],
+        "country": [
+          "ru"
+        ],
+        "incorporationDate": [
+          "2002-08-05",
+          "1990-06-27",
+          "1991-12-29"
+        ],
+        "modifiedAt": [
+          "2025-04-22"
+        ],
+        "email": [
+          "bank@abr.ru"
+        ],
+        "website": [
+          "http://Abr.ru/",
+          "http://www.abr.ru/",
+          "https://abr.ru/"
+        ],
+        "registrationNumber": [
+          "328",
+          "1027800000084",
+          "License number: 328"
+        ],
+        "taxNumber": [
+          "7831000122"
+        ],
+        "swiftBic": [
+          "ROSYRU2P"
+        ],
+        "jurisdiction": [
+          "ru"
+        ],
+        "leiCode": [
+          "2534006WDUE2J9S01D70"
+        ],
+        "legalForm": [
+          "Непубличные акционерные общества"
+        ],
+        "okvedCode": [
+          "66.12.1",
+          "64.99.12",
+          "66.19.5",
+          "66.12.2",
+          "64.19",
+          "62.09"
+        ],
+        "ogrnCode": [
+          "1027800000084"
+        ],
+        "innCode": [
+          "7831000122"
+        ],
+        "kppCode": [
+          "784201001"
+        ],
+        "summary": [
+          "Public Joint Stock Company (PJSC)"
+        ],
+        "status": [
+          "License code: 238, date: 2016-09-01",
+          "Код лицензии: 238, дата: 2016-09-01",
+          "норм.",
+          "Active"
+        ],
+        "permId": [
+          "4298198475"
+        ],
+        "phone": [
+          "+78123358969",
+          "+78123358500"
+        ],
+        "classification": [
+          "Лицензия на привлечение во вклады и размещение драгоценных металлов"
+        ],
+        "amount": [
+          "547311800"
+        ],
+        "bikCode": [
+          "044030861"
+        ],
+        "idNumber": [
+          "09804148"
+        ],
+        "previousName": [
+          "AKTSIONERNY BANK RUSSIAN FEDERATION"
+        ],
+        "uniqueEntityId": [
+          "LBGLGTD9QWD3",
+          "KEP7GQLLSN38",
+          "RE6KXPEC1N38"
+        ]
+      },
+      "datasets": [
+        "ch_seco_sanctions",
+        "gb_coh_disqualified",
+        "ext_iso9362_bic",
+        "fr_tresor_gels_avoir",
+        "ext_ru_egrul",
+        "au_dfat_sanctions",
+        "ua_nsdc_sanctions",
+        "ru_cbr_banks",
+        "be_fod_sanctions",
+        "us_sam_exclusions",
+        "permid",
+        "eu_fsf",
+        "eu_sanctions_map",
+        "ext_gleif",
+        "mc_fund_freezes",
+        "gb_fcdo_sanctions",
+        "ca_dfatd_sema_sanctions",
+        "ua_war_sanctions",
+        "sg_terrorists",
+        "ru_nsd_isin",
+        "nz_russia_sanctions",
+        "jp_mof_sanctions",
+        "us_trade_csl",
+        "us_ofac_sdn"
+      ],
+      "referents": [
+        "ua-ws-entity-111",
+        "eu-fsf-eu-7394-37",
+        "sgtfs-a621585ffa180cace2082c4208e80066cb29fbb4",
+        "ch-seco-48057",
+        "au-dfat-2780-bank-rossiya",
+        "bic-ROSYRU2P",
+        "eu-sancmap-d306ef73550f6f87c356baed25e0607033adf36e",
+        "usgsa-a00da5571099692c2553bd0ac36974a70d107ecf",
+        "ch-seco-50720",
+        "ua-nsdc-10046-akcionerne-tovaristvo-akcionernij-bank-rosia",
+        "usgsa-6e8be0d059a9be87942753b3bdcf97dc32744603",
+        "mc-freezes-4633cc15804003ed3162d82552e5b26568375b55",
+        "lei-2534006WDUE2J9S01D70",
+        "be-fod-0bd2511525edb94c244a8e84320cea515f64de87",
+        "ru-bik-044030861",
+        "gb-fcdo-named-rossiya-bank",
+        "gb-fcdo-rus0232",
+        "gb-hmt-named-rossiya-bank",
+        "usgsa-s4mr4df4j",
+        "gb-coh-5wd37zq6khz04zcfj-xgj6-tmpq",
+        "usgsa-s4mrvrpk3",
+        "nz-ru-ban-6-bank-rossiya",
+        "usgsa-dc51e2383c4ffe4cefe7d179ab6045b148478465",
+        "fr-ga-3839",
+        "ofac-16681",
+        "gb-hmt-14177",
+        "usgsa-s4mr4df4l",
+        "ca-sema-6936250aa36f64a1fd3747a408659735395d6268",
+        "ch-seco-51037",
+        "ja-mof-f2405bf181c99556698512d0c84aeb7eec2ef6b2",
+        "ru-inn-7831000122"
+      ],
+      "target": true,
+      "first_seen": "2022-04-27T18:12:14",
+      "last_seen": "2026-06-19T18:53:02",
+      "last_change": "2026-06-18T23:36:31"
+    },
+    {
+      "id": "NK-jvK3ewYTb7oHVxawWXyJft",
+      "caption": "STATE ENTERPRISE FACTORY OF SPARKLING WINE NOVY SVET",
+      "schema": "Company",
+      "properties": {
+        "notes": [
+          "(also STATE ENTERPRISE FACTORY OF SPARKLING WINE NOVY SVET)",
+          "Téléphone : + 7-(365) 663-35-00 ; + 7-(365) 663-35-22 ; +7-978-914-00-10\nSite internet : http://nsvet-crimea.ru/\nNuméro d’enregistrement : 1179102021460",
+          "Anksčiau žinoma kaip",
+          "Korábbi elnevezése",
+          "Anciennement connue sous le nom d’",
+          "Voorheen bekend als",
+          "Agrāk zināms kā",
+          "Disqualified",
+          "Ranije poznato kao",
+          "Qabel kienet magħrufa bħala",
+          "Predtým známy ako",
+          "Tidigare känt som",
+          "Anteriormente conhecida como",
+          "Dříve znám jako",
+          "Tidligere kendt som",
+          "Già",
+          "Prej imenovano",
+          "Vormals",
+          "Dawniej znane jako",
+          "The Director Disqualification Sanction was imposed on 09/04/2025.",
+          "Entinen",
+          "(Date of UN designation: 2014-07-25)",
+          "(also GOSUDARSTVENOYE PREDPRIYATIYE ZAVOD SHAMPANSKYKH VIN NOVY SVET, STATE ENTERPRISE FACTORY OF SPARKLING WINES NEW WORLD, NOVY SVET WINERY STATE ENTERPRISE, ZAVOD SHAMPANSKYKH VYN NOVY SVIT, DP, DERZHAVNE PIDPRYEMSTVO ZAVOD SHAMPANSKYKH VYN NOVY SVIT, NOVY SVET WINERY)",
+          "Cunoscută anterior ca o",
+          "former name",
+          "Conocida anteriormente como",
+          "Προηγουμένως γνωστή ως",
+          "The ownership of the entity was transferred contrary to Ukrainian law. On 9 April 2014, the “Presidium of the Parliament of Crimea” adopted decision No 1991-6/14 “On the amendments to the Resolution of the State Council of the ‘Republic of Crimea’” of 26 March 2014 No 1836-6/14 “On nationalisation of the property of enterprises, institutions and organisations of agro-industrial complex, located in the territory of the ‘Republic of Crimea’” declaring the appropriation of assets belonging to the state enterprise “Zavod shampanskykh vin Novy Svet” on behalf of the “Republic of Crimea”. The enterprise is thus effectively confiscated by the Crimean “authorities”. Re-registered on 4 January 2015 as State Unitary Enterprise of the “Republic of Crimea”“sparkling wine plant ‘Novy Svet’” (Государственное унитарное предприятие Республики Крым “Завод шампанских вин ‘Новый Свет’”). Founder: The Ministry of Agriculture of the “Republic of Crimea” (Министерство сельского хозяйства Республики Крым). Re-registered following reorganisation on 29 August 2017 as Joint-stock company Sparkling wine plant “Novy Svet” (Aкционерное общество “Завод шампанских вин “Новый Свет””). Founder: the Ministry of Land and Property Regulations of the “Republic of Crimea” (Министерство земельных и имущественных отношений Республики Крым). In December 2017, 100 % of the shares of the Novy Svet Winery were purchased by Yuzny Proekt LLC, a subsidiary of Rossiya Bank. The new shareholder company is associated with Yuri Kovalchuk, a close friend of the Russian president Vladimir Putin.",
+          "Previously listed under 'Ukraine criteria' - Autonomous Sanctions (Designated Persons and Entities and Declared Persons – Ukraine) Amendment List 2014 [F2014L01184]; New listing start date 27 Aug 2023",
+          "La propriété de l’entité a été transférée en violation du droit ukrainien. Le 9 avril 2014, le “Présidium du Parlement de Crimée” a adopté la décision no 1991-6/14 “relative aux amendements à la résolution no 1836-6/14 du Conseil d’État de la “République de Crimée”“ du 26 mars 2014“sur la nationalisation d’entreprises, d’institutions et d’organisations du complexe agro-industriel situées sur le territoire de la “République de Crimée” proclamant l’appropriation des avoirs de l’entreprise publique “Zavod shampanskykh vin Novy Svet”“ au nom de la “République de Crimée”. Cette entreprise a donc de fait été confisquée par les “autorités” de Crimée. Réenregistrée le 4 janvier 2015 en tant qu’entreprise unitaire d’État de la “République de Crimée”“Entreprise de vin mousseux “Novy Svet”“ (Государственное Унитарное Предприятие Республики Крым “Завод Шампанских Вин “Новый Свет”“). Fondateur: le ministère de l’agriculture de la “République de Crimée” (Министерство сельского хозяйства Республики Крым).  Réenregistrée le 29 août 2017, à la suite d’une restructuration, en tant que société anonyme, l’Entreprise de vin mousseux “Novy Svet” (Aкционерное общество “Завод шампанских вин “Новый Свет”“). Fondateur: le ministère chargé de la réglementation en matière de biens fonciers et immobiliers de la “République de Crimée” (Министерство земельных и имущественных отношений Республики Крым). En décembre 2017, 100 % des actions de l’entreprise vinicole Novy Svet ont été achetées par Yuzny Proekt LLC, une filiale de Rossiya Bank. La nouvelle société actionnaire est associée à Yuri Kovalchuk, un ami proche du président russe Vladimir Poutine."
+        ],
+        "createdAt": [
+          "2014-08-05"
+        ],
+        "alias": [
+          "Aktieselskabet »Sparkling wine plant »Novy Svet««",
+          "državno podjetje penečega vina \"Novi Svet‘‘",
+          "Staatliches Einheitsunternehmen der „Republik Krim“„Schaumweinhersteller ‚Novy Svet‘“",
+          "Государственное предприятие Завод шампанских вин “Новый свет” (Gosudarstvenoye predpriyatiye Zavod shampanskykh vin “Novy Svet”)",
+          "”Krimin tasavallan” omistama valtion unitaarinen yritys ”’Novy Svet’ -kuohuviinitehdas”",
+          "Entreprise unitaire d’État de la “République de Crimée”“Entreprise de vin mousseux “Novy Svet”“",
+          "Joint-stock company Sparkling wine plant ‘Novy Svet’",
+          "Spółka akcyjna »Fabryka Wina Musującego ‘Nowyj Swiet’«",
+          "NOVY SVET WINERY STATE ENTERPRISE",
+          "Aktiebolaget ”Sparkling wine plant ’Novy Svet’”",
+          "întreprindere unitară de stat a „Republicii Crimeea» purtând denumirea «Fabrica de vin spumos „Novy Svet”»",
+          "Държавно единно предприятие на „Република Крим“ „Завод за шампанизирани вина „Новый свет“",
+          "Entreprise unitaire d'État de la “République de Crimée” “Entreprise de vin mousseux “Novy Svet”\"",
+          "Delniška družba ‚Tovarna penečega vina ‚Novij svet‘‘",
+          "Akciová spoločnosť – „Závod šumivého vína ‚Novy Svet‘“",
+          "Aкционерное общество “Завод шампанских вин ‘Новый Свет’\"",
+          "NOVY SVET WINERY",
+          "Εταιρία κατά μετοχές “Μονάδα αφρώδους οίνου ‘Novy Svet’”",
+          "„Novij Szvet” Pezsgőgyár részvénytársaság",
+          "Aandelenvennootschap “Schuimwijnfabriek “Novy Svet”",
+          "”Republiken Krims” statliga företag ”Sparkling wine plant ’Novy Svet’”",
+          "Akcinė bendrovė „Putojančio vyno gamykla „Novy Svet““",
+          "Sociedad anónima “Planta de vino espumoso ‘Novy Svet’”",
+          "państwowe przedsiębiorstwo unitarne „Republiki Krymu” „Fabryka Wina Musującego »Nowyj Swiet«”",
+          "Aktsionerne tovarystvo \"Zavod shampanskykh vyn \"Novyi Svit\"",
+          "Aкционерное общество “Завод шампанских вин ‘Новый Свет’”",
+          "empresa estatal de caves de vinhos espumantes \"Novy Svet\"",
+          "ДЕРЖАВНЕ ПІДПРИЄМСТВО \"ЗАВОД ШАМПАНСЬКИХ ВИН \" НОВИЙ СВІТ\"",
+          "Novy Svet Winery State Enterprise",
+          "Societatea pe acțiuni «Fabrica de vin spumos „Novy Svet”»",
+          "državno unitarno podjetje ‚Republike Krim‘ ‚Tovarna penečega vina ‚Novi svet‘‘",
+          "„Zavod shampanskykh vin »Novy Svet«” és „Novij Szvet” állami pezsgőgyár",
+          "Κρατική ενιαία επιχείρηση της “Δημοκρατίας της Κριμαίας”“Μονάδα αφρώδους οίνου ‘Novy Svet’”",
+          "riigiettevõte „Sparkling wine plant „Novy Svet““",
+          "ZAVOD SHAMPANSKYKH VYN NOVY SVIT, DP",
+          "State Unitary Enterprise of the 'Republic of Crimea' 'Sparkling Wine Plant Novy Svet'",
+          "empresa unitária estatal da «República da Crimeia», Caves de vinhos espumantes «Novy Svet»",
+          "Kumpannija b’ishma konġunti “Impjant tal-inbid effervexxenti ‘Novy Svet’”",
+          "Акционерно дружество „Завод за шампанизирани вина „Новый свет“",
+          "GOSUDARSTVENOYE PREDPRIYATIYE ZAVOD SHAMPANSKYKH VIN NOVY SVET",
+          "Gosudarstvenoye Predpriyatiye Zavod Shampanskykh Vin Novy Svet",
+          "„Novij Szvet” Pezsgőgyár, a „Krími Köztársaság” állami egységes vállalata",
+          "Zavod Shampanskykh Vyn Novy Svit, DP",
+          "državno unitarno podjetje ‚Republike Krim‘‚Tovarna penečega vina ‚Novij svet‘‘",
+          "întreprindere unitară de stat a «Republicii Crimeea» purtând denumirea «Sparkling wine plant „Novy Svet”»",
+          "Formerly known as State unitary enterprise of the ‘Republic of Crimea’ Sparkling wine plant ‘Novy Svet’",
+          "státní jednotný podnik „Republiky Krym“„ ‚Novy Svet‘, výrobce šumivých vín“",
+          "Fabrica de vin spumos „Novy Svet”",
+          "Sociedade por ações Caves de vinhos espumantes «Novy Svet»",
+          "State Enterprise 'Sparkling Wine Plant 'Novy Svet'",
+          "Empresa Unitaria Estatal de la “República de Crimea”“Planta de vino espumoso ‘Novy Svet’”",
+          "State unitary enterprise van de “Republiek Krim”“Schuimwijnfabriek “Novy Svet””",
+          "Dioničko društvo „Tvornica pjenušca ‚Novy Svet’”",
+          "Delniška družba ‚Tovarna penečega vina ‚Novi svet‘‘",
+          "državno unitarno poduzeće „Republike Krima”„Tvornica pjenušca ‚Novy Svet’”",
+          "Société anonyme “Entreprise de vin mousseux ‘Novy Svet’”",
+          "impresa unitaria statale della “Repubblica di Crimea”“impianto di vino spumante ‘Novy Svet’”",
+          "STATE ENTERPRISE FACTORY OF SPARKLING WINES NEW WORLD",
+          "jednolite przedsiębiorstwo państwowe »Republiki Krymu«»Fabryka Wina Musującego ‘Nowyj Swiet’«",
+          "Derzhavne Pidpryemstvo Zavod Shampanskykh Vyn Novy Svit",
+          "Gosudarstvennoye unitarnoye predpriyatiye Respubliki Krym “Zavod shampanskykh vin “Novy Svet”“ et comme ‘Entreprise publique “Entreprise de vin mousseux “Novy Svet”“",
+          "„Krymo Respublikos“ valstybės unitarinė įmonė „Putojančio vyno gamykla „Novy Svet““",
+          "Akciová společnost „ ‚Novy Svet‘, výrobce šumivých vín“",
+          "Societatea pe acțiuni «Sparkling wine plant „Novy Svet”»",
+          "Novy Svet Winery",
+          "štátny podnik – ‚Závod šumivého vína «Novy Svet»",
+          "Aktiengesellschaft „Schaumweinhersteller ‚Novy Svet‘“",
+          "entreprise unitaire d’État de la “République de Crimée” “Entreprise de vin mousseux ‘Novy Svet’",
+          "»Republikken Krims« statsejede virksomhed »Sparkling wine plant »Novy Svet««",
+          "Société anonyme “Entreprise de vin mousseux “Novy Svet”“",
+          "“Krimas Republikas” valsts unitārs uzņēmums “Sparkling wine plant “Novy Svet””",
+          "Osakeyhtiö ”’Novy Svet’ -kuohuviinitehdas”",
+          "Государственное унитарное предприятие Республики Крым “Завод шампанских вин “Новый Свет”“",
+          "‘Entreprise publique “Entreprise de vin mousseux “Novy Svet”“",
+          "valtionyhtiö ””Novy Svet”-kuohuviinitehdas”",
+          "“Krimas Republikas” valsts unitārs uzņēmums “Sparkling wine plant “Novy Svet”",
+          "Intrapriża statali unitarja tar-“Repubblika tal-Krimea” l-“Impjant tal-inbid effervexxenti ‘Novy Svet’”",
+          ",državno poduzeće Tvornica pjenušca ‚Novy Svet’",
+          "Gosudarstvennoye unitarnoye predpriyatiye Respubliki Krym 'Zavod shampanskykh vin 'Novy Svet'",
+          "DERZHAVNE PIDPRYEMSTVO ZAVOD SHAMPANSKYKH VYN NOVY SVIT",
+          "Spółka akcyjna – Fabryka Wina Musującego „Nowyj Swiet”",
+          "Gosudarstvenoye predpriyatiye Zavod shampanskykh vin “Novy Svet”",
+          "Cuideachta chomhstoic ‘Sparkling wine plant “Novy Svet”’",
+          "Státní podnik »Novy Svet«, výrobce šumivých vín",
+          "Gosudarstvennoye unitarnoye predpriyatiye Respubliki Krym “Zavod shampanskykh vin “Novy Svet”“",
+          "Štátny unitárny podnik „Krymskej republiky“ – „Závod šumivého vína ‚Novy Svet‘“",
+          "Cuideachta chomhstoic ‘Sparkling wine plant ‘Novy Svet’",
+          "State Enterprise Factory Of Sparkling Wines New World",
+          "”Krimin tasavallan” omistama valtion unitaarinen yritys ””Novy Svet” -kuohuviinitehdas"
+        ],
+        "address": [
+          "Украина, 298032, временно оккупированная территория Автономной Республики Крым, г. Судак, пгт Новый Свет, ул. Шаляпина, д. 1",
+          "298032, Crimée, Soudak, Novy Svet, ul. Chaliapina 1",
+          "ул. Шаляпина, д. 1, 298032 Крым, г. Судак, пгт. Новый Свет",
+          "1 Shaliapin Street, Novy Svet Village, Sudak, Crimea, Sudak, 98032",
+          "1 Shalyapina str. Novy Svet, Sudak, 98032",
+          "Poselok Gorodskogo Tipa Novyy Svet Ulitsa Shalyapina Dom 1, Respublika Krym, Gorod Sudak, 298032, Russia",
+          "Україна, 98032, Автономна Республіка Крим, місто Судак, селище міського типу Новий Світ, ВУЛИЦЯ ШАЛЯПІНА , будинок 1",
+          "Bud. 1 vul. Shalyapina Smt, Novy Svit, Sudak, Crimea, Sudak, 98032",
+          "ul. Shalyapina, d.1, SUDAK, CRIMEA, 298032, Ukraine",
+          "УЛ. ШАЛЯПИНА Д. 1, Г. СУДАК НОВЫЙ СВЕТ, РЕСПУБЛИКА КРЫМ, 298032",
+          "298032, Крым, г. Судак, пгт. Новый Свет, ул. Шаляпина, д. 1",
+          "str. Shalapina 1, 298032 Sudak, Novy Svet",
+          "Україна, 298032, тимчасово окупована територія Автономної Республіки Крим, м. Судак, смт Новий Світ, вул. Шаляпіна, буд. 1",
+          "Bud. 1 vul. Shalyapina Smt, Novy Svit, Crimea, Sudak, 98032",
+          "УЛ. ШАЛЯПИНА ЗД. 1, Г. СУДАК НОВЫЙ СВЕТ, РЕСПУБЛИКА КРЫМ, 298032",
+          "Str. Shalapina 1, Sudak, Novy Svet, The Autonomous Republic of Crimea and the city of Sevastopol, 298032, Ukraine",
+          "Novy Svet, str. Shalapina 1, 298032 Sudak",
+          "Str. Shalapina 1 Novy Street, Sudak, The Autonomous Republic Of Crimea, The City Of Sevastopol, Ukraine, 298032",
+          "1 Shaliapin Street, Novy Svet Village, Crimea, Sudak, 98032",
+          "1 SHALIAPIN STREET, NOVY SVET VILLAGE, SUDAK, CRIMEA, 98032",
+          "Novy Svet, str. Shalapina 1, Sudak, Crimea, Ukraine",
+          "298032, Crimée, Soudak, Novy Svet, ul. Chaliapina 1.",
+          "УЛ. ШАЛЯПИНА ЗД. 1, НОВЫЙ СВЕТ, РЕСПУБЛИКА КРЫМ, 298032"
+        ],
+        "name": [
+          "Aktieselskabet »Sparkling wine plant »Novy Svet««",
+          "državno podjetje penečega vina \"Novi Svet‘‘",
+          "Staatliches Einheitsunternehmen der „Republik Krim“„Schaumweinhersteller ‚Novy Svet‘“",
+          "”Krimin tasavallan” omistama valtion unitaarinen yritys ”’Novy Svet’ -kuohuviinitehdas”",
+          "Spółka akcyjna »Fabryka Wina Musującego ‘Nowyj Swiet’«",
+          "NOVY SVET WINERY STATE ENTERPRISE",
+          "Aktiebolaget ”Sparkling wine plant ’Novy Svet’”",
+          "întreprindere unitară de stat a „Republicii Crimeea» purtând denumirea «Fabrica de vin spumos „Novy Svet”»",
+          "Държавно единно предприятие на „Република Крим“ „Завод за шампанизирани вина „Новый свет“",
+          "STATE ENTERPRISE FACTORY OF SPARKLING WINE NOVY SVET",
+          "Factory of Sparkling Wine Novy Svet – State Enterprise",
+          "Joint-stock company 'Sparkling wine plant \"Novy Svet\"'",
+          "Société anonyme “Entreprise de vin mousseux “Novy Svet”\"",
+          "Delniška družba ‚Tovarna penečega vina ‚Novij svet‘‘",
+          "Akciová spoločnosť – „Závod šumivého vína ‚Novy Svet‘“",
+          "NOVY SVET WINERY",
+          "Εταιρία κατά μετοχές “Μονάδα αφρώδους οίνου ‘Novy Svet’”",
+          "„Novij Szvet” Pezsgőgyár részvénytársaság",
+          "Aandelenvennootschap “Schuimwijnfabriek “Novy Svet”",
+          "”Republiken Krims” statliga företag ”Sparkling wine plant ’Novy Svet’”",
+          "Joint-stock company “Sparkling wine plant ‘Novy Svet’”",
+          "Akcinė bendrovė „Putojančio vyno gamykla „Novy Svet““",
+          "Sociedad anónima “Planta de vino espumoso ‘Novy Svet’”",
+          "państwowe przedsiębiorstwo unitarne „Republiki Krymu” „Fabryka Wina Musującego »Nowyj Swiet«”",
+          "State enterprise sparkling wine plant ‘Novy Svet’",
+          "Joint-Stock Company 'Sparkling Wine Plant Novy Svet",
+          "empresa estatal de caves de vinhos espumantes \"Novy Svet\"",
+          "Акціонерне товариство \"Завод шампанських вин \"Новий Світ\"",
+          "ZSV Novyi Svet AO",
+          "Societatea pe acțiuni «Fabrica de vin spumos „Novy Svet”»",
+          "državno unitarno podjetje ‚Republike Krim‘ ‚Tovarna penečega vina ‚Novi svet‘‘",
+          "„Zavod shampanskykh vin »Novy Svet«” és „Novij Szvet” állami pezsgőgyár",
+          "Κρατική ενιαία επιχείρηση της “Δημοκρατίας της Κριμαίας”“Μονάδα αφρώδους οίνου ‘Novy Svet’”",
+          "riigiettevõte „Sparkling wine plant „Novy Svet““",
+          "ZAVOD SHAMPANSKYKH VYN NOVY SVIT, DP",
+          "empresa unitária estatal da «República da Crimeia», Caves de vinhos espumantes «Novy Svet»",
+          "Kumpannija b’ishma konġunti “Impjant tal-inbid effervexxenti ‘Novy Svet’”",
+          "Акционерно дружество „Завод за шампанизирани вина „Новый свет“",
+          "GOSUDARSTVENOYE PREDPRIYATIYE ZAVOD SHAMPANSKYKH VIN NOVY SVET",
+          "„Novij Szvet” Pezsgőgyár, a „Krími Köztársaság” állami egységes vállalata",
+          "državno unitarno podjetje ‚Republike Krim‘‚Tovarna penečega vina ‚Novij svet‘‘",
+          "întreprindere unitară de stat a «Republicii Crimeea» purtând denumirea «Sparkling wine plant „Novy Svet”»",
+          "státní jednotný podnik „Republiky Krym“„ ‚Novy Svet‘, výrobce šumivých vín“",
+          "Fabrica de vin spumos „Novy Svet”",
+          "Sociedade por ações Caves de vinhos espumantes «Novy Svet»",
+          "Empresa Unitaria Estatal de la “República de Crimea”“Planta de vino espumoso ‘Novy Svet’”",
+          "State unitary enterprise van de “Republiek Krim”“Schuimwijnfabriek “Novy Svet””",
+          "Dioničko društvo „Tvornica pjenušca ‚Novy Svet’”",
+          "Delniška družba ‚Tovarna penečega vina ‚Novi svet‘‘",
+          "State Enterprise Factory of Sparkling Wine Novy Svet",
+          "Société anonyme “Entreprise de vin mousseux “Novy Svet”",
+          "državno unitarno poduzeće „Republike Krima”„Tvornica pjenušca ‚Novy Svet’”",
+          "Société anonyme “Entreprise de vin mousseux ‘Novy Svet’”",
+          "impresa unitaria statale della “Repubblica di Crimea”“impianto di vino spumante ‘Novy Svet’”",
+          "STATE ENTERPRISE FACTORY OF SPARKLING WINES NEW WORLD",
+          "State unitary enterprise of the 'Republic of Crimea' 'Sparkling wine plant \"Novy Svet\"'",
+          "jednolite przedsiębiorstwo państwowe »Republiki Krymu«»Fabryka Wina Musującego ‘Nowyj Swiet’«",
+          "„Krymo Respublikos“ valstybės unitarinė įmonė „Putojančio vyno gamykla „Novy Svet““",
+          "Akciová společnost „ ‚Novy Svet‘, výrobce šumivých vín“",
+          "Societatea pe acțiuni «Sparkling wine plant „Novy Svet”»",
+          "ДП \"ЗШВ\"НОВИЙ СВІТ\"",
+          "štátny podnik – ‚Závod šumivého vína «Novy Svet»",
+          "Государственное унитарное предприятие Республики Крым ‘Завод шампанских вин “Новый Свет”’",
+          "Государственное предприятие Завод шампанских вин ‘Новый свет’ (Gosudarstvenoye predpriyatiye Zavod shampanskykh vin ‘Novy Svet’)",
+          "Joint-Stock Company \"Novy Svet\" Factory of Sparkling Wines\"",
+          "Aktiengesellschaft „Schaumweinhersteller ‚Novy Svet‘“",
+          "entreprise unitaire d’État de la “République de Crimée” “Entreprise de vin mousseux ‘Novy Svet’",
+          "ГОСУДАРСТВЕННОЕ УНИТАРНОЕ ПРЕДПРИЯТИЕ РЕСПУБЛИКИ КРЫМ \"ЗАВОД ШАМПАНСКИХ ВИН \"НОВЫЙ СВЕТ\"",
+          "»Republikken Krims« statsejede virksomhed »Sparkling wine plant »Novy Svet««",
+          "Société anonyme “Entreprise de vin mousseux “Novy Svet”“",
+          "“Krimas Republikas” valsts unitārs uzņēmums “Sparkling wine plant “Novy Svet””",
+          "Gosudarstvennoye unitarnoye predpriyatiye Respubliki Krym ‘Zavod shampanskykh vin “Novy Svet”’ and as State enterprise sparkling wine plant ‘Novy Svet’",
+          "Osakeyhtiö ”’Novy Svet’ -kuohuviinitehdas”",
+          "valtionyhtiö ””Novy Svet”-kuohuviinitehdas”",
+          "“Krimas Republikas” valsts unitārs uzņēmums “Sparkling wine plant “Novy Svet”",
+          "Intrapriża statali unitarja tar-“Repubblika tal-Krimea” l-“Impjant tal-inbid effervexxenti ‘Novy Svet’”",
+          ",državno poduzeće Tvornica pjenušca ‚Novy Svet’",
+          "DERZHAVNE PIDPRYEMSTVO ZAVOD SHAMPANSKYKH VYN NOVY SVIT",
+          "Factory of sparkling wine Novy Svet",
+          "Акционерное общество \"Завод шампанских вин \"Новый Свет\"",
+          "Aкционерное общество ‘Завод шампанских вин “Новый Свет”’",
+          "Spółka akcyjna – Fabryka Wina Musującego „Nowyj Swiet”",
+          "Cuideachta chomhstoic ‘Sparkling wine plant “Novy Svet”’",
+          "Státní podnik »Novy Svet«, výrobce šumivých vín",
+          "Štátny unitárny podnik „Krymskej republiky“ – „Závod šumivého vína ‚Novy Svet‘“",
+          "Cuideachta chomhstoic ‘Sparkling wine plant ‘Novy Svet’",
+          "”Krimin tasavallan” omistama valtion unitaarinen yritys ””Novy Svet” -kuohuviinitehdas"
+        ],
+        "topics": [
+          "debarment",
+          "sanction",
+          "export.control",
+          "corp.disqual"
+        ],
+        "programId": [
+          "CA-SEMA",
+          "EU-UKR",
+          "AU-RUSSIA",
+          "UA-SA1644",
+          "GB-RUS",
+          "US-UKRRUS-REL",
+          "US-BIS-EL",
+          "SECO-UKRAINE"
+        ],
+        "addressEntity": [
+          "addr-6000bca4891505d10c7bd916ef3b3607e097c35d",
+          "NK-jpLfUaHceqwg3DT5jYkGpD",
+          "addr-218ff9bfd887cc1943f6dcecad7df7197eab7a7b",
+          "addr-3ca2411fc02eb40d4453927073104a0459a846b5"
+        ],
+        "registrationNumber": [
+          "1179102021460",
+          "00412665"
+        ],
+        "sourceUrl": [
+          "https://gels-avoirs.dgtresor.gouv.fr/Gels/RegistreDetail?idRegistre=2055",
+          "https://find-and-update.company-information.service.gov.uk/disqualified-officers/corporate/1a_edIgGuXi12TofJ4JYoke-jmU",
+          "https://war-sanctions.gur.gov.ua/en/sanctions/companies/400",
+          "https://war-sanctions.gur.gov.ua/sanctions/companies/400",
+          "https://sanctionssearch.ofac.treas.gov/Details.aspx?id=18964",
+          "https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=CELEX:32023R0571",
+          "https://permid.org/1-5070516941"
+        ],
+        "country": [
+          "ua"
+        ],
+        "modifiedAt": [
+          "2023-12-21"
+        ],
+        "previousName": [
+          "Государственное унитарное предприятие Республики Крым “Завод шампанских вин ‘Новый Свет’”",
+          "State unitary enterprise of the “Republic of Crimea”“Sparkling wine plant ‘Novy Svet’”",
+          "Государственное предприятие Завод шампанских вин \"Новый свет\"",
+          "Gosudarstvenoye predpriyatiye Zavod shampanskykh vin \"Novy Svet\"",
+          "State enterprise sparkling wine plant \"Novy Svet\"",
+          "Gosudarstvennoye unitarnoye predpriyatiye Respubliki Krym “Zavod shampanskykh vin ‘Novy Svet’”"
+        ],
+        "phone": [
+          "+73656633500",
+          "+73656633522",
+          "+79789140010"
+        ],
+        "website": [
+          "https://nsvet-crimea.ru/",
+          "http://nsvet.com.ua/en/contacts",
+          "http://nsvet-crimea.ru/"
+        ],
+        "ogrnCode": [
+          "1179102021460",
+          "1159102005281"
+        ],
+        "okvedCode": [
+          "80.10",
+          "42.99",
+          "56.29",
+          "46.31",
+          "46.31.11",
+          "33.11",
+          "47.11",
+          "80.20",
+          "46.44",
+          "11.07",
+          "47.8",
+          "46.34",
+          "11.02",
+          "46.90",
+          "82.30",
+          "01.21",
+          "79.12",
+          "46.49",
+          "68.20",
+          "10.89",
+          "47.59",
+          "68.10",
+          "90.03",
+          "49.42",
+          "11.01.4",
+          "11.01.1",
+          "55.10",
+          "41.20",
+          "49.39",
+          "90.01",
+          "38.11",
+          "01.11",
+          "49.3",
+          "47.29",
+          "38.21",
+          "79.90.2",
+          "01.30",
+          "47.82",
+          "73.11",
+          "38.12",
+          "91.02",
+          "36.00",
+          "77.40",
+          "52.21.24",
+          "47.51",
+          "33.12",
+          "46.49.49",
+          "47.61",
+          "56.30",
+          "86.90",
+          "47.89.1",
+          "71.20.1",
+          "80.30",
+          "01.13",
+          "01.2",
+          "90.02",
+          "82.99",
+          "56.10",
+          "47.25",
+          "47.81",
+          "47.19",
+          "01.25",
+          "74.10"
+        ],
+        "innCode": [
+          "9108120892",
+          "9108119047"
+        ],
+        "dissolutionDate": [
+          "2017-08-29"
+        ],
+        "kppCode": [
+          "910801001"
+        ],
+        "legalForm": [
+          "Непубличные акционерные общества",
+          "Государственные унитарные предприятия субъектов Российской Федерации"
+        ],
+        "incorporationDate": [
+          "2015-01-04",
+          "2017-08-29"
+        ],
+        "jurisdiction": [
+          "ua",
+          "ru"
+        ],
+        "status": [
+          "зареєстровано",
+          "Active"
+        ],
+        "classification": [
+          "11.02 Виробництво виноградних вин"
+        ],
+        "permId": [
+          "5070516941"
+        ],
+        "taxNumber": [
+          "9108120892"
+        ],
+        "email": [
+          "boss@nsvet.com.ua"
+        ],
+        "uniqueEntityId": [
+          "EQ7YAELMSM77",
+          "CKKYG59L7HA3",
+          "JFP5CALYXRT4",
+          "PUPPU5QE3E99",
+          "YHUKK6Q8PA78",
+          "XRVAMBLPRA38",
+          "HX51MTJ16H35"
+        ]
+      },
+      "datasets": [
+        "be_fod_sanctions",
+        "ext_ua_edr",
+        "ext_ru_egrul",
+        "fr_tresor_gels_avoir",
+        "us_sam_exclusions",
+        "ch_seco_sanctions",
+        "gb_coh_disqualified",
+        "permid",
+        "au_dfat_sanctions",
+        "ua_nsdc_sanctions",
+        "eu_fsf",
+        "gb_fcdo_sanctions",
+        "mc_fund_freezes",
+        "ca_dfatd_sema_sanctions",
+        "ua_war_sanctions",
+        "us_trade_csl",
+        "us_ofac_sdn"
+      ],
+      "referents": [
+        "eu-fsf-eu-4051-68",
+        "usgsa-s4mr4z3v0",
+        "gb-fcdo-rus0201",
+        "usgsa-s4mr4z472",
+        "usgsa-dd67a29bdcd31a6fa0b94cd5229e3a3b9b6f4758",
+        "usgsa-s4mr4z471",
+        "usgsa-s4mr4z46z",
+        "usgsa-s4mr4z46x",
+        "permid-5070516941",
+        "ca-sema-f8071919d55a55371e7289126c0da88ece52bc46",
+        "ofac-18964",
+        "usgsa-8f9c7ac78b103a90422f9f2eb5da297f748aa957",
+        "usgsa-s4mr4z470",
+        "usgsa-c10b1d2ecd1ccb64c1fe10c1a78612c8a12d63c5",
+        "usgsa-f853ee41373b7aa3ac80bd3fecdb60e3e6e53c2f",
+        "ua-ws-entity-400",
+        "ru-inn-9108120892",
+        "ru-inn-9108119047",
+        "mc-freezes-8fe39c665ff1558ae512a33a19eb8e07b7d1820f",
+        "fr-ga-2055",
+        "usgsa-da3a7264692593b6ea9db107cc2e192e196f7876",
+        "au-dfat-7679-factory-of-sparkling-wine-novy-svet-state-enterprise",
+        "ua-edr-00412665-da494217010b8ae69591d04110cbfe962768cab6",
+        "usgsa-s4mr4z46y",
+        "trade-csl-715c742ea24dee4547b5ddf2f0f32cc0ed52cb83d1e48983bcaaea53",
+        "be-fod-0f00ed19ee462de966ec3bd3aa53b60441c977d7",
+        "ch-seco-28418",
+        "usgsa-0e9bd76c8c7eed67f1517c471ef11d9eadc3b465",
+        "gb-hmt-13062",
+        "usgsa-92d4377c5d26faa5208fe4131b49f86a0b58c915",
+        "ua-nsdc-10356-akcionerne-tovaristvo-zavod-sampanskih-vin-novij-svit",
+        "gb-coh-1a-edigguxi12tofj4jyoke-jmu"
+      ],
+      "target": true,
+      "first_seen": "2023-04-20T10:12:18",
+      "last_seen": "2026-06-19T18:53:02",
+      "last_change": "2026-06-19T14:12:32"
+    },
+    {
+      "id": "NK-M9sZ4Son4AvSg6Es2fLJbS",
+      "caption": "JSC National Media Group",
+      "schema": "Company",
+      "properties": {
+        "notes": [
+          "Примітка: Блокування Інтернет-провайдерами доступу до ресурсів, у тому числі до їх субдоменів, зокрема: \"nm-g.ru\"",
+          "Website: https://nmg.ru/",
+          "Registration number: 1087746152207",
+          "Joint stock company.\nOwned by Bank Rossiya.\nchairman of the board is Alina Kabaeva.",
+          "National Media Group is a media holding, controlling 28 media enterprises in Russia, including Channel One, Channel 5, REN TV and STS, 78.ru, the national newspaper Izvestia, Delovoy Peterburg and other outlets. It is owned by Bank Rossiya, whose main shareholder is Yuriy Kovalchuk. NMG chairman of the board is Alina Kabaeva. NMG is therefore associated with persons and entities under restrictive measures in respect of actions undermining or threatening the territorial integrity, sovereignty and independence of Ukraine. The media outlets controlled by NMG are actively spreading propaganda and disinformation related to Russia’s war of aggression against Ukraine. NMG is therefore supporting actions which undermine the territorial integrity, sovereignty and independence of Ukraine.",
+          "Russie",
+          "Media holding, controlling 28 media enterprises in Russia, including Channel One, Channel 5, REN TV and STS, 78.ru, the national newspaper Izvestia and Delovoy Peterburg",
+          "Le Groupe national de médias est une holding regroupant des médias, qui contrôle 28 entreprises de médias en Russie, dont Channel One, Channel 5, REN TV et STS, 78.ru, les journaux nationaux Izvestia, Delovoy Peterburg et d’autres médias. Il est détenu par Bank Rossiya, dont le principal actionnaire est Yuriy Kovalchuk. La présidente du conseil d’administration de NMG est Alina Kabaeva. NMG est donc associé à des personnes et entités faisant l’objet de mesures restrictives eu égard aux actions qui menacent ou compromettent l’intégrité territoriale, la souveraineté et l’indépendance de l’Ukraine. Les médias contrôlés par NMG diffusent activement de la propagande et de la désinformation liées à la guerre d’agression menée par la Russie contre l’Ukraine. NMG soutient donc des actions qui compromettent l’intégrité territoriale, la souveraineté et l’indépendance de l’Ukraine.",
+          "Taxpayer Identification Number: 7704676655",
+          "Russland",
+          "(Date of UN designation: 2022-12-16)",
+          "Email: pr@nmg.ru",
+          "Telephone: +7 (495) 988-11-12",
+          "Русия",
+          "Национальная Медиа Группа”",
+          "Type of entity: joint-stock company",
+          "Site internet: https://nmg.ru/\nTéléphone: +7 (495) 988-11-12\nCourriel: pr@nmg.ru\nType d’entité: société par actions\nDate d’enregistrement: 01/02/2008\nNuméro d’enregistrement: 1087746152207\nNuméro d’identification fiscale: 7704676655",
+          "7704676655 (other-Other identification number) (Taxpayer Identification Number)",
+          "1087746152207 (regnumber-Registration Number)  (on 2008-02-01)"
+        ],
+        "name": [
+          "JSC National Media Group",
+          "Grupul național al mass-mediei",
+          "Закрите акціонерне товариство «Національна медіа група»",
+          "Nacionalinė žiniasklaidos grupė",
+          "National Media Group JSC",
+          "Nationale Mediengruppe",
+          "Акціонерне товариство \"Національна медіа група\"",
+          "Акционерное общество \"Национальная медиа группа\"",
+          "Закрытое акционерное общество «Национальная медиа группа»",
+          "National Media Group",
+          "ЗАКРЫТОЕ АКЦИОНЕРНОЕ ОБЩЕСТВО \"НАЦИОНАЛЬНАЯ МЕДИА ГРУППА\"",
+          "skupina Národní Média",
+          "AO \"Национальная Медиа Группа\"",
+          "Националната медийна група",
+          "JSC National Media Group (Société par actions Groupe national de médias)",
+          "Société par actions Groupe national de médias",
+          "Grupo Nacional de Medios de Comunicación"
+        ],
+        "sourceUrl": [
+          "https://war-sanctions.gur.gov.ua/sanctions/companies/3182",
+          "https://war-sanctions.gur.gov.ua/en/sanctions/companies/3182",
+          "https://gels-avoirs.dgtresor.gouv.fr/Gels/RegistreDetail?idRegistre=5201",
+          "https://eur-lex.europa.eu/legal-content/EN/TXT/PDF/?uri=OJ:L_202402455"
+        ],
+        "topics": [
+          "sanction"
+        ],
+        "alias": [
+          "Национа́льная Ме́диа Гру́ппа",
+          "Национальная Медиа Группа (НМГ)",
+          "Aktsionerne tovarystvo \"Natsionalna media hrupa\"",
+          "AO “Национальная Медиа Группа” (НМГ)",
+          "Société par actions Groupe national de médias"
+        ],
+        "country": [
+          "ru"
+        ],
+        "programId": [
+          "EU-UKR",
+          "CA-SEMA",
+          "UA-SA1644",
+          "SECO-UKRAINE"
+        ],
+        "createdAt": [
+          "2022-12-21"
+        ],
+        "incorporationDate": [
+          "2008-02-01"
+        ],
+        "addressEntity": [
+          "addr-2362b7434dd008558da13fc7a1ba99ed9926c100"
+        ],
+        "modifiedAt": [
+          "2024-12-13"
+        ],
+        "address": [
+          "РФ, 119034, м. Москва, Пречистенська набережна, буд. 13, будова 1",
+          "РФ, м.Москва, вул. Набережна Пречистенська, 13, буд. 1",
+          "Prechistenskaya embankment 13, building 1, 119034, Moscou, Fédération de Russie",
+          "119034, Російська Федерація, м. Москва, наб. Пречистенська, буд. 13, будова 1",
+          "Prechistenskaya embankment 13, building 1, Moscow, RUSSIAN FEDERATION, 119034",
+          "Prechistenskaya embankment 13, building 1, 119034 Moscou,",
+          "НАБ ПРЕЧИСТЕНСКАЯ Д. 13 СТР. 1, Г.МОСКВА, 119034",
+          "Prechistenskaya embankment 13, building 1, Moscow, Russian Federation, 119034"
+        ],
+        "weakAlias": [
+          "НМГ"
+        ],
+        "phone": [
+          "+74959881112"
+        ],
+        "idNumber": [
+          "7704676655"
+        ],
+        "abbreviation": [
+          "НМГ"
+        ],
+        "email": [
+          "pr@nmg.ru"
+        ],
+        "website": [
+          "https://nmg.ru/"
+        ],
+        "registrationNumber": [
+          "1087746152207"
+        ],
+        "okvedCode": [
+          "80.10",
+          "66.19.4",
+          "64.99.11",
+          "63.11.1",
+          "85.42.9",
+          "80.20",
+          "47.63.2",
+          "58.13",
+          "73.12",
+          "77.11",
+          "93.19",
+          "60.20",
+          "70.22",
+          "62.02",
+          "93.29",
+          "68.20.21",
+          "60.10",
+          "18.11",
+          "70.10.1",
+          "58.14",
+          "62.01",
+          "73.11",
+          "72.19",
+          "90.0",
+          "18.12",
+          "47.63.1",
+          "64.99",
+          "59.13",
+          "80.30",
+          "63.91",
+          "82.99",
+          "58.11",
+          "59.11"
+        ],
+        "jurisdiction": [
+          "ru"
+        ],
+        "kppCode": [
+          "770401001"
+        ],
+        "innCode": [
+          "7704676655"
+        ],
+        "ogrnCode": [
+          "1087746152207"
+        ],
+        "legalForm": [
+          "Непубличные акционерные общества",
+          "société par actions"
+        ],
+        "taxNumber": [
+          "7704676655"
+        ]
+      },
+      "datasets": [
+        "be_fod_sanctions",
+        "fr_tresor_gels_avoir",
+        "ext_ru_egrul",
+        "ch_seco_sanctions",
+        "eu_fsf",
+        "lv_fiu_sanctions",
+        "mc_fund_freezes",
+        "ca_dfatd_sema_sanctions",
+        "ua_war_sanctions",
+        "ua_nsdc_sanctions"
+      ],
+      "referents": [
+        "ru-inn-7704676655",
+        "mc-freezes-65ce5258f4cc0c4b9be6fca65a3ea549e0910cec",
+        "ca-sema-news-ffcf0af9b54250a30037dd33d55a78b0b873348c",
+        "ch-seco-58267",
+        "be-fod-ba80d68510bdd6554ba1aab36436dd6340eabcd8",
+        "ca-sema-37fbf2b8ae2fe0d252d2ee77d238976c7de1422a",
+        "lv-sanction-0280420a65ec1fb8cb6ec015482f43c62c8eb070",
+        "fr-ga-5201",
+        "eu-fsf-eu-9387-41",
+        "ua-ws-entity-3182",
+        "ua-nsdc-10407-akcionerne-tovaristvo-nacionalna-media-grupa"
+      ],
+      "target": true,
+      "first_seen": "2023-04-20T10:12:18",
+      "last_seen": "2026-06-19T18:43:01",
+      "last_change": "2026-06-18T23:36:31"
+    }
+  ]
+}

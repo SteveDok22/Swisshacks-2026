@@ -1,0 +1,194 @@
+{
+  "key_raw": "record:549300NLOMBOWE943Y30",
+  "cached_at": "2026-06-21T07:25:20.331216+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "549300NLOMBOWE943Y30",
+      "attributes": {
+        "lei": "549300NLOMBOWE943Y30",
+        "entity": {
+          "legalName": {
+            "name": "REALKREDIT DANMARK A/S",
+            "language": "da"
+          },
+          "otherNames": [],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "da",
+            "addressLines": [
+              "Bernstorffsgade 40"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "København V",
+            "region": "DK-84",
+            "country": "DK",
+            "postalCode": "1577"
+          },
+          "headquartersAddress": {
+            "language": "da",
+            "addressLines": [
+              "Bernstorffsgade 40"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "København V",
+            "region": "DK-84",
+            "country": "DK",
+            "postalCode": "1577"
+          },
+          "registeredAt": {
+            "id": "RA000170",
+            "other": null
+          },
+          "registeredAs": "13399174",
+          "jurisdiction": "DK",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "ZRPO",
+            "other": null
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": "1989-08-01T00:00:00Z",
+          "subCategory": null,
+          "otherAddresses": [
+            {
+              "fieldType": "TransliteratedOtherAddress",
+              "language": "da",
+              "type": "AUTO_ASCII_TRANSLITERATED_LEGAL_ADDRESS",
+              "addressLines": [
+                "Bernstorffsgade 40"
+              ],
+              "city": "Kobenhavn V",
+              "region": "DK-84",
+              "country": "DK",
+              "postalCode": "1577"
+            },
+            {
+              "fieldType": "TransliteratedOtherAddress",
+              "language": "da",
+              "type": "AUTO_ASCII_TRANSLITERATED_HEADQUARTERS_ADDRESS",
+              "addressLines": [
+                "Bernstorffsgade 40"
+              ],
+              "city": "Kobenhavn V",
+              "region": "DK-84",
+              "country": "DK",
+              "postalCode": "1577"
+            }
+          ],
+          "eventGroups": [
+            {
+              "groupType": "STANDALONE",
+              "events": [
+                {
+                  "validationDocuments": "SUPPORTING_DOCUMENTS",
+                  "validationReference": "https://datacvr.virk.dk/enhed/virksomhed/13399174?fritekst=REALKREDIT%2520DANMARK%2520A%252FS&sideIndex=0&size=10",
+                  "effectiveDate": "2024-04-07T00:00:00Z",
+                  "recordedDate": "2024-04-25T00:00:00Z",
+                  "type": "CHANGE_LEGAL_ADDRESS",
+                  "status": "COMPLETED"
+                }
+              ]
+            },
+            {
+              "groupType": "STANDALONE",
+              "events": [
+                {
+                  "validationDocuments": "SUPPORTING_DOCUMENTS",
+                  "validationReference": "https://datacvr.virk.dk/enhed/virksomhed/13399174?fritekst=REALKREDIT%2520DANMARK%2520A%252FS&sideIndex=0&size=10",
+                  "effectiveDate": "2024-04-07T00:00:00Z",
+                  "recordedDate": "2024-04-25T00:00:00Z",
+                  "type": "CHANGE_HQ_ADDRESS",
+                  "status": "COMPLETED"
+                }
+              ]
+            }
+          ]
+        },
+        "registration": {
+          "initialRegistrationDate": "2014-01-29T00:28:00Z",
+          "lastUpdateDate": "2025-10-17T08:08:00Z",
+          "status": "ISSUED",
+          "nextRenewalDate": "2026-11-24T16:34:00Z",
+          "managingLou": "549300O897ZC5H7CY412",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000170",
+            "other": null
+          },
+          "validatedAs": "13399174",
+          "otherValidationAuthorities": []
+        },
+        "bic": [
+          "RDDKDKKKXXX"
+        ],
+        "mic": null,
+        "ocid": "dk/13399174",
+        "qcc": "QDKYG90G85",
+        "spglobal": [
+          "5467135"
+        ],
+        "conformityFlag": "CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/549300NLOMBOWE943Y30/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/549300NLOMBOWE943Y30/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/549300NLOMBOWE943Y30/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/549300NLOMBOWE943Y30/direct-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/549300NLOMBOWE943Y30/direct-parent"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/549300NLOMBOWE943Y30/ultimate-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/549300NLOMBOWE943Y30/ultimate-parent"
+          }
+        },
+        "isins": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/549300NLOMBOWE943Y30/isins"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/549300NLOMBOWE943Y30"
+      }
+    }
+  }
+}

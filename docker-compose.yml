@@ -24,8 +24,10 @@ services:
       - DEBUG=true
       # SQLite lives in a dedicated subdir backed by a named volume
       - DATABASE_URL=sqlite+aiosqlite:///./data/db/risk_platform.db
-      # Optional: pass your Claude key through from the host (or backend/.env)
-      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      # ANTHROPIC_API_KEY now flows from the env_file below (.env.shared team key,
+      # overridable by a personal ./backend/.env). An explicit entry here would
+      # take precedence over env_file and blank the key whenever the host has no
+      # ANTHROPIC_API_KEY exported, so it is intentionally omitted.
       # Optional: ZEFIX Basic-auth account (free; from zefix@bj.admin.ch).
       # Absent → ZefixAdapter degrades gracefully, the engine still runs.
       - ZEFIX_USERNAME=${ZEFIX_USERNAME:-}
@@ -33,7 +35,12 @@ services:
       # macOS bind mounts don't deliver inotify events — poll so --reload works
       - WATCHFILES_FORCE_POLLING=true
     env_file:
-      # Optional — container runs fine without it (sensible defaults apply)
+      # Team-shared hackathon keys (tracked in git) load first; a developer's
+      # personal ./backend/.env (gitignored) overrides them — same precedence as
+      # app/core/config.py. Both optional; the container runs fine without either
+      # (sensible offline defaults apply).
+      - path: ./backend/.env.shared
+        required: false
       - path: ./backend/.env
         required: false
     # Hot reload: uvicorn watches the bind-mounted app source

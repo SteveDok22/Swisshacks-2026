@@ -1,0 +1,137 @@
+{
+  "key_raw": "record:2138008EXBDB89NAM519",
+  "cached_at": "2026-06-21T06:36:13.219492+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "2138008EXBDB89NAM519",
+      "attributes": {
+        "lei": "2138008EXBDB89NAM519",
+        "entity": {
+          "legalName": {
+            "name": "KONY SOLUTIONS",
+            "language": "en"
+          },
+          "otherNames": [],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "en",
+            "addressLines": [
+              "SUITES 340-345, BARKLY WHARF",
+              "LE CAUDAN WATERFRONT, P.O. BOX 1070"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "PORT LOUIS",
+            "region": "MU-PL",
+            "country": "MU",
+            "postalCode": "11307"
+          },
+          "headquartersAddress": {
+            "language": "en",
+            "addressLines": [
+              "SUITES 340-345, BARKLY WHARF",
+              "LE CAUDAN WATERFRONT, P.O. BOX 1070"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "PORT LOUIS",
+            "region": "MU-PL",
+            "country": "MU",
+            "postalCode": "11307"
+          },
+          "registeredAt": {
+            "id": "RA000447",
+            "other": null
+          },
+          "registeredAs": "C077133",
+          "jurisdiction": "MU",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "8888",
+            "other": "PRIVATE LIMITED BY SHARES"
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": "2008-01-18T00:00:00Z",
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": []
+        },
+        "registration": {
+          "initialRegistrationDate": "2024-02-21T00:00:00Z",
+          "lastUpdateDate": "2026-01-06T13:23:55Z",
+          "status": "ISSUED",
+          "nextRenewalDate": "2027-02-21T00:00:00Z",
+          "managingLou": "213800WAVVOPS85N2205",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000447",
+            "other": null
+          },
+          "validatedAs": "C077133",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": "mu/C077133",
+        "qcc": "QMU56QPJHS",
+        "spglobal": [
+          "1872392425"
+        ],
+        "conformityFlag": "CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/2138008EXBDB89NAM519/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/2138008EXBDB89NAM519/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/2138008EXBDB89NAM519/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/2138008EXBDB89NAM519/direct-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/2138008EXBDB89NAM519/direct-parent"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/2138008EXBDB89NAM519/ultimate-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/2138008EXBDB89NAM519/ultimate-parent"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/2138008EXBDB89NAM519"
+      }
+    }
+  }
+}

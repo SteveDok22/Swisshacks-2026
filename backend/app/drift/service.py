@@ -21,6 +21,7 @@ import json
 import time
 import zlib
 from collections.abc import Iterable
+from dataclasses import replace
 from datetime import UTC, date, datetime
 from typing import Any
 
@@ -156,6 +157,54 @@ def requires_re_kyc_floor(public_signals: Iterable[PublicSignal]) -> bool:
     these registry-sourced types.
     """
     return any(s.signal_type in RE_KYC_FLOOR_SIGNAL_TYPES for s in public_signals)
+
+
+# A confirmed (definitive) OFAC/EU sanctions match — on the entity itself or on a
+# newly-added UBO — is the strongest possible signal: mandatory escalation to
+# critical regardless of how benign the transaction behaviour looks (UC 5 / UC 8).
+# Floor the drift score here. Fires on the live OpenSanctions definitive hits and
+# on the synthetic ownership_shift / combined sanctioned-UBO scenarios, which
+# mirror that path. Probable (sub-threshold) matches are excluded — they carry a
+# lower severity and still surface via the public layer without forcing critical.
+# 90 lands in the CRITICAL band (>=86 in score_to_level) — a confirmed sanctions
+# match is critical in any AML workflow.
+SANCTIONS_SCORE_FLOOR = 90.0
+
+# News-derived "narrative" signal types. These come from news feeds (Event
+# Registry / GDELT) and the website comparator — sources that are unreliable in
+# live mode (rate limits; the real adverse event often predates the query
+# window). Registry/screening types (ownership_change, sanctions,
+# jurisdiction_change, name_change, domain_change) are NOT here: those are
+# authoritative live and must never be overwritten by a modeled fallback.
+_NARRATIVE_SIGNAL_TYPES = frozenset(
+    {
+        "news",
+        "adverse_media",
+        "funding_event",
+        "business_model_change",
+        "corridor_alert",
+    }
+)
+
+
+def is_definitively_sanctioned(public_signals: Iterable[PublicSignal]) -> bool:
+    """Return True if any public signal is a definitive sanctions match.
+
+    Covers a direct ``sanctions`` hit at the critical severity band and a
+    UBO-screening ``ownership_change`` flagged ``definitive`` in its ``meta``.
+    Pure predicate so the floor policy is unit-testable without the engine.
+    """
+    for s in public_signals:
+        if s.signal_type == "sanctions" and s.severity >= 0.90:
+            return True
+        if (
+            s.signal_type == "ownership_change"
+            and s.meta
+            and s.meta.get("kind") == "ubo_screening"
+            and s.meta.get("definitive")
+        ):
+            return True
+    return False
 
 
 def recommend_drift_action(
@@ -503,6 +552,26 @@ class DriftEngine:
             # ownership-chain diff (use case 3) is layered in here alongside the
             # other adapters' signals, then re-sorted by month.
             signals.extend(self._gleif_ownership_signals(cust))
+            # Hybrid fallback: registry/screening sources (GLEIF, OpenSanctions,
+            # WHOIS) are reliable live, but the live NEWS feeds frequently have no
+            # recent coverage of a given entity — rate limits, or the real adverse
+            # event predates the query window (e.g. a 2023 short-seller report seen
+            # from a 2026 "today"). When the live feed yields no news-derived
+            # narrative signal, fill the gap from the deterministic scenario so the
+            # public layer is never empty. These are tagged ("(modeled)" source +
+            # meta provenance) so they are never passed off as live data.
+            if not any(
+                s.signal_type in _NARRATIVE_SIGNAL_TYPES for s in signals
+            ):
+                # Prefer REAL recent articles (real title + real article URL) so
+                # the live entity's signal cards link straight to the source.
+                # Only when the live news feed is genuinely empty do we fall back
+                # to the deterministic, clearly-labelled modeled narrative.
+                real_news = self._live_news_signals(cust)
+                if real_news:
+                    signals.extend(real_news)
+                else:
+                    signals.extend(self._modeled_narrative_signals(cust))
             return sorted(signals, key=lambda s: s.month)
         return generate_signals_for_customer(
             cust.drift_id,
@@ -515,6 +584,65 @@ class DriftEngine:
             # PYTHONHASHSEED, which would make "deterministic" signals vary.
             seed=zlib.crc32(cust.drift_id.encode()) % 10000,
         )
+
+    @staticmethod
+    def _live_news_signals(cust: SyntheticCustomer) -> list[PublicSignal]:
+        """Real recent-article news signals for a live entity (real title + URL).
+
+        Synchronous bridge (same thread-isolated ``asyncio.run`` pattern as the
+        GLEIF loaders) so it is safe under the running FastAPI loop. Best-effort:
+        any failure or timeout returns ``[]`` and the caller falls back to the
+        modeled narrative. Results are disk-cached by the adapter, so the demo
+        replays them offline.
+        """
+        async def _fetch() -> list[PublicSignal]:
+            from app.sources.event_registry import EventRegistryAdapter
+
+            adapter = EventRegistryAdapter()
+            return await adapter.fetch_recent_news(cust.drift_id, cust.name)
+
+        pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        future = pool.submit(asyncio.run, _fetch())
+        try:
+            return future.result(timeout=_GLEIF_FETCH_TIMEOUT_S)
+        except Exception:  # noqa: BLE001 — best-effort; fall back to modeled
+            logger.warning("live_news_fetch_failed", exc_info=True)
+            return []
+        finally:
+            pool.shutdown(wait=False)
+
+    def _modeled_narrative_signals(
+        self, cust: SyntheticCustomer
+    ) -> list[PublicSignal]:
+        """News-derived narrative signals from the scenario, tagged as modeled.
+
+        Used only as the live-mode hybrid fallback (see ``_public_signals``) when
+        the live news feed returns no narrative coverage. Each signal's ``source``
+        gets a ``" (modeled)"`` suffix and ``meta["provenance"] = "scenario"`` so
+        the UI and any downstream consumer can tell it apart from authoritative
+        live data. Registry/screening types are excluded — those only ever come
+        from real adapters in live mode.
+        """
+        modeled = generate_signals_for_customer(
+            cust.drift_id,
+            cust.name,
+            cust.scenario,
+            months=cust.months,
+            drift_start_month=cust.drift_start_month,
+            seed=zlib.crc32(cust.drift_id.encode()) % 10000,
+        )
+        tagged: list[PublicSignal] = []
+        for s in modeled:
+            if s.signal_type not in _NARRATIVE_SIGNAL_TYPES:
+                continue
+            tagged.append(
+                replace(
+                    s,
+                    source=f"{s.source} (modeled)",
+                    meta={**(s.meta or {}), "provenance": "scenario"},
+                )
+            )
+        return tagged
 
     # ------------------------------------------------------------------ #
     # Business-model drift (UC 9)
@@ -882,6 +1010,14 @@ class DriftEngine:
         # the model can never lower a regulatory floor (see the note above it).
         if requires_re_kyc_floor(analysis["public_signals"]):
             score = max(score, RE_KYC_SCORE_FLOOR)
+
+        # Sanctions ELEVATION (UC 5 / UC 8) — a confirmed sanctions match on the
+        # entity or a newly-added UBO is a mandatory escalation. Floor at
+        # SANCTIONS_SCORE_FLOOR so a sanctioned entity with a deliberately clean
+        # transaction profile (the ownership_shift scenario) still surfaces as
+        # critical. Same "cannot hide below the radar" policy as the floors above.
+        if is_definitively_sanctioned(analysis["public_signals"]):
+            score = max(score, SANCTIONS_SCORE_FLOOR)
 
         # Name-change ELEVATION (UC8) — a confirmed legal-entity name change is a
         # mandatory re-KYC trigger. The ZEFIX/GLEIF/WHOIS diffs (live adapters)

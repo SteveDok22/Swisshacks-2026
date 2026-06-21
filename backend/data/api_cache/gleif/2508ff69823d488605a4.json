@@ -1,0 +1,135 @@
+{
+  "key_raw": "record:2138008NTL5H4KQ88Y72",
+  "cached_at": "2026-06-21T06:36:13.231241+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "2138008NTL5H4KQ88Y72",
+      "attributes": {
+        "lei": "2138008NTL5H4KQ88Y72",
+        "entity": {
+          "legalName": {
+            "name": "TEMENOS (NL) B.V.",
+            "language": "en"
+          },
+          "otherNames": [],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "en",
+            "addressLines": [
+              "KABELWEG 37"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "AMSTERDAM",
+            "region": "NL-NH",
+            "country": "NL",
+            "postalCode": "1014BA"
+          },
+          "headquartersAddress": {
+            "language": "en",
+            "addressLines": [
+              "KABELWEG 37"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "AMSTERDAM",
+            "region": "NL-NH",
+            "country": "NL",
+            "postalCode": "1014BA"
+          },
+          "registeredAt": {
+            "id": "RA000463",
+            "other": null
+          },
+          "registeredAs": "33271017",
+          "jurisdiction": "NL",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "54M6",
+            "other": null
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": "1995-06-30T00:00:00Z",
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": []
+        },
+        "registration": {
+          "initialRegistrationDate": "2024-11-18T00:00:00Z",
+          "lastUpdateDate": "2025-10-31T09:35:00Z",
+          "status": "ISSUED",
+          "nextRenewalDate": "2026-11-18T00:00:00Z",
+          "managingLou": "213800WAVVOPS85N2205",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000463",
+            "other": null
+          },
+          "validatedAs": "33271017",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": "nl/33271017",
+        "qcc": "QNLPN7YEW1",
+        "spglobal": [
+          "416612345"
+        ],
+        "conformityFlag": "CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/2138008NTL5H4KQ88Y72/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/2138008NTL5H4KQ88Y72/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/2138008NTL5H4KQ88Y72/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/2138008NTL5H4KQ88Y72/direct-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/2138008NTL5H4KQ88Y72/direct-parent"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/2138008NTL5H4KQ88Y72/ultimate-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/2138008NTL5H4KQ88Y72/ultimate-parent"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/2138008NTL5H4KQ88Y72"
+      }
+    }
+  }
+}

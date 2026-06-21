@@ -1,0 +1,38 @@
+{
+  "key_raw": "record:529900T8BM49AURSDO55",
+  "cached_at": "2026-06-21T06:53:44.207203+00:00",
+  "data": {
+    "data": {
+      "type": "lei-records",
+      "id": "529900T8BM49AURSDO55",
+      "attributes": {
+        "lei": "529900T8BM49AURSDO55",
+        "entity": {
+          "legalName": {
+            "name": "Alpine Holdings AG",
+            "language": "en"
+          },
+          "status": "ACTIVE",
+          "jurisdiction": "CH",
+          "legalAddress": {
+            "addressLines": [
+              "Bahnhofstrasse 12"
+            ],
+            "city": "Zurich",
+            "country": "CH",
+            "postalCode": "8001"
+          },
+          "legalForm": {
+            "id": "AG",
+            "other": null
+          }
+        },
+        "registration": {
+          "status": "ISSUED",
+          "initialRegistrationDate": "2015-03-01T00:00:00Z",
+          "lastUpdateDate": "2024-11-01T00:00:00Z"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,148 @@
+{
+  "key_raw": "record:549300R24NNCTGT7CW53",
+  "cached_at": "2026-06-21T07:25:20.343405+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "549300R24NNCTGT7CW53",
+      "attributes": {
+        "lei": "549300R24NNCTGT7CW53",
+        "entity": {
+          "legalName": {
+            "name": "Danske Hypotek AB (publ)",
+            "language": "sv"
+          },
+          "otherNames": [
+            {
+              "name": "Aktiebolaget Grundstenen 150655 (publ)",
+              "language": "sv",
+              "type": "PREVIOUS_LEGAL_NAME"
+            }
+          ],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "sv",
+            "addressLines": [
+              "Box 7523"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Stockholm",
+            "region": "SE-AB",
+            "country": "SE",
+            "postalCode": "103 92"
+          },
+          "headquartersAddress": {
+            "language": "sv",
+            "addressLines": [
+              "Box 7523"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Stockholm",
+            "region": "SE-AB",
+            "country": "SE",
+            "postalCode": "103 92"
+          },
+          "registeredAt": {
+            "id": "RA000544",
+            "other": null
+          },
+          "registeredAs": "559001-4154",
+          "jurisdiction": "SE",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "XJHM",
+            "other": null
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": "2015-01-23T00:00:00Z",
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": []
+        },
+        "registration": {
+          "initialRegistrationDate": "2016-12-30T01:57:00Z",
+          "lastUpdateDate": "2025-11-10T11:50:00Z",
+          "status": "ISSUED",
+          "nextRenewalDate": "2026-12-20T16:19:20Z",
+          "managingLou": "549300O897ZC5H7CY412",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000544",
+            "other": null
+          },
+          "validatedAs": "559001-4154",
+          "otherValidationAuthorities": []
+        },
+        "bic": [
+          "DAHLSES1XXX"
+        ],
+        "mic": null,
+        "ocid": "se/559001-4154",
+        "qcc": "QSETW4WMJ1",
+        "spglobal": [
+          "407812161"
+        ],
+        "conformityFlag": "CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/549300R24NNCTGT7CW53/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/549300R24NNCTGT7CW53/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/549300R24NNCTGT7CW53/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/549300R24NNCTGT7CW53/direct-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/549300R24NNCTGT7CW53/direct-parent"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/549300R24NNCTGT7CW53/ultimate-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/549300R24NNCTGT7CW53/ultimate-parent"
+          }
+        },
+        "isins": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/549300R24NNCTGT7CW53/isins"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/549300R24NNCTGT7CW53"
+      }
+    }
+  }
+}

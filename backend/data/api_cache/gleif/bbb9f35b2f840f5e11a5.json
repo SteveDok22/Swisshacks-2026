@@ -1,0 +1,139 @@
+{
+  "key_raw": "record:335800IRRH9N467HOG73",
+  "cached_at": "2026-06-21T07:25:20.249840+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "335800IRRH9N467HOG73",
+      "attributes": {
+        "lei": "335800IRRH9N467HOG73",
+        "entity": {
+          "legalName": {
+            "name": "DANSKE IT AND SUPPORT SERVICES INDIA PRIVATE LIMITED",
+            "language": "en"
+          },
+          "otherNames": [],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "en",
+            "addressLines": [
+              "RMZ ECO WORLD, 7TH & 8TH FLOOR,",
+              "CAMPUS 5B, PLOT B, OUTER RING ROAD,",
+              "DEVARABEESANAHALLI,"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "BANGALORE",
+            "region": "IN-KA",
+            "country": "IN",
+            "postalCode": "560103"
+          },
+          "headquartersAddress": {
+            "language": "en",
+            "addressLines": [
+              "RMZ ECO WORLD, 7TH & 8TH FLOOR,",
+              "CAMPUS 5B, PLOT B, OUTER RING ROAD,",
+              "DEVARABEESANAHALLI,"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "BANGALORE",
+            "region": "IN-KA",
+            "country": "IN",
+            "postalCode": "560103"
+          },
+          "registeredAt": {
+            "id": "RA000394",
+            "other": null
+          },
+          "registeredAs": "U74900KA2012PTC063260",
+          "jurisdiction": "IN",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "YSP9",
+            "other": null
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": "2012-03-27T18:30:00Z",
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": []
+        },
+        "registration": {
+          "initialRegistrationDate": "2020-03-11T09:23:41Z",
+          "lastUpdateDate": "2024-03-13T18:03:10Z",
+          "status": "LAPSED",
+          "nextRenewalDate": "2024-03-13T12:27:09Z",
+          "managingLou": "335800FVH4MOKZS9VH40",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000394",
+            "other": null
+          },
+          "validatedAs": "U74900KA2012PTC063260",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": "in/U74900KA2012PTC063260",
+        "qcc": "QINHK0UN64",
+        "spglobal": [
+          "659368313"
+        ],
+        "conformityFlag": "NON_CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/335800IRRH9N467HOG73/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/335800IRRH9N467HOG73/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/335800IRRH9N467HOG73/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/335800IRRH9N467HOG73/direct-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/335800IRRH9N467HOG73/direct-parent"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/335800IRRH9N467HOG73/ultimate-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/335800IRRH9N467HOG73/ultimate-parent"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/335800IRRH9N467HOG73"
+      }
+    }
+  }
+}

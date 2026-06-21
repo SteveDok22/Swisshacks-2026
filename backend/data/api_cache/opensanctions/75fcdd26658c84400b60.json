@@ -1,0 +1,49 @@
+{
+  "key_raw": "search:SEFE Securing Energy for Europe GmbH:Company:default",
+  "cached_at": "2026-06-21T07:59:05.219612+00:00",
+  "data": [
+    {
+      "id": "gem-own-e100001014321",
+      "caption": "SEFE Securing Energy for Europe",
+      "schema": "Company",
+      "properties": {
+        "name": [
+          "SEFE Securing Energy for Europe",
+          "SEFE Securing Energy for Europe GmbH"
+        ],
+        "website": [
+          "https://www.sefe.eu/"
+        ],
+        "leiCode": [
+          "529900KXMB40SPYJD743"
+        ],
+        "description": [
+          "legal entity"
+        ],
+        "country": [
+          "de"
+        ],
+        "address": [
+          "Berlin, Germany"
+        ],
+        "legalForm": [
+          "GmbH"
+        ],
+        "mainCountry": [
+          "de"
+        ],
+        "permId": [
+          "4296576778"
+        ]
+      },
+      "datasets": [
+        "gem_energy_ownership"
+      ],
+      "referents": [],
+      "target": false,
+      "first_seen": "2026-05-11T10:22:11",
+      "last_seen": "2026-06-04T15:30:01",
+      "last_change": "2026-06-04T15:30:01"
+    }
+  ]
+}

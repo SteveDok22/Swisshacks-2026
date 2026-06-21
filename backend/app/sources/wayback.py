@@ -54,6 +54,7 @@ from app.sources.base import EntitySnapshot, PublicSignal, RegistryAdapter
 from app.sources.cost import AdapterStatus, CostMixin, SourceCost
 
 _AVAILABILITY_URL = "https://archive.org/wayback/available"
+_CDX_URL = "https://web.archive.org/cdx/search/cdx"
 _ALLOWED_SNAPSHOT_PREFIX = "https://web.archive.org/web/"
 _USER_AGENT = "Sentinel/1.0 (hackathon research)"
 _MAX_TEXT_CHARS = 10_000  # Unicode code points, not bytes
@@ -264,11 +265,64 @@ class WaybackAdapter(CostMixin, RegistryAdapter):
     async def _find_snapshot(
         self, domain: str, timestamp: str | None
     ) -> tuple[str | None, str | None]:
-        """Query the Availability API and return (snapshot_url, snapshot_date).
+        """Return (snapshot_url, snapshot_date) for the onboarding-era capture.
 
-        Returns ``(None, None)`` when no snapshot exists, the domain has never
-        been crawled, or the API call fails for any reason.
+        Prefers the CDX API, which (unlike the Availability API) is not
+        aggressively rate-limited from a shared IP. Falls back to the
+        Availability API on any CDX failure. Returns ``(None, None)`` when no
+        snapshot exists or both endpoints fail.
         """
+        cdx = await self._find_snapshot_cdx(domain, timestamp)
+        if cdx[0] is not None:
+            return cdx
+        return await self._find_snapshot_availability(domain, timestamp)
+
+    async def _find_snapshot_cdx(
+        self, domain: str, timestamp: str | None
+    ) -> tuple[str | None, str | None]:
+        """Query the CDX API for the latest successful capture at/before the date.
+
+        The ``id_`` URL modifier returns the raw archived bytes (no Wayback
+        toolbar/rewrites), which is what the text extractor wants.
+        """
+        # Keep the query cheap: ``limit=-5`` returns the 5 NEWEST captures at or
+        # before ``to`` (newest-first). Avoiding server-side ``filter``/``collapse``
+        # keeps archive.org from scanning the whole capture history, which is what
+        # made the request time out. Status filtering is done client-side below.
+        params: dict[str, str] = {
+            "url": domain,
+            "output": "json",
+            "limit": "-5",
+        }
+        if timestamp:
+            params["to"] = timestamp  # captures at/before onboarding
+        try:
+            resp = await self._http.get(_CDX_URL, params=params, timeout=30.0)
+        except (httpx.TransportError, httpx.TimeoutException):
+            return None, None
+        if not resp.is_success:
+            return None, None
+        try:
+            rows = resp.json()
+        except Exception:  # noqa: BLE001
+            return None, None
+        if not isinstance(rows, list) or len(rows) < 2:
+            return None, None
+        # rows[0] is the column header: [urlkey, timestamp, original, mimetype,
+        # statuscode, digest, length]. Rows are newest-first; take the first 200.
+        for row in rows[1:]:
+            if len(row) < 5:
+                continue
+            ts, original, statuscode = row[1], row[2], row[4]
+            if statuscode != "200":
+                continue
+            return f"https://web.archive.org/web/{ts}id_/{original}", ts
+        return None, None
+
+    async def _find_snapshot_availability(
+        self, domain: str, timestamp: str | None
+    ) -> tuple[str | None, str | None]:
+        """Availability-API fallback. Returns ``(None, None)`` on any failure."""
         params: dict[str, str] = {"url": domain}
         if timestamp:
             params["timestamp"] = timestamp

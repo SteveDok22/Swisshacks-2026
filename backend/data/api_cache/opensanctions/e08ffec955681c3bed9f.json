@@ -1,0 +1,74 @@
+{
+  "key_raw": "search:Rosneft Deutschland GmbH:Company:default",
+  "cached_at": "2026-06-21T07:59:04.399917+00:00",
+  "data": [
+    {
+      "id": "NK-KxcncJ3f4EHhkCD8NdLPBm",
+      "caption": "Rosneft Deutschland GmbH",
+      "schema": "Company",
+      "properties": {
+        "topics": [
+          "sanction.linked"
+        ],
+        "modifiedAt": [
+          "2026-02-18"
+        ],
+        "leiCode": [
+          "391200PKEUF3Y2NUMW25"
+        ],
+        "opencorporatesUrl": [
+          "https://opencorporates.com/companies/de/F1103R_HRB184025"
+        ],
+        "legalForm": [
+          "GmbH",
+          "Gesellschaft mit beschränkter Haftung"
+        ],
+        "name": [
+          "Rosneft Deutschland GmbH",
+          "Rosneft Deutschland"
+        ],
+        "registrationNumber": [
+          "HRB 184025"
+        ],
+        "address": [
+          "Berlin, Germany",
+          "Behrenstraße 18, 10117 Berlin"
+        ],
+        "jurisdiction": [
+          "de"
+        ],
+        "incorporationDate": [
+          "2016-02-24"
+        ],
+        "mainCountry": [
+          "de"
+        ],
+        "description": [
+          "legal entity"
+        ],
+        "country": [
+          "de"
+        ],
+        "website": [
+          "https://www.rosneft.de/"
+        ],
+        "permId": [
+          "5060521660"
+        ]
+      },
+      "datasets": [
+        "ext_gleif",
+        "gem_energy_ownership",
+        "ann_graph_topics"
+      ],
+      "referents": [
+        "lei-391200PKEUF3Y2NUMW25",
+        "gem-own-e100001011106"
+      ],
+      "target": true,
+      "first_seen": "2024-06-30T00:00:00",
+      "last_seen": "2026-06-17T00:52:56",
+      "last_change": "2026-06-09T13:06:46"
+    }
+  ]
+}

@@ -503,4 +503,18 @@ def generate_book(
     ww.mode = "live"
     book.append(ww)
 
+    # --- Live entity: Rosneft Deutschland GmbH (UC3/UC5 — sanctioned group) ---
+    # Real German subsidiary whose GLEIF ultimate parent is OAO Rosneft Oil
+    # Company (OFAC/EU-sanctioned). The entity itself is on the live OpenSanctions
+    # list as part of the Rosneft group — a genuine "related business under
+    # sanctions" example drawn entirely from real GLEIF + OpenSanctions data.
+    rosneft_de = generate_customer(
+        drift_id="drift-live-005",
+        name="Rosneft Deutschland GmbH",
+        scenario="combined",
+        seed=seed + 104,
+    )
+    rosneft_de.mode = "live"
+    book.append(rosneft_de)
+
     return book

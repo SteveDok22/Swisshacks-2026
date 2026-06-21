@@ -315,6 +315,7 @@ export interface DriftCustomerSummary {
   dormancy_break: number;
   is_dormancy_break: boolean;
   is_name_changed: boolean;
+  risk_level: string;
   scenario: string | null;
 }
 

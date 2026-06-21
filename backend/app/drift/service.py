@@ -1143,6 +1143,7 @@ class DriftEngine:
                     dormancy_break=round(a["dormancy"].dormancy_break, 3),
                     is_dormancy_break=a["dormancy"].is_dormancy_break,
                     is_name_changed=a["name_changed"],
+                    risk_level=score_to_level(a["drift_score"]).value,
                     scenario=cust.scenario,
                 )
             )

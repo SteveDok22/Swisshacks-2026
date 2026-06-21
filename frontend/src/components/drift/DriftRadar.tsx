@@ -72,6 +72,17 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
     }
   };
 
+  // List dot: use overall risk_level (not velocity_band) so entities with
+  // high fused risk score show red/orange even when velocity is "natural".
+  const riskLevelColor = (level: string) => {
+    switch (level) {
+      case "critical": return "var(--risk-critical, #b91c1c)";
+      case "high":     return "var(--risk-high, #c2410c)";
+      case "medium":   return "var(--risk-medium, #a16207)";
+      default:         return "var(--risk-low, #15803d)";
+    }
+  };
+
   return (
     <ZoomablePanel
       className="border border-paper-line rounded bg-paper-raised p-4"
@@ -259,7 +270,7 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
             >
               <span
                 className="h-2.5 w-2.5 rounded-full shrink-0"
-                style={{ background: dotColor(c.velocity_band) }}
+                style={{ background: riskLevelColor(c.risk_level) }}
               />
               <span className={cn("text-xs flex-1 min-w-0 truncate", selected ? "text-accent font-medium" : "text-ink")}>
                 {c.name}

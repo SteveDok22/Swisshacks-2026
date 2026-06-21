@@ -138,6 +138,7 @@ class DriftSubjectSummary(BaseModel):
     dormancy_break: float = Field(default=0.0, description="Dormancy-break score 0-1")
     is_dormancy_break: bool = Field(default=False, description="Suspicious-activation flag")
     is_name_changed: bool = Field(default=False, description="Confirmed legal-entity name change (re-KYC trigger, UC8)")
+    risk_level: str = Field(default="low", description="critical | high | medium | low — fused score bracket")
     scenario: str | None = Field(default=None, description="Ground-truth scenario (demo)")
 
 

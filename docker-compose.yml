@@ -41,6 +41,9 @@ services:
     volumes:
       # Live backend code (overlays the copy baked into the image)
       - ./backend/app:/home/app/app
+      # External API response cache — bind-mounted from the repo so cache files
+      # written during a live run are visible on the host and can be committed.
+      - ./backend/data/api_cache:/home/app/data/api_cache
       # Keep SQLite files outside the source bind mount. The application drops
       # and recreates the schema on every backend startup.
       - backend_data:/home/app/data/db

@@ -156,6 +156,8 @@ class GleifAdapter(CostMixin, RegistryAdapter):
                 timeout=10.0,
             )
             self._owns_client = True
+        from app.core.api_cache import DiskCache  # local import avoids circular at module load
+        self._cache = DiskCache("gleif")
 
     async def aclose(self) -> None:
         """Close the underlying HTTP client if this adapter owns it."""
@@ -238,15 +240,23 @@ class GleifAdapter(CostMixin, RegistryAdapter):
     # ------------------------------------------------------------------
 
     async def _get_lei_record(self, lei: str) -> dict[str, Any] | None:
+        cached = self._cache.get(f"record:{lei}")
+        if cached is not None:
+            return cached
         try:
             resp = await self._http.get(f"/lei-records/{lei}")
         except httpx.TransportError:
             return None
         if not resp.is_success:
             return None
-        return resp.json()  # type: ignore[no-any-return]
+        data = resp.json()
+        self._cache.set(f"record:{lei}", data)
+        return data  # type: ignore[no-any-return]
 
     async def _lookup_lei_by_name(self, name: str) -> str | None:
+        cached = self._cache.get(f"name:{name}")
+        if cached is not None:
+            return cached
         try:
             resp = await self._http.get(
                 "/lei-records",
@@ -259,8 +269,10 @@ class GleifAdapter(CostMixin, RegistryAdapter):
         items = resp.json().get("data", [])
         if not items:
             return None
-        # Prefer the top-level JSON:API `id` field; fall back to attributes.lei.
-        return items[0].get("id") or items[0].get("attributes", {}).get("lei")  # type: ignore[no-any-return]
+        lei = items[0].get("id") or items[0].get("attributes", {}).get("lei")
+        if lei:
+            self._cache.set(f"name:{name}", lei)
+        return lei  # type: ignore[no-any-return]
 
     async def _get_parent_lei(self, lei: str) -> str | None:
         try:

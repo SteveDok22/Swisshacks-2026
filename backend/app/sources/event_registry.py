@@ -116,6 +116,8 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
 
     def __init__(self) -> None:
         self._api_key: str = settings.event_registry_api_key
+        from app.core.api_cache import DiskCache
+        self._cache = DiskCache("event_registry")
 
     @property
     def _is_configured(self) -> bool:
@@ -184,6 +186,12 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
         if retries < 1:
             raise ValueError(f"retries must be >= 1, got {retries}")
 
+        import hashlib as _hl
+        cache_key = f"{endpoint}:{_hl.sha256(str(sorted(payload.items())).encode()).hexdigest()[:16]}"
+        cached = self._cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         payload = {**payload, "apiKey": self._api_key}
         url = f"{_BASE_URL}/{endpoint}"
         headers = {"User-Agent": _USER_AGENT, "Content-Type": "application/json"}
@@ -205,7 +213,9 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
                         await asyncio.sleep(wait)
                     continue
                 resp.raise_for_status()
-                return resp.json()
+                data = resp.json()
+                self._cache.set(cache_key, data)
+                return data
 
         # All retries exhausted on 429.
         raise httpx.HTTPStatusError(

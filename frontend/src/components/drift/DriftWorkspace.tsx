@@ -153,6 +153,13 @@ export function DriftWorkspace() {
       <main className="flex-1 min-w-0 bg-paper overflow-y-auto">
         {detail ? (
           <div className="p-6 space-y-5">
+            {/* Live-data banner for real entities */}
+            {detail.mode === "live" && (
+              <div className="flex items-center gap-2 rounded border border-accent/30 bg-accent/5 px-3 py-2 text-xs text-accent font-medium">
+                <span className="inline-flex items-center gap-1 rounded bg-accent px-1.5 py-0.5 text-white text-2xs font-bold">LIVE</span>
+                Signals for this entity are sourced from real external APIs (GLEIF · Event Registry · OpenSanctions) and cached in the repo.
+              </div>
+            )}
             {/* Case summary — identity + authoritative verdict + KPIs, one block */}
             <CaseSummary detail={detail} />
 

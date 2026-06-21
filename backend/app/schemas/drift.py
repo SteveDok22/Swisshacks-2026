@@ -140,6 +140,7 @@ class DriftSubjectSummary(BaseModel):
     is_name_changed: bool = Field(default=False, description="Confirmed legal-entity name change (re-KYC trigger, UC8)")
     risk_level: str = Field(default="low", description="critical | high | medium | low — fused score bracket")
     scenario: str | None = Field(default=None, description="Ground-truth scenario (demo)")
+    mode: str = Field(default="synthetic", description="synthetic | live — whether signals come from cached real API calls")
 
 
 class DriftTimelinePoint(BaseModel):
@@ -168,6 +169,7 @@ class DriftSubjectDetail(BaseModel):
     timeline: list[DriftTimelinePoint] = Field(default_factory=list)
     # Demo ground truth
     scenario: str | None = None
+    mode: str = Field(default="synthetic", description="synthetic | live — real cached API data")
     drift_start_month: int | None = None
     sanctions_month: int | None = None
     bocpd_changepoint_day: int | None = None

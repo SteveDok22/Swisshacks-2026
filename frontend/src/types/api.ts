@@ -317,6 +317,7 @@ export interface DriftCustomerSummary {
   is_name_changed: boolean;
   risk_level: string;
   scenario: string | null;
+  mode: string;
 }
 
 export interface DriftTimelinePoint {
@@ -340,6 +341,7 @@ export interface DriftCustomerDetail {
   layers: LayerContribution[];
   timeline: DriftTimelinePoint[];
   scenario: string | null;
+  mode: string;
   drift_start_month: number | null;
   sanctions_month: number | null;
   bocpd_changepoint_day: number | null;

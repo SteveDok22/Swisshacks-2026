@@ -80,6 +80,7 @@ from urllib.parse import quote_plus
 
 from gdeltdoc import Filters, GdeltDoc
 
+from app.core.api_cache import DiskCache
 from app.drift.bocpd import BOCPD, standardize
 from app.sources.base import EntitySnapshot, PublicSignal, RegistryAdapter
 from app.sources.cost import AdapterStatus, CostMixin, SourceCost
@@ -227,6 +228,7 @@ class GdeltAdapter(CostMixin, RegistryAdapter):
 
     def __init__(self, client: GdeltDoc | None = None) -> None:
         self._gd: GdeltDoc = client if client is not None else GdeltDoc()
+        self._cache = DiskCache("gdelt")
 
     def record_url(self, entity_id: str) -> str | None:
         """Reproducible GDELT DOC volume-timeline link for ``entity_id`` (a name)."""
@@ -404,8 +406,14 @@ class GdeltAdapter(CostMixin, RegistryAdapter):
             return None
 
     def _run_timeline(self, mode: str, name: str) -> Any:
-        filters = Filters(keyword=name, timespan=_VOLUME_TIMESPAN)
-        return self._gd.timeline_search(mode, filters)
+        cache_key = f"timeline:{name}:{mode}:{_VOLUME_TIMESPAN}"
+        cached = self._cache.get_df(cache_key)
+        if cached is not None:
+            return cached
+        result = self._gd.timeline_search(mode, Filters(keyword=name, timespan=_VOLUME_TIMESPAN))
+        if result is not None and not getattr(result, "empty", True):
+            self._cache.set_df(cache_key, result)
+        return result
 
     async def _safe_articles(self, name: str) -> Any | None:
         try:
@@ -415,10 +423,17 @@ class GdeltAdapter(CostMixin, RegistryAdapter):
             return None
 
     def _run_articles(self, name: str) -> Any:
+        cache_key = f"articles:{name}:{_ARTICLE_TIMESPAN}"
+        cached = self._cache.get_df(cache_key)
+        if cached is not None:
+            return cached
         filters = Filters(
             keyword=name, timespan=_ARTICLE_TIMESPAN, num_records=_ARTICLE_RECORDS
         )
-        return self._gd.article_search(filters)
+        result = self._gd.article_search(filters)
+        if result is not None and not getattr(result, "empty", True):
+            self._cache.set_df(cache_key, result)
+        return result
 
 
 def _as_datetime(value: Any) -> datetime | None:

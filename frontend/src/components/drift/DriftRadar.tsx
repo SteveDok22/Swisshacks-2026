@@ -300,6 +300,11 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
                   name
                 </span>
               )}
+              {c.mode === "live" && (
+                <span className="text-2xs px-1.5 py-0.5 rounded bg-accent text-white shrink-0 font-semibold">
+                  LIVE
+                </span>
+              )}
               <span className="font-mono text-2xs tabular text-ink-soft w-8 text-right shrink-0">
                 {c.drift_score.toFixed(0)}
               </span>

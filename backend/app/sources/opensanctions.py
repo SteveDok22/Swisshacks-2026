@@ -113,6 +113,8 @@ class OpenSanctionsAdapter(CostMixin, RegistryAdapter):
         self._timeout = timeout
         self._max_retries = max(1, max_retries)
         self._backoff_base = backoff_base
+        from app.core.api_cache import DiskCache
+        self._cache = DiskCache("opensanctions")
 
     async def aclose(self) -> None:
         """Close the underlying HTTP client if this adapter owns it."""
@@ -241,6 +243,11 @@ class OpenSanctionsAdapter(CostMixin, RegistryAdapter):
         raises ``httpx.HTTPStatusError`` (the caller in ``fetch_signals`` converts
         it to an empty list).
         """
+        cache_key = f"search:{name}:{schema or 'any'}:{dataset}"
+        cached = self._cache.get(cache_key)
+        if cached is not None:
+            return cached  # type: ignore[return-value]
+
         params: dict[str, Any] = {"q": name, "limit": _SEARCH_LIMIT}
         if schema:
             params["schema"] = schema
@@ -260,7 +267,9 @@ class OpenSanctionsAdapter(CostMixin, RegistryAdapter):
                 await asyncio.sleep(self._backoff_base * (2**attempt))
                 continue
             resp.raise_for_status()
-            return resp.json().get("results", [])  # type: ignore[no-any-return]
+            results = resp.json().get("results", [])
+            self._cache.set(cache_key, results)
+            return results  # type: ignore[no-any-return]
         # Unreachable — the final attempt either returns or raises above.
         raise RuntimeError("retry loop exhausted without a response")  # pragma: no cover
 

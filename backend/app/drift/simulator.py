@@ -142,6 +142,9 @@ class SyntheticCustomer:
     domain: str | None = None
     # Sanctioned UBO name for the ownership_shift and combo scenarios.
     sanctioned_ubo_name: str | None = None
+    # "synthetic" (default) → deterministic mock signals.
+    # "live" → real external-API calls (cached to data/api_cache/).
+    mode: str = "synthetic"
 
     def metric_windows(self) -> dict[str, list[np.ndarray]]:
         """Behavioral metrics for velocity/BOCPD (magnitude of drift)."""
@@ -439,5 +442,20 @@ def generate_book(
         cust.domain = domain
         cust.sanctioned_ubo_name = sanctioned_ubo
         book.append(cust)
+
+    # --- Live entity: Temenos AG ---
+    # Real Swiss banking-software company (SIX: TEMN). In 2023 Hindenburg
+    # Research published an adverse short report; the CEO resigned weeks later.
+    # GDELT and GLEIF calls for this entity are cached under data/api_cache/ and
+    # committed to the repo so the demo works fully offline.
+    temenos = generate_customer(
+        drift_id="drift-live-001",
+        name="Temenos AG",
+        scenario="news_spike",
+        seed=seed + 99,
+    )
+    temenos.domain = "temenos.com"
+    temenos.mode = "live"
+    book.append(temenos)
 
     return book

@@ -326,7 +326,9 @@ class DriftEngine:
         # has a same-source anchor to fire against (PR #45 follow-up). Live mode
         # only — offline keeps the empty mapping so the diff stays inert and the
         # offline scores are unchanged.
-        if settings.external_apis_enabled:
+        if settings.external_apis_enabled or any(
+            getattr(c, "mode", "synthetic") == "live" for c in self._book
+        ):
             self._gleif_baselines = self._load_gleif_baselines()
         # Contagion is computed once (sanctions already hit in demo state)
         self._contagion = self._graph.propagate(seeds=[SANCTIONED_SEED])
@@ -495,7 +497,7 @@ class DriftEngine:
         the time-travel replay), seeded by ``drift_id`` so the same customer
         always yields the same signals across requests.
         """
-        if settings.external_apis_enabled:
+        if settings.external_apis_enabled or getattr(cust, "mode", "synthetic") == "live":
             signals = gather_public_signals_sync(cust.drift_id, cust.name)
             # The aggregator cannot carry per-source KYC baselines, so the GLEIF
             # ownership-chain diff (use case 3) is layered in here alongside the
@@ -537,7 +539,7 @@ class DriftEngine:
         Either way the pure comparator never raises and never requires a model
         download at request time — an unavailable backend yields a skipped result.
         """
-        if settings.external_apis_enabled:
+        if settings.external_apis_enabled or getattr(cust, "mode", "synthetic") == "live":
             return self._live_business_model_comparison(cust)
 
         onboarding = cust.onboarding_website_text
@@ -1145,6 +1147,7 @@ class DriftEngine:
                     is_name_changed=a["name_changed"],
                     risk_level=score_to_level(a["drift_score"]).value,
                     scenario=cust.scenario,
+                    mode=getattr(cust, "mode", "synthetic"),
                 )
             )
         out.sort(key=lambda c: c.drift_score, reverse=True)
@@ -1220,6 +1223,7 @@ class DriftEngine:
             layers=self._build_layers(cust, a),
             timeline=timeline,
             scenario=cust.scenario,
+            mode=getattr(cust, "mode", "synthetic"),
             drift_start_month=cust.drift_start_month,
             sanctions_month=cust.sanctions_month,
             bocpd_changepoint_day=a["bocpd_changepoint_day"],

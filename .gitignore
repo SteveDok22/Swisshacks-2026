@@ -9,6 +9,8 @@ venv/
 env/
 .env
 .env.local
+.env.shared
+.env.*.local
 *.egg-info/
 .pytest_cache/
 .mypy_cache/

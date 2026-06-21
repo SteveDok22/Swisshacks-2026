@@ -9,6 +9,7 @@ Run via Docker:
 """
 
 from contextlib import asynccontextmanager
+from pathlib import Path
 from typing import AsyncIterator
 
 from fastapi import FastAPI
@@ -20,6 +21,7 @@ from app.core.logging import get_logger, setup_logging
 from app.db.seed import seed_if_empty
 from app.db.session import close_db, init_db, session_scope
 from app.ml.registry import get_registry
+from app.ml.training import train_drift_model, train_social_engineering_model
 from app.services.jurisdiction import JurisdictionService
 
 # Initialize logging FIRST
@@ -46,6 +48,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         if seeded:
             logger.info("database_seeded_with_mock_data")
     
+    # Train ML models if not yet built (first startup or clean container)
+    model_dir = Path(settings.model_dir)
+    model_dir.mkdir(parents=True, exist_ok=True)
+    if not (model_dir / "social_engineering_v1.joblib").exists():
+        logger.info("auto_training_model", model="social_engineering_v1")
+        train_social_engineering_model(output_dir=model_dir)
+    if not (model_dir / "drift_v1.joblib").exists():
+        logger.info("auto_training_model", model="drift_v1")
+        train_drift_model(output_dir=model_dir)
+
     # Load ML models
     registry = get_registry()
     logger.info(

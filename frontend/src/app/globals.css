@@ -23,11 +23,11 @@
   --risk-low: #15803d;
 }
 
-
-/* === Fonts: AMINA-aligned — Bitter (serif display) + Satoshi (UI) + IBM Plex Mono (data) === */
-@import url("https://fonts.googleapis.com/css2?family=Bitter:wght@400;500;600;700&display=swap");
-@import url("https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+/* Fonts (AMINA-aligned — Bitter serif display + Satoshi UI + IBM Plex Mono data)
+   are loaded and self-hosted via next/font in src/app/layout.tsx and exposed as
+   --font-sans / --font-serif / --font-mono. They are NOT @imported here: a CSS
+   @import after other rules is invalid per spec and was being dropped, so the
+   brand fonts never loaded. */
 
 @layer base {
   html {

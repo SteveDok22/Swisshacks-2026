@@ -28,6 +28,8 @@ const SIGNAL_LABEL: Record<string, string> = {
   business_model_change: "Business-model change",
   name_change: "Legal name change",
   domain_change: "Domain registrant change",
+  corridor_alert: "Payment corridor alert",
+  domain_age: "Domain age anomaly",
 };
 
 /**

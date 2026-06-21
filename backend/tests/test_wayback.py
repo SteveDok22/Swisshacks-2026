@@ -440,7 +440,12 @@ class TestFindSnapshot:
         mock_client.get = capture
         adapter = WaybackAdapter(http_client=mock_client)
         await adapter._find_snapshot(_DOMAIN, "20210101")
-        assert calls[0].get("timestamp") == "20210101"
+        # The date reaches the lookup as the CDX ``to`` bound (primary path) or
+        # the Availability API ``timestamp`` (fallback). Either satisfies intent.
+        assert any(
+            c.get("to") == "20210101" or c.get("timestamp") == "20210101"
+            for c in calls
+        )
 
     async def test_timestamp_omitted_when_none(self):
         calls: list[dict] = []
@@ -453,7 +458,10 @@ class TestFindSnapshot:
         mock_client.get = capture
         adapter = WaybackAdapter(http_client=mock_client)
         await adapter._find_snapshot(_DOMAIN, None)
-        assert "timestamp" not in calls[0]
+        # No date bound on any lookup call (neither CDX ``to`` nor API ``timestamp``).
+        assert all(
+            "to" not in c and "timestamp" not in c for c in calls
+        )
 
 
 # ---------------------------------------------------------------------------

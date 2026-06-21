@@ -309,7 +309,8 @@ class WaybackAdapter(CostMixin, RegistryAdapter):
         if not isinstance(rows, list) or len(rows) < 2:
             return None, None
         # rows[0] is the column header: [urlkey, timestamp, original, mimetype,
-        # statuscode, digest, length]. Rows are newest-first; take the first 200.
+        # statuscode, digest, length]. Rows are newest-first (limit=-5); take the
+        # first capture that returned HTTP 200.
         for row in rows[1:]:
             if len(row) < 5:
                 continue

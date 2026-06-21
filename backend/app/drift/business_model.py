@@ -284,6 +284,16 @@ class BusinessModelComparison:
     wayback_embedding: CachedEmbedding | None = None
     current_embedding: CachedEmbedding | None = None
     skipped_reason: str | None = None
+    # The actual onboarding (Wayback) and current (Firecrawl) website texts, so
+    # the caller can surface them in the UC9 side-by-side diff panel, plus the
+    # links to the archived snapshot / live site and a one-line plain-language
+    # summary of the change (populated by the service layer via replace()).
+    wayback_text: str | None = None
+    current_text: str | None = None
+    wayback_url: str | None = None
+    current_url: str | None = None
+    # One really-short LLM summary of how the website changed (onboarding vs now).
+    summary: str | None = None
 
     @property
     def skipped(self) -> bool:
@@ -455,4 +465,6 @@ def compare_business_model(
         wayback_embedding=wb_emb,
         current_embedding=cur_emb,
         skipped_reason=None,
+        wayback_text=wayback_text,
+        current_text=current_text,
     )

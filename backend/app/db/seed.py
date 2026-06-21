@@ -122,6 +122,11 @@ async def _seed_kyc_baselines(session: AsyncSession) -> None:
         # read them back from the snapshot without re-deriving from the name slug.
         if getattr(customer, "domain", None):
             raw["domain"] = customer.domain
+            # Onboarding "as-of" date (yyyymmdd) so the Wayback adapter fetches the
+            # company's website as it looked at onboarding (~4 years before the
+            # demo's present) for the UC9 website-drift comparison. A fixed, old
+            # date guarantees a meaningfully different "before" capture exists.
+            raw["onboarding_date"] = "20220101"
         if getattr(customer, "sanctioned_ubo_name", None):
             raw["sanctioned_ubo_name"] = customer.sanctioned_ubo_name
 

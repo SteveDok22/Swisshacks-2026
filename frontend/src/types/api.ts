@@ -362,6 +362,9 @@ export interface DriftCustomerDetail {
   // Wayback↔Firecrawl website text snapshots for the diff panel.
   onboarding_website_text?: string | null;
   current_website_text?: string | null;
+  onboarding_website_url?: string | null;
+  current_website_url?: string | null;
+  business_model_summary?: string | null;
   causal: CausalVerdict | null;
   stability: StabilityVerdict | null;
   dormancy: DormancyVerdict | null;

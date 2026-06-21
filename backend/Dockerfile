@@ -18,9 +18,19 @@ ENV UV_LINK_MODE=copy \
     UV_COMPILE_BYTECODE=1 \
     UV_PYTHON_DOWNLOADS=never
 
+# Install core deps, then the optional `embeddings` dependency (model2vec) so the
+# UC9 website-drift comparator works. model2vec is pure-NumPy (no torch), keeping
+# the image lean.
 RUN uv venv /opt/venv && \
     . /opt/venv/bin/activate && \
-    uv pip install --no-cache -r pyproject.toml
+    uv pip install --no-cache -r pyproject.toml && \
+    uv pip install --no-cache model2vec
+
+# Pre-download the model2vec static model into a baked HF cache so the live
+# website-drift demo runs fully offline (no HuggingFace fetch at runtime).
+ENV HF_HOME=/opt/hf_cache
+RUN . /opt/venv/bin/activate && \
+    python -c "from model2vec import StaticModel; StaticModel.from_pretrained('minishlab/potion-base-8M')"
 
 # === STAGE: Test ===
 # Runs the pytest suite (unit + ASGI integration). Reuses the full app venv and
@@ -44,9 +54,12 @@ RUN apt-get update && \
         curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy venv from builder
+# Copy venv + the baked model2vec/HF model cache from the builder so the
+# website-drift comparator runs offline.
 COPY --from=builder /opt/venv /opt/venv
-ENV PATH="/opt/venv/bin:$PATH"
+COPY --from=builder /opt/hf_cache /opt/hf_cache
+ENV PATH="/opt/venv/bin:$PATH" \
+    HF_HOME=/opt/hf_cache
 
 # Non-root user (security best practice)
 RUN useradd --create-home --shell /bin/bash app

@@ -1,17 +1,11 @@
 "use client";
 
+import { ExternalLink } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { DriftCustomerDetail } from "@/types/api";
 
 interface WebsiteDiffPanelProps {
   detail: DriftCustomerDetail;
-}
-
-const MAX_CHARS = 500;
-
-function truncate(text: string): string {
-  if (text.length <= MAX_CHARS) return text;
-  return text.slice(0, MAX_CHARS) + "...";
 }
 
 function distanceBadge(distance: number): { label: string; className: string } {
@@ -34,18 +28,25 @@ function distanceBadge(distance: number): { label: string; className: string } {
 }
 
 /**
- * Wayback↔Firecrawl website diff panel (UC 9 / Phase G3).
+ * Wayback↔Firecrawl website-drift panel (UC 9).
  *
- * Shows the onboarding vs current website text side-by-side so a compliance
- * officer can read the evidence behind the cosine-distance business-model
- * change signal.
+ * Compact by design: a one-line AI summary of what changed between the
+ * onboarding and current website, plus links to both versions (archived
+ * snapshot + live site). The raw crawled text is intentionally NOT shown — it
+ * is long and noisy; the LLM summary is the readable evidence.
  *
  * Only rendered when the business-model distance comparison actually ran.
  */
 export function WebsiteDiffPanel({ detail }: WebsiteDiffPanelProps) {
-  const { is_business_model_change, business_model_distance, onboarding_website_text, current_website_text } = detail;
+  const {
+    is_business_model_change,
+    business_model_distance,
+    onboarding_website_url,
+    current_website_url,
+    business_model_summary,
+  } = detail;
 
-  // Only render when a comparison ran — distance > 0 means embedder ran.
+  // Only render when a comparison ran — distance > 0 means the embedder ran.
   if (!is_business_model_change && (business_model_distance ?? 0) === 0) {
     return null;
   }
@@ -62,39 +63,41 @@ export function WebsiteDiffPanel({ detail }: WebsiteDiffPanelProps) {
         </span>
       </div>
 
-      {/* Two-column diff */}
-      <div className="grid grid-cols-2 divide-x divide-paper-line">
-        {/* Left: onboarding snapshot */}
-        <div className="p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-2xs font-semibold text-ink-soft">At Onboarding (Wayback)</span>
-            <span className="text-2xs text-ink-faint font-mono bg-paper-sunken px-1 py-0.5 rounded border border-paper-line">
-              archive.org
-            </span>
+      <div className="p-4 space-y-3">
+        {/* What changed — one short AI summary of the diff */}
+        {business_model_summary && (
+          <div>
+            <div className="text-2xs font-semibold uppercase tracking-wide text-ink-muted mb-1">
+              What changed
+            </div>
+            <p className="text-sm text-ink leading-snug">{business_model_summary}</p>
           </div>
-          {onboarding_website_text ? (
-            <p className="whitespace-pre-wrap text-xs font-mono text-ink-soft leading-relaxed">
-              {truncate(onboarding_website_text)}
-            </p>
-          ) : (
-            <p className="text-xs text-ink-muted italic">No snapshot available</p>
-          )}
-        </div>
+        )}
 
-        {/* Right: current snapshot */}
-        <div className="p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-2xs font-semibold text-ink-soft">Now (Firecrawl)</span>
-            <span className="text-2xs text-ink-faint font-mono bg-paper-sunken px-1 py-0.5 rounded border border-paper-line">
-              firecrawl
-            </span>
-          </div>
-          {current_website_text ? (
-            <p className="whitespace-pre-wrap text-xs font-mono text-ink-soft leading-relaxed">
-              {truncate(current_website_text)}
-            </p>
-          ) : (
-            <p className="text-xs text-ink-muted italic">No snapshot available</p>
+        {/* Compare the two versions */}
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <span className="text-2xs text-ink-muted">Compare:</span>
+          {onboarding_website_url && (
+            <a
+              href={onboarding_website_url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-2xs font-medium text-accent hover:text-ink bg-paper-sunken px-2 py-1 rounded border border-paper-line transition-colors"
+            >
+              At onboarding (archived)
+              <ExternalLink className="h-2.5 w-2.5" strokeWidth={2} />
+            </a>
+          )}
+          {current_website_url && (
+            <a
+              href={current_website_url}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-2xs font-medium text-accent hover:text-ink bg-paper-sunken px-2 py-1 rounded border border-paper-line transition-colors"
+            >
+              Now (live site)
+              <ExternalLink className="h-2.5 w-2.5" strokeWidth={2} />
+            </a>
           )}
         </div>
       </div>

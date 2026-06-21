@@ -210,6 +210,18 @@ class DriftSubjectDetail(BaseModel):
         default=0.0,
         description="Cosine distance between onboarding and current website text (0 = identical, higher = more divergent)",
     )
+    # UC9 website-diff evidence for the side-by-side panel. Texts are the actual
+    # onboarding (Wayback) vs current (Firecrawl) website content; the URLs link
+    # to the archived snapshot and the live site; the summary is a one-line
+    # plain-language explanation of what changed.
+    onboarding_website_text: str | None = None
+    current_website_text: str | None = None
+    onboarding_website_url: str | None = None
+    current_website_url: str | None = None
+    business_model_summary: str | None = Field(
+        default=None,
+        description="One short LLM summary of how the website changed (onboarding vs now)",
+    )
 
     # Causal drift: risk-shaped vs life-shaped change
     causal: CausalVerdictOut | None = None

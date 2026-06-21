@@ -135,7 +135,9 @@ DRIFT_ANALYSIS_VERSION = "drift-v1"
 # overrun (a slow archive.org capture, a hung scrape) is abandoned and the
 # customer simply gets no business-model signal. Sized above the Wayback polite
 # delay + two HTTP round-trips, well under the cascade's per-customer budget.
-_WEBSITE_FETCH_TIMEOUT_S = 30.0
+# Generous bound: a cold UC9 fetch chains Wayback (CDX, up to ~30s) + Firecrawl +
+# embedding. Only the first uncached load pays it; cached loads are instant.
+_WEBSITE_FETCH_TIMEOUT_S = 60.0
 # raw_data key under which the comparator's embeddings are persisted, keyed by
 # the SHA-256 text fingerprint the comparator returns. A re-scan reads this back
 # as a read-through cache to skip re-embedding when the website text is unchanged.
@@ -779,11 +781,12 @@ class DriftEngine:
             logger.info("business_model_live_no_domain", drift_id=drift_id)
             return None
 
-        wayback_text = await self._fetch_wayback_text(
-            drift_id, name, domain, onboarding_date
-        )
-        current_text, current_url = await self._fetch_firecrawl_text(
-            drift_id, name, domain
+        # Fetch the archived (Wayback) and current (Firecrawl) pages concurrently
+        # — they are independent, so this keeps a cold run well inside the
+        # _WEBSITE_FETCH_TIMEOUT_S budget instead of summing both fetches.
+        (wayback_text, wayback_url), (current_text, current_url) = await asyncio.gather(
+            self._fetch_wayback_text(drift_id, name, domain, onboarding_date),
+            self._fetch_firecrawl_text(drift_id, name, domain),
         )
 
         # Fingerprint the STRIPPED text the comparator embeds, so a persisted
@@ -807,6 +810,24 @@ class DriftEngine:
             current_cache=cur_cache,
             source_url=current_url,
         )
+
+        # Enrich the result with the archived/live URLs and two really-short
+        # before/after LLM summaries so the UC9 panel reads at a glance. Use the
+        # human-facing Wayback URL (strip the ``id_`` raw-bytes modifier, which
+        # serves unstyled content that does not render as a page in a browser).
+        if result.is_change and not result.skipped:
+            summary = self._summarize_website_change(
+                name, wayback_text or "", current_text or ""
+            )
+            display_wayback_url = (
+                wayback_url.replace("id_/", "/", 1) if wayback_url else None
+            )
+            result = replace(
+                result,
+                wayback_url=display_wayback_url,
+                current_url=current_url,
+                summary=summary,
+            )
 
         # Persist the embeddings actually used (never the degenerate ones a skip
         # withholds). Keep only the two current fingerprints so the cache stays
@@ -903,8 +924,8 @@ class DriftEngine:
 
     async def _fetch_wayback_text(
         self, drift_id: str, name: str, domain: str, onboarding_date: str | None
-    ) -> str | None:
-        """Fetch the onboarding-era website text via Wayback. None on any error."""
+    ) -> tuple[str | None, str | None]:
+        """Fetch onboarding website text + snapshot URL via Wayback. (None, None) on error."""
         adapter = WaybackAdapter()
         try:
             snap = await adapter.fetch(
@@ -914,10 +935,12 @@ class DriftEngine:
             logger.warning(
                 "business_model_wayback_failed", drift_id=drift_id, exc_info=True
             )
-            return None
+            return None, None
         finally:
             await self._safe_aclose(adapter)
-        return snap.raw_data.get("website_text") if snap else None
+        if snap is None:
+            return None, None
+        return snap.raw_data.get("website_text"), snap.raw_data.get("snapshot_url")
 
     async def _fetch_firecrawl_text(
         self, drift_id: str, name: str, domain: str
@@ -936,6 +959,29 @@ class DriftEngine:
         if snap is None:
             return None, None
         return snap.raw_data.get("website_text"), snap.raw_data.get("url")
+
+    @staticmethod
+    def _summarize_website_change(name: str, before: str, after: str) -> str | None:
+        """One really-short LLM summary of how the website changed (the diff).
+
+        A single short sentence (~max 16 words). One LLM call, disk-cached, so it
+        costs tokens once per entity and replays offline. ``None`` on any failure.
+        """
+        try:
+            llm = get_anthropic_client()
+            prompt = (
+                f"Company: {name}\n\n"
+                f"WEBSITE AT ONBOARDING (excerpt):\n{before[:1500]}\n\n"
+                f"WEBSITE NOW (excerpt):\n{after[:1500]}\n\n"
+                "In ONE short sentence (max 16 words), say what changed between "
+                "the onboarding website and the current one. If nothing "
+                "substantive changed, answer exactly: 'Minor wording changes only.'"
+            )
+            text, _, _ = llm.complete(prompt, max_tokens=70)
+            return text.strip()[:200] or None
+        except Exception:  # noqa: BLE001 — summary is best-effort
+            logger.warning("business_model_summary_failed", exc_info=True)
+            return None
 
     @staticmethod
     async def _safe_aclose(adapter: Any) -> None:
@@ -979,6 +1025,12 @@ class DriftEngine:
         bm = self._business_model_comparison(cust)
         if bm is not None and bm.signal is not None:
             public_signals = [*public_signals, bm.signal]
+        # Surface the real live website texts (Wayback onboarding vs Firecrawl
+        # current) so the UC9 side-by-side diff panel renders them. For the
+        # synthetic domain_pivot entity these are already set on the customer.
+        if bm is not None and bm.wayback_text and bm.current_text:
+            cust.onboarding_website_text = bm.wayback_text
+            cust.current_website_text = bm.current_text
 
         # --- Shared passive-layer analysis (identical formula to training) ---
         analysis = compute_drift_analysis(
@@ -991,6 +1043,9 @@ class DriftEngine:
         analysis["business_model_distance"] = (
             round(bm.distance, 4) if bm is not None else 0.0
         )
+        analysis["onboarding_website_url"] = bm.wayback_url if bm is not None else None
+        analysis["current_website_url"] = bm.current_url if bm is not None else None
+        analysis["business_model_summary"] = bm.summary if bm is not None else None
         score = analysis["drift_score"]
 
         # XGBoost ML blend — applied BEFORE the regulatory floors below.
@@ -1416,6 +1471,13 @@ class DriftEngine:
             is_name_changed=a["name_changed"],
             is_business_model_change=a.get("is_business_model_change", False),
             business_model_distance=a.get("business_model_distance", 0.0),
+            # The raw crawled website text is intentionally NOT returned — it is
+            # long/noisy and the UI shows only the LLM summary + the two links.
+            onboarding_website_text=None,
+            current_website_text=None,
+            onboarding_website_url=a.get("onboarding_website_url"),
+            current_website_url=a.get("current_website_url"),
+            business_model_summary=a.get("business_model_summary"),
             causal=CausalVerdictOut(
                 causal_llr=round(a["causal"].causal_llr, 2),
                 p_risk=round(a["causal"].p_risk, 3),

@@ -1,10 +1,12 @@
 """
-Database seeding — seeds KYC baselines from the synthetic drift book at startup.
+Database seeding — two independent paths, both idempotent:
 
-Phase A decision: mock_data.py clients/cases are kept dormant (not deleted, not
-called). The drift book is the whole demo; the case-review workspace at /cases
-is kept for reference but not pre-populated.
-Idempotent: only runs if entity_snapshots table is empty.
+1. KYC baselines (entity_snapshots table): one snapshot per drift subject from
+   the synthetic book. Used by the Drift Engine for source-level comparison.
+
+2. Case Queue (clients + cases tables): 10 private-wealth clients and 18 cases
+   (social engineering, investment recommendations, XRPL transactions) from
+   mock_data.py. Used by the /cases workspace.
 """
 
 from __future__ import annotations
@@ -18,33 +20,43 @@ from sqlmodel import select
 
 from app.core.logging import get_logger
 from app.db.kyc_baseline import EntitySnapshotDB, store_snapshot
+from app.db.models import CaseDB, ClientDB
 from app.drift.simulator import generate_book
+from app.services.mock_data import generate_mock_cases, generate_mock_clients
 
 logger = get_logger(__name__)
 
 
 async def seed_if_empty(session: AsyncSession) -> bool:
     """
-    Seed KYC baselines from the synthetic drift book if the snapshots table is empty.
+    Seed the database if either table is empty. Both paths are idempotent and
+    independent — one can be populated without the other.
 
-    Returns True if seeding happened, False if skipped.
+    Returns True if any seeding happened, False if both were already populated.
     """
-    # Check if already seeded (use entity_snapshots — no clients are seeded in
-    # drift-only mode so ClientDB is always empty and cannot serve as the guard).
-    result = await session.execute(select(EntitySnapshotDB).limit(1))
-    if result.scalar_one_or_none() is not None:
+    seeded = False
+
+    # --- Path 1: KYC baselines for the Drift Engine ---
+    snap_result = await session.execute(select(EntitySnapshotDB).limit(1))
+    if snap_result.scalar_one_or_none() is None:
+        logger.info("seed_starting", path="kyc_baselines")
+        await _seed_kyc_baselines(session)
+        seeded = True
+
+    # --- Path 2: Case Queue (clients + cases) ---
+    client_result = await session.execute(select(ClientDB).limit(1))
+    if client_result.scalar_one_or_none() is None:
+        logger.info("seed_starting", path="case_queue")
+        await _seed_case_queue(session)
+        seeded = True
+
+    if seeded:
+        await session.commit()
+        logger.info("seed_completed")
+    else:
         logger.info("seed_skipped", reason="already_populated")
-        return False
 
-    logger.info("seed_starting")
-
-    # === Seed KYC baselines from the synthetic drift book ===
-    await _seed_kyc_baselines(session)
-
-    await session.commit()
-
-    logger.info("seed_completed")
-    return True
+    return seeded
 
 
 def _mean_of_windows(windows: list) -> float | None:
@@ -159,3 +171,67 @@ async def _seed_kyc_baselines(session: AsyncSession) -> None:
         await store_snapshot(session, gleif_snapshot, flush=False)
 
     logger.info("kyc_baselines_seeded", count=len(book))
+
+
+async def _seed_case_queue(session: AsyncSession) -> None:
+    """
+    Seed the Case Queue with 10 private-wealth clients and 18 compliance cases
+    (social engineering, investment recommendations, XRPL transactions).
+
+    Converts mock_data.py domain objects to DB rows using the same field
+    mapping as DbStore.add_case() / _client_db_to_domain().
+    """
+    clients = generate_mock_clients()
+
+    for c in clients:
+        p = c.profile
+        client_db = ClientDB(
+            id=c.id,
+            full_name=p.full_name,
+            email=p.email,
+            nationality=p.nationality,
+            residence_country=p.residence_country,
+            primary_jurisdiction=p.primary_jurisdiction,
+            risk_tolerance=p.risk_tolerance,
+            aum_chf=p.aum_chf,
+            esg_focus=p.esg_focus,
+            is_pep=p.is_pep,
+            sanctions_check_passed=p.sanctions_check_passed,
+            onboarded_at=p.onboarded_at,
+            last_review_date=p.last_review_date,
+            profile_data={
+                "date_of_birth": p.date_of_birth.isoformat() if p.date_of_birth else None,
+                "preferred_asset_classes": p.preferred_asset_classes,
+                "whitelist_wallets": p.whitelist_wallets,
+                "typical_transaction_hours": p.typical_transaction_hours,
+                "typical_transaction_currency": p.typical_transaction_currency,
+            },
+            created_at=c.created_at,
+            updated_at=c.updated_at,
+        )
+        session.add(client_db)
+
+    await session.flush()
+
+    cases = generate_mock_cases(clients)
+    for case in cases:
+        case_db = CaseDB(
+            id=case.id,
+            client_id=case.client_id,
+            case_type=case.case_type,
+            jurisdiction=case.jurisdiction,
+            status=case.status,
+            summary=case.context.summary,
+            context_data=case.context.data,
+            risk_score=case.risk_score,
+            risk_level=case.risk_level,
+            confidence=case.confidence,
+            assigned_to=case.assigned_to,
+            created_at=case.created_at,
+            updated_at=case.updated_at,
+            scored_at=case.scored_at,
+            resolved_at=case.resolved_at,
+        )
+        session.add(case_db)
+
+    logger.info("case_queue_seeded", clients=len(clients), cases=len(cases))

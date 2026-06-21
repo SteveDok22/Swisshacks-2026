@@ -109,8 +109,9 @@ LLM_PARSE_FALLBACK = {
     "recommended_action": "Request information",
 }
 
-# Sanctioned seed entity for the contagion demo
-SANCTIONED_SEED = "SANCTIONED_ENTITY"
+# Sanctioned seed entity for the contagion demo — must match the drift_id of
+# Castor Trade Finance AG so the contagion graph node is reachable by drift_id.
+SANCTIONED_SEED = "drift-011"
 # Display name for the sanctioned seed node (kept in sync with build_demo_graph
 # so the live-LEI and synthetic graphs label the flagged entity identically).
 # drift-011 (Castor Trade Finance AG) is the flagship combo entity that anchors

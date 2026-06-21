@@ -213,8 +213,10 @@ def build_demo_graph(drift_ids: list[str] | dict[str, str]) -> OwnershipGraph:
 
     g = OwnershipGraph()
 
-    # The entity that gets sanctioned (Castor Trade Finance AG — the flagship combo)
-    g.add_entity("SANCTIONED_ENTITY", name="Castor Trade Finance AG", entity_type="company")
+    # The entity that gets sanctioned. Use its real drift_id ("drift-011") so the
+    # frontend can identify it by selectedId and show downstream connections when
+    # the user opens Castor Trade Finance AG's detail page.
+    g.add_entity("drift-011", name="Castor Trade Finance AG", entity_type="company")
 
     # Shell layer
     g.add_entity("ShellCo_Alpha", name="Alpha Holdings SA", entity_type="shell")
@@ -231,8 +233,8 @@ def build_demo_graph(drift_ids: list[str] | dict[str, str]) -> OwnershipGraph:
         g.add_entity(cid, name=entity_name, is_customer=True, entity_type="individual")
 
     # Ownership edges (owner -> target, stake)
-    g.add_ownership("SANCTIONED_ENTITY", "ShellCo_Alpha", 0.6)
-    g.add_ownership("SANCTIONED_ENTITY", "ShellCo_Beta", 0.4)
+    g.add_ownership("drift-011", "ShellCo_Alpha", 0.6)
+    g.add_ownership("drift-011", "ShellCo_Beta", 0.4)
 
     for cid, (shell, stake) in CONNECTED.items():
         g.add_ownership(shell, cid, stake)

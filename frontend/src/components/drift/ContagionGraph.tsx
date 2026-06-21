@@ -35,41 +35,48 @@ export function ContagionGraph({ data, selectedId }: ContagionGraphProps) {
   const seedId = data.seeds[0];
   if (!seedId) return null;
 
-  const adj = new Map<string, string[]>();
-  for (const e of data.edges) {
-    if (!adj.has(e.source)) adj.set(e.source, []);
-    adj.get(e.source)!.push(e.target);
-  }
+  let visibleNodes = data.nodes;
+  let visibleEdges = data.edges;
 
-  const parent = new Map<string, string | null>([[seedId, null]]);
-  const queue = [seedId];
-  while (queue.length > 0) {
-    const curr = queue.shift()!;
-    if (curr === selectedId) break;
-    for (const next of adj.get(curr) ?? []) {
-      if (!parent.has(next)) {
-        parent.set(next, curr);
-        queue.push(next);
+  if (selectedId !== seedId) {
+    // Non-seed entity: show only the ownership path from the seed down to
+    // this customer so every node on screen is directly relevant.
+    const adj = new Map<string, string[]>();
+    for (const e of data.edges) {
+      if (!adj.has(e.source)) adj.set(e.source, []);
+      adj.get(e.source)!.push(e.target);
+    }
+
+    const parent = new Map<string, string | null>([[seedId, null]]);
+    const queue = [seedId];
+    while (queue.length > 0) {
+      const curr = queue.shift()!;
+      if (curr === selectedId) break;
+      for (const next of adj.get(curr) ?? []) {
+        if (!parent.has(next)) {
+          parent.set(next, curr);
+          queue.push(next);
+        }
       }
     }
+
+    const pathNodes = new Set<string>();
+    let cur: string | null | undefined = selectedId;
+    while (cur != null) {
+      pathNodes.add(cur);
+      cur = parent.get(cur);
+    }
+
+    // No path from seed → this entity is in the graph but unreachable
+    if (!pathNodes.has(seedId)) return null;
+
+    visibleNodes = data.nodes.filter((n) => pathNodes.has(n.id));
+    visibleEdges = data.edges.filter(
+      (e) => pathNodes.has(e.source) && pathNodes.has(e.target)
+    );
   }
-
-  // Trace path back from selected → seed
-  const pathNodes = new Set<string>();
-  let cur: string | null | undefined = selectedId;
-  while (cur != null) {
-    pathNodes.add(cur);
-    cur = parent.get(cur);
-  }
-
-  // If no path found (entity is in the graph but unreachable from seed),
-  // show nothing — the contagion story doesn't apply.
-  if (!pathNodes.has(seedId)) return null;
-
-  const visibleNodes = data.nodes.filter((n) => pathNodes.has(n.id));
-  const visibleEdges = data.edges.filter(
-    (e) => pathNodes.has(e.source) && pathNodes.has(e.target)
-  );
+  // When the seed itself is selected: show all nodes and edges (the full
+  // downstream ownership structure so the analyst sees who is at risk).
 
   // --- Layout ---
   const W = 400;
@@ -110,9 +117,15 @@ export function ContagionGraph({ data, selectedId }: ContagionGraphProps) {
       <div className="mb-3 flex items-start justify-between gap-3 pr-10">
         <div>
           <h3 className="text-sm font-semibold text-ink">Ownership Contagion</h3>
-          <p className="text-2xs text-risk-critical mt-0.5">
-            Connected to flagged entity — propagated risk {(selectedRisk * 100).toFixed(0)}%
-          </p>
+          {selectedId === seedId ? (
+            <p className="text-2xs text-risk-critical mt-0.5">
+              This entity is the sanctioned source — risk propagates downstream
+            </p>
+          ) : (
+            <p className="text-2xs text-risk-critical mt-0.5">
+              Connected to flagged entity — propagated risk {(selectedRisk * 100).toFixed(0)}%
+            </p>
+          )}
         </div>
         <InfoHint text={explanation} />
       </div>

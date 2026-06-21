@@ -218,7 +218,7 @@ export function DriftWorkspace() {
                   </div>
                 </details>
 
-                {contagion && <ContagionGraph data={contagion} />}
+                {contagion && <ContagionGraph data={contagion} selectedId={selectedId} />}
               </div>
             </div>
           </div>

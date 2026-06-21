@@ -47,9 +47,13 @@ Specific signal scenarios from the challenge brief — each must be detected, fl
 | Large funding round or rapid geographic expansion | Scale Risk Change | Reassess transaction thresholds; update activity profile |
 | Previously dormant company begins high transaction volume | Dormancy Break – Suspicious Activation | Trigger AML review; validate business legitimacy |
 
-**Coverage in Sentinel Drift Engine:**
-- ✅ Covered: reputational news spike, behavioural anomaly, structuring/layering, jurisdiction move, new beneficial owners, funding round / scale change, **dormancy break** (explicit `drift/dormancy.py` detector — near-zero baseline → volume burst; wired into the drift score and surfaced in the API)
-- ❌ Missing: legal entity name change signal, domain switch / website content monitoring, public business model pivot detection
+**Coverage in Sentinel Drift Engine:** all ten signals are covered, both by the
+deterministic synthetic cast and (for most) by real-data **live entities**. See
+[`use-cases.md`](use-cases.md) for the authoritative entity-by-entity map. Notably:
+legal-entity name change is proven live by WW International's real GLEIF rename;
+domain/website monitoring and business-model pivot by the UC9 Wayback↔Firecrawl
+website-drift comparator (`drift/business_model.py`), demonstrated live on Temenos;
+and dormancy break by the explicit `drift/dormancy.py` detector.
 
 ---
 
@@ -247,6 +251,6 @@ The three-tier routing architecture that controls LLM usage cost:
 - **Tier 1** — ML scoring via XGBoost (~$0.0002 per customer)
 - **Tier 2** — LLM reasoning via Claude (~$0.05 per customer, borderline high-risk only)
 
-A customer escalates to the next tier only when the expected information gain justifies the cost. On 1,000 customers this yields ~96% cost reduction versus running every customer through the LLM, at equal high-risk recall.
+A customer escalates to the next tier only when the expected information gain justifies the cost. Across the book this yields a ~94% cost reduction versus running every customer through the LLM, at equal high-risk recall.
 
 In the demo backend, Tier 2 is not only a cost estimate: customers routed to `T2_LLM` are adjudicated through the shared Anthropic client. The "LLM on everything" number remains a baseline estimate and is not executed.

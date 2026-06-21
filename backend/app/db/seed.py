@@ -4,7 +4,7 @@ Database seeding — two independent paths, both idempotent:
 1. KYC baselines (entity_snapshots table): one snapshot per drift subject from
    the synthetic book. Used by the Drift Engine for source-level comparison.
 
-2. Case Queue (clients + cases tables): 10 private-wealth clients and 18 cases
+2. Case Queue (clients + cases tables): 10 private-wealth clients and 19 cases
    (social engineering, investment recommendations, XRPL transactions) from
    mock_data.py. Used by the /cases workspace.
 """
@@ -20,7 +20,8 @@ from sqlmodel import select
 
 from app.core.logging import get_logger
 from app.db.kyc_baseline import EntitySnapshotDB, store_snapshot
-from app.db.models import CaseDB, ClientDB
+from app.db.models import AuditEntryDB, CaseDB, ClientDB
+from app.db.seed_audit import seed_audit_log
 from app.drift.simulator import generate_book
 from app.services.mock_data import generate_mock_cases, generate_mock_clients
 
@@ -48,6 +49,16 @@ async def seed_if_empty(session: AsyncSession) -> bool:
     if client_result.scalar_one_or_none() is None:
         logger.info("seed_starting", path="case_queue")
         await _seed_case_queue(session)
+        seeded = True
+
+    # --- Path 3: Demo audit trail (backdated compliance log) ---
+    # Runs after the case queue so it can reference real case/client IDs. Flushes
+    # the pending case rows first so they are queryable within this transaction.
+    audit_result = await session.execute(select(AuditEntryDB).limit(1))
+    if audit_result.scalar_one_or_none() is None:
+        logger.info("seed_starting", path="audit_log")
+        await session.flush()
+        await seed_audit_log(session)
         seeded = True
 
     if seeded:
@@ -180,7 +191,7 @@ async def _seed_kyc_baselines(session: AsyncSession) -> None:
 
 async def _seed_case_queue(session: AsyncSession) -> None:
     """
-    Seed the Case Queue with 10 private-wealth clients and 18 compliance cases
+    Seed the Case Queue with 10 private-wealth clients and 19 compliance cases
     (social engineering, investment recommendations, XRPL transactions).
 
     Converts mock_data.py domain objects to DB rows using the same field

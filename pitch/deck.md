@@ -165,7 +165,7 @@ Detail Panel            ◀──SSE──          XGBoost + SHAP
                                        Audit Log (immutable)
 ```
 
-**19 API endpoints** · **4 jurisdiction rule packs** · **persistent DB** · **mock-mode fallback**
+**~30 API endpoints** · **4 jurisdiction rule packs** · **persistent DB** · **mock-mode fallback**
 
 ---
 

@@ -1,324 +1,309 @@
 # Drift Engine — Technical Specification
 
-Bayesian KYC drift detection for FINMA-regulated banks. Diagrams, mathematics, and validation results for each layer.
-
-For the product overview see the main [README](../README.md).
-
----
-
-## The Reframe
-
-A KYC profile is not a document — it is a snapshot of the parameters of a stochastic process, taken at onboarding. The customer is the process; the profile is a frozen estimate. **Drift is the divergence between the frozen declared model and the evolving observed trajectory.**
-
-The question shifts from *"did something bad happen?"* to *"has the generative process behind this customer's behavior changed?"* — a well-posed statistical question with decades of theory behind it. Sanctions are the lagging consequence; drift is the leading precursor.
-
-The bank's structural advantage: it holds both the declared model (original KYC) and the full observed trajectory (every transaction). No drifting customer can fake consistency between the two over time.
+Bayesian KYC drift detection for FINMA-regulated banks: the analysis layers, the
+score fusion, the regulatory floors, the cost cascade, and how it's validated.
+For the product overview see the main [README](../README.md); for the 10 use
+cases see [use-cases.md](use-cases.md).
 
 ---
 
-## 7-Layer Pipeline
+## The reframe
 
-```mermaid
-flowchart TD
-    Input["Customer Input\nKYC profile · Transactions · AML flags\nPublic signals · Ownership graph"]
+A KYC profile is not a document — it is a snapshot of the parameters of a
+stochastic process, taken at onboarding. The customer is the process; the profile
+is a frozen estimate. **Drift is the divergence between the frozen declared model
+and the evolving observed trajectory.**
 
-    subgraph LayerB["Layer B — Internal Bank Data"]
-        L1["1 · Behavioral Drift\nbocpd.py\nBayesian Online Changepoint Detection\n(Adams & MacKay 2007)"]
-        L2["2 · Drift Velocity\nvelocity.py\nKL divergence time-derivative\nbits/month"]
-        L6["6 · Suspicious Stability\nstability.py\nSlow-walker: anomalously smooth\nwhile environment moves"]
-    end
-
-    subgraph LayerA["Layer A — Public Intelligence"]
-        L4["4 · Public Intelligence\npublic_intel.py\nNews · Sanctions · Adverse media\nOwnership changes · Funding events"]
-    end
-
-    subgraph Topo["Ownership Topology"]
-        L3["3 · Ownership Contagion\ncontagion.py\nPersonalized PageRank\n(Page et al. 1999)"]
-    end
-
-    Fusion["Confirmation Lift\nTemporal co-occurrence fusion\n(Layer A × Layer B)"]
-
-    L5["5 · Causal Drift\ncausal.py\nLikelihood ratio test\nRisk hypothesis vs benign growth\n(Neyman-Pearson)"]
-
-    L7["7 · Cost-Aware Cascade\ncascade.py\nValue-of-Information routing\n(Howard 1966)"]
-
-    Output["Fused Drift Score  0 – 100\n+ Recommended action\n+ Per-layer contribution\n+ Causal evidence cards\n+ Lead-time estimate"]
-
-    Input --> L1 & L2 & L6
-    Input --> L4
-    Input --> L3
-    L1 & L2 & L6 & L4 --> Fusion
-    Fusion --> L5
-    L3 --> L5
-    L5 --> L7
-    L7 --> Output
-```
+The question shifts from *"did something bad happen?"* to *"has the generative
+process behind this customer's behaviour changed?"* — a well-posed statistical
+question. Sanctions are the lagging consequence; drift is the leading precursor.
+The bank's structural advantage is that it holds **both** the declared model
+(original KYC) and the full observed trajectory (every transaction); no drifting
+customer can fake consistency between the two over time.
 
 ---
 
-## Layer 1 — Behavioral Drift (BOCPD)
+## The layers
 
-Bayesian Online Changepoint Detection (Adams & MacKay, 2007) maintains a posterior over the **run length** r_t — observations since the last regime change:
+Each subject is scored by nine orthogonal layers in `backend/app/drift/`,
+orchestrated by `service.py` and routed by a cost-aware cascade. Seven produce
+score signals; one (public intelligence) fuses external evidence; one (the
+cascade) routes for cost.
 
-```
-P(r_t | x_1:t)
-```
-
-with a Normal-Inverse-Gamma conjugate model giving a Student-t posterior predictive. A constant hazard H = 1/500 expresses a prior of roughly one regime change per business year.
-
-**Detection.** In practice a changepoint manifests as a sharp **drop in the MAP run length** (posterior mass jumping to short runs), not as P(r=0) crossing a threshold — the mass spreads over r = 0..k. This distinction matters: it is why the detector catches gradual drift that threshold rules structurally miss. A customer who raised average volume from 5K to 9K over six months never crosses a 10K threshold, but the distribution shift is plainly visible to the run-length posterior.
-
-**Surfacing.** BOCPD runs over the concatenated *daily* volume series, so its detected changepoint is a **day index** (`bocpd_changepoint_day`). The Drift Timeline is indexed by **month**, so `DriftEngine.get_subject` maps the day to its month window (`SyntheticCustomer.day_to_month`, i.e. `day // days_per_month`) and flags that month's timeline point with `bocpd_changepoint=True`. The UI renders it as a violet dashed **"Regime change"** marker, distinct from the (solid) alert and sanctions markers. A changepoint landing inside the baseline window — before the first timeline point — is intentionally not drawn.
+| # | Layer | File | Detects |
+|---|---|---|---|
+| 1 | Behavioral drift (BOCPD) | `bocpd.py` | Regime change in the transaction stream |
+| 2 | Drift velocity | `velocity.py` | The *rate* of divergence from onboarding (leading) |
+| 3 | Ownership contagion | `contagion.py` | Risk propagating through the ownership graph |
+| 4 | Causal drift | `causal.py` | Risk-shaped change vs benign business growth |
+| 5 | Suspicious stability | `stability.py` | The slow-walker who stays *too* smooth |
+| 6 | Dormancy break | `dormancy.py` | A dormant shell suddenly activating |
+| 7 | Business-model drift | `business_model.py` | A silent website/business pivot (UC9/UC10) |
+| 8 | Public intelligence | `public_intel.py` | External signals + confirmation-lift fusion |
+| 9 | Cost-aware cascade | `cascade.py` | T0 rules → T1 ML → T2 Claude routing |
 
 ---
 
-## Layer 2 — Drift Velocity
+## 1 · Behavioral drift (BOCPD)
 
-Let P_0 be the onboarding profile distribution and P_t the current estimate:
+Bayesian Online Changepoint Detection (Adams & MacKay, 2007) maintains a
+posterior over the **run length** `r_t` — observations since the last regime
+change — with a Normal-Inverse-Gamma conjugate model (Student-t posterior
+predictive) and a constant hazard `H = 1/500` (≈ one regime change per business
+year).
+
+A changepoint manifests as a sharp **drop in the MAP run length**, not as
+`P(r=0)` crossing a threshold. This is exactly why the detector catches gradual
+drift that threshold rules structurally miss: a customer who raised average
+volume 5K→9K over six months never crosses a 10K threshold, but the distribution
+shift is plain to the run-length posterior. BOCPD runs over the daily volume
+series, so its changepoint is a **day index** (`bocpd_changepoint_day`); the UI
+maps it to its month and draws a violet dashed *"Regime change"* marker on the
+timeline.
+
+## 2 · Drift velocity
+
+With `P_0` the onboarding profile and `P_t` the current estimate:
 
 ```
-Drift(t) = KL( P_0 || P_t )      accumulated divergence, in bits
+Drift(t) = KL( P_0 || P_t )      accumulated divergence, bits
 DV(t)    = d/dt Drift(t)         drift velocity, bits per month
 ```
 
-Each monitored metric is modeled as a Gaussian per window; the closed-form Gaussian KL is summed across metrics. A key robustness choice: the KL is evaluated with the **baseline variance on both sides** (mean-shift KL), because window-level variance estimates over ~21 daily observations are noisy and would otherwise drown the mean-shift signal. The drift trajectory is smoothed before differentiation, since differentiation amplifies noise.
+Each monitored metric (volume, counterparty-risk mix, corridor mix, frequency) is
+a Gaussian per window; the closed-form Gaussian KL is summed across metrics, then
+smoothed before differentiation. Robustness choice: the KL uses the **baseline
+variance on both sides** (mean-shift KL), because per-window variance over ~21
+daily points is too noisy. Velocity is a **leading** indicator; accumulated drift
+is lagging — a customer shows velocity months before absolute divergence crosses
+any sane threshold.
 
-Velocity is a **leading** indicator; accumulated drift is **lagging**. A customer can show meaningful velocity months before absolute divergence crosses any sane alert threshold.
+## 3 · Ownership contagion
 
----
+Risk propagates from flagged entities `S` to customer `i` via personalized
+PageRank with the teleport vector on `S` (`alpha = 0.85`), over a stake-weighted
+undirected view so risk flows both ways. Customers two ownership hops from a newly
+sanctioned entity are elevated **before** any list contains their name.
 
-## Layer 3 — Ownership Contagion
+**Graph source.** In live mode `DriftEngine._build_ownership_graph` fetches each
+customer's real GLEIF ownership chain (ultimate-parent + direct-child LEIs) and
+builds the graph via `contagion.build_graph_from_snapshots`; shared LEIs link
+customers into one topology. Offline, or when GLEIF resolves no links, it degrades
+to the synthetic `build_demo_graph`. The GLEIF chain is also diffed against the
+GLEIF KYC baseline to emit `ownership_change` public signals (UC3/UC8).
 
-Ownership relations form a directed graph. When entities S become flagged, propagated risk for customer i is personalized PageRank with the teleport vector concentrated on S:
+## 4 · Causal drift
 
-```
-risk_prop(i) = PPR(i | personalization = S, alpha = 0.85)
-```
+Selling a business and becoming a laundering conduit move the same metrics — but
+have different **correlation signatures**:
 
-computed over an undirected, stake-weighted view so risk flows both ways (an owner contaminates what it owns, and owning a flagged entity contaminates the owner). Customers two ownership hops from a newly sanctioned entity receive elevated risk **before** any list contains their name.
+- **Benign growth** — volume up, margin preserved, counterparties stay clean.
+- **Risk transit** — volume up, margin collapses (money flows straight through),
+  counterparties concentrate, corridors shift high-risk.
 
-**Graph source (use case 3).** In live mode (`EXTERNAL_APIS_ENABLED`) `DriftEngine._build_ownership_graph` fetches each customer's current GLEIF ownership chain (ultimate-parent + direct-child LEIs) and builds a real graph via `contagion.build_graph_from_snapshots` — shared LEIs link customers into one topology. Offline/mock mode, or any case where GLEIF resolves no ownership links, degrades to the synthetic `build_demo_graph`. Separately, the GLEIF chain is diffed against the customer's GLEIF KYC baseline (`gleif.ownership_change_signals`, same-source) to emit `ownership_change` public signals, layered into the per-customer signal set in `_public_signals`.
-
----
-
-## Layer 4 — Public Intelligence + Confirmation Lift
-
-Five public-signal categories (news, sanctions, adverse media, ownership changes, funding events) are classified by severity and aggregated into a public-risk score, severity- and recency-weighted.
-
-Each public signal carries a `source` and optional `source_url`. In the MVP these URLs are deterministic demo references generated with the synthetic signal; real feed adapters can replace them with article, registry, or sanctions-record citations without changing the API.
-
-**News-volume spike (UC 1).** Beyond per-signal severity, the engine runs BOCPD over a weekly event-count series built from the `news`/`adverse_media` signals (`detect_news_spike_month`). A *sustained* rise in coverage (the Wirecard pattern — adverse media that keeps accumulating, not a one-day blip; guarded by a multi-month elevation check so the stable control stays silent) registers as a regime change. Its onset month is surfaced as `news_spike_month` and used as the public anchor of the confirmation-lift temporal window, alongside the internal BOCPD changepoint. The single news source is selected once in `gather_public_signals`: **Event Registry** when `EVENT_REGISTRY_API_KEY` is set, **GDELT** as the free fallback.
-
-**Confirmation Lift** is the differentiator. Two weak, independent signals that co-occur in time provide more evidence together than the product of their parts:
-
-```
-Lift = P(risk | public AND internal) / [ P(risk | public) · P(risk | internal) ]
-```
-
-A temporal-coincidence factor amplifies the joint when the peak public signal and peak internal drift fall within a few months — because the external story and the internal behavior are plausibly the same event seen from two sides. The lift is gated: it is only meaningful when **both** signals clear a floor; two near-zero risks coinciding is the absence of evidence, not its presence.
-
-The current hand-tuned fusion parameters are centralized in
-`app/core/config.py`:
-
-| Constant | Value | Role |
-|---|---:|---|
-| `DRIFT_INTERNAL_VELOCITY_WEIGHT` | 0.60 | Leading drift contribution |
-| `DRIFT_INTERNAL_ACCUMULATED_WEIGHT` | 0.25 | Accumulated divergence contribution |
-| `DRIFT_INTERNAL_CONTAGION_WEIGHT` | 0.40 | Ownership-propagated risk contribution |
-| `DRIFT_PUBLIC_RISK_WEIGHT` | 0.85 | Public-risk scaling before fusion |
-| `DRIFT_CONFIRMATION_LIFT_RANGE` | 3.0 | Lift excess mapped to the amplification range |
-| `DRIFT_CONFIRMATION_MAX_AMPLIFICATION` | 0.35 | Maximum confirmation-lift score increase |
-
----
-
-## Layer 5 — Causal Drift
-
-Pure drift detection fires on any structural change. But selling a business and becoming a laundering conduit move the same metrics. The insight: benign and risky change have different **correlation signatures**, not different magnitudes.
-
-- **Benign growth:** volume up, margin preserved, counterparties stay clean.
-- **Risk transit:** volume up, margin collapses (money flows straight through), counterparties concentrate on risky, corridors shift high.
-
-Two generative hypotheses compete via a likelihood ratio:
+Two hypotheses compete via a likelihood ratio:
 
 ```
 causal_LLR = log P(signature | RISK) / P(signature | BENIGN)
 ```
 
-Margin is the discriminator (kept orthogonal to velocity). A forensic asymmetry applies: a metric sitting in its neutral zone does not argue *against* risk just because the risk profile expected movement there — absence of evidence is not evidence of absence. The verdict modulates the final score: clearly-benign drift is demoted out of the alert queue; risk-shaped drift is confirmed.
+Margin is the discriminator (kept orthogonal to velocity). Outputs `causal_llr`,
+`p_risk`, and a `label` (`risk` / `benign` / `ambiguous`). Clearly-benign drift is
+demoted out of the alert queue; risk-shaped drift is confirmed. A
+`scale_jump_ratio` (active-window volume ÷ baseline) ≥ 5× **and** a co-occurring
+`funding_event` signal adds a fixed LLR boost (UC6 — the FTX "raise that the
+volumes never matched" pattern).
 
-**Scale-jump corroboration (UC6 — large funding round / expansion).** The signature also carries a `scale_jump_ratio` (active-window mean volume ÷ onboarding-baseline mean volume). When that ratio is ≥ 5× **and** a public `funding_event` signal lands in the same recent window, `causal_assessment` flags the jump as funding-corroborated and adds a fixed positive boost to the LLR — raising `causal_p_risk`. A large, funding-confirmed expansion is a *scale risk* in its own right (the FTX pattern: a $900M raise whose transaction volumes never matched the claimed revenue) and must surface for review rather than be demoted as ordinary growth. The boost is recorded as a `scale_jump_funding` evidence contribution for explainability.
+## 5 · Suspicious stability
 
----
-
-## Layer 6 — Suspicious Stability
-
-Every other layer hunts for movement. A launderer who knows drift is monitored does the opposite: stays smooth. But real customers jitter; an unnaturally smooth trajectory **while the environment moves** is itself anomalous.
+Every other layer hunts movement; a launderer who knows drift is monitored does
+the opposite and stays smooth. But real customers jitter — an unnaturally smooth
+trajectory **while the environment moves** is itself anomalous:
 
 ```
 suspicion = stability_anomaly × environmental_movement
 ```
 
-A product, not a sum — both factors must be present. Stability is measured by coefficient of variation versus the cohort median (scale-free). A flagged slow-walker has its score elevated so it cannot hide below the radar.
+A product, not a sum — both must be present. Stability is the coefficient of
+variation vs the cohort median (scale-free). A flagged slow-walker is elevated so
+it cannot hide below the radar.
 
----
+## 6 · Dormancy break
 
-## Layer 6b — Dormancy Break (Suspicious Activation)
-
-The mirror image of suspicious stability. Every drift/velocity layer assumes a customer who is *doing something* the whole time; a dormant shell is the opposite — near-zero activity for a long stretch, then a sudden burst. Because the baseline is so quiet, even a large absolute jump reads as "starting from nothing" rather than a regime change, so the magnitude layers under-react. `drift/dormancy.py` detects it explicitly (pure numpy, no external API):
+The mirror of suspicious stability. A dormant shell is near-zero for a long
+stretch, then bursts — and because the baseline is so quiet, the magnitude layers
+under-react. `dormancy.py` detects it explicitly (pure NumPy):
 
 ```
 dormancy_break = dormancy_depth × activation_strength
 ```
 
-- **dormancy_depth** — how quiet the baseline window was, relative to the customer's own overall level.
-- **activation_strength** — how large the later burst is versus the dormant baseline (a small floor on the baseline keeps a near-zero baseline from exploding the ratio).
+`dormancy_depth` = how quiet the baseline was; `activation_strength` = how large
+the later burst is vs that baseline (a small floor stops a near-zero baseline
+exploding the ratio). A product: stay-dormant ≈ 0, always-active-and-grew ≈ 0
+(ordinary drift); only the dormant→active transition scores high (UC0 — the
+Azerbaijani-Laundromat reactivation pattern).
 
-A product, not a sum: a company that stays dormant scores ~0, and one that was always active and merely grew scores ~0 (ordinary drift, handled elsewhere). Only the dormant → active transition scores high. A confirmed break floors the drift score upward — deliberately overriding the causal demotion — so a reactivated sleeper surfaces for review. This realises the AMINA brief's *"previously dormant company begins high transaction volume → Dormancy Break – Suspicious Activation"* use case.
+## 7 · Business-model drift (website pivot)
 
----
-
-## Layer 6c — Structural Re-KYC Floor (Jurisdiction / Legal Form change)
-
-UC 4. A jurisdiction or legal-form change is a *registry* fact, not a behavioral one: ZEFIX/GLEIF `fetch_signals` diffs the current snapshot against the persisted KYC baseline (`entity_snapshots.legal_form` / `jurisdiction`) and emits a `jurisdiction_change` or `legal_form_change` `PublicSignal`. Behavioral layers cannot see this — the transaction stream may be perfectly smooth while a company quietly redomiciles offshore — so the score floors independently.
-
-When `requires_re_kyc_floor` finds either signal type, `_analyze_customer` floors the drift score at `RE_KYC_SCORE_FLOOR` (50), the same "cannot hide below the radar" policy as the stability/dormancy floors and applied after the ML blend so the model can never lower a regulatory floor. The synthetic offline feed never emits these types, so the floor only fires on live registry data. This realises the brief's *Long Blockchain Corp* rebrand-to-exploit-hype scenario, where a legal identity change mandated re-KYC across banking relationships.
-
----
-
-## Cost-Aware Cascade (Tier Router)
-
-Escalation is framed as information economics:
+UC9/UC10. A company can quietly change what it *does* without any transaction
+signal — an advisory firm relaunches as a crypto exchange. `business_model.py`
+compares the **onboarding website** (Wayback snapshot at the KYC date) against the
+**current website** (Firecrawl scrape), embeds both with **model2vec** static
+embeddings (pure NumPy, no torch, fully offline), and emits a
+`business_model_change` signal when:
 
 ```
-escalate from tier k to k+1  iff  E[information gain] · case_value > cost(k+1)
+cosine_distance ≥ BUSINESS_MODEL_DISTANCE_THRESHOLD (0.35)
+severity = clip(0.20 + 1.30 × cosine_distance, 0.0, 0.95)
 ```
+
+In live mode the two texts are real (see [live-entities.md](live-entities.md)),
+and a one-line LLM summary of *what changed* is generated (and cached) for the
+side-by-side UI panel. Offline, the `domain_pivot` scenario supplies the texts.
+
+## 8 · Public intelligence + confirmation lift
+
+`public_intel.py` aggregates every source adapter's signals (news, adverse media,
+sanctions, ownership/name/jurisdiction/domain changes, funding events, corridor
+alerts), classifies severity by lexicon, and fuses them with internal drift.
+
+**News-volume spike (UC1).** BOCPD runs over a weekly event-count series built
+from the news signals (`detect_news_spike_month`); a *sustained* rise (the
+Wirecard pattern) registers as a regime change whose onset anchors the
+confirmation-lift window. The news source is selected once: **Event Registry**
+when `EVENT_REGISTRY_API_KEY` is set, **GDELT** as the free fallback.
+
+**Confirmation lift** is the differentiator — two weak, independent signals that
+co-occur in time are worth more together than apart:
+
+```
+Lift = P(risk | public ∧ internal) / [ P(risk | public) · P(risk | internal) ]
+```
+
+A temporal-coincidence factor amplifies the joint when peak public signal and
+peak internal drift fall within a few months (the same event seen from two
+sides). It is **gated**: meaningful only when both signals clear a floor — two
+near-zero risks coinciding is the absence of evidence, not its presence. The
+hand-tuned fusion weights live in `app/core/config.py`:
+
+| Constant | Value | Role |
+|---|---:|---|
+| `DRIFT_INTERNAL_VELOCITY_WEIGHT` | 0.60 | Leading drift contribution |
+| `DRIFT_INTERNAL_ACCUMULATED_WEIGHT` | 0.25 | Accumulated divergence |
+| `DRIFT_INTERNAL_CONTAGION_WEIGHT` | 0.40 | Ownership-propagated risk |
+| `DRIFT_PUBLIC_RISK_WEIGHT` | 0.85 | Public-risk scaling before fusion |
+| `DRIFT_CONFIRMATION_LIFT_RANGE` | 3.0 | Lift excess → amplification range |
+| `DRIFT_CONFIRMATION_MAX_AMPLIFICATION` | 0.35 | Max confirmation-lift increase |
+
+## 9 · Cost-aware cascade
+
+Escalation as information economics: `escalate iff E[information gain] · case_value
+> cost(next tier)`.
 
 ```mermaid
 flowchart TD
-    Start([Customer])
-
-    T0{"Tier 0\nRule Engine\nFree — ~95% of customers"}
-    T1{"Tier 1\nStatistical · LLR layer scoring\n~$0.0002 per customer"}
-    T2{"Tier 2\nLLM · Claude adjudication\n~$0.05 per customer"}
-
-    Clear["Clear\nLow-risk — no action"]
-    Review["Review\nScheduled re-KYC"]
-    EDD["Escalate\nEnhanced Due Diligence\n+ AI explanation + RFI"]
-
-    Start --> T0
-    T0 -->|"Deterministic rules pass\n~95% volume"| Clear
-    T0 -->|Borderline| T1
-    T1 -->|Effective risk < 55| Review
-    T1 -->|Effective risk ≥ 55\nand case value clears floor| T2
-    T2 -->|Verdict: risk| EDD
-    T2 -->|Verdict: benign or ambiguous| Review
-
+    Start([Customer]) --> T0{"T0 · Rules\nfree · all customers"}
+    T0 -->|pass| Clear["Clear — no action"]
+    T0 -->|borderline| T1{"T1 · ML\n~$0.0002"}
+    T1 -->|risk < 55| Review["Scheduled re-KYC"]
+    T1 -->|risk ≥ 55 · value clears floor| T2{"T2 · Claude\n~$0.05"}
+    T2 -->|risk| EDD["Escalate — EDD + AI explanation + RFI"]
+    T2 -->|benign / ambiguous| Review
     style Clear fill:#16a34a,color:#fff
     style Review fill:#d97706,color:#fff
     style EDD fill:#dc2626,color:#fff
 ```
 
-T2 adjudication is an actual execution path in `drift/service.py`: every customer routed to `T2_LLM` is sent through the shared `AnthropicClient`. The adjudicator compares risk-shaped drift, benign business change, and ambiguous/insufficient-evidence hypotheses, and returns parsed JSON with verdict, confidence, rationale, key evidence, and a human compliance action. In development, the same client runs in mock mode when no Anthropic API key is configured.
-
-The scan response keeps `llm_on_everything_cost` as a counterfactual baseline and separately reports `actual_t2_llm_calls`, `real_t2_llm_calls`, `mock_t2_llm_calls`, `tokens_used` (total input+output tokens across all T2 calls; 0 in mock/cached mode), `model` (the configured adjudication model; `null`/`None` when all calls were mock or cached), and `llm_adjudications[]` (per-customer breakdown including per-call `tokens_used`).
-
-**Result:** 96% cost reduction vs LLM-on-everything at equal high-risk recall (H4, validated on the synthetic book).
+T2 adjudication is a real path in `service.py`: every `T2_LLM` customer goes
+through the shared `AnthropicClient` (real Claude when a key is configured,
+disk-cached; deterministic mock otherwise). The scan report keeps
+`llm_on_everything_cost` as a counterfactual and separately reports
+`actual_t2_llm_calls`, `real_t2_llm_calls`, `mock_t2_llm_calls`, `tokens_used`,
+and `model`. **Result: ~94% cost reduction vs LLM-on-everything at equal
+high-risk recall** (H4, validated on the synthetic book — see
+[live-entities.md](live-entities.md) for how the LLM is cached).
 
 ---
 
-## Two-Layer Fusion
+## Score fusion
 
-```mermaid
-flowchart LR
-    subgraph A["Layer A — Public Intelligence"]
-        News[News & adverse media]
-        Sanctions[Sanctions hits]
-        Ownership[Ownership changes]
-        Funding[Funding events]
-    end
-
-    subgraph B["Layer B — Internal Bank Data"]
-        BOCPD2[Behavioral drift\nBOCPD score]
-        Vel2[Drift velocity\nbits/month]
-        TxVol[Transaction volume\npattern shift]
-        AML[AML flag history]
-    end
-
-    CL["Confirmation Lift\nMultiplied when signals\nco-occur within 3 months"]
-
-    FusedScore["Fused Drift Score\nWeighted combination\nof all 7 layers"]
-
-    A --> CL
-    B --> CL
-    CL --> FusedScore
+```
+internal_risk = 0.60 · velocity_norm + 0.25 · accumulated_norm + 0.40 · contagion
+public_risk   = severity-weighted aggregate of public signals
+base          = max(internal_risk, public_risk × 0.85)
+score (0–100) = min(base × (1 + confirmation_amplification), 1.0) × 100
 ```
 
----
+When a trained drift XGBoost model is present, its probability is blended
+(60% heuristic + 40% ML) **before** the floors below — so the model can never
+lower a regulatory floor.
 
-## Time-Travel Audit
+## Regulatory floors (cannot hide below the radar)
 
-A regulatory-grade property: replay any customer **as-of** month T using only data available then. BOCPD is online by construction (it processes the stream left-to-right and cannot use future data), which makes truncation honest rather than a hack. All future sources are cut: metrics to [:T], public signals by date, contagion only after the listing month. This proves the system would have flagged a customer early, with no look-ahead bias.
+Mandatory escalations applied after the ML blend, in `service.py`:
 
-```mermaid
-sequenceDiagram
-    participant O as Officer
-    participant TT as timetravel.py
-    participant DE as Drift Engine
+| Floor | Value | Fires on | UC |
+|---|---:|---|---|
+| Suspicious-stability elevation | `50 + suspicion·40` | flagged slow-walker | — |
+| Dormancy-break elevation | `55 + dormancy_break·35` | dormant→active | UC0 |
+| Re-KYC floor (`RE_KYC_SCORE_FLOOR`) | **50** | `jurisdiction_change` / `legal_form_change` | UC4/UC7 |
+| Sanctions floor (`SANCTIONS_SCORE_FLOOR`) | **90** | definitive OFAC/EU/SECO hit on the entity or a new UBO | UC5/UC8 |
+| Name-change floor | **60** | confirmed `name_change` (re-KYC) | UC4/UC8 |
 
-    O->>DE: replay(drift_id)
-    DE->>TT: replay_trajectory(subject snapshot)
-    TT->>TT: Truncate metrics and public signals at month T
-    TT->>TT: Activate contagion only after sanctions listing
-
-    note over TT: Strictly truncates future data —<br/>no look-ahead bias
-
-    TT->>TT: Apply shared internal/public weights<br/>and replay-specific causal factor
-    note over TT: Replay does not apply confirmation lift<br/>or stability/dormancy anomaly floors
-    TT-->>DE: Historical score points + lead time
-    DE-->>O: ReplayResult<br/>(score, lead_time, what_was_known)
-
-    note over O: Proves the system would<br/>have flagged this customer<br/>without hindsight
-```
+A jurisdiction/legal-form change or a sanctioned UBO can sit behind a perfectly
+smooth transaction stream; the floors make the registry/sanctions fact surface
+regardless of behaviour. (`requires_re_kyc_floor`, `is_definitively_sanctioned`,
+and the `name_change` predicate are pure functions, unit-tested in
+`test_score_boundaries.py`.)
 
 ---
 
-## Runtime State and Worker Model
+## Time-travel replay
 
-The MVP keeps its synthetic customer book and injected scenarios in the
-process-local `DriftEngine` singleton. Run the API with exactly one worker so
-all requests see the same demo state. The current Docker and Compose commands
-already use one Uvicorn worker.
-
-Before scaling to multiple workers, move mutable engine state to a shared
-database or cache. `get_drift_engine()` emits a warning when it creates the
-singleton to make this deployment constraint visible in application logs.
+A regulatory-grade property: replay any customer **as-of** month `T` using only
+data available then. BOCPD is online by construction (left-to-right, no future
+data), which makes truncation honest. `timetravel.py` cuts all future sources —
+metrics to `[:T]`, public signals by date, contagion only after the listing month
+— and does **not** apply confirmation lift or the anomaly floors. This proves the
+system would have flagged a customer early with no look-ahead bias.
 
 ---
 
-## Validation Results
+## Validation
 
-Each hypothesis is pinned by an executable test in `backend/tests/`; run the
-suite with `cd backend && uv run pytest`.
+Each hypothesis is pinned by an executable test; run `docker compose run --rm
+backend-tests`.
 
-| Hypothesis | Scenario | Result | Test |
-|---|---|---|---|
-| H1 — Lead time | Changepoint on step data, none on stationary | 2–7 months lead, 0 false positives | `test_hypothesis_h1.py` |
-| H2 — Velocity leads level | Velocity vs absolute-threshold alerting | Velocity fires earlier at equal FP rate | `test_hypothesis_h2.py` |
-| H3 — Contagion propagates | Personalized PageRank from sanctioned seed | 2-hop customers elevated; distant unaffected | `test_hypothesis_h3.py` |
-| H4 — Cascade cost reduction | Cascade vs LLM-on-everything, 1,000 customers | 96% cost reduction at equal recall | `test_hypothesis_h4.py` |
-| Causal classification | 11 scenarios with ground truth | 11/11 correct, 8/8 seed robustness | `test_causal.py` |
-| Stability classification | 13 scenarios with ground truth | 13/13 correct, 8/8 seed robustness | `test_stability.py` |
-| Time-Travel honesty | 3 leak-detection scenarios | No future data reaches the score | `features/time_travel.feature` |
+| Hypothesis | Result | Test |
+|---|---|---|
+| H1 — lead time | 2–7 months ahead, 0 false positives on stable customers | `test_hypothesis_h1.py` |
+| H2 — velocity leads level | velocity fires earlier at equal FP rate | `test_hypothesis_h2.py` |
+| H3 — contagion propagates | 2-hop customers elevated; distant unaffected | `test_hypothesis_h3.py` |
+| H4 — cascade cost | < 10% of LLM-on-all at equal high-risk recall | `test_hypothesis_h4.py` |
+| Causal classification | ground-truth scenarios, seed-robust | `test_causal.py` |
+| Stability classification | ground-truth scenarios, seed-robust | `test_stability.py` |
+| Time-travel honesty | no future data reaches the score | `tests/features/time_travel.feature` |
+
+The suite is ~43 files; current status is 975 passing with 6 pre-existing
+in-memory-DB-isolation failures unrelated to engine logic.
+
+---
+
+## Runtime note
+
+The synthetic book and injected scenarios live in a process-local `DriftEngine`
+singleton, so the API runs with **one** uvicorn worker (the Docker/Compose
+commands already do). `get_drift_engine()` warns on singleton creation to make
+this constraint visible before any multi-worker scaling.
 
 ---
 
 ## References
 
-- Adams, R. P. & MacKay, D. J. C. (2007). *Bayesian Online Changepoint Detection.* arXiv:0710.3742.
-- Page, E. S. (1954). *Continuous Inspection Schemes.* Biometrika 41.
-- Kullback, S. & Leibler, R. A. (1951). *On Information and Sufficiency.* Annals of Mathematical Statistics 22.
-- Page, L., Brin, S., Motwani, R. & Winograd, T. (1999). *The PageRank Citation Ranking.* Stanford InfoLab.
-- Howard, R. A. (1966). *Information Value Theory.* IEEE Trans. Systems Science and Cybernetics 2.
-- Shafer, G. & Vovk, V. (2008). *A Tutorial on Conformal Prediction.* JMLR 9.
-- FATF (2023). *Guidance on Beneficial Ownership of Legal Persons.*
-- FINMA Circular 2024/3. *Operational risks and resilience — banks.*
+Adams & MacKay (2007), *Bayesian Online Changepoint Detection*, arXiv:0710.3742 ·
+Page (1954), *Continuous Inspection Schemes*, Biometrika 41 · Kullback & Leibler
+(1951), *On Information and Sufficiency* · Page, Brin, Motwani & Winograd (1999),
+*The PageRank Citation Ranking* · Howard (1966), *Information Value Theory*, IEEE ·
+FATF (2023), *Guidance on Beneficial Ownership* · FINMA Circular 2024/3,
+*Operational risks and resilience*.

@@ -102,7 +102,10 @@ export function Sidebar() {
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {NAV_ITEMS.map((item) => {
           const Icon = item.icon;
-          const isActive = item.href === pathname;
+          const isActive =
+            item.href === "/"
+              ? pathname === "/" || pathname.startsWith("/drift")
+              : pathname.startsWith(item.href!);
 
           if (!item.enabled) {
             return (

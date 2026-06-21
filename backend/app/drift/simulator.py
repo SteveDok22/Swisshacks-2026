@@ -99,7 +99,7 @@ DORMANCY_BASELINE_FRACTION = 0.5
 # Dormancy noise floor: pre-dormancy window uses this fraction of base_volume
 # instead of near-zero so the dormant baseline is a realistic low-activity
 # profile rather than a degenerate empty series.
-DORMANCY_FLOOR_VOLUME = 0.20
+DORMANCY_FLOOR_VOLUME = 0.05
 
 # Country risk weights reused conceptually from the social-engineering extractor
 CORRIDOR_RISK = {"CH": 0.05, "DE": 0.1, "IT": 0.15, "SG": 0.35, "HK": 0.4, "AE": 0.5, "RU": 0.95, "IR": 1.0}

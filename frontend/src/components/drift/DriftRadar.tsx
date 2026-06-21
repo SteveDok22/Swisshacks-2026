@@ -32,21 +32,28 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
 
   const maxScore = 100;
 
-  // Log scale for velocity: KL divergence ranges from ~0 (stable) to 5000+
-  // (dormancy break). A linear axis collapses everything to the floor when one
-  // outlier dominates. log(1 + v) gives every entity meaningful vertical spread.
+  // Velocity axis: the dormancy-break scenario can produce 5000+ bits/month
+  // (a genuine outlier), which on any axis collapses all other entities to the
+  // floor. Fix: cap the chart axis at 4× the 90th-percentile velocity so the
+  // 14 non-outlier entities spread naturally. Any entity above the cap is
+  // pinned to the top with an upward-arrow overflow indicator showing its real
+  // value, so the information isn't lost — just moved off the main axis.
+  const rawMax = Math.max(1, ...customers.map((c) => c.drift_velocity));
+  const sortedVels = [...customers].map((c) => c.drift_velocity).sort((a, b) => a - b);
+  const p90 = sortedVels[Math.max(0, Math.floor(sortedVels.length * 0.9) - 1)] ?? rawMax;
+  const axisMax = Math.max(p90 * 4, 1);
+
   const logV = (v: number) => Math.log1p(Math.max(0, v));
-  const maxLogVel = Math.max(logV(1), ...customers.map((c) => logV(c.drift_velocity)));
+  const maxLogVel = Math.max(logV(1), logV(axisMax));
 
   const sx = (score: number) =>
     PAD_X + (score / maxScore) * (W - PAD_X - PAD_Y);
+  // Velocity is capped at axisMax for positioning; outliers sit exactly at top
   const sy = (vel: number) =>
-    H - PAD_Y - (logV(vel) / maxLogVel) * (H - 2 * PAD_Y);
+    H - PAD_Y - (logV(Math.min(vel, axisMax)) / maxLogVel) * (H - 2 * PAD_Y);
 
   const scoreTicks = [0, 25, 50, 75, 100];
-  // Pick 3 human-readable velocity tick values on the original scale
-  const rawMax = Math.max(1, ...customers.map((c) => c.drift_velocity));
-  const velTickValues = [0, Math.sqrt(rawMax), rawMax].map((v) => Math.round(v));
+  const velTickValues = [0, Math.round(axisMax / 2), Math.round(axisMax)];
   const formatVelocityTick = (tick: number) => {
     if (tick >= 1000) return `${(tick / 1000).toFixed(1)}k`;
     return tick.toFixed(0);
@@ -174,9 +181,9 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
         />
         <line
           x1={sx(55)}
-          y1={sy(rawMax * 0.5)}
+          y1={sy(axisMax * 0.5)}
           x2={W - PAD_Y}
-          y2={sy(rawMax * 0.5)}
+          y2={sy(axisMax * 0.5)}
           stroke="var(--ink-faint, #a1a1aa)"
           strokeWidth={1}
           strokeDasharray="3 3"
@@ -188,30 +195,48 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
         {/* Dots */}
         {customers.map((c) => {
           const selected = c.drift_id === selectedId;
+          const capped = c.drift_velocity > axisMax;
+          const cx = sx(c.drift_score);
+          const cy = sy(c.drift_velocity);
+          const r = selected ? 9 : 6;
           return (
-            <g key={c.drift_id}>
+            <g key={c.drift_id} className="cursor-pointer" onClick={() => onSelect(c.drift_id)}>
               <circle
-                cx={sx(c.drift_score)}
-                cy={sy(c.drift_velocity)}
-                r={selected ? 9 : 6}
+                cx={cx}
+                cy={cy}
+                r={r}
                 fill={dotColor(c.velocity_band)}
                 opacity={selected ? 1 : 0.78}
                 stroke={selected ? "var(--ink, #0a0a0b)" : "white"}
                 strokeWidth={selected ? 2 : 1}
-                className="cursor-pointer transition-all"
-                onClick={() => onSelect(c.drift_id)}
+                className="transition-all"
               />
+              {/* Overflow arrow: entity is above the axis cap */}
+              {capped && (
+                <text
+                  x={cx}
+                  y={cy - r - 3}
+                  textAnchor="middle"
+                  fontSize={11}
+                  fill={dotColor(c.velocity_band)}
+                  className="pointer-events-none"
+                >
+                  ▲
+                </text>
+              )}
               {(selected || c.drift_score > 55) && (
                 <text
-                  x={sx(c.drift_score)}
-                  y={sy(c.drift_velocity) - 12}
+                  x={cx}
+                  y={cy - r - (capped ? 15 : 12)}
                   textAnchor="middle"
                   fontSize={10}
                   fill="var(--ink-soft, #3f3f46)"
                   fontWeight={selected ? 600 : 400}
                   className="pointer-events-none"
                 >
-                  {c.name.split(" ")[0]}
+                  {capped
+                    ? `${c.name.split(" ")[0]} (${c.drift_velocity >= 1000 ? (c.drift_velocity / 1000).toFixed(1) + "k" : Math.round(c.drift_velocity)}↑)`
+                    : c.name.split(" ")[0]}
                 </text>
               )}
             </g>

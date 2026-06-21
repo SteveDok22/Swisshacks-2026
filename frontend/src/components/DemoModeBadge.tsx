@@ -67,6 +67,17 @@ export function DemoModeBadge({ entityMode }: { entityMode?: string } = {}) {
           <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
         )}
         {isLive ? "LIVE" : "SYNTHETIC"}
+        {/* AI/LLM status — visible inline so the case queue (synthetic data,
+            but real Claude adjudication) is clearly tagged as live-AI. */}
+        {config.llm_mode === "live" && (
+          <>
+            <span className="text-ink-faint">·</span>
+            <span className="inline-flex items-center gap-1 text-green-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
+              AI&nbsp;LIVE
+            </span>
+          </>
+        )}
       </button>
 
       {showHelp && (

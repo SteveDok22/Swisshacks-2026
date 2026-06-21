@@ -1,0 +1,186 @@
+{
+  "key_raw": "domain:wwinternational.com",
+  "cached_at": "2026-06-21T07:40:29.480934+00:00",
+  "data": {
+    "objectClassName": "domain",
+    "handle": "1105288_DOMAIN_COM-VRSN",
+    "ldhName": "WWINTERNATIONAL.COM",
+    "links": [
+      {
+        "value": "https://rdap.verisign.com/com/v1/domain/WWINTERNATIONAL.COM",
+        "rel": "self",
+        "href": "https://rdap.verisign.com/com/v1/domain/WWINTERNATIONAL.COM",
+        "type": "application/rdap+json"
+      },
+      {
+        "value": "https://rdap.godaddy.com/v1/domain/WWINTERNATIONAL.COM",
+        "rel": "related",
+        "href": "https://rdap.godaddy.com/v1/domain/WWINTERNATIONAL.COM",
+        "type": "application/rdap+json"
+      }
+    ],
+    "status": [
+      "client delete prohibited",
+      "client renew prohibited",
+      "client transfer prohibited",
+      "client update prohibited"
+    ],
+    "entities": [
+      {
+        "objectClassName": "entity",
+        "handle": "146",
+        "roles": [
+          "registrar"
+        ],
+        "links": [
+          {
+            "href": "http://www.godaddy.com",
+            "type": "text/html",
+            "value": "https://rdap.godaddy.com/v1/",
+            "rel": "about"
+          }
+        ],
+        "publicIds": [
+          {
+            "type": "IANA Registrar ID",
+            "identifier": "146"
+          }
+        ],
+        "vcardArray": [
+          "vcard",
+          [
+            [
+              "version",
+              {},
+              "text",
+              "4.0"
+            ],
+            [
+              "fn",
+              {},
+              "text",
+              "GoDaddy.com, LLC"
+            ]
+          ]
+        ],
+        "entities": [
+          {
+            "objectClassName": "entity",
+            "roles": [
+              "abuse"
+            ],
+            "vcardArray": [
+              "vcard",
+              [
+                [
+                  "version",
+                  {},
+                  "text",
+                  "4.0"
+                ],
+                [
+                  "fn",
+                  {},
+                  "text",
+                  ""
+                ],
+                [
+                  "tel",
+                  {
+                    "type": "voice"
+                  },
+                  "uri",
+                  "tel:480-624-2505"
+                ],
+                [
+                  "email",
+                  {},
+                  "text",
+                  "abuse@godaddy.com"
+                ]
+              ]
+            ]
+          }
+        ]
+      }
+    ],
+    "events": [
+      {
+        "eventAction": "registration",
+        "eventDate": "1998-04-14T04:00:00Z"
+      },
+      {
+        "eventAction": "expiration",
+        "eventDate": "2027-04-13T04:00:00Z"
+      },
+      {
+        "eventAction": "last changed",
+        "eventDate": "2026-04-17T21:45:52Z"
+      },
+      {
+        "eventAction": "last update of RDAP database",
+        "eventDate": "2026-06-21T07:40:10Z"
+      }
+    ],
+    "secureDNS": {
+      "delegationSigned": false
+    },
+    "nameservers": [
+      {
+        "objectClassName": "nameserver",
+        "ldhName": "NS1.AFTERNIC.COM"
+      },
+      {
+        "objectClassName": "nameserver",
+        "ldhName": "NS2.AFTERNIC.COM"
+      }
+    ],
+    "rdapConformance": [
+      "rdap_level_0",
+      "icann_rdap_technical_implementation_guide_1",
+      "icann_rdap_response_profile_1"
+    ],
+    "notices": [
+      {
+        "title": "Terms of Service",
+        "description": [
+          "Service subject to Terms of Use."
+        ],
+        "links": [
+          {
+            "href": "https://www.verisign.com/domain-names/registration-data-access-protocol/terms-service/index.xhtml",
+            "type": "text/html",
+            "value": "https://rdap.verisign.com/com/v1/domain/wwinternational.com",
+            "rel": "terms-of-service"
+          }
+        ]
+      },
+      {
+        "title": "Status Codes",
+        "description": [
+          "For more information on domain status codes, please visit https://icann.org/epp"
+        ],
+        "links": [
+          {
+            "href": "https://icann.org/epp",
+            "type": "text/html"
+          }
+        ]
+      },
+      {
+        "title": "RDDS Inaccuracy Complaint Form",
+        "description": [
+          "URL of the ICANN RDDS Inaccuracy Complaint Form: https://icann.org/wicf"
+        ],
+        "links": [
+          {
+            "href": "https://icann.org/wicf",
+            "type": "text/html",
+            "value": "https://rdap.verisign.com/com/v1/domain/wwinternational.com",
+            "rel": "help"
+          }
+        ]
+      }
+    ]
+  }
+}

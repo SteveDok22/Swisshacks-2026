@@ -61,6 +61,39 @@ def _sentiment_to_severity(sentiment: float | None) -> float:
     return 0.25
 
 
+_LEGAL_TOKENS = frozenset(
+    {
+        "s.a.", "sa", "ag", "gmbh", "ltd", "ltd.", "inc", "inc.", "plc", "llc",
+        "a/s", "co", "co.", "corp", "corp.", "sarl", "bv", "nv", "spa", "oyj",
+        "ab", "as", "pte", "limited", "trading",
+    }
+)
+
+
+def _name_query_variants(name: str) -> list[str]:
+    """Query variants from most- to least-specific.
+
+    The full legal name first, then the name with legal-form tokens stripped,
+    then the leading distinctive token. Lets a real entity yield real article
+    coverage even when the exact legal name (e.g. "Rosneft Trading S.A.") has
+    little direct press but the brand ("Rosneft") has plenty.
+    """
+    variants = [name]
+    tokens = name.replace(",", " ").split()
+    core = [t for t in tokens if t.strip(".").lower() not in _LEGAL_TOKENS]
+    seen = {name.lower()}
+    if core and len(core) < len(tokens):
+        cand = " ".join(core)
+        if cand.lower() not in seen:
+            variants.append(cand)
+            seen.add(cand.lower())
+    if len(core) > 1:
+        lead = core[0]
+        if lead.lower() not in seen:
+            variants.append(lead)
+    return variants
+
+
 def _month_offset_to_date(since_month: int) -> str:
     """Convert a zero-indexed month offset to an ISO date string for ``dateStart``.
 
@@ -334,23 +367,30 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
         since_month = max(0, min(11, since_month))
         date_from = _month_offset_to_date(since_month)
         date_to = datetime.now(UTC).strftime("%Y-%m-%d")
-        payload: dict[str, Any] = {
-            "action": "getArticles",
-            "keyword": name,
-            "dateStart": date_from,
-            "dateEnd": date_to,
-            "lang": "eng",
-            "resultType": "articles",
-            "articlesCount": max_articles,
-            "articlesSortBy": "date",
-            "returnInfo": {"articleInfo": {"sentiment": True, "bodyLen": 0}},
-        }
-        try:
-            data = await self._post("article/getArticles", payload)
-        except (httpx.HTTPStatusError, httpx.RequestError):
-            return []
 
-        articles = (data.get("articles") or {}).get("results", [])
+        # Try the full legal name first; if it has no coverage, retry with the
+        # simplified core name (e.g. "Rosneft Trading S.A." -> "Rosneft") so a
+        # real entity reliably yields real article links instead of nothing.
+        articles: list[dict[str, Any]] = []
+        for query in _name_query_variants(name):
+            payload: dict[str, Any] = {
+                "action": "getArticles",
+                "keyword": query,
+                "dateStart": date_from,
+                "dateEnd": date_to,
+                "lang": "eng",
+                "resultType": "articles",
+                "articlesCount": max_articles,
+                "articlesSortBy": "date",
+                "returnInfo": {"articleInfo": {"sentiment": True, "bodyLen": 0}},
+            }
+            try:
+                data = await self._post("article/getArticles", payload)
+            except (httpx.HTTPStatusError, httpx.RequestError):
+                return []
+            articles = (data.get("articles") or {}).get("results", [])
+            if articles:
+                break
         signals: list[PublicSignal] = []
         for art in articles:
             url = art.get("url")

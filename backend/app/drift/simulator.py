@@ -489,4 +489,18 @@ def generate_book(
     wirecard.mode = "live"
     book.append(wirecard)
 
+    # --- Live entity: WW International, Inc. (UC4/UC8 — legal name change) ---
+    # Real entity whose GLEIF record carries PREVIOUS_LEGAL_NAME "Weight Watchers
+    # International, Inc." -> "WW International, Inc." — a genuine, GLEIF-documented
+    # rename that fires a real name_change signal (re-KYC floor) plus real news.
+    ww = generate_customer(
+        drift_id="drift-live-004",
+        name="WW International, Inc.",
+        scenario="name_cycling",
+        seed=seed + 103,
+    )
+    ww.domain = "ww.com"
+    ww.mode = "live"
+    book.append(ww)
+
     return book

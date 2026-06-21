@@ -506,11 +506,19 @@ class TestPublicIntelIntegration:
             drift_start_month=6,
             seed=7,
         )
+        # News-type signals link to a DIRECT article (attached by the live
+        # adapter) or carry no link for the synthetic/fictional cast — never a
+        # search-page placeholder. Registry/screening signals always carry a
+        # real open-data deep-link.
+        news_types = {"news", "adverse_media", "funding_event", "corridor_alert"}
         for s in signals:
             assert hasattr(s, "source_url")
-            assert s.source_url is not None
-            # Real provenance URLs are deep-links to open data sources, not demo slugs.
-            assert s.source_url.startswith("https://")
+            if s.signal_type in news_types:
+                if s.source_url is not None:
+                    assert s.source_url.startswith("https://")
+            else:
+                assert s.source_url is not None
+                assert s.source_url.startswith("https://")
 
     def test_to_dict_includes_source_url_key(self):
         from app.drift.public_intel import generate_signals_for_customer

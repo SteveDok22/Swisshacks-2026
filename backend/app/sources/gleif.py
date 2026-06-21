@@ -364,6 +364,11 @@ class GleifAdapter(CostMixin, RegistryAdapter):
                 "lei": lei,
                 "registration_status": registration.get("status"),
                 "entity_status": entity.get("status"),
+                # GLEIF records a documented former legal name (real name change,
+                # e.g. "Weight Watchers International, Inc." -> "WW International,
+                # Inc."). Surfaced as a real name_change signal — see
+                # name_change_signals() — without needing a baseline diff.
+                "former_legal_name": _extract_former_legal_name(entity),
             },
         )
 
@@ -385,6 +390,56 @@ def _extract_legal_form(entity: dict[str, Any]) -> str | None:
     if not lf or not isinstance(lf, dict):
         return None
     return lf.get("id") or lf.get("other") or None
+
+
+def _extract_former_legal_name(entity: dict[str, Any]) -> str | None:
+    """Return the documented previous legal name from a GLEIF record, if any.
+
+    GLEIF stores former names in ``entity.otherNames`` with
+    ``type == "PREVIOUS_LEGAL_NAME"``. Returns the first such name (most recent
+    rename), or ``None`` when the entity has never been renamed.
+    """
+    for other in entity.get("otherNames") or []:
+        if not isinstance(other, dict):
+            continue
+        if (other.get("type") or "").upper() == "PREVIOUS_LEGAL_NAME":
+            name = (other.get("name") or "").strip()
+            if name:
+                return name
+    return None
+
+
+def name_change_signals(
+    current: EntitySnapshot | None, *, month: int = 0
+) -> list[PublicSignal]:
+    """Emit a real ``name_change`` signal from GLEIF's documented former name.
+
+    Unlike the ownership diff, this needs no baseline: GLEIF itself records the
+    previous legal name on the live record (``PREVIOUS_LEGAL_NAME``), so a single
+    fetch is enough to prove a rename. Drives the UC8 re-KYC score floor.
+    """
+    if current is None:
+        return []
+    raw = current.raw_data or {}
+    former = (raw.get("former_legal_name") or "").strip()
+    now = (current.name or "").strip()
+    if not former or not now or former.casefold() == now.casefold():
+        return []
+    lei = raw.get("lei")
+    source_url = f"https://search.gleif.org/#/record/{lei}" if lei else None
+    return [
+        PublicSignal(
+            month=month,
+            signal_type="name_change",
+            headline=(
+                f"GLEIF records a legal-name change: '{former}' -> '{now}' "
+                f"(PREVIOUS_LEGAL_NAME on the LEI record) — re-KYC required"
+            ),
+            severity=0.85,
+            source=_SIGNAL_SOURCE,
+            source_url=source_url,
+        )
+    ]
 
 
 def _extract_address(entity: dict[str, Any]) -> str | None:

@@ -1,0 +1,171 @@
+{
+  "key_raw": "record:SGT8R1MU6ESIC7UJC518",
+  "cached_at": "2026-06-21T07:41:32.561228+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "SGT8R1MU6ESIC7UJC518",
+      "attributes": {
+        "lei": "SGT8R1MU6ESIC7UJC518",
+        "entity": {
+          "legalName": {
+            "name": "WW International, Inc.",
+            "language": "en"
+          },
+          "otherNames": [
+            {
+              "name": "Weight Watchers International, Inc.",
+              "language": "en",
+              "type": "PREVIOUS_LEGAL_NAME"
+            }
+          ],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "en",
+            "addressLines": [
+              "C/O Corporation Service Company",
+              "100 Shockoe Slip Fl 2"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Richmond",
+            "region": "US-VA",
+            "country": "US",
+            "postalCode": "23219-4100"
+          },
+          "headquartersAddress": {
+            "language": "en",
+            "addressLines": [
+              "18 West 18th Street",
+              "7th Floor"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "New York",
+            "region": "US-NY",
+            "country": "US",
+            "postalCode": "10011"
+          },
+          "registeredAt": {
+            "id": "RA000639",
+            "other": null
+          },
+          "registeredAs": "01509579",
+          "jurisdiction": "US-VA",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "HOV4",
+            "other": null
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": "1974-02-19T00:00:00Z",
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": [
+            {
+              "groupType": "STANDALONE",
+              "events": [
+                {
+                  "validationDocuments": "OTHER_OFFICIAL_DOCUMENTS",
+                  "effectiveDate": "2025-06-23T00:00:00Z",
+                  "recordedDate": "2025-08-11T18:33:02Z",
+                  "type": "CHANGE_HQ_ADDRESS",
+                  "status": "COMPLETED"
+                }
+              ]
+            }
+          ]
+        },
+        "registration": {
+          "initialRegistrationDate": "2012-06-06T15:51:00Z",
+          "lastUpdateDate": "2025-08-14T20:24:06Z",
+          "status": "ISSUED",
+          "nextRenewalDate": "2026-07-12T18:00:00Z",
+          "managingLou": "5493001KJTIIGC8Y1R12",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000639",
+            "other": null
+          },
+          "validatedAs": "01509579",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": "us_va/01509579",
+        "qcc": null,
+        "spglobal": [
+          "754046"
+        ],
+        "conformityFlag": "CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/SGT8R1MU6ESIC7UJC518/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/SGT8R1MU6ESIC7UJC518/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/SGT8R1MU6ESIC7UJC518/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "reporting-exception": "https://api.gleif.org/api/v1/lei-records/SGT8R1MU6ESIC7UJC518/direct-parent-reporting-exception"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "reporting-exception": "https://api.gleif.org/api/v1/lei-records/SGT8R1MU6ESIC7UJC518/ultimate-parent-reporting-exception"
+          }
+        },
+        "direct-children": {
+          "links": {
+            "relationship-records": "https://api.gleif.org/api/v1/lei-records/SGT8R1MU6ESIC7UJC518/direct-child-relationships",
+            "related": "https://api.gleif.org/api/v1/lei-records/SGT8R1MU6ESIC7UJC518/direct-children"
+          }
+        },
+        "ultimate-children": {
+          "links": {
+            "relationship-records": "https://api.gleif.org/api/v1/lei-records/SGT8R1MU6ESIC7UJC518/ultimate-child-relationships",
+            "related": "https://api.gleif.org/api/v1/lei-records/SGT8R1MU6ESIC7UJC518/ultimate-children"
+          }
+        },
+        "isins": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/SGT8R1MU6ESIC7UJC518/isins"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/SGT8R1MU6ESIC7UJC518"
+      }
+    }
+  }
+}

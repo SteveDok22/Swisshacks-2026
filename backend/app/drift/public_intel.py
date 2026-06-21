@@ -166,16 +166,22 @@ def _source_url(
     *,
     lei: str | None = None,
     domain: str | None = None,
-) -> str:
-    """Return a real, clickable deep-link for a synthetic public signal.
+) -> str | None:
+    """Return a real, clickable deep-link for a synthetic public signal, or None.
 
     Maps each signal type to the canonical, human-browsable open source that
     would carry it in a live run. Every URL below resolves to a real, working
-    page (verified): no placeholder/example.com links, and the news links point
-    at a readable search page rather than a raw JSON/HTML API dump.
-    - News / adverse media / corridor alerts / funding events → Google News
-      search (clean, always-free, no key).
-    - Sanctions / ownership changes → OpenSanctions search.
+    page (verified): no placeholder/example.com links.
+
+    IMPORTANT — news signals NEVER get a search-page link. A news/adverse-media
+    signal links to a DIRECT article or to nothing: in live mode the adapters
+    attach the real article URL; for the synthetic (fictional) cast there is no
+    real article, so this returns ``None`` and the UI renders no source link
+    rather than a Google-News search. The registry/screening links below ARE
+    canonical record pages for the entity (not keyword searches in disguise).
+    - News / adverse media / corridor alerts / funding events → None (a direct
+      article URL is attached by the live adapter when one exists).
+    - Sanctions / ownership changes → OpenSanctions entity search.
     - Name / legal-form / jurisdiction changes → GLEIF LEI record (or search
       when no LEI is available yet).
     - Domain changes → ICANN WHOIS lookup.
@@ -183,7 +189,7 @@ def _source_url(
     """
     encoded = urllib.parse.quote_plus(name)
     if signal_type in ("news", "adverse_media", "corridor_alert", "funding_event"):
-        return f"https://news.google.com/search?q={encoded}"
+        return None
     if signal_type in ("sanctions", "ownership_change"):
         return f"https://www.opensanctions.org/search/?q={encoded}"
     if signal_type in ("name_change", "legal_form_change", "jurisdiction_change"):
@@ -196,8 +202,8 @@ def _source_url(
     if signal_type == "business_model_change":
         d = domain or f"{name.lower().replace(' ', '-')}.com"
         return f"https://web.archive.org/web/*/{d}"
-    # Default: Google News search for anything else
-    return f"https://news.google.com/search?q={encoded}"
+    # No generic search-page fallback — unknown types carry no source link.
+    return None
 
 
 def generate_signals_for_customer(

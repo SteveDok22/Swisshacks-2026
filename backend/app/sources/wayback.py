@@ -160,6 +160,8 @@ class WaybackAdapter(CostMixin, RegistryAdapter):
                 timeout=timeout,
             )
             self._owns_client = True
+        from app.core.api_cache import DiskCache
+        self._cache = DiskCache("wayback")
 
     async def aclose(self) -> None:
         """Close the underlying HTTP client if this adapter owns it."""
@@ -209,6 +211,15 @@ class WaybackAdapter(CostMixin, RegistryAdapter):
         domain: str = kwargs.get("domain") or _name_to_domain(name)
         onboarding_date: str | None = kwargs.get("onboarding_date")
 
+        # Cache the (often rate-limited) archive.org result on disk so the
+        # historical snapshot is fetched once and then replays offline.
+        cache_key = f"snapshot:{domain}:{onboarding_date or 'latest'}"
+        cached = self._cache.get(cache_key)
+        if isinstance(cached, dict):
+            return EntitySnapshot(
+                drift_id=drift_id, name=name, source=self.source_name, raw_data=cached
+            )
+
         snapshot_url, snapshot_date = await self._find_snapshot(domain, onboarding_date)
         if snapshot_url is None:
             return None
@@ -218,16 +229,19 @@ class WaybackAdapter(CostMixin, RegistryAdapter):
 
         website_text = await self._fetch_text(snapshot_url)
 
+        raw_data = {
+            "domain": domain,
+            "snapshot_url": snapshot_url,
+            "snapshot_date": snapshot_date,
+            "website_text": website_text,
+        }
+        if website_text:
+            self._cache.set(cache_key, raw_data)
         return EntitySnapshot(
             drift_id=drift_id,
             name=name,
             source=self.source_name,
-            raw_data={
-                "domain": domain,
-                "snapshot_url": snapshot_url,
-                "snapshot_date": snapshot_date,
-                "website_text": website_text,
-            },
+            raw_data=raw_data,
         )
 
     async def fetch_signals(

@@ -91,7 +91,11 @@ from app.schemas.enums import DecisionAction
 from app.services.anthropic_client import get_anthropic_client
 from app.sources.base import EntitySnapshot
 from app.sources.firecrawl import FirecrawlAdapter
-from app.sources.gleif import gather_ownership_snapshots, ownership_change_signals
+from app.sources.gleif import (
+    gather_ownership_snapshots,
+    name_change_signals,
+    ownership_change_signals,
+)
 from app.sources.wayback import WaybackAdapter
 
 logger = get_logger(__name__)
@@ -530,6 +534,42 @@ class DriftEngine:
             return []
         return ownership_change_signals(baseline, current)
 
+    def _gleif_name_change_signals(self, cust: SyntheticCustomer) -> list[PublicSignal]:
+        """Emit a real ``name_change`` signal from GLEIF's documented former name.
+
+        Needs only the live GLEIF record (no baseline): GLEIF stores the previous
+        legal name on the record itself. Uses the prebuilt ownership-graph
+        snapshot when present (live-graph mode); otherwise fetches the single
+        record directly (per-entity live mode, the default). Returns ``[]`` when
+        the entity has never been renamed or GLEIF is unreachable.
+        """
+        current = self._gleif_snapshots.get(cust.drift_id)
+        if current is None:
+            current = self._fetch_gleif_record(cust.name)
+        return name_change_signals(current)
+
+    @staticmethod
+    def _fetch_gleif_record(name: str) -> EntitySnapshot | None:
+        """Fetch a single live GLEIF record (thread-isolated, cached, best-effort)."""
+        async def _fetch() -> EntitySnapshot | None:
+            from app.sources.gleif import GleifAdapter
+
+            adapter = GleifAdapter()
+            try:
+                return await adapter.fetch("", name)
+            finally:
+                await adapter.aclose()
+
+        pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        future = pool.submit(asyncio.run, _fetch())
+        try:
+            return future.result(timeout=_GLEIF_FETCH_TIMEOUT_S)
+        except Exception:  # noqa: BLE001 — best-effort; degrade to no signal
+            logger.warning("gleif_name_change_fetch_failed", exc_info=True)
+            return None
+        finally:
+            pool.shutdown(wait=False)
+
     # ------------------------------------------------------------------ #
     # Public-intelligence acquisition (live vs offline)
     # ------------------------------------------------------------------ #
@@ -552,6 +592,8 @@ class DriftEngine:
             # ownership-chain diff (use case 3) is layered in here alongside the
             # other adapters' signals, then re-sorted by month.
             signals.extend(self._gleif_ownership_signals(cust))
+            # Real GLEIF name-change (UC4/UC8) from the record's former legal name.
+            signals.extend(self._gleif_name_change_signals(cust))
             # Hybrid fallback: registry/screening sources (GLEIF, OpenSanctions,
             # WHOIS) are reliable live, but the live NEWS feeds frequently have no
             # recent coverage of a given entity — rate limits, or the real adverse

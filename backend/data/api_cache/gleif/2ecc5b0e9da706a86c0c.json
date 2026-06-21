@@ -1,0 +1,192 @@
+{
+  "key_raw": "record:5067007NW6550481FH64",
+  "cached_at": "2026-06-21T06:36:11.498285+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "5067007NW6550481FH64",
+      "attributes": {
+        "lei": "5067007NW6550481FH64",
+        "entity": {
+          "legalName": {
+            "name": "TEMENOS AG",
+            "language": "de-CH"
+          },
+          "otherNames": [
+            {
+              "name": "TEMENOS LTD",
+              "language": "en-US",
+              "type": "ALTERNATIVE_LANGUAGE_LEGAL_NAME"
+            },
+            {
+              "name": "TEMENOS SA",
+              "language": "fr-CH",
+              "type": "ALTERNATIVE_LANGUAGE_LEGAL_NAME"
+            }
+          ],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "de-CH",
+            "addressLines": [
+              "Esplanade de Pont-Rouge 9C"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Grand-Lancy",
+            "region": "CH-GE",
+            "country": "CH",
+            "postalCode": "1212"
+          },
+          "headquartersAddress": {
+            "language": "de-CH",
+            "addressLines": [
+              "Esplanade de Pont-Rouge 9C"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Grand-Lancy",
+            "region": "CH-GE",
+            "country": "CH",
+            "postalCode": "1212"
+          },
+          "registeredAt": {
+            "id": "RA000548",
+            "other": null
+          },
+          "registeredAs": "CHE109066419",
+          "jurisdiction": "CH",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "MVII",
+            "other": null
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": "2001-06-07T00:00:00Z",
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": [
+            {
+              "groupType": "STANDALONE",
+              "events": [
+                {
+                  "validationDocuments": "OTHER_OFFICIAL_DOCUMENTS",
+                  "effectiveDate": "2024-09-10T00:00:00Z",
+                  "recordedDate": "2024-09-10T00:00:00Z",
+                  "type": "CHANGE_HQ_ADDRESS",
+                  "status": "COMPLETED"
+                }
+              ]
+            },
+            {
+              "groupType": "STANDALONE",
+              "events": [
+                {
+                  "validationDocuments": "SUPPORTING_DOCUMENTS",
+                  "effectiveDate": "2024-05-28T00:00:00Z",
+                  "recordedDate": "2024-05-28T00:00:00Z",
+                  "type": "CHANGE_LEGAL_ADDRESS",
+                  "status": "COMPLETED"
+                }
+              ]
+            }
+          ]
+        },
+        "registration": {
+          "initialRegistrationDate": "2017-12-15T00:00:00Z",
+          "lastUpdateDate": "2025-11-19T13:18:00Z",
+          "status": "ISSUED",
+          "nextRenewalDate": "2026-12-15T00:00:00Z",
+          "managingLou": "506700LOLO7M6V0E4247",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000548",
+            "other": null
+          },
+          "validatedAs": "CHE109066419",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": null,
+        "qcc": null,
+        "spglobal": [
+          "1059156"
+        ],
+        "conformityFlag": "CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/5067007NW6550481FH64/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/5067007NW6550481FH64/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/5067007NW6550481FH64/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "reporting-exception": "https://api.gleif.org/api/v1/lei-records/5067007NW6550481FH64/direct-parent-reporting-exception"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "reporting-exception": "https://api.gleif.org/api/v1/lei-records/5067007NW6550481FH64/ultimate-parent-reporting-exception"
+          }
+        },
+        "direct-children": {
+          "links": {
+            "relationship-records": "https://api.gleif.org/api/v1/lei-records/5067007NW6550481FH64/direct-child-relationships",
+            "related": "https://api.gleif.org/api/v1/lei-records/5067007NW6550481FH64/direct-children"
+          }
+        },
+        "ultimate-children": {
+          "links": {
+            "relationship-records": "https://api.gleif.org/api/v1/lei-records/5067007NW6550481FH64/ultimate-child-relationships",
+            "related": "https://api.gleif.org/api/v1/lei-records/5067007NW6550481FH64/ultimate-children"
+          }
+        },
+        "branches": {
+          "links": {
+            "relationship-records": "https://api.gleif.org/api/v1/lei-records/5067007NW6550481FH64/branch-relationships",
+            "related": "https://api.gleif.org/api/v1/lei-records/5067007NW6550481FH64/branches"
+          }
+        },
+        "isins": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/5067007NW6550481FH64/isins"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/5067007NW6550481FH64"
+      }
+    }
+  }
+}

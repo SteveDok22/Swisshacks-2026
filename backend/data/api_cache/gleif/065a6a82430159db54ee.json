@@ -1,0 +1,161 @@
+{
+  "key_raw": "record:549300B7MIGQB8SZLY89",
+  "cached_at": "2026-06-21T07:41:51.360250+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "549300B7MIGQB8SZLY89",
+      "attributes": {
+        "lei": "549300B7MIGQB8SZLY89",
+        "entity": {
+          "legalName": {
+            "name": "WW.COM, LLC",
+            "language": "en"
+          },
+          "otherNames": [
+            {
+              "name": "Weightwatchers.com, Inc.",
+              "language": "en",
+              "type": "PREVIOUS_LEGAL_NAME"
+            }
+          ],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "en",
+            "addressLines": [
+              "C/O Corporation Service Company",
+              "251 Little Falls Drive"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Wilmington",
+            "region": "US-DE",
+            "country": "US",
+            "postalCode": "19808"
+          },
+          "headquartersAddress": {
+            "language": "en",
+            "addressLines": [
+              "7th Floor",
+              "18 West 18th Street"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "New York",
+            "region": "US-NY",
+            "country": "US",
+            "postalCode": "10011"
+          },
+          "registeredAt": {
+            "id": "RA000602",
+            "other": null
+          },
+          "registeredAs": "3100578",
+          "jurisdiction": "US-DE",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "HZEH",
+            "other": null
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": "1999-09-22T00:00:00Z",
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": [
+            {
+              "groupType": "STANDALONE",
+              "events": [
+                {
+                  "validationDocuments": "OTHER_OFFICIAL_DOCUMENTS",
+                  "effectiveDate": "2025-06-23T00:00:00Z",
+                  "recordedDate": "2025-08-11T18:28:51Z",
+                  "type": "CHANGE_HQ_ADDRESS",
+                  "status": "COMPLETED"
+                }
+              ]
+            }
+          ]
+        },
+        "registration": {
+          "initialRegistrationDate": "2014-07-17T01:47:00Z",
+          "lastUpdateDate": "2025-08-12T19:06:27Z",
+          "status": "ISSUED",
+          "nextRenewalDate": "2026-09-12T00:00:00Z",
+          "managingLou": "5493001KJTIIGC8Y1R12",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000602",
+            "other": null
+          },
+          "validatedAs": "3100578",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": "us_de/3100578",
+        "qcc": null,
+        "spglobal": [
+          "13613761"
+        ],
+        "conformityFlag": "CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/549300B7MIGQB8SZLY89/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/549300B7MIGQB8SZLY89/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/549300B7MIGQB8SZLY89/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/549300B7MIGQB8SZLY89/direct-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/549300B7MIGQB8SZLY89/direct-parent"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/549300B7MIGQB8SZLY89/ultimate-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/549300B7MIGQB8SZLY89/ultimate-parent"
+          }
+        },
+        "isins": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/549300B7MIGQB8SZLY89/isins"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/549300B7MIGQB8SZLY89"
+      }
+    }
+  }
+}

@@ -54,6 +54,7 @@ from app.sources.base import EntitySnapshot, PublicSignal, RegistryAdapter
 from app.sources.cost import AdapterStatus, CostMixin, SourceCost
 
 _AVAILABILITY_URL = "https://archive.org/wayback/available"
+_CDX_URL = "https://web.archive.org/cdx/search/cdx"
 _ALLOWED_SNAPSHOT_PREFIX = "https://web.archive.org/web/"
 _USER_AGENT = "Sentinel/1.0 (hackathon research)"
 _MAX_TEXT_CHARS = 10_000  # Unicode code points, not bytes
@@ -160,6 +161,8 @@ class WaybackAdapter(CostMixin, RegistryAdapter):
                 timeout=timeout,
             )
             self._owns_client = True
+        from app.core.api_cache import DiskCache
+        self._cache = DiskCache("wayback")
 
     async def aclose(self) -> None:
         """Close the underlying HTTP client if this adapter owns it."""
@@ -209,6 +212,15 @@ class WaybackAdapter(CostMixin, RegistryAdapter):
         domain: str = kwargs.get("domain") or _name_to_domain(name)
         onboarding_date: str | None = kwargs.get("onboarding_date")
 
+        # Cache the (often rate-limited) archive.org result on disk so the
+        # historical snapshot is fetched once and then replays offline.
+        cache_key = f"snapshot:{domain}:{onboarding_date or 'latest'}"
+        cached = self._cache.get(cache_key)
+        if isinstance(cached, dict):
+            return EntitySnapshot(
+                drift_id=drift_id, name=name, source=self.source_name, raw_data=cached
+            )
+
         snapshot_url, snapshot_date = await self._find_snapshot(domain, onboarding_date)
         if snapshot_url is None:
             return None
@@ -218,16 +230,19 @@ class WaybackAdapter(CostMixin, RegistryAdapter):
 
         website_text = await self._fetch_text(snapshot_url)
 
+        raw_data = {
+            "domain": domain,
+            "snapshot_url": snapshot_url,
+            "snapshot_date": snapshot_date,
+            "website_text": website_text,
+        }
+        if website_text:
+            self._cache.set(cache_key, raw_data)
         return EntitySnapshot(
             drift_id=drift_id,
             name=name,
             source=self.source_name,
-            raw_data={
-                "domain": domain,
-                "snapshot_url": snapshot_url,
-                "snapshot_date": snapshot_date,
-                "website_text": website_text,
-            },
+            raw_data=raw_data,
         )
 
     async def fetch_signals(
@@ -250,11 +265,65 @@ class WaybackAdapter(CostMixin, RegistryAdapter):
     async def _find_snapshot(
         self, domain: str, timestamp: str | None
     ) -> tuple[str | None, str | None]:
-        """Query the Availability API and return (snapshot_url, snapshot_date).
+        """Return (snapshot_url, snapshot_date) for the onboarding-era capture.
 
-        Returns ``(None, None)`` when no snapshot exists, the domain has never
-        been crawled, or the API call fails for any reason.
+        Prefers the CDX API, which (unlike the Availability API) is not
+        aggressively rate-limited from a shared IP. Falls back to the
+        Availability API on any CDX failure. Returns ``(None, None)`` when no
+        snapshot exists or both endpoints fail.
         """
+        cdx = await self._find_snapshot_cdx(domain, timestamp)
+        if cdx[0] is not None:
+            return cdx
+        return await self._find_snapshot_availability(domain, timestamp)
+
+    async def _find_snapshot_cdx(
+        self, domain: str, timestamp: str | None
+    ) -> tuple[str | None, str | None]:
+        """Query the CDX API for the latest successful capture at/before the date.
+
+        The ``id_`` URL modifier returns the raw archived bytes (no Wayback
+        toolbar/rewrites), which is what the text extractor wants.
+        """
+        # Keep the query cheap: ``limit=-5`` returns the 5 NEWEST captures at or
+        # before ``to`` (newest-first). Avoiding server-side ``filter``/``collapse``
+        # keeps archive.org from scanning the whole capture history, which is what
+        # made the request time out. Status filtering is done client-side below.
+        params: dict[str, str] = {
+            "url": domain,
+            "output": "json",
+            "limit": "-5",
+        }
+        if timestamp:
+            params["to"] = timestamp  # captures at/before onboarding
+        try:
+            resp = await self._http.get(_CDX_URL, params=params, timeout=30.0)
+        except (httpx.TransportError, httpx.TimeoutException):
+            return None, None
+        if not resp.is_success:
+            return None, None
+        try:
+            rows = resp.json()
+        except Exception:  # noqa: BLE001
+            return None, None
+        if not isinstance(rows, list) or len(rows) < 2:
+            return None, None
+        # rows[0] is the column header: [urlkey, timestamp, original, mimetype,
+        # statuscode, digest, length]. Rows are newest-first (limit=-5); take the
+        # first capture that returned HTTP 200.
+        for row in rows[1:]:
+            if len(row) < 5:
+                continue
+            ts, original, statuscode = row[1], row[2], row[4]
+            if statuscode != "200":
+                continue
+            return f"https://web.archive.org/web/{ts}id_/{original}", ts
+        return None, None
+
+    async def _find_snapshot_availability(
+        self, domain: str, timestamp: str | None
+    ) -> tuple[str | None, str | None]:
+        """Availability-API fallback. Returns ``(None, None)`` on any failure."""
         params: dict[str, str] = {"url": domain}
         if timestamp:
             params["timestamp"] = timestamp

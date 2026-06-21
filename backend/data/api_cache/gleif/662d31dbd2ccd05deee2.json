@@ -1,0 +1,144 @@
+{
+  "key_raw": "record:54930074QLDV9NKM1254",
+  "cached_at": "2026-06-21T07:25:20.421068+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "54930074QLDV9NKM1254",
+      "attributes": {
+        "lei": "54930074QLDV9NKM1254",
+        "entity": {
+          "legalName": {
+            "name": "PENSIONSKASSEN FOR DIREKTØRER I NOGLE MED SPAREKASSEN BIKUBEN FUSIONEREDE SPAREKASSER",
+            "language": "da"
+          },
+          "otherNames": [],
+          "transliteratedOtherNames": [
+            {
+              "name": "PENSIONSKASSEN FOR DIREKTORER I NOGLE MED SPAREKASSEN BIKUBEN FUSIONEREDE SPAREKASSER",
+              "language": "da",
+              "type": "PREFERRED_ASCII_TRANSLITERATED_LEGAL_NAME"
+            }
+          ],
+          "legalAddress": {
+            "language": "da",
+            "addressLines": [
+              "C/O Danske Bank A/S -Personale",
+              "Holmens Kanal 2 - 12",
+              "København K"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Copenhagen",
+            "region": "DK-84",
+            "country": "DK",
+            "postalCode": "1060"
+          },
+          "headquartersAddress": {
+            "language": "da",
+            "addressLines": [
+              "C/O Danske Bank A/S - Personale",
+              "Holmens Kanal 2-12"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Copenhagen",
+            "region": "DK-84",
+            "country": "DK",
+            "postalCode": "1060"
+          },
+          "registeredAt": {
+            "id": "RA000170",
+            "other": null
+          },
+          "registeredAs": "17615343",
+          "jurisdiction": "DK",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "9999",
+            "other": "PENSION_FUND"
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": null,
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": []
+        },
+        "registration": {
+          "initialRegistrationDate": "2015-08-01T01:35:00Z",
+          "lastUpdateDate": "2023-10-19T15:06:00Z",
+          "status": "LAPSED",
+          "nextRenewalDate": "2020-02-12T00:18:00Z",
+          "managingLou": "549300O897ZC5H7CY412",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000170",
+            "other": null
+          },
+          "validatedAs": "17615343",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": "dk/17615343",
+        "qcc": "QDKEJJ54RN",
+        "spglobal": [
+          "308332240"
+        ],
+        "conformityFlag": "NON_CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/54930074QLDV9NKM1254/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/54930074QLDV9NKM1254/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/54930074QLDV9NKM1254/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/54930074QLDV9NKM1254/direct-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/54930074QLDV9NKM1254/direct-parent"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/54930074QLDV9NKM1254/ultimate-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/54930074QLDV9NKM1254/ultimate-parent"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/54930074QLDV9NKM1254"
+      }
+    }
+  }
+}

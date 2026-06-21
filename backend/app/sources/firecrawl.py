@@ -187,6 +187,8 @@ class FirecrawlAdapter(CostMixin, RegistryAdapter):
         # this adapter; otherwise a short-lived client is created per fetch().
         self._client = client
         self._timeout = timeout
+        from app.core.api_cache import DiskCache
+        self._cache = DiskCache("firecrawl")
 
     @property
     def _has_key(self) -> bool:
@@ -220,6 +222,14 @@ class FirecrawlAdapter(CostMixin, RegistryAdapter):
             logger.info("firecrawl_no_domain", drift_id=drift_id, name=name)
             return None
 
+        # Serve a previously-scraped page from disk so the demo replays offline
+        # and a live run scrapes each site only once.
+        cached = self._cache.get(f"scrape:{host}")
+        if isinstance(cached, dict) and cached.get("website_text"):
+            return EntitySnapshot(
+                drift_id=drift_id, name=name, source=self.source_name, raw_data=cached
+            )
+
         url = f"https://{host}"
         text = ""
         method = "empty"
@@ -244,17 +254,22 @@ class FirecrawlAdapter(CostMixin, RegistryAdapter):
                 if owns_client:
                     await client.aclose()
 
+        raw_data = {
+            "domain": host,
+            "url": url,
+            "website_text": text[:_MAX_TEXT],
+            "scraped_at": datetime.now(UTC).isoformat(),
+            "scrape_method": method,
+        }
+        # Only cache a successful scrape (non-empty text) so a transient failure
+        # is not frozen into the committed cache.
+        if text:
+            self._cache.set(f"scrape:{host}", raw_data)
         return EntitySnapshot(
             drift_id=drift_id,
             name=name,
             source=self.source_name,
-            raw_data={
-                "domain": host,
-                "url": url,
-                "website_text": text[:_MAX_TEXT],
-                "scraped_at": datetime.now(UTC).isoformat(),
-                "scrape_method": method,
-            },
+            raw_data=raw_data,
         )
 
     async def fetch_signals(

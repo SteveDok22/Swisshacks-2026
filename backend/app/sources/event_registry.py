@@ -61,6 +61,39 @@ def _sentiment_to_severity(sentiment: float | None) -> float:
     return 0.25
 
 
+_LEGAL_TOKENS = frozenset(
+    {
+        "s.a.", "sa", "ag", "gmbh", "ltd", "ltd.", "inc", "inc.", "plc", "llc",
+        "a/s", "co", "co.", "corp", "corp.", "sarl", "bv", "nv", "spa", "oyj",
+        "ab", "as", "pte", "limited", "trading",
+    }
+)
+
+
+def _name_query_variants(name: str) -> list[str]:
+    """Query variants from most- to least-specific.
+
+    The full legal name first, then the name with legal-form tokens stripped,
+    then the leading distinctive token. Lets a real entity yield real article
+    coverage even when the exact legal name (e.g. "Rosneft Trading S.A.") has
+    little direct press but the brand ("Rosneft") has plenty.
+    """
+    variants = [name]
+    tokens = name.replace(",", " ").split()
+    core = [t for t in tokens if t.strip(".").lower() not in _LEGAL_TOKENS]
+    seen = {name.lower()}
+    if core and len(core) < len(tokens):
+        cand = " ".join(core)
+        if cand.lower() not in seen:
+            variants.append(cand)
+            seen.add(cand.lower())
+    if len(core) > 1:
+        lead = core[0]
+        if lead.lower() not in seen:
+            variants.append(lead)
+    return variants
+
+
 def _month_offset_to_date(since_month: int) -> str:
     """Convert a zero-indexed month offset to an ISO date string for ``dateStart``.
 
@@ -116,6 +149,8 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
 
     def __init__(self) -> None:
         self._api_key: str = settings.event_registry_api_key
+        from app.core.api_cache import DiskCache
+        self._cache = DiskCache("event_registry")
 
     @property
     def _is_configured(self) -> bool:
@@ -184,6 +219,12 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
         if retries < 1:
             raise ValueError(f"retries must be >= 1, got {retries}")
 
+        import hashlib as _hl
+        cache_key = f"{endpoint}:{_hl.sha256(str(sorted(payload.items())).encode()).hexdigest()[:16]}"
+        cached = self._cache.get(cache_key)
+        if cached is not None:
+            return cached
+
         payload = {**payload, "apiKey": self._api_key}
         url = f"{_BASE_URL}/{endpoint}"
         headers = {"User-Agent": _USER_AGENT, "Content-Type": "application/json"}
@@ -205,7 +246,9 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
                         await asyncio.sleep(wait)
                     continue
                 resp.raise_for_status()
-                return resp.json()
+                data = resp.json()
+                self._cache.set(cache_key, data)
+                return data
 
         # All retries exhausted on 429.
         raise httpx.HTTPStatusError(
@@ -303,6 +346,76 @@ class EventRegistryAdapter(CostMixin, RegistryAdapter):
                     severity=0.55,
                     source=source_name,
                     source_url=art.get("url"),
+                )
+            )
+        return signals
+
+    async def fetch_recent_news(
+        self, drift_id: str, name: str, since_month: int = 0, max_articles: int = 8
+    ) -> list[PublicSignal]:
+        """Best-effort REAL recent articles about *name* as news signals.
+
+        Unlike ``fetch_signals`` (which gates the adverse-media scan on negative
+        event sentiment), this returns the latest real articles with their REAL
+        title and REAL ``source_url`` — so a live entity's signal cards link
+        straight to the actual article instead of a search page, even when the
+        sentiment-gated scan finds nothing. Returns ``[]`` without a key or on
+        any error. Cached via ``_post``.
+        """
+        if not self._is_configured:
+            return []
+        since_month = max(0, min(11, since_month))
+        date_from = _month_offset_to_date(since_month)
+        date_to = datetime.now(UTC).strftime("%Y-%m-%d")
+
+        # Try the full legal name first; if it has no coverage, retry with the
+        # simplified core name (e.g. "Rosneft Trading S.A." -> "Rosneft") so a
+        # real entity reliably yields real article links instead of nothing.
+        articles: list[dict[str, Any]] = []
+        for query in _name_query_variants(name):
+            payload: dict[str, Any] = {
+                "action": "getArticles",
+                "keyword": query,
+                "dateStart": date_from,
+                "dateEnd": date_to,
+                "lang": "eng",
+                "resultType": "articles",
+                "articlesCount": max_articles,
+                "articlesSortBy": "date",
+                "returnInfo": {"articleInfo": {"sentiment": True, "bodyLen": 0}},
+            }
+            try:
+                data = await self._post("article/getArticles", payload)
+            except (httpx.HTTPStatusError, httpx.RequestError):
+                return []
+            articles = (data.get("articles") or {}).get("results", [])
+            if articles:
+                break
+        signals: list[PublicSignal] = []
+        for art in articles:
+            url = art.get("url")
+            title = art.get("title")
+            if not url or not title:
+                continue
+            sentiment = art.get("sentiment")
+            severity = _sentiment_to_severity(sentiment)
+            stype = (
+                "adverse_media"
+                if (sentiment is not None and sentiment < -0.2)
+                else "news"
+            )
+            month = _date_str_to_month(
+                str(art.get("dateTime", date_from))[:10], since_month
+            )
+            source_name = (art.get("source") or {}).get("title") or self.display_name
+            signals.append(
+                PublicSignal(
+                    month=month,
+                    signal_type=stype,
+                    headline=str(title)[:200],
+                    severity=severity,
+                    source=source_name,
+                    source_url=url,
                 )
             )
         return signals

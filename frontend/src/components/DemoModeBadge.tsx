@@ -1,25 +1,43 @@
 "use client";
 
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
+import { configApi } from "@/lib/api";
+import type { ConfigMode } from "@/types/api";
 
 const WELCOME_KEY = "sentinel.welcome-seen";
 
+const FALLBACK: ConfigMode = {
+  mode: "synthetic",
+  external_apis_enabled: false,
+  llm_mode: "mock",
+  active_adapters: [],
+};
+
 /**
- * Discrete "DEMO" badge in the top-right corner of the workspace.
+ * Mode-aware badge in the top-right corner of the workspace.
  *
- * Two purposes:
- * 1. Honest disclosure to anyone using the dashboard that this is a
- *    hackathon demo, not production.
- * 2. Hidden escape hatch: clicking the badge resets the welcome modal,
- *    which is useful for showing it to a colleague mid-demo without
- *    having to open DevTools and clear localStorage manually.
- *
- * Designed to be NOT distracting during the actual pitch — small,
- * monochrome, in a corner.
+ * Shows SYNTHETIC (amber) or LIVE (green pulsing). The currently-open entity's
+ * mode wins when provided: the platform default can be SYNTHETIC while a
+ * specific subject (e.g. the seeded live entity) pulls real cached API data, so
+ * the badge must reflect what the user is actually looking at. Falls back to the
+ * backend `/config` platform mode when no entity mode is supplied (e.g. on the
+ * case queue). Clicking opens a small dropdown with mode details.
  */
-export function DemoModeBadge() {
+export function DemoModeBadge({ entityMode }: { entityMode?: string } = {}) {
   const [showHelp, setShowHelp] = useState(false);
+
+  const { data, isError, isLoading } = useQuery({
+    queryKey: ["config-mode"],
+    queryFn: configApi.getMode,
+    refetchInterval: 30000,
+  });
+
+  const config: ConfigMode = isError || isLoading || !data ? FALLBACK : data;
+  // The open entity's mode takes precedence over the platform default.
+  const entityIsLive = entityMode === "live";
+  const isLive = entityIsLive || config.mode === "live";
 
   const resetWelcome = () => {
     try {
@@ -41,27 +59,70 @@ export function DemoModeBadge() {
           "hover:border-ink-faint hover:text-ink transition-colors",
           "shadow-sm",
         )}
-        title="Demo mode controls"
+        title="Mode controls"
       >
-        <span className="h-1.5 w-1.5 rounded-full bg-risk-medium" />
-        DEMO
+        {isLive ? (
+          <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-pulse" />
+        ) : (
+          <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+        )}
+        {isLive ? "LIVE" : "SYNTHETIC"}
+        {/* AI/LLM status — visible inline so the case queue (synthetic data,
+            but real Claude adjudication) is clearly tagged as live-AI. */}
+        {config.llm_mode === "live" && (
+          <>
+            <span className="text-ink-faint">·</span>
+            <span className="inline-flex items-center gap-1 text-green-600">
+              <span className="h-1.5 w-1.5 rounded-full bg-green-400" />
+              AI&nbsp;LIVE
+            </span>
+          </>
+        )}
       </button>
 
       {showHelp && (
-        <div className="absolute top-full right-0 mt-1.5 w-64 border border-paper-line bg-paper-raised rounded shadow-raised animate-scale-in">
+        <div className="absolute top-full right-0 mt-1.5 w-72 border border-paper-line bg-paper-raised rounded shadow-raised animate-scale-in">
           <div className="px-3 py-2.5 border-b border-paper-line">
             <div className="text-xs font-semibold text-ink">
-              Hackathon demo build
+              {isLive ? "Live API mode" : "Synthetic demo mode"}
             </div>
+            {entityIsLive && config.mode !== "live" && (
+              <p className="text-2xs text-accent mt-0.5 leading-relaxed">
+                This entity pulls real cached API data while the platform default
+                stays synthetic.
+              </p>
+            )}
             <p className="text-2xs text-ink-muted mt-0.5 leading-relaxed">
-              Mock data, mock-mode AI responses unless ANTHROPIC_API_KEY is set.
+              {isLive
+                ? config.active_adapters.length > 0
+                  ? config.active_adapters.join(", ")
+                  : "No adapters active"
+                : "All signals are generated from deterministic scenarios. No external API calls."}
             </p>
           </div>
+
+          {/* LLM status row */}
+          <div className="px-3 py-2 border-b border-paper-line flex items-center gap-2">
+            {config.llm_mode === "live" ? (
+              <span className="h-1.5 w-1.5 rounded-full bg-green-400 shrink-0" />
+            ) : (
+              <span className="h-1.5 w-1.5 rounded-full bg-amber-400 shrink-0" />
+            )}
+            <span className={cn(
+              "text-2xs",
+              config.llm_mode === "live" ? "text-green-600" : "text-amber-600",
+            )}>
+              {config.llm_mode === "live" ? "Claude API: connected" : "Claude API: mock mode"}
+            </span>
+          </div>
+
+          <div className="border-t border-paper-line" />
+
           <button
             onClick={resetWelcome}
             className="w-full px-3 py-2 text-left text-xs text-ink-soft hover:bg-paper-sunken transition-colors"
           >
-            Show welcome modal again
+            Reset welcome modal
           </button>
           <button
             onClick={() => setShowHelp(false)}

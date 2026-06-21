@@ -1,0 +1,26 @@
+{
+  "key_raw": "articles:Acme AG:3m",
+  "cached_at": "2026-06-21T06:53:44.032820+00:00",
+  "data": {
+    "columns": [
+      "title",
+      "url",
+      "seendate",
+      "domain"
+    ],
+    "records": [
+      {
+        "title": "Acme AG raises $50M in new funding round",
+        "url": "https://news.example/funding",
+        "seendate": "20260618T065344Z",
+        "domain": "reuters.com"
+      },
+      {
+        "title": "Acme AG reports quarterly earnings",
+        "url": "https://news.example/earnings",
+        "seendate": "20260615T065344Z",
+        "domain": "example.com"
+      }
+    ]
+  }
+}

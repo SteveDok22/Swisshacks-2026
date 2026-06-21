@@ -76,7 +76,7 @@ def branching_result():
 
 @pytest.fixture(scope="module")
 def demo_result():
-    drift_ids = [f"drift-{i:03d}" for i in range(1, 6)]
+    drift_ids = [f"drift-{i:03d}" for i in range(1, 16)]
     return build_demo_graph(drift_ids).propagate(["SANCTIONED_ENTITY"])
 
 
@@ -111,20 +111,21 @@ class TestH3DemoGraph:
     """The shipped demo graph must exhibit the same property: the two wired
     customers (2 hops via shells) are elevated; the rest are untouched.
 
-    "drift-002" and "drift-004" are the customers wired 2 hops from
-    SANCTIONED_ENTITY in build_demo_graph (app/drift/contagion.py). If the
-    demo graph topology changes, update these IDs to match.
+    "drift-003" (Alpine Logistics) and "drift-008" (Bernina Wealth) are the
+    customers wired 2 hops from SANCTIONED_ENTITY in build_demo_graph
+    (app/drift/contagion.py). If the demo graph topology changes, update these
+    IDs to match.
     """
 
     def test_wired_two_hop_customers_are_elevated(self, demo_result):
-        for cid in ("drift-002", "drift-004"):
+        for cid in ("drift-003", "drift-008"):
             assert demo_result.hops_from_seed[cid] == 2
             assert demo_result.propagated_risk[cid] > ELEVATED_THRESHOLD
 
     def test_distant_customers_are_not_elevated(self, demo_result):
-        for cid in ("drift-001", "drift-003", "drift-005"):
+        for cid in ("drift-001", "drift-002", "drift-005"):
             assert demo_result.propagated_risk[cid] <= ELEVATED_THRESHOLD
 
     def test_ranking_puts_wired_customers_on_top(self, demo_result):
         top_two = {cid for cid, _ in demo_result.ranked_customers[:2]}
-        assert top_two == {"drift-002", "drift-004"}
+        assert top_two == {"drift-003", "drift-008"}

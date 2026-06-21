@@ -1,0 +1,135 @@
+{
+  "key_raw": "record:529900BWETZJRMZMRV03",
+  "cached_at": "2026-06-21T07:24:55.652184+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "529900BWETZJRMZMRV03",
+      "attributes": {
+        "lei": "529900BWETZJRMZMRV03",
+        "entity": {
+          "legalName": {
+            "name": "WIRECARD PAYMENT SOLUTIONS HOLDINGS LIMITED",
+            "language": "ga-IE"
+          },
+          "otherNames": [],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "ga-IE",
+            "addressLines": [
+              "1st Floor, Ulysses House, Foley Street"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Dublin",
+            "region": "IE-L",
+            "country": "IE",
+            "postalCode": "D01 W2T2"
+          },
+          "headquartersAddress": {
+            "language": "ga-IE",
+            "addressLines": [
+              "1st Floor, Ulysses House, Foley Street"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Dublin",
+            "region": "IE-L",
+            "country": "IE",
+            "postalCode": "D01 W2T2"
+          },
+          "registeredAt": {
+            "id": "RA000402",
+            "other": null
+          },
+          "registeredAs": "409925",
+          "jurisdiction": "IE",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "MNQ7",
+            "other": null
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": null,
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": []
+        },
+        "registration": {
+          "initialRegistrationDate": "2019-08-13T08:27:37Z",
+          "lastUpdateDate": "2021-08-12T23:30:03Z",
+          "status": "LAPSED",
+          "nextRenewalDate": "2021-08-13T08:27:37Z",
+          "managingLou": "5299000J2N45DDNE4Y28",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000402",
+            "other": null
+          },
+          "validatedAs": "409925",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": "ie/409925",
+        "qcc": "QIEPEVGW4E",
+        "spglobal": [
+          "237892755"
+        ],
+        "conformityFlag": "NON_CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/529900BWETZJRMZMRV03/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/529900BWETZJRMZMRV03/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/529900BWETZJRMZMRV03/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/529900BWETZJRMZMRV03/direct-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/529900BWETZJRMZMRV03/direct-parent"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/529900BWETZJRMZMRV03/ultimate-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/529900BWETZJRMZMRV03/ultimate-parent"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/529900BWETZJRMZMRV03"
+      }
+    }
+  }
+}

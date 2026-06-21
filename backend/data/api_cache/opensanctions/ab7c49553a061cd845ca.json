@@ -1,0 +1,43 @@
+{
+  "key_raw": "search:SEEHG SECURING ENERGY FOR EUROPE HOLDING GMBH:Company:default",
+  "cached_at": "2026-06-21T07:59:26.574283+00:00",
+  "data": [
+    {
+      "id": "gem-own-e100002018482",
+      "caption": "SEEHG Securing Energy For Europe Holding",
+      "schema": "Company",
+      "properties": {
+        "leiCode": [
+          "213800ORCVXH2LEJOJ54"
+        ],
+        "name": [
+          "SEEHG Securing Energy For Europe Holding GmbH",
+          "SEEHG Securing Energy For Europe Holding"
+        ],
+        "description": [
+          "legal entity"
+        ],
+        "country": [
+          "de"
+        ],
+        "address": [
+          "Berlin, Germany"
+        ],
+        "permId": [
+          "5086954524"
+        ],
+        "mainCountry": [
+          "de"
+        ]
+      },
+      "datasets": [
+        "gem_energy_ownership"
+      ],
+      "referents": [],
+      "target": false,
+      "first_seen": "2025-11-04T15:57:36",
+      "last_seen": "2026-06-04T15:30:01",
+      "last_change": "2026-06-04T15:30:01"
+    }
+  ]
+}

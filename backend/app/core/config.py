@@ -106,6 +106,11 @@ class Settings(BaseSettings):
     # whoisjson-backed adapter (or RDAP fallback) is wired.
     whoisjson_api_key: str = ""
 
+    # === API response cache ===
+    # Disk cache for external API responses. Files are committed to the repo so
+    # live entities work fully offline after the initial population run.
+    api_cache_dir: str = "./data/api_cache"
+
     # === ML ===
     model_dir: str = "./data/models"
     enable_dice_counterfactuals: bool = True

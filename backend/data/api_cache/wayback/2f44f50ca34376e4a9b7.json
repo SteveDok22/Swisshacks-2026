@@ -1,0 +1,10 @@
+{
+  "key_raw": "snapshot:wirecard.com:latest",
+  "cached_at": "2026-06-21T07:56:21.945596+00:00",
+  "data": {
+    "domain": "wirecard.com",
+    "snapshot_url": "https://web.archive.org/web/20020326232131id_/http://wirecard.com:80/",
+    "snapshot_date": "20020326232131",
+    "website_text": "american express,amex,b2b,b2c,batch,business-to-business, business-to-customer,callcenter,cash settlement,chargeback,city4all,clearing,complete solution, credit card,creditcard,creditcard clearing,currency,diners,direct debit,ecash,e-cash,ecommerce, e-commerce,electronic software distribution,epayment,e-payment,escrow,escrow service, escrow-service,esd,etrade,e-trade,eurocard,free mall,full service,gcommerce,g-commerce, global payment solution,gmc,gsm,hoppenrath,icp,independent cellphone payment,internet payment, internet shop,internet trade,internet-payment,internet-shop,inventory system,jcb,mailorder, mail order,mall,mastercard,merchandise planning system,online auctions,online betting, online gambling,online payment,online shop,online shopping,outsourcing,partial delivery, pay per view,payment,payment in the internet,payment solution,pay-per-view,pos,pos-system, pos system,secure online payment,security,settling,shop,shopping-system,shop-system,shop system, shopping system,sop,terminal,transaction,var,visa,wallet,wap,wap-clearing,wap payment,wap clearing, wap-payment,wire card,wirecard,workflow"
+  }
+}

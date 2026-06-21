@@ -138,7 +138,9 @@ class DriftSubjectSummary(BaseModel):
     dormancy_break: float = Field(default=0.0, description="Dormancy-break score 0-1")
     is_dormancy_break: bool = Field(default=False, description="Suspicious-activation flag")
     is_name_changed: bool = Field(default=False, description="Confirmed legal-entity name change (re-KYC trigger, UC8)")
+    risk_level: str = Field(default="low", description="critical | high | medium | low — fused score bracket")
     scenario: str | None = Field(default=None, description="Ground-truth scenario (demo)")
+    mode: str = Field(default="synthetic", description="synthetic | live — whether signals come from cached real API calls")
 
 
 class DriftTimelinePoint(BaseModel):
@@ -167,6 +169,7 @@ class DriftSubjectDetail(BaseModel):
     timeline: list[DriftTimelinePoint] = Field(default_factory=list)
     # Demo ground truth
     scenario: str | None = None
+    mode: str = Field(default="synthetic", description="synthetic | live — real cached API data")
     drift_start_month: int | None = None
     sanctions_month: int | None = None
     bocpd_changepoint_day: int | None = None
@@ -206,6 +209,18 @@ class DriftSubjectDetail(BaseModel):
     business_model_distance: float = Field(
         default=0.0,
         description="Cosine distance between onboarding and current website text (0 = identical, higher = more divergent)",
+    )
+    # UC9 website-diff evidence for the side-by-side panel. Texts are the actual
+    # onboarding (Wayback) vs current (Firecrawl) website content; the URLs link
+    # to the archived snapshot and the live site; the summary is a one-line
+    # plain-language explanation of what changed.
+    onboarding_website_text: str | None = None
+    current_website_text: str | None = None
+    onboarding_website_url: str | None = None
+    current_website_url: str | None = None
+    business_model_summary: str | None = Field(
+        default=None,
+        description="One short LLM summary of how the website changed (onboarding vs now)",
     )
 
     # Causal drift: risk-shaped vs life-shaped change

@@ -1,0 +1,12 @@
+{
+  "key_raw": "search:Partial UBO:any:default",
+  "cached_at": "2026-06-21T07:06:52.150465+00:00",
+  "data": [
+    {
+      "id": "ofac-abc",
+      "caption": "Partial UBO",
+      "score": 0.76,
+      "schema": "Company"
+    }
+  ]
+}

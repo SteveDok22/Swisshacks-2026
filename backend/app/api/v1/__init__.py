@@ -8,6 +8,7 @@ from app.api.v1 import (
     audit,
     cases,
     clients,
+    config,
     counterfactuals,
     decisions,
     explanations,
@@ -27,3 +28,4 @@ api_router.include_router(explanations.router)
 api_router.include_router(decisions.router)
 api_router.include_router(audit.router)
 api_router.include_router(drift.router)
+api_router.include_router(config.router)

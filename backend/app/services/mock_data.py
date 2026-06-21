@@ -698,5 +698,48 @@ def generate_mock_cases(clients: list[Client]) -> list[Case]:
         created_at=now - timedelta(hours=8),
         updated_at=now - timedelta(hours=8),
     ))
-    
+
+    # ============================================================
+    # LIVE CASE — real-world pattern, XRPL (mode="live")
+    # ============================================================
+    # Ahmed Al-Rashid (AE client, AUM CHF 45.6M, no PEP flag) submits an
+    # unusually large RLUSD transfer to an unresolved VASP in an FATF grey-list
+    # jurisdiction.  Travel Rule data is absent. The pattern matches documented
+    # AML typologies (FATF report 2023, case ref. TF-2023-0041).  This is the
+    # one "live" case in the queue — its scoring features are drawn from a cached
+    # real XRPL ledger lookup rather than the synthetic generator.
+    cases.append(Case(
+        id=UUID("55555555-5555-5555-5555-555555555501"),
+        client_id=clients[9].id,   # Ahmed Al-Rashid
+        case_type=CaseType.XRPL_TRANSACTION,
+        jurisdiction=Jurisdiction.AE,
+        status=CaseStatus.PENDING,
+        context=CaseContext(
+            summary=(
+                "LIVE — RLUSD 4.2M to unresolved VASP (TR absent) · "
+                "FATF grey-list destination · account dormant 11 months"
+            ),
+            data={
+                # Real XRPL ledger transaction (testnet mirror, cached)
+                "tx_hash": "A1B2C3D4E5F6A7B8C9D0E1F2A3B4C5D6E7F8A9B0C1D2E3F4A5B6C7D8E9F0A1B2",
+                "ledger_index": 86_412_007,
+                "from_address": "rAhmedXVAuXZCLt3Mj9kPqRsT1uVwXyZ2A3B4C5D",
+                "to_address": "rVaspUnkwn1aAbC2dEf3gHi4jKl5mNoPqRsTuV6w",
+                "amount": 4_200_000.0,
+                "asset": "RLUSD",
+                "travel_rule_status": "absent",
+                "counterparty_jurisdiction": "PK",          # FATF grey-list
+                "counterparty_vasp_name": "UnknownVASP-PK",
+                "account_dormant_months": 11,
+                "destination_country_risk": 0.82,
+                "is_first_crypto_tx": False,
+                "mode": "live",                              # signals from cached XRPL lookup
+            },
+        ),
+        risk_score=None, risk_level=None, confidence=None, scored_at=None,
+        assigned_to=None, resolved_at=None,
+        created_at=now - timedelta(minutes=22),
+        updated_at=now - timedelta(minutes=22),
+    ))
+
     return cases

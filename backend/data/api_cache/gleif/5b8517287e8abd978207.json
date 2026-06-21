@@ -1,0 +1,218 @@
+{
+  "key_raw": "record:MAES062Z21O4RZ2U7M96",
+  "cached_at": "2026-06-21T07:25:19.775324+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "MAES062Z21O4RZ2U7M96",
+      "attributes": {
+        "lei": "MAES062Z21O4RZ2U7M96",
+        "entity": {
+          "legalName": {
+            "name": "DANSKE BANK A/S",
+            "language": "da"
+          },
+          "otherNames": [],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "da",
+            "addressLines": [
+              "Bernstorffsgade 40"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "København V",
+            "region": "DK-84",
+            "country": "DK",
+            "postalCode": "1577"
+          },
+          "headquartersAddress": {
+            "language": "da",
+            "addressLines": [
+              "Bernstorffsgade 40"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "København V",
+            "region": "DK-84",
+            "country": "DK",
+            "postalCode": "1577"
+          },
+          "registeredAt": {
+            "id": "RA000170",
+            "other": null
+          },
+          "registeredAs": "61126228",
+          "jurisdiction": "DK",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "ZRPO",
+            "other": null
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": "1999-10-16T00:00:00Z",
+          "subCategory": null,
+          "otherAddresses": [
+            {
+              "fieldType": "TransliteratedOtherAddress",
+              "language": "da",
+              "type": "AUTO_ASCII_TRANSLITERATED_LEGAL_ADDRESS",
+              "addressLines": [
+                "Bernstorffsgade 40"
+              ],
+              "city": "Kobenhavn V",
+              "region": "DK-84",
+              "country": "DK",
+              "postalCode": "1577"
+            },
+            {
+              "fieldType": "TransliteratedOtherAddress",
+              "language": "da",
+              "type": "AUTO_ASCII_TRANSLITERATED_HEADQUARTERS_ADDRESS",
+              "addressLines": [
+                "Bernstorffsgade 40"
+              ],
+              "city": "Kobenhavn V",
+              "region": "DK-84",
+              "country": "DK",
+              "postalCode": "1577"
+            }
+          ],
+          "eventGroups": [
+            {
+              "groupType": "STANDALONE",
+              "events": [
+                {
+                  "validationDocuments": "SUPPORTING_DOCUMENTS",
+                  "validationReference": "https://datacvr.virk.dk/enhed/virksomhed/61126228?fritekst=DANSKE%2520BANK%2520A%252FS&sideIndex=0&size=10",
+                  "effectiveDate": "2024-04-03T00:00:00Z",
+                  "recordedDate": "2024-04-25T00:00:00Z",
+                  "type": "CHANGE_LEGAL_ADDRESS",
+                  "status": "COMPLETED"
+                }
+              ]
+            },
+            {
+              "groupType": "STANDALONE",
+              "events": [
+                {
+                  "validationDocuments": "SUPPORTING_DOCUMENTS",
+                  "validationReference": "https://datacvr.virk.dk/enhed/virksomhed/61126228?fritekst=DANSKE%2520BANK%2520A%252FS&sideIndex=0&size=10",
+                  "effectiveDate": "2024-04-03T00:00:00Z",
+                  "recordedDate": "2024-04-25T00:00:00Z",
+                  "type": "CHANGE_HQ_ADDRESS",
+                  "status": "COMPLETED"
+                }
+              ]
+            }
+          ]
+        },
+        "registration": {
+          "initialRegistrationDate": "2012-06-06T15:53:00Z",
+          "lastUpdateDate": "2026-01-27T07:19:40Z",
+          "status": "ISSUED",
+          "nextRenewalDate": "2027-02-09T18:00:00Z",
+          "managingLou": "549300O897ZC5H7CY412",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000170",
+            "other": null
+          },
+          "validatedAs": "61126228",
+          "otherValidationAuthorities": []
+        },
+        "bic": [
+          "DABADKKKXXX",
+          "DABAFIHHXXX",
+          "DABAGB2LXXX",
+          "DABAIE2DXXX",
+          "DABANO22XXX",
+          "DABAPLPWXXX"
+        ],
+        "mic": [
+          "DASI",
+          "DAUK"
+        ],
+        "ocid": "dk/61126228",
+        "qcc": "QDKUR9QT5W",
+        "spglobal": [
+          "558679"
+        ],
+        "conformityFlag": "CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/MAES062Z21O4RZ2U7M96/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/MAES062Z21O4RZ2U7M96/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/MAES062Z21O4RZ2U7M96/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "reporting-exception": "https://api.gleif.org/api/v1/lei-records/MAES062Z21O4RZ2U7M96/direct-parent-reporting-exception"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "reporting-exception": "https://api.gleif.org/api/v1/lei-records/MAES062Z21O4RZ2U7M96/ultimate-parent-reporting-exception"
+          }
+        },
+        "direct-children": {
+          "links": {
+            "relationship-records": "https://api.gleif.org/api/v1/lei-records/MAES062Z21O4RZ2U7M96/direct-child-relationships",
+            "related": "https://api.gleif.org/api/v1/lei-records/MAES062Z21O4RZ2U7M96/direct-children"
+          }
+        },
+        "ultimate-children": {
+          "links": {
+            "relationship-records": "https://api.gleif.org/api/v1/lei-records/MAES062Z21O4RZ2U7M96/ultimate-child-relationships",
+            "related": "https://api.gleif.org/api/v1/lei-records/MAES062Z21O4RZ2U7M96/ultimate-children"
+          }
+        },
+        "managed-funds": {
+          "links": {
+            "relationship-records": "https://api.gleif.org/api/v1/lei-records/MAES062Z21O4RZ2U7M96/managed-fund-relationships",
+            "related": "https://api.gleif.org/api/v1/lei-records/MAES062Z21O4RZ2U7M96/managed-funds"
+          }
+        },
+        "isins": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/MAES062Z21O4RZ2U7M96/isins"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/MAES062Z21O4RZ2U7M96"
+      }
+    }
+  }
+}

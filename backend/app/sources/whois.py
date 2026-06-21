@@ -92,6 +92,8 @@ class WhoisAdapter(CostMixin, RegistryAdapter):
                 follow_redirects=True,
             )
             self._owns_client = True
+        from app.core.api_cache import DiskCache
+        self._cache = DiskCache("whois")
 
     async def aclose(self) -> None:
         """Close the underlying HTTP client if this adapter owns it."""
@@ -200,6 +202,9 @@ class WhoisAdapter(CostMixin, RegistryAdapter):
         return signals
 
     async def _get_domain(self, domain: str) -> dict[str, Any] | None:
+        cached = self._cache.get(f"domain:{domain}")
+        if cached is not None:
+            return cached if isinstance(cached, dict) else None
         try:
             resp = await self._http.get(f"/domain/{domain}")
         except httpx.TransportError:
@@ -210,7 +215,10 @@ class WhoisAdapter(CostMixin, RegistryAdapter):
             payload = resp.json()
         except ValueError:
             return None
-        return payload if isinstance(payload, dict) else None
+        if not isinstance(payload, dict):
+            return None
+        self._cache.set(f"domain:{domain}", payload)
+        return payload
 
     def _normalize(
         self,

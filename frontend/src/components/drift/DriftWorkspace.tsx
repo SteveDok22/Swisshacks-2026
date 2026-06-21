@@ -10,6 +10,7 @@ import { DriftRadar } from "@/components/drift/DriftRadar";
 import { DriftTimeline } from "@/components/drift/DriftTimeline";
 import { ContagionGraph } from "@/components/drift/ContagionGraph";
 import { TwoLayerPanel } from "@/components/drift/TwoLayerPanel";
+import { WebsiteDiffPanel } from "@/components/drift/WebsiteDiffPanel";
 import { UboScreeningPanel } from "@/components/drift/UboScreeningPanel";
 import { CausalPanel } from "@/components/drift/CausalPanel";
 import { StabilityPanel } from "@/components/drift/StabilityPanel";
@@ -18,6 +19,7 @@ import { TimeTravelPanel } from "@/components/drift/TimeTravelPanel";
 import { DecisionBar } from "@/components/cases/DecisionBar";
 import type { DriftCustomerDetail } from "@/types/api";
 import { DollarSign, FlaskConical, Loader2, ShieldCheck, ShieldAlert, ShieldQuestion, ChevronDown } from "lucide-react";
+import { DemoModeBadge } from "@/components/DemoModeBadge";
 
 /**
  * Drift Engine workspace — AMINA Challenge 4.
@@ -39,11 +41,16 @@ export function DriftWorkspace() {
     queryFn: driftApi.customers,
   });
 
-  const { data: detail } = useQuery({
+  const { data: detail, isFetching: detailFetching } = useQuery({
     queryKey: ["drift-customer", selectedId],
     queryFn: () => driftApi.customer(selectedId!),
     enabled: !!selectedId,
   });
+
+  // A customer is selected but its detail hasn't arrived yet. Live entities
+  // (mode="live") call real external APIs and can take several seconds, so an
+  // explicit loader replaces the "Select a customer" placeholder during fetch.
+  const detailLoading = !!selectedId && !detail && detailFetching;
 
   const { data: scan } = useQuery({
     queryKey: ["drift-scan"],
@@ -74,6 +81,7 @@ export function DriftWorkspace() {
 
   return (
     <div className="flex h-screen overflow-hidden relative z-10">
+      <DemoModeBadge entityMode={detail?.mode} />
       <Sidebar />
 
       {/* Left work column */}
@@ -148,8 +156,23 @@ export function DriftWorkspace() {
 
       {/* Right detail column */}
       <main className="flex-1 min-w-0 bg-paper overflow-y-auto">
-        {detail ? (
+        {detailLoading ? (
+          <div className="flex flex-col items-center justify-center h-full gap-3 text-ink-muted">
+            <Loader2 className="h-6 w-6 animate-spin text-accent" />
+            <div className="text-sm font-medium text-ink-soft">Analysing drift subject…</div>
+            <div className="text-2xs text-ink-faint">
+              Running the 7-layer engine · live entities query real external APIs
+            </div>
+          </div>
+        ) : detail ? (
           <div className="p-6 space-y-5">
+            {/* Live-data banner for real entities */}
+            {detail.mode === "live" && (
+              <div className="flex items-center gap-2 rounded border border-accent/30 bg-accent/5 px-3 py-2 text-xs text-accent font-medium">
+                <span className="inline-flex items-center gap-1 rounded bg-accent px-1.5 py-0.5 text-white text-2xs font-bold">LIVE</span>
+                Signals for this entity are sourced from real external APIs (GLEIF · Event Registry · OpenSanctions) and cached in the repo.
+              </div>
+            )}
             {/* Case summary — identity + authoritative verdict + KPIs, one block */}
             <CaseSummary detail={detail} />
 
@@ -167,6 +190,7 @@ export function DriftWorkspace() {
                 {detail.causal && <CausalPanel causal={detail.causal} />}
                 <DriftTimeline detail={detail} />
                 <TwoLayerPanel detail={detail} />
+                <WebsiteDiffPanel detail={detail} />
                 <UboScreeningPanel hits={detail.ubo_screening} />
               </div>
 
@@ -214,7 +238,7 @@ export function DriftWorkspace() {
                   </div>
                 </details>
 
-                {contagion && <ContagionGraph data={contagion} />}
+                {contagion && <ContagionGraph data={contagion} selectedId={selectedId} />}
               </div>
             </div>
           </div>

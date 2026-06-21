@@ -28,6 +28,8 @@ const SIGNAL_LABEL: Record<string, string> = {
   business_model_change: "Business-model change",
   name_change: "Legal name change",
   domain_change: "Domain registrant change",
+  corridor_alert: "Payment corridor alert",
+  domain_age: "Domain age anomaly",
 };
 
 /**
@@ -212,7 +214,9 @@ export function TwoLayerPanel({ detail }: TwoLayerPanelProps) {
                   />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2">
-                      <p className="text-xs text-ink leading-snug">{s.headline}</p>
+                      <p className="text-xs text-ink leading-snug">
+                        {s.headline}
+                      </p>
                       {corroborated && (
                         <span className="inline-flex shrink-0 items-center gap-1 rounded-sm bg-risk-critical/15 px-1.5 py-0.5 text-2xs font-semibold uppercase tracking-wide text-risk-critical">
                           <Link2 className="h-2.5 w-2.5" strokeWidth={2.5} />

@@ -1,0 +1,110 @@
+{
+  "key_raw": "article/getArticles:5303e2b6cd1a49d9",
+  "cached_at": "2026-06-21T07:23:50.928826+00:00",
+  "data": {
+    "articles": {
+      "results": [
+        {
+          "uri": "9364002524",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-19",
+          "time": "13:13:36",
+          "dateTime": "2026-06-19T13:13:36Z",
+          "dateTimePub": "2026-06-19T13:12:09Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://seekingalpha.com/article/4916312-danske-bank-a-s-dnkey-discusses-macroeconomic-trends-policy-rate-expectations-and-financial",
+          "title": "Danske Bank A/S (DNKEY) Discusses Macroeconomic Trends, Policy Rate Expectations, and Financial Performance Outlook Transcript | Seeking Alpha",
+          "body": "Danske Bank A/S (DNKEY) Discusses Macroeconomic Trends, Policy Rate Expectations, and Financial Performance Outlook June 19, 2026 7:30 AM EDT\n\nCompany Participants\n\nClaus Jensen - Head of Investor Relations\n\nConference Call Participants\n\nSofie Caroline Peterzens - Goldman Sachs Group, Inc., Research Division\n\nPresentation\n\nClaus Jensen\n\nHead of Investor Relations\n\nGood afternoon, and welcome to the Danske Bank Q2 2026 Pre-close Call. My name is Claus Ingar Jensen, and I'm Head of Investor Relations. With me, I have Olav Jorgensen and Nicolai Tvern from our IR team. Please note that this call is being recorded for compliance reasons, and the script used for this call will be published on the Investor Relations website after the call. Given that we conduct this call via Teams, please be aware that if you want to ask questions, you must log on via the Teams app or your browser. If you participate via a telephone line, the IR team will be available for questions after the call.\n\nIn today's call, I will highlight relevant public data and macroeconomic trends in our markets. I will go through the relevant P&L lines and comment on capital at the end. Afterwards, we will open for a Q&A session. And for the sake of good order, I would also like to highlight the following. I will only answer questions related to already disclosed information as well as publicly available information unless otherwise noted. In connection with this, I wish to highlight that developments in specific indices may not always have the same effect on our performance.\n\nBefore going through the income lines, I would like to start with a brief comment on the most recent macroeconomic development based on our Nordic outlook published in early June. Looking at the euro area, we expect that the pressure from energy prices is likely",
+          "source": {
+            "uri": "seekingalpha.com",
+            "dataType": "news",
+            "title": "Seeking Alpha"
+          },
+          "authors": [
+            {
+              "uri": "sa_transcripts@seekingalpha.com",
+              "name": "Sa Transcripts",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://static.seekingalpha.com/assets/og_image_1200-29b2bfe1a595477db6826bd2126c63ac2091efb7ec76347a8e7f81ba17e3de6c.png",
+          "eventUri": null,
+          "sentiment": 0.2549019607843137,
+          "wgt": 519570816,
+          "relevance": 13
+        },
+        {
+          "uri": "9363782415",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-19",
+          "time": "10:05:46",
+          "dateTime": "2026-06-19T10:05:46Z",
+          "dateTimePub": "2026-06-19T10:01:21Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.marketscreener.com/news/european-stock-markets-tread-water-ahead-of-a-wall-street-holiday-ce7f5cd2dd8bf126",
+          "title": "European stock markets tread water ahead of a Wall Street holiday",
+          "body": "Shortly before noon, the CAC 40 is up just 0.1% at around 8,477 in Paris, only narrowly outperforming the Euro Stoxx 50, which is flat near 6,322, while Frankfurt's DAX adds 0.4% and London's FTSE slips 0.1%.\n\nThe prospect of a reopening of the Strait of Hormuz now appears largely priced in, as shown by a degree of stabilization in oil prices, with WTI up 1.2% around $76.4 a barrel and Brent flat near $79.2.\n\nSome optimism nonetheless prevails over developments in the Middle East, even as difficult talks are set to continue for two months between Washington and Tehran to reach a lasting agreement, notably on Iran's nuclear program.\n\n\"Despite concerns about the durability of this agreement, it seems to us that the will is extremely strong on both sides to return to a regime of stability,\" LBPAM says, citing as an argument in that direction Donald Trump's statement that he wants to \"avoid an economic catastrophe\".\n\nA setup \"in line with Danske Bank's ideal scenario\"\n\n\"The current setup looks in every respect like our ideal scenario,\" Danske Bank says. \"Economic indicators are very solid, the geopolitical front is easing, and the plunge in oil prices is dissipating inflation pressures and, therefore, fears tied to central banks\".\n\nIndeed, reacting to the Bank of England's (BOE) decision to keep its benchmark rate at 3.75% on Thursday, Luke Bartholomew, deputy chief economist at Aberdeen, believes the British central bank should be able to avoid monetary tightening.\n\n\"In fact, if energy prices continue to moderate, the debate could shift back toward a rate cut,\" the economist says of the BOE, while warning that this outlook may not materialize before next year.\n\nWall Street closed this Friday for Juneteenth\n\nThe lack of catalysts and top-tier data is nevertheless making for a very quiet session this Friday, with investors all the less inclined to take initiative as U.S. markets will remain closed to mark Juneteenth, the day commemorating the end of slavery.\n\nThe only data released this morning, U.K. retail sales volumes rose 1.2% in May from the prior month, after a 1% decline in April (revised from an initially reported 1.3% drop) and a 0.7% increase in March (revised from a 0.6% gain).\n\nIn European single-stock news...\n\nIn single-stock news, Rheinmetall rises 2.1% in Frankfurt, as the Nikkei reports on a plan to produce military equipment in Japan, opening up a new avenue of geographic growth for the German defense giant amid accelerating global rearmament.\n\nASML Holding, by contrast, falls 1.8% in Amsterdam: the Dutch lithography equipment specialist is weighed down by a Bloomberg report citing Washington's suspicions about the presence of its machines in China, reviving fears over compliance with export controls.\n\nProfit-taking also appears to be hitting BE Semiconductor Industries, with the stock down 1.9% after climbing 6.3% over two sessions, despite positive comments from Oddo BHF and UBS, both of which raised their price targets the day after its investor day.",
+          "source": {
+            "uri": "marketscreener.com",
+            "dataType": "news",
+            "title": "Market Screener"
+          },
+          "authors": [
+            {
+              "uri": "vincent_gallet@marketscreener.com",
+              "name": "Vincent Gallet",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://cdn.zonebourse.com/static/resize/0/0//images/ImagesTagged/zbimg_4051121_800.jpg",
+          "eventUri": null,
+          "sentiment": 0.09019607843137245,
+          "wgt": 519559546,
+          "relevance": 13
+        },
+        {
+          "uri": "9363682612",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-19",
+          "time": "08:40:32",
+          "dateTime": "2026-06-19T08:40:32Z",
+          "dateTimePub": "2026-06-19T08:33:00Z",
+          "dataType": "news",
+          "sim": 0.8666666746139526,
+          "url": "https://www.emirates247.com/business/yen-nears-40-year-low-as-dollar-gains-amid-doubts-over-us-iran-peace-talks-and-japan-intervention-fears/2768",
+          "title": "Yen nears 40-year low as dollar gains amid doubts over U.S.-Iran peace talks and Japan intervention fears",
+          "body": "SINGAPORE: The dollar strengthened in Asian trade on Friday, pinning the yen near a four-decade low as a peace deal between the U.S. and Iran hung in the balance and traders speculated further intervention may be needed to arrest a slide in the Japanese currency.\n\nThe Japanese currency reversed earlier strength to trade flat against the U.S. dollar at 161.455 yen, grinding closer to its weakest level in two years, though public holidays in China, Hong Kong and Taiwan and an impending one in the U.S. kept liquidity thin.\n\nThe U.S. dollar index, which measures the greenback's strength against a basket of six currencies, rose 0.3% to a one-year high of ⁠101.07 after U.S. Vice President JD Vance pulled out of a planned trip to meet Iranian negotiators in Switzerland on Friday. They had been set to begin complex talks on implementing the 14-point agreement struck between Tehran and Washington to end their war.\n\n\"Markets will be watching closely to see how implementation and the tougher follow-up negotiations develop in the coming days,\" Danske Bank analysts wrote in a research report.\n\nThe British pound was down 0.2% at $1.3174, moving in line with weakness in most other currencies and little changed after Greater Manchester Mayor Andy Burnham triumphed in a by-election in Makerfield. That set the stage for a likely challenge to Prime Minister Keir Starmer for the leadership of the ruling Labour Party.\n\nYen finds little relief\n\nBut the Japanese currency has found little relief even after the Ministry of Finance's dollar-selling intervention earlier this year and the Bank of Japan hiked interest rates to a 31-year high on Tuesday.\n\nConcerns around the spending plans of Japanese Prime Minister Sanae Takaichi have undermined investor confidence and prompted speculation that more intervention could follow.\n\n\"Large speculative yen short positions have not eased despite the BOJ's rate hike this week,\" DBS analysts wrote in a research report.\n\n\"Japan's tolerance for yen weakness appears close to its limit,\" the note added. \"Policymakers may deploy both rhetoric and further market interventions to curb yen depreciation, ⁠with falling oil prices also offering some support to the currency.\"\n\nJapan's annual core inflation stayed below the central bank's 2% target for a fourth straight month in May, data showed on Friday, as fuel subsidies offset rising raw material costs from the Middle East conflict.\n\n\"While the government's fuel price caps have so far kept ⁠a lid on consumer prices, we expect ⁠the pass-through of higher energy costs to utilities charges and other goods and services to lift inflation to around 3.5% by early-2027,\" analysts from Capital Economics wrote in a research note.\n\nMinutes from the central bank's meeting in April released on Friday morning and comments soon after from BOJ ⁠Deputy Governor Ryozo Himino also cautioned there could be more rate hikes tied to the inflationary effects of the Iran war.\n\n\"Our view is that Japan's Ministry of Finance will likely defend the 161.95 level the first couple of times it's tested, deploying similar firepower to what we saw in April and May - around ¥11.7 trillion,\" said Tony Sycamore, market analyst at IG in Sydney.\n\n\"That would mean they would have used roughly 11-12% of their total reserves in a relatively short period, with little noticeable impact,\" he added. \"At that stage, they would need to become far more selective with future interventions to preserve flexibility and credibility, keeping plenty of ammunition in reserve.\"\n\nThe dollar has strengthened this week as traders reassess expectations that the Federal Reserve could act sooner than expected to tame inflation, perhaps as early as next month.\n\nFed funds futures are pricing an implied 39.6% probability of a 25-basis-point hike at the U.S. central bank's next two-day meeting in July, up sharply from an 8% chance a week ago, according to the CME Group's FedWatch tool.\n\nThe euro was down 0.3% at $1.1419. The Australian dollar was 0.3% lower at $0.6994, while its kiwi counterpart slipped 0.5% to $0.5726.\n\nBitcoin was off 0.7% at $62,549.31, while ether slid 0.9% to $1,693.19.",
+          "source": {
+            "uri": "emirates247.com",
+            "dataType": "news",
+            "title": "Emirates24|7"
+          },
+          "authors": [
+            {
+              "uri": "reuters@emirates247.com",
+              "name": "Reuters",
+              "type": "author",
+              "isAgency": true
+            }
+          ],
+          "image": "https://api.emirates247.com/emirates247/uploads/images/2026/06/19/4234.webp",
+          "eventUri": "eng-11758127",
+          "sentiment": 0.2784313725490195,
+          "wgt": 519554432,
+          "relevance": 1
+        }
+      ],
+      "totalResults": 396,
+      "page": 1,
+      "count": 3,
+      "pages": 132
+    }
+  }
+}

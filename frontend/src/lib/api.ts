@@ -15,6 +15,7 @@ import type {
   CaseExplanation,
   CaseListItem,
   Client,
+  ConfigMode,
   CounterfactualResponse,
   DecisionAction,
   DecisionRead,
@@ -231,6 +232,12 @@ export const auditApi = {
       `/audit${query ? `?${query}` : ""}`,
     );
   },
+};
+
+// === Config ===
+export const configApi = {
+  getMode: (): Promise<ConfigMode> =>
+    apiFetch<ConfigMode>("/config"),
 };
 
 // === Drift Engine (AMINA Challenge 4) ===

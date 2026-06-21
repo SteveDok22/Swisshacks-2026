@@ -1,0 +1,6222 @@
+{
+  "key_raw": "event/getEvents:2173462304bc1c69",
+  "cached_at": "2026-06-21T07:25:00.751069+00:00",
+  "data": {
+    "events": {
+      "results": [
+        {
+          "uri": "eng-11758442",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Shareholder",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Shareholder"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/PPHE_Hotel_Group",
+              "type": "org",
+              "score": 83,
+              "label": {
+                "eng": "PPHE Hotel Group"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Euro",
+              "type": "wiki",
+              "score": 82,
+              "label": {
+                "eng": "Euro"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/London",
+              "type": "loc",
+              "score": 45,
+              "label": {
+                "eng": "London"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "London"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United Kingdom"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Hospitality",
+              "type": "wiki",
+              "score": 29,
+              "label": {
+                "eng": "Hospitality"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Independent_politician",
+              "type": "org",
+              "score": 24,
+              "label": {
+                "eng": "Independent politician"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Pound_sterling",
+              "type": "wiki",
+              "score": 16,
+              "label": {
+                "eng": "Pound sterling"
+              }
+            }
+          ],
+          "eventDate": "2026-06-19",
+          "totalArticleCount": 12,
+          "title": {
+            "eng": "Fattal Hotels abandons takeover bid for PPHE Hotel Group By Investing.com"
+          },
+          "summary": {
+            "eng": "TEL AVIV - Fattal Hotels Ltd announced today it will not proceed with an offer to acquire PPHE Hotel Group Ltd following unsuccessful negotiations between the two companies.\n\nThe decision follows previous announcements on May 28, 2026 and June 8, 2026 regarding a non-binding proposal by Fattal to acquire all ordinary shares of PPHE not already owned by the company, according to a press release statement.\n\nFattal and PPHE engaged in discussions regarding potential terms of an offer after the initi"
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Society/Issues/Business",
+              "label": "dmoz/Society/Issues/Business",
+              "wgt": 15
+            },
+            {
+              "uri": "dmoz/Business/Hospitality/Hotels_and_Motels",
+              "label": "dmoz/Business/Hospitality/Hotels and Motels",
+              "wgt": 19
+            },
+            {
+              "uri": "dmoz/Business/Hospitality/Employment",
+              "label": "dmoz/Business/Hospitality/Employment",
+              "wgt": 15
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 86
+            }
+          ],
+          "articleCounts": {
+            "eng": 12
+          },
+          "sentiment": 0.1450980392156862,
+          "wgt": 519523200,
+          "relevance": 4
+        },
+        {
+          "uri": "eng-11758127",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Japanese_yen",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Japanese yen"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Japan",
+              "type": "loc",
+              "score": 99,
+              "label": {
+                "eng": "Japan"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Japan"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States_dollar",
+              "type": "wiki",
+              "score": 76,
+              "label": {
+                "eng": "United States dollar"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Currency",
+              "type": "wiki",
+              "score": 73,
+              "label": {
+                "eng": "Currency"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Bank_of_Japan",
+              "type": "org",
+              "score": 68,
+              "label": {
+                "eng": "Bank of Japan"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Interest_rate",
+              "type": "wiki",
+              "score": 53,
+              "label": {
+                "eng": "Interest rate"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sanae_Takaichi",
+              "type": "person",
+              "score": 29,
+              "label": {
+                "eng": "Sanae Takaichi"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Asia",
+              "type": "loc",
+              "score": 27,
+              "label": {
+                "eng": "Asia"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Market_liquidity",
+              "type": "wiki",
+              "score": 23,
+              "label": {
+                "eng": "Market liquidity"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Iran",
+              "type": "loc",
+              "score": 23,
+              "label": {
+                "eng": "Iran"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Iran"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Inflation",
+              "type": "wiki",
+              "score": 22,
+              "label": {
+                "eng": "Inflation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Tokyo",
+              "type": "loc",
+              "score": 19,
+              "label": {
+                "eng": "Tokyo"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Tokyo"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Japan"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Tokyo_Stock_Exchange",
+              "type": "wiki",
+              "score": 18,
+              "label": {
+                "eng": "Tokyo Stock Exchange"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Central_bank",
+              "type": "wiki",
+              "score": 18,
+              "label": {
+                "eng": "Central bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Ministry_of_Finance_(Japan)",
+              "type": "wiki",
+              "score": 17,
+              "label": {
+                "eng": "Ministry of Finance (Japan)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Subsidy",
+              "type": "wiki",
+              "score": 17,
+              "label": {
+                "eng": "Subsidy"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Strait_of_Hormuz",
+              "type": "wiki",
+              "score": 16,
+              "label": {
+                "eng": "Strait of Hormuz"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Core_inflation",
+              "type": "wiki",
+              "score": 16,
+              "label": {
+                "eng": "Core inflation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Coin",
+              "type": "wiki",
+              "score": 16,
+              "label": {
+                "eng": "Coin"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Euro",
+              "type": "wiki",
+              "score": 16,
+              "label": {
+                "eng": "Euro"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Finance",
+              "type": "wiki",
+              "score": 15,
+              "label": {
+                "eng": "Finance"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Prime_Minister_of_Japan",
+              "type": "wiki",
+              "score": 14,
+              "label": {
+                "eng": "Prime Minister of Japan"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Pound_sterling",
+              "type": "wiki",
+              "score": 14,
+              "label": {
+                "eng": "Pound sterling"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Middle_East",
+              "type": "loc",
+              "score": 14,
+              "label": {
+                "eng": "Middle East"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Andy_Burnham",
+              "type": "person",
+              "score": 13,
+              "label": {
+                "eng": "Andy Burnham"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Keir_Starmer",
+              "type": "person",
+              "score": 13,
+              "label": {
+                "eng": "Keir Starmer"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Labour_Party_(UK)",
+              "type": "org",
+              "score": 13,
+              "label": {
+                "eng": "Labour Party (UK)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/By-election",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "By-election"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Capital_Economics",
+              "type": "org",
+              "score": 12,
+              "label": {
+                "eng": "Capital Economics"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Consumer_price_index",
+              "type": "wiki",
+              "score": 12,
+              "label": {
+                "eng": "Consumer price index"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Foreign_exchange_market",
+              "type": "wiki",
+              "score": 12,
+              "label": {
+                "eng": "Foreign exchange market"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sydney",
+              "type": "loc",
+              "score": 12,
+              "label": {
+                "eng": "Sydney"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Sydney"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Australia"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Makerfield_(UK_Parliament_constituency)",
+              "type": "loc",
+              "score": 9,
+              "label": {
+                "eng": "Makerfield (UK Parliament constituency)"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Hong_Kong",
+              "type": "loc",
+              "score": 9,
+              "label": {
+                "eng": "Hong Kong"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Hong Kong"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States",
+              "type": "loc",
+              "score": 9,
+              "label": {
+                "eng": "United States"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "United States"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Taiwan",
+              "type": "loc",
+              "score": 8,
+              "label": {
+                "eng": "Taiwan"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Taiwan"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/China",
+              "type": "loc",
+              "score": 8,
+              "label": {
+                "eng": "China"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "China"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Bank_of_England",
+              "type": "org",
+              "score": 6,
+              "label": {
+                "eng": "Bank of England"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Tehran",
+              "type": "loc",
+              "score": 6,
+              "label": {
+                "eng": "Tehran"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Tehran"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Iran"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Switzerland",
+              "type": "loc",
+              "score": 6,
+              "label": {
+                "eng": "Switzerland"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Switzerland"
+                }
+              }
+            }
+          ],
+          "eventDate": "2026-06-19",
+          "totalArticleCount": 21,
+          "title": {
+            "eng": "Japanese Yen near 40-year low despite BOJ interest rate hike | Stock Market News",
+            "spa": "Japón asegura estar listo para intervenir por la debilidad del yen"
+          },
+          "summary": {
+            "eng": "On Jun 19, the yen traded around 161.12 per dollar, sparking fears of intervention by Japanese authorities. Analysts attribute the yen's ongoing weakness to fiscal concerns and high short positions, despite BOJ's tightening measures. US dollar remains strong as monetary tightening expectations rise.\n\nThe Japanese yen remained near multi-decade lows on Friday, 19 June, keeping markets on high alert for potential intervention by Japanese authorities. According to a Reuters report, the currency trad",
+            "spa": "Agrega Yahoo como fuente de noticias preferida para ver más de nuestras historias en Google.\n\nPor Leika Kihara y Rocky Swift\n\nTOKIO, 18 jun (Reuters) - Japón está preparado para responder adecuadamente a las fluctuaciones del tipo de cambio en cualquier momento, dijo el jueves el portavoz principal del Gobierno, mientras la nueva caída del yen pone a prueba la determinación de Tokio de apuntalar la moneda, que se encuentra en declive.\n\n\"Estamos preparados para responder adecuadamente a las f"
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Society/Issues/Warfare_and_Conflict",
+              "label": "dmoz/Society/Issues/Warfare and Conflict",
+              "wgt": 17
+            },
+            {
+              "uri": "dmoz/Science/Social_Sciences/Economics",
+              "label": "dmoz/Science/Social Sciences/Economics",
+              "wgt": 14
+            },
+            {
+              "uri": "dmoz/Society/Government/Finance",
+              "label": "dmoz/Society/Government/Finance",
+              "wgt": 24
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 96
+            }
+          ],
+          "articleCounts": {
+            "eng": 12,
+            "spa": 9
+          },
+          "sentiment": 0.1294117647058823,
+          "wgt": 519523200,
+          "relevance": 4
+        },
+        {
+          "uri": "eng-11755396",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Inflation",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Inflation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Central_bank",
+              "type": "wiki",
+              "score": 95,
+              "label": {
+                "eng": "Central bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Norway",
+              "type": "loc",
+              "score": 60,
+              "label": {
+                "eng": "Norway"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Norway"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Norges_Bank",
+              "type": "org",
+              "score": 55,
+              "label": {
+                "eng": "Norges Bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Interest_rate",
+              "type": "wiki",
+              "score": 50,
+              "label": {
+                "eng": "Interest rate"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Monetary_policy",
+              "type": "wiki",
+              "score": 46,
+              "label": {
+                "eng": "Monetary policy"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Iran",
+              "type": "loc",
+              "score": 44,
+              "label": {
+                "eng": "Iran"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Iran"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Bank_of_England",
+              "type": "org",
+              "score": 32,
+              "label": {
+                "eng": "Bank of England"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Federal_Reserve",
+              "type": "org",
+              "score": 30,
+              "label": {
+                "eng": "Federal Reserve"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Norwegian_krone",
+              "type": "wiki",
+              "score": 25,
+              "label": {
+                "eng": "Norwegian krone"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Price_of_oil",
+              "type": "wiki",
+              "score": 24,
+              "label": {
+                "eng": "Price of oil"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Core_inflation",
+              "type": "wiki",
+              "score": 24,
+              "label": {
+                "eng": "Core inflation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Reserve_Bank_of_Australia",
+              "type": "org",
+              "score": 22,
+              "label": {
+                "eng": "Reserve Bank of Australia"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Developed_country",
+              "type": "wiki",
+              "score": 22,
+              "label": {
+                "eng": "Developed country"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Currency",
+              "type": "wiki",
+              "score": 19,
+              "label": {
+                "eng": "Currency"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Middle_East",
+              "type": "loc",
+              "score": 15,
+              "label": {
+                "eng": "Middle East"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_Kingdom",
+              "type": "loc",
+              "score": 15,
+              "label": {
+                "eng": "United Kingdom"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "United Kingdom"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Chair_of_the_Federal_Reserve",
+              "type": "wiki",
+              "score": 14,
+              "label": {
+                "eng": "Chair of the Federal Reserve"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Kevin_Warsh",
+              "type": "person",
+              "score": 14,
+              "label": {
+                "eng": "Kevin Warsh"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Ida_Wolden_Bache",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "Ida Wolden Bache"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Euro",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "Euro"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Basis_point",
+              "type": "wiki",
+              "score": 12,
+              "label": {
+                "eng": "Basis point"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Reuters",
+              "type": "wiki",
+              "score": 12,
+              "label": {
+                "eng": "Reuters"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/European_Central_Bank",
+              "type": "org",
+              "score": 11,
+              "label": {
+                "eng": "European Central Bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Reserve_Bank_of_New_Zealand",
+              "type": "org",
+              "score": 10,
+              "label": {
+                "eng": "Reserve Bank of New Zealand"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Swiss_National_Bank",
+              "type": "wiki",
+              "score": 10,
+              "label": {
+                "eng": "Swiss National Bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sveriges_Riksbank",
+              "type": "wiki",
+              "score": 9,
+              "label": {
+                "eng": "Sveriges Riksbank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Economic_growth",
+              "type": "wiki",
+              "score": 9,
+              "label": {
+                "eng": "Economic growth"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Bank_of_Japan",
+              "type": "org",
+              "score": 7,
+              "label": {
+                "eng": "Bank of Japan"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Bank_of_Canada",
+              "type": "org",
+              "score": 7,
+              "label": {
+                "eng": "Bank of Canada"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Japanese_yen",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Japanese yen"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Eurozone",
+              "type": "loc",
+              "score": 7,
+              "label": {
+                "eng": "Eurozone"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Japan",
+              "type": "loc",
+              "score": 7,
+              "label": {
+                "eng": "Japan"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Japan"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Swiss_franc",
+              "type": "wiki",
+              "score": 6,
+              "label": {
+                "eng": "Swiss franc"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Switzerland",
+              "type": "loc",
+              "score": 6,
+              "label": {
+                "eng": "Switzerland"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Switzerland"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Governor",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Governor"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sweden",
+              "type": "loc",
+              "score": 5,
+              "label": {
+                "eng": "Sweden"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Sweden"
+                }
+              }
+            }
+          ],
+          "eventDate": "2026-06-18",
+          "totalArticleCount": 15,
+          "title": {
+            "eng": "Rate hikes are on for the G10 economies By Reuters"
+          },
+          "summary": {
+            "eng": "LONDON, June 18 (Reuters) - The agreement between the United States and Iran to end their war, and the subsequent fall in oil prices, are good news for central bankers worried that high energy costs will spill over into broader price pressures.\n\nStill, four developed market central banks are in hiking mode already, and several others, including the U.S. Federal Reserve, said this week they stood ready to act if inflation built.\n\nHere's where central banks in the Group of 10 developed economies st"
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Society/Issues/Economic",
+              "label": "dmoz/Society/Issues/Economic",
+              "wgt": 18
+            },
+            {
+              "uri": "dmoz/Society/Government/Finance",
+              "label": "dmoz/Society/Government/Finance",
+              "wgt": 32
+            },
+            {
+              "uri": "dmoz/Recreation/Picture_Ratings",
+              "label": "dmoz/Recreation/Picture Ratings",
+              "wgt": 21
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 99
+            }
+          ],
+          "articleCounts": {
+            "eng": 15
+          },
+          "sentiment": 0.1450980392156862,
+          "wgt": 519436800,
+          "relevance": 4
+        },
+        {
+          "uri": "eng-11748068",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Nordic_countries",
+              "type": "loc",
+              "score": 100,
+              "label": {
+                "eng": "Nordic countries"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Norway",
+              "type": "loc",
+              "score": 100,
+              "label": {
+                "eng": "Norway"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Norway"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Widerøe",
+              "type": "org",
+              "score": 55,
+              "label": {
+                "eng": "Widerøe"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sunclass_Airlines",
+              "type": "org",
+              "score": 53,
+              "label": {
+                "eng": "Sunclass Airlines"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Hotel",
+              "type": "wiki",
+              "score": 50,
+              "label": {
+                "eng": "Hotel"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Swedish_krona",
+              "type": "wiki",
+              "score": 43,
+              "label": {
+                "eng": "Swedish krona"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Airline",
+              "type": "wiki",
+              "score": 42,
+              "label": {
+                "eng": "Airline"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Norwegian_Air_Shuttle",
+              "type": "org",
+              "score": 41,
+              "label": {
+                "eng": "Norwegian Air Shuttle"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Tour_operator",
+              "type": "wiki",
+              "score": 30,
+              "label": {
+                "eng": "Tour operator"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Shareholder",
+              "type": "wiki",
+              "score": 29,
+              "label": {
+                "eng": "Shareholder"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Norwegian_krone",
+              "type": "wiki",
+              "score": 23,
+              "label": {
+                "eng": "Norwegian krone"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/TDR_Capital",
+              "type": "wiki",
+              "score": 19,
+              "label": {
+                "eng": "TDR Capital"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Europe",
+              "type": "loc",
+              "score": 18,
+              "label": {
+                "eng": "Europe"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Chief_executive_officer",
+              "type": "wiki",
+              "score": 18,
+              "label": {
+                "eng": "Chief executive officer"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sweden",
+              "type": "loc",
+              "score": 18,
+              "label": {
+                "eng": "Sweden"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Sweden"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Denmark",
+              "type": "loc",
+              "score": 18,
+              "label": {
+                "eng": "Denmark"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Denmark"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/European_Union",
+              "type": "loc",
+              "score": 13,
+              "label": {
+                "eng": "European Union"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Stockholm",
+              "type": "loc",
+              "score": 10,
+              "label": {
+                "eng": "Stockholm"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Stockholm"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Sweden"
+                  }
+                }
+              }
+            }
+          ],
+          "eventDate": "2026-06-16",
+          "totalArticleCount": 6,
+          "title": {
+            "eng": "Why is Norwegian Air stock falling today? By Investing.com"
+          },
+          "summary": {
+            "eng": "Investing.com -- Norwegian Air Shuttle ASA fell 3.7% to trade at 15.36 after the company unveiled an agreement today to acquire Nordic Leisure Travel Group (NLTG), the Nordic region's largest tour operator, in a deal valued at approximately SEK 7.94 billion (~$845 million).\n\nThe consideration comprises a cash component of SEK 3.5 billion and 300 million consideration shares in Norwegian, based on a latest five-day average share price of NOK 14.95. NLTG operates major tour brands including Ving, S"
+          },
+          "location": {
+            "type": "place",
+            "label": {
+              "eng": "Stockholm"
+            },
+            "country": {
+              "type": "country",
+              "label": {
+                "eng": "Sweden"
+              }
+            }
+          },
+          "categories": [
+            {
+              "uri": "dmoz/Recreation/Travel/Publications",
+              "label": "dmoz/Recreation/Travel/Publications",
+              "wgt": 22
+            },
+            {
+              "uri": "dmoz/Business/Hospitality/Travel",
+              "label": "dmoz/Business/Hospitality/Travel",
+              "wgt": 25
+            },
+            {
+              "uri": "dmoz/Recreation/Travel/Transportation",
+              "label": "dmoz/Recreation/Travel/Transportation",
+              "wgt": 26
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 99
+            }
+          ],
+          "articleCounts": {
+            "eng": 6
+          },
+          "sentiment": 0.2705882352941176,
+          "wgt": 519264000,
+          "relevance": 3
+        },
+        {
+          "uri": "eng-11747873",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Saint-Gobain",
+              "type": "org",
+              "score": 100,
+              "label": {
+                "eng": "Saint-Gobain"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Kesko",
+              "type": "org",
+              "score": 95,
+              "label": {
+                "eng": "Kesko"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sweden",
+              "type": "loc",
+              "score": 71,
+              "label": {
+                "eng": "Sweden"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Sweden"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Norway",
+              "type": "loc",
+              "score": 71,
+              "label": {
+                "eng": "Norway"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Norway"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Denmark",
+              "type": "loc",
+              "score": 71,
+              "label": {
+                "eng": "Denmark"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Denmark"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Euro",
+              "type": "wiki",
+              "score": 67,
+              "label": {
+                "eng": "Euro"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Finland",
+              "type": "loc",
+              "score": 63,
+              "label": {
+                "eng": "Finland"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Finland"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/France",
+              "type": "loc",
+              "score": 56,
+              "label": {
+                "eng": "France"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "France"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Nordic_countries",
+              "type": "loc",
+              "score": 44,
+              "label": {
+                "eng": "Nordic countries"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Retail",
+              "type": "wiki",
+              "score": 40,
+              "label": {
+                "eng": "Retail"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Chief_executive_officer",
+              "type": "wiki",
+              "score": 20,
+              "label": {
+                "eng": "Chief executive officer"
+              }
+            }
+          ],
+          "eventDate": "2026-06-15",
+          "totalArticleCount": 6,
+          "title": {
+            "eng": "Saint-Gobain to Sell Dahl Business to Kesko for $1.76 Billion"
+          },
+          "summary": {
+            "eng": "Shares in Saint-Gobain rose 5.8% and Kesko stock slumped 9.1% in early European trading\n\nShares in Saint-Gobain rose after the company struck a deal to sell its distribution business Dahl to the Finnish retailer Kesko KESKOB -8.74%decrease; red down pointing triangle.\n\nThe French group said Monday that it signed a binding agreement to sell its Dahl business in Sweden, Norway and Denmark to Kesko for 1.52 billion euros ($1.76 billion) including debt. The debt-free deal is expected to be finalized "
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Business/Small_Business",
+              "label": "dmoz/Business/Small Business",
+              "wgt": 17
+            },
+            {
+              "uri": "dmoz/Business/International_Business_and_Trade",
+              "label": "dmoz/Business/International Business and Trade",
+              "wgt": 21
+            },
+            {
+              "uri": "dmoz/Business/Opportunities/Brokerages",
+              "label": "dmoz/Business/Opportunities/Brokerages",
+              "wgt": 18
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 84
+            }
+          ],
+          "articleCounts": {
+            "eng": 6
+          },
+          "sentiment": 0.2392156862745098,
+          "wgt": 519177600,
+          "relevance": 3
+        },
+        {
+          "uri": "eng-11743579",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Artificial_intelligence",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Artificial intelligence"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Workflow",
+              "type": "wiki",
+              "score": 24,
+              "label": {
+                "eng": "Workflow"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Productivity",
+              "type": "wiki",
+              "score": 16,
+              "label": {
+                "eng": "Productivity"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Automation",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "Automation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Chatbot",
+              "type": "wiki",
+              "score": 12,
+              "label": {
+                "eng": "Chatbot"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Software",
+              "type": "wiki",
+              "score": 12,
+              "label": {
+                "eng": "Software"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Chief_executive_officer",
+              "type": "wiki",
+              "score": 12,
+              "label": {
+                "eng": "Chief executive officer"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Decision-making",
+              "type": "wiki",
+              "score": 11,
+              "label": {
+                "eng": "Decision-making"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Information_technology",
+              "type": "wiki",
+              "score": 11,
+              "label": {
+                "eng": "Information technology"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Agency_(philosophy)",
+              "type": "wiki",
+              "score": 10,
+              "label": {
+                "eng": "Agency (philosophy)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Cloud_computing",
+              "type": "wiki",
+              "score": 10,
+              "label": {
+                "eng": "Cloud computing"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Accountability",
+              "type": "wiki",
+              "score": 9,
+              "label": {
+                "eng": "Accountability"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Generative_artificial_intelligence",
+              "type": "wiki",
+              "score": 8,
+              "label": {
+                "eng": "Generative artificial intelligence"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Real-time_computing",
+              "type": "wiki",
+              "score": 8,
+              "label": {
+                "eng": "Real-time computing"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Ecosystem",
+              "type": "wiki",
+              "score": 8,
+              "label": {
+                "eng": "Ecosystem"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Health_care",
+              "type": "wiki",
+              "score": 8,
+              "label": {
+                "eng": "Health care"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_Kingdom",
+              "type": "loc",
+              "score": 8,
+              "label": {
+                "eng": "United Kingdom"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "United Kingdom"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/ChatGPT",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "ChatGPT"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Data_center",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Data center"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Startup_company",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Startup company"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Finance",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Finance"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States",
+              "type": "loc",
+              "score": 7,
+              "label": {
+                "eng": "United States"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "United States"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/OpenAI",
+              "type": "org",
+              "score": 5,
+              "label": {
+                "eng": "OpenAI"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Microsoft",
+              "type": "org",
+              "score": 5,
+              "label": {
+                "eng": "Microsoft"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Google",
+              "type": "org",
+              "score": 5,
+              "label": {
+                "eng": "Google"
+              }
+            }
+          ],
+          "eventDate": "2026-06-15",
+          "totalArticleCount": 261,
+          "title": {
+            "eng": "Learnt AI, Still No Job? Freshers Left Behind As Seniors Take Most Roles"
+          },
+          "summary": {
+            "eng": "Instead of hiring entry-level workers, employers are selecting candidates who can work with AI tools.\n\nShowQuick Read\n\nSummary is AI-generated, newsroom-reviewed\n\n* AI is creating jobs and eliminating some, causing a paradox across industries\n\n* 71% of AI job openings target senior roles, only 13% are for juniors\n\n* Employers seek candidates who can collaborate with AI, not compete against it\n\nDid our AI summary help?\n\nLet us know.\n\nSwitch To Beeps Mode\n\nNew Delhi:\n\nArtificial intelligence is cre"
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Computers/Artificial_Intelligence/Companies",
+              "label": "dmoz/Computers/Artificial Intelligence/Companies",
+              "wgt": 25
+            },
+            {
+              "uri": "dmoz/Computers/Artificial_Intelligence/Games",
+              "label": "dmoz/Computers/Artificial Intelligence/Games",
+              "wgt": 24
+            },
+            {
+              "uri": "news/Technology",
+              "label": "news/Technology",
+              "wgt": 89
+            }
+          ],
+          "articleCounts": {
+            "eng": 261
+          },
+          "sentiment": 0.2078431372549019,
+          "wgt": 519177600,
+          "relevance": 16
+        },
+        {
+          "uri": "eng-11746364",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Inflation",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Inflation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Reserve_Bank_of_Australia",
+              "type": "org",
+              "score": 96,
+              "label": {
+                "eng": "Reserve Bank of Australia"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Interest_rate",
+              "type": "wiki",
+              "score": 94,
+              "label": {
+                "eng": "Interest rate"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Central_bank",
+              "type": "wiki",
+              "score": 54,
+              "label": {
+                "eng": "Central bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Australia",
+              "type": "loc",
+              "score": 50,
+              "label": {
+                "eng": "Australia"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Australia"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Mortgage_loan",
+              "type": "wiki",
+              "score": 43,
+              "label": {
+                "eng": "Mortgage loan"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Middle_East",
+              "type": "loc",
+              "score": 32,
+              "label": {
+                "eng": "Middle East"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Monetary_policy",
+              "type": "wiki",
+              "score": 31,
+              "label": {
+                "eng": "Monetary policy"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Royal_Society_of_British_Artists",
+              "type": "wiki",
+              "score": 28,
+              "label": {
+                "eng": "Royal Society of British Artists"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Unemployment",
+              "type": "wiki",
+              "score": 28,
+              "label": {
+                "eng": "Unemployment"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Price_of_oil",
+              "type": "wiki",
+              "score": 25,
+              "label": {
+                "eng": "Price of oil"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Basis_point",
+              "type": "wiki",
+              "score": 23,
+              "label": {
+                "eng": "Basis point"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Economist",
+              "type": "wiki",
+              "score": 23,
+              "label": {
+                "eng": "Economist"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Iran",
+              "type": "loc",
+              "score": 23,
+              "label": {
+                "eng": "Iran"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Iran"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Westpac",
+              "type": "org",
+              "score": 21,
+              "label": {
+                "eng": "Westpac"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/National_Australia_Bank",
+              "type": "org",
+              "score": 18,
+              "label": {
+                "eng": "National Australia Bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Australian_dollar",
+              "type": "wiki",
+              "score": 17,
+              "label": {
+                "eng": "Australian dollar"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Governor",
+              "type": "wiki",
+              "score": 16,
+              "label": {
+                "eng": "Governor"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States_dollar",
+              "type": "wiki",
+              "score": 16,
+              "label": {
+                "eng": "United States dollar"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Official_cash_rate",
+              "type": "wiki",
+              "score": 15,
+              "label": {
+                "eng": "Official cash rate"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Bank_of_Japan",
+              "type": "org",
+              "score": 14,
+              "label": {
+                "eng": "Bank of Japan"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Consumer_price_index",
+              "type": "wiki",
+              "score": 14,
+              "label": {
+                "eng": "Consumer price index"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Economy_of_Australia",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "Economy of Australia"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Petroleum",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "Petroleum"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/The_Australian",
+              "type": "wiki",
+              "score": 12,
+              "label": {
+                "eng": "The Australian"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Commonwealth_Bank",
+              "type": "org",
+              "score": 11,
+              "label": {
+                "eng": "Commonwealth Bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Strait_of_Hormuz",
+              "type": "wiki",
+              "score": 10,
+              "label": {
+                "eng": "Strait of Hormuz"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Cattle",
+              "type": "wiki",
+              "score": 10,
+              "label": {
+                "eng": "Cattle"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Federal_Reserve",
+              "type": "org",
+              "score": 9,
+              "label": {
+                "eng": "Federal Reserve"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/David_Koch",
+              "type": "person",
+              "score": 8,
+              "label": {
+                "eng": "David Koch"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Donald_Trump",
+              "type": "person",
+              "score": 8,
+              "label": {
+                "eng": "Donald Trump"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sydney",
+              "type": "loc",
+              "score": 6,
+              "label": {
+                "eng": "Sydney"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Sydney"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Australia"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Japan",
+              "type": "loc",
+              "score": 6,
+              "label": {
+                "eng": "Japan"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Japan"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Bank_of_England",
+              "type": "org",
+              "score": 5,
+              "label": {
+                "eng": "Bank of England"
+              }
+            }
+          ],
+          "eventDate": "2026-06-15",
+          "totalArticleCount": 50,
+          "title": {
+            "eng": "RBA holds rates after three hikes, keeps door open to more tightening By Investing.com"
+          },
+          "summary": {
+            "eng": "Investing.com-- Australia's central bank left interest rates unchanged on Tuesday, pausing after three rate increases this year as policymakers assessed the impact of tighter financial conditions and persistent inflation pressures stemming partly from higher energy costs.\n\nThe Reserve Bank of Australia (RBA) left its cash rate target at 4.35%, in line with market expectations, saying inflation remained too high despite signs that economic growth and consumer spending were beginning to slow.\n\nGet "
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Society/Issues/Economic",
+              "label": "dmoz/Society/Issues/Economic",
+              "wgt": 17
+            },
+            {
+              "uri": "dmoz/Society/Government/Finance",
+              "label": "dmoz/Society/Government/Finance",
+              "wgt": 24
+            },
+            {
+              "uri": "dmoz/Recreation/Picture_Ratings",
+              "label": "dmoz/Recreation/Picture Ratings",
+              "wgt": 22
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 99
+            }
+          ],
+          "articleCounts": {
+            "eng": 50
+          },
+          "sentiment": 0.07450980392156858,
+          "wgt": 519177600,
+          "relevance": 6
+        },
+        {
+          "uri": "eng-11754714",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/ICEYE",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "ICEYE"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Satellite",
+              "type": "wiki",
+              "score": 92,
+              "label": {
+                "eng": "Satellite"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Dhruva_Space",
+              "type": "org",
+              "score": 77,
+              "label": {
+                "eng": "Dhruva Space"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Memorandum_of_understanding",
+              "type": "wiki",
+              "score": 76,
+              "label": {
+                "eng": "Memorandum of understanding"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/India",
+              "type": "loc",
+              "score": 68,
+              "label": {
+                "eng": "India"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "India"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Finland",
+              "type": "loc",
+              "score": 68,
+              "label": {
+                "eng": "Finland"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Finland"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Emergency_management",
+              "type": "wiki",
+              "score": 56,
+              "label": {
+                "eng": "Emergency management"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Earth_observation_satellite",
+              "type": "wiki",
+              "score": 50,
+              "label": {
+                "eng": "Earth observation satellite"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Synthetic-aperture_radar",
+              "type": "wiki",
+              "score": 48,
+              "label": {
+                "eng": "Synthetic-aperture radar"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Spacecraft",
+              "type": "wiki",
+              "score": 38,
+              "label": {
+                "eng": "Spacecraft"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Engineering",
+              "type": "wiki",
+              "score": 38,
+              "label": {
+                "eng": "Engineering"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Nice",
+              "type": "loc",
+              "score": 38,
+              "label": {
+                "eng": "Nice"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Nice"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "France"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Ground_station",
+              "type": "wiki",
+              "score": 34,
+              "label": {
+                "eng": "Ground station"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Satellite_constellation",
+              "type": "wiki",
+              "score": 31,
+              "label": {
+                "eng": "Satellite constellation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Chief_executive_officer",
+              "type": "wiki",
+              "score": 26,
+              "label": {
+                "eng": "Chief executive officer"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Agriculture",
+              "type": "wiki",
+              "score": 26,
+              "label": {
+                "eng": "Agriculture"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Satellite_bus",
+              "type": "wiki",
+              "score": 25,
+              "label": {
+                "eng": "Satellite bus"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sovereignty",
+              "type": "wiki",
+              "score": 24,
+              "label": {
+                "eng": "Sovereignty"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Supply_chain",
+              "type": "wiki",
+              "score": 22,
+              "label": {
+                "eng": "Supply chain"
+              }
+            }
+          ],
+          "eventDate": "2026-06-15",
+          "totalArticleCount": 5,
+          "title": {
+            "eng": "Hyderabad's Dhruva Space, Finland's ICEYE ink pact to collaborate on various fronts"
+          },
+          "summary": {
+            "eng": "Hyderabad-based spacetech company Dhruva Space and Finnish firm ICEYE have signed an MoU to collaborate across satellite manufacturing, space systems production, earth observation services, disaster management solutions and ground segment infrastructure.\n\nDhruva's facility near Hyderabad\n\nThey will evaluate large-scale production of space components and subsystems from India, leveraging Dhruva's growing manufacturing capabilities and the upcoming 2.80 lakh sq ft assembly, integration and testing "
+          },
+          "location": {
+            "type": "place",
+            "label": {
+              "eng": "Nice"
+            },
+            "country": {
+              "type": "country",
+              "label": {
+                "eng": "France"
+              }
+            }
+          },
+          "categories": [
+            {
+              "uri": "dmoz/Science/Technology/Space",
+              "label": "dmoz/Science/Technology/Space",
+              "wgt": 33
+            },
+            {
+              "uri": "dmoz/Computers/Software/Manufacturing",
+              "label": "dmoz/Computers/Software/Manufacturing",
+              "wgt": 23
+            },
+            {
+              "uri": "dmoz/Business/Aerospace_and_Defense/Space",
+              "label": "dmoz/Business/Aerospace and Defense/Space",
+              "wgt": 38
+            }
+          ],
+          "articleCounts": {
+            "eng": 5
+          },
+          "sentiment": 0.2470588235294118,
+          "wgt": 519177600,
+          "relevance": 3
+        },
+        {
+          "uri": "eng-11744166",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Danish_krone",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Danish krone"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Share_repurchase",
+              "type": "wiki",
+              "score": 98,
+              "label": {
+                "eng": "Share repurchase"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/European_Union",
+              "type": "loc",
+              "score": 92,
+              "label": {
+                "eng": "European Union"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/European_Parliament",
+              "type": "org",
+              "score": 50,
+              "label": {
+                "eng": "European Parliament"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Treasury_stock",
+              "type": "wiki",
+              "score": 42,
+              "label": {
+                "eng": "Treasury stock"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Share_capital",
+              "type": "wiki",
+              "score": 38,
+              "label": {
+                "eng": "Share capital"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/FLSmidth",
+              "type": "org",
+              "score": 31,
+              "label": {
+                "eng": "FLSmidth"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/The_Manila_Times",
+              "type": "wiki",
+              "score": 24,
+              "label": {
+                "eng": "The Manila Times"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Nasdaq_Copenhagen",
+              "type": "org",
+              "score": 23,
+              "label": {
+                "eng": "Nasdaq Copenhagen"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/European_Commission",
+              "type": "org",
+              "score": 23,
+              "label": {
+                "eng": "European Commission"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Chief_executive_officer",
+              "type": "wiki",
+              "score": 20,
+              "label": {
+                "eng": "Chief executive officer"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Copenhagen",
+              "type": "loc",
+              "score": 19,
+              "label": {
+                "eng": "Copenhagen"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Copenhagen"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Denmark"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Taiwan_News",
+              "type": "wiki",
+              "score": 17,
+              "label": {
+                "eng": "Taiwan News"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Switzerland",
+              "type": "loc",
+              "score": 16,
+              "label": {
+                "eng": "Switzerland"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Switzerland"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Insider_trading",
+              "type": "wiki",
+              "score": 14,
+              "label": {
+                "eng": "Insider trading"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Email",
+              "type": "wiki",
+              "score": 12,
+              "label": {
+                "eng": "Email"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Euro",
+              "type": "wiki",
+              "score": 11,
+              "label": {
+                "eng": "Euro"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Nasdaq",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Nasdaq"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Full-time_equivalent",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Full-time equivalent"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Public_sector",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Public sector"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Public_administration",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Public administration"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Health_care",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Health care"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Financial_services",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Financial services"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Aviation",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Aviation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Danske_Bank",
+              "type": "org",
+              "score": 6,
+              "label": {
+                "eng": "Danske Bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/English_language",
+              "type": "wiki",
+              "score": 6,
+              "label": {
+                "eng": "English language"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Denmark",
+              "type": "loc",
+              "score": 6,
+              "label": {
+                "eng": "Denmark"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Denmark"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Software",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Software"
+              }
+            }
+          ],
+          "eventDate": "2026-06-12",
+          "totalArticleCount": 19,
+          "title": {
+            "eng": "Jyske Bank buys 69,514 shares in week 24 buyback program By Investing.com"
+          },
+          "summary": {
+            "eng": "DENMARK - Jyske Bank purchased 69,514 shares during the week of June 8-12 as part of its ongoing share repurchase program, according to a press release statement.\n\nThe bank acquired shares at an average price of DKK 904.05, bringing the total transaction value for the week to DKK 62,547,201. Daily purchases ranged from 11,431 shares on June 11 to 17,298 shares on June 8, with prices varying between DKK 890.57 and DKK 925.75.\n\nThe cumulative total under the program reached 1,229,638 shares valued "
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Business/Investing",
+              "label": "dmoz/Business/Investing",
+              "wgt": 17
+            },
+            {
+              "uri": "dmoz/Society/Government",
+              "label": "dmoz/Society/Government",
+              "wgt": 19
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 75
+            }
+          ],
+          "articleCounts": {
+            "eng": 19
+          },
+          "sentiment": 0.3176470588235294,
+          "wgt": 518918400,
+          "relevance": 4
+        },
+        {
+          "uri": "eng-11733019",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/SpaceX",
+              "type": "org",
+              "score": 100,
+              "label": {
+                "eng": "SpaceX"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Initial_public_offering",
+              "type": "wiki",
+              "score": 90,
+              "label": {
+                "eng": "Initial public offering"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Elon_Musk",
+              "type": "person",
+              "score": 81,
+              "label": {
+                "eng": "Elon Musk"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Nasdaq",
+              "type": "wiki",
+              "score": 43,
+              "label": {
+                "eng": "Nasdaq"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Artificial_intelligence",
+              "type": "wiki",
+              "score": 42,
+              "label": {
+                "eng": "Artificial intelligence"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Tesla,_Inc.",
+              "type": "org",
+              "score": 33,
+              "label": {
+                "eng": "Tesla, Inc."
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Rocket",
+              "type": "wiki",
+              "score": 33,
+              "label": {
+                "eng": "Rocket"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Valuation_(finance)",
+              "type": "wiki",
+              "score": 33,
+              "label": {
+                "eng": "Valuation (finance)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Satellite",
+              "type": "wiki",
+              "score": 25,
+              "label": {
+                "eng": "Satellite"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Net_worth",
+              "type": "wiki",
+              "score": 23,
+              "label": {
+                "eng": "Net worth"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Chief_executive_officer",
+              "type": "wiki",
+              "score": 18,
+              "label": {
+                "eng": "Chief executive officer"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Starlink",
+              "type": "wiki",
+              "score": 17,
+              "label": {
+                "eng": "Starlink"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Wall_Street",
+              "type": "wiki",
+              "score": 17,
+              "label": {
+                "eng": "Wall Street"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Forbes",
+              "type": "org",
+              "score": 16,
+              "label": {
+                "eng": "Forbes"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Market_capitalization",
+              "type": "wiki",
+              "score": 16,
+              "label": {
+                "eng": "Market capitalization"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Investor",
+              "type": "wiki",
+              "score": 15,
+              "label": {
+                "eng": "Investor"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Mars",
+              "type": "wiki",
+              "score": 14,
+              "label": {
+                "eng": "Mars"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Saudi_Aramco",
+              "type": "org",
+              "score": 13,
+              "label": {
+                "eng": "Saudi Aramco"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Public_company",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "Public company"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Data_center",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "Data center"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Stock_market",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "Stock market"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/OpenAI",
+              "type": "org",
+              "score": 12,
+              "label": {
+                "eng": "OpenAI"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Texas",
+              "type": "loc",
+              "score": 12,
+              "label": {
+                "eng": "Texas"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Texas"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Orbit",
+              "type": "wiki",
+              "score": 10,
+              "label": {
+                "eng": "Orbit"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Entrepreneurship",
+              "type": "wiki",
+              "score": 9,
+              "label": {
+                "eng": "Entrepreneurship"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Electric_vehicle",
+              "type": "wiki",
+              "score": 8,
+              "label": {
+                "eng": "Electric vehicle"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Moon",
+              "type": "wiki",
+              "score": 8,
+              "label": {
+                "eng": "Moon"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Larry_Page",
+              "type": "person",
+              "score": 7,
+              "label": {
+                "eng": "Larry Page"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Donald_Trump",
+              "type": "person",
+              "score": 7,
+              "label": {
+                "eng": "Donald Trump"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/New_York_City",
+              "type": "loc",
+              "score": 7,
+              "label": {
+                "eng": "New York City"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "New York City"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Gwynne_Shotwell",
+              "type": "person",
+              "score": 6,
+              "label": {
+                "eng": "Gwynne Shotwell"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States",
+              "type": "loc",
+              "score": 6,
+              "label": {
+                "eng": "United States"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "United States"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Alphabet_Inc.",
+              "type": "org",
+              "score": 5,
+              "label": {
+                "eng": "Alphabet Inc."
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Morningstar,_Inc.",
+              "type": "org",
+              "score": 5,
+              "label": {
+                "eng": "Morningstar, Inc."
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Bloomberg_L.P.",
+              "type": "org",
+              "score": 5,
+              "label": {
+                "eng": "Bloomberg L.P."
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Google",
+              "type": "org",
+              "score": 5,
+              "label": {
+                "eng": "Google"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Twitter",
+              "type": "org",
+              "score": 5,
+              "label": {
+                "eng": "Twitter"
+              }
+            }
+          ],
+          "eventDate": "2026-06-12",
+          "totalArticleCount": 838,
+          "title": {
+            "eng": "Elon Musk Becomes World's First Trillionaire as SpaceX Stock Begins Trading"
+          },
+          "summary": {
+            "eng": "Ryan Mac reports on the technology industry, and Ben Casselman reports on economics.\n\nElon Musk became the world's first trillionaire on Friday when shares of his rocket company SpaceX began trading on the stock market, signaling a new era of ultra-affluence and widening wealth inequality.\n\nMr. Musk reached the milestone when trading of SpaceX shares opened at $150, up 11 percent from their initial public offering price of $135. His net worth -- which comprises his stock in SpaceX and his electri"
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Business/Investing/Stocks_and_Bonds",
+              "label": "dmoz/Business/Investing/Stocks and Bonds",
+              "wgt": 28
+            },
+            {
+              "uri": "dmoz/Society/Issues/Business",
+              "label": "dmoz/Society/Issues/Business",
+              "wgt": 23
+            },
+            {
+              "uri": "dmoz/Business/Aerospace_and_Defense/Space",
+              "label": "dmoz/Business/Aerospace and Defense/Space",
+              "wgt": 21
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 90
+            }
+          ],
+          "articleCounts": {
+            "eng": 838
+          },
+          "sentiment": 0.2627450980392156,
+          "wgt": 518918400,
+          "relevance": 28
+        },
+        {
+          "uri": "eng-11735064",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/European_Central_Bank",
+              "type": "org",
+              "score": 100,
+              "label": {
+                "eng": "European Central Bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Inflation",
+              "type": "wiki",
+              "score": 95,
+              "label": {
+                "eng": "Inflation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Interest_rate",
+              "type": "wiki",
+              "score": 69,
+              "label": {
+                "eng": "Interest rate"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Eurozone",
+              "type": "loc",
+              "score": 55,
+              "label": {
+                "eng": "Eurozone"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Middle_East",
+              "type": "loc",
+              "score": 46,
+              "label": {
+                "eng": "Middle East"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Central_bank",
+              "type": "wiki",
+              "score": 39,
+              "label": {
+                "eng": "Central bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Iran",
+              "type": "loc",
+              "score": 36,
+              "label": {
+                "eng": "Iran"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Iran"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Basis_point",
+              "type": "wiki",
+              "score": 32,
+              "label": {
+                "eng": "Basis point"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Economic_growth",
+              "type": "wiki",
+              "score": 26,
+              "label": {
+                "eng": "Economic growth"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Monetary_policy",
+              "type": "wiki",
+              "score": 25,
+              "label": {
+                "eng": "Monetary policy"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Christine_Lagarde",
+              "type": "person",
+              "score": 23,
+              "label": {
+                "eng": "Christine Lagarde"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/England_and_Wales_Cricket_Board",
+              "type": "wiki",
+              "score": 20,
+              "label": {
+                "eng": "England and Wales Cricket Board"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Strait_of_Hormuz",
+              "type": "wiki",
+              "score": 14,
+              "label": {
+                "eng": "Strait of Hormuz"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Euro",
+              "type": "wiki",
+              "score": 14,
+              "label": {
+                "eng": "Euro"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Federal_Reserve",
+              "type": "org",
+              "score": 10,
+              "label": {
+                "eng": "Federal Reserve"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Price_of_oil",
+              "type": "wiki",
+              "score": 10,
+              "label": {
+                "eng": "Price of oil"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Core_inflation",
+              "type": "wiki",
+              "score": 9,
+              "label": {
+                "eng": "Core inflation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Consumer_price_index",
+              "type": "wiki",
+              "score": 9,
+              "label": {
+                "eng": "Consumer price index"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Petroleum",
+              "type": "wiki",
+              "score": 9,
+              "label": {
+                "eng": "Petroleum"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Frankfurt",
+              "type": "loc",
+              "score": 9,
+              "label": {
+                "eng": "Frankfurt"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Frankfurt"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Germany"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Eurosystem",
+              "type": "wiki",
+              "score": 8,
+              "label": {
+                "eng": "Eurosystem"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Europe",
+              "type": "loc",
+              "score": 8,
+              "label": {
+                "eng": "Europe"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Fossil_fuel",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Fossil fuel"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Bank_of_England",
+              "type": "org",
+              "score": 7,
+              "label": {
+                "eng": "Bank of England"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Donald_Trump",
+              "type": "person",
+              "score": 7,
+              "label": {
+                "eng": "Donald Trump"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Geopolitics",
+              "type": "wiki",
+              "score": 6,
+              "label": {
+                "eng": "Geopolitics"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Commodity_market",
+              "type": "wiki",
+              "score": 6,
+              "label": {
+                "eng": "Commodity market"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Mortgage_loan",
+              "type": "wiki",
+              "score": 6,
+              "label": {
+                "eng": "Mortgage loan"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Goods_and_services",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Goods and services"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Supply_chain",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Supply chain"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Ireland",
+              "type": "loc",
+              "score": 5,
+              "label": {
+                "eng": "Ireland"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Ireland"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States",
+              "type": "loc",
+              "score": 5,
+              "label": {
+                "eng": "United States"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "United States"
+                }
+              }
+            }
+          ],
+          "eventDate": "2026-06-11",
+          "totalArticleCount": 190,
+          "title": {
+            "eng": "ECB raises eurozone interest rates as Iran war stokes inflation"
+          },
+          "summary": {
+            "eng": "European Central Bank increases main deposit rate to 2.25%, with two further rises expected by next spring\n\nThe European Central Bank has raised interest rates for the first time since 2023 in response to higher inflation caused by the war in Iran.\n\nThe ECB raised its main deposit rate from 2% to 2.25% and financial markets are pricing in two more rises by next spring.\n\nEurozone consumer price inflation rose to 3.2% in May 2026, up from 3% in April, sparking concerns that the conflict in the Midd"
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Society/Issues/Economic",
+              "label": "dmoz/Society/Issues/Economic",
+              "wgt": 17
+            },
+            {
+              "uri": "dmoz/Society/Issues/Warfare_and_Conflict",
+              "label": "dmoz/Society/Issues/Warfare and Conflict",
+              "wgt": 18
+            },
+            {
+              "uri": "dmoz/Society/Government/Finance",
+              "label": "dmoz/Society/Government/Finance",
+              "wgt": 26
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 100
+            }
+          ],
+          "articleCounts": {
+            "eng": 190
+          },
+          "sentiment": 0.0117647058823529,
+          "wgt": 518832000,
+          "relevance": 13
+        },
+        {
+          "uri": "eng-11734941",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/European_Central_Bank",
+              "type": "org",
+              "score": 100,
+              "label": {
+                "eng": "European Central Bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Inflation",
+              "type": "wiki",
+              "score": 90,
+              "label": {
+                "eng": "Inflation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Interest_rate",
+              "type": "wiki",
+              "score": 74,
+              "label": {
+                "eng": "Interest rate"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Eurozone",
+              "type": "loc",
+              "score": 62,
+              "label": {
+                "eng": "Eurozone"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/England_and_Wales_Cricket_Board",
+              "type": "wiki",
+              "score": 39,
+              "label": {
+                "eng": "England and Wales Cricket Board"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Middle_East",
+              "type": "loc",
+              "score": 33,
+              "label": {
+                "eng": "Middle East"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Monetary_policy",
+              "type": "wiki",
+              "score": 27,
+              "label": {
+                "eng": "Monetary policy"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Iran",
+              "type": "loc",
+              "score": 26,
+              "label": {
+                "eng": "Iran"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Iran"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Economic_growth",
+              "type": "wiki",
+              "score": 21,
+              "label": {
+                "eng": "Economic growth"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Basis_point",
+              "type": "wiki",
+              "score": 17,
+              "label": {
+                "eng": "Basis point"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Core_inflation",
+              "type": "wiki",
+              "score": 16,
+              "label": {
+                "eng": "Core inflation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Christine_Lagarde",
+              "type": "person",
+              "score": 14,
+              "label": {
+                "eng": "Christine Lagarde"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Financial_market",
+              "type": "wiki",
+              "score": 14,
+              "label": {
+                "eng": "Financial market"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Central_bank",
+              "type": "wiki",
+              "score": 14,
+              "label": {
+                "eng": "Central bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Euro",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "Euro"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Refinancing",
+              "type": "wiki",
+              "score": 10,
+              "label": {
+                "eng": "Refinancing"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Strait_of_Hormuz",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Strait of Hormuz"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Probability",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Probability"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Mortgage_loan",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Mortgage loan"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Price_stability",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Price stability"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Volatility_(finance)",
+              "type": "wiki",
+              "score": 6,
+              "label": {
+                "eng": "Volatility (finance)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Consumer_price_index",
+              "type": "wiki",
+              "score": 6,
+              "label": {
+                "eng": "Consumer price index"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Fossil_fuel",
+              "type": "wiki",
+              "score": 6,
+              "label": {
+                "eng": "Fossil fuel"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Petroleum",
+              "type": "wiki",
+              "score": 6,
+              "label": {
+                "eng": "Petroleum"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Europe",
+              "type": "loc",
+              "score": 5,
+              "label": {
+                "eng": "Europe"
+              },
+              "location": null
+            }
+          ],
+          "eventDate": "2026-06-11",
+          "totalArticleCount": 23,
+          "title": {
+            "eng": "One hike down, one more to go? ECB keeps markets guessing By Investing.com"
+          },
+          "summary": {
+            "eng": "Investing.com - UBS expects the European Central Bank to deliver only one additional interest rate increase before pausing its tightening cycle, despite financial markets betting on a more aggressive response to inflation pressures fuelled by higher energy prices.\n\nThe Swiss bank said on Thursday that the ECB's first rate hike since 2023 reflected policymakers' determination to contain inflation, but argued that a weakening growth backdrop would ultimately limit the scope for further tightening.\n"
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Society/Issues/Economic",
+              "label": "dmoz/Society/Issues/Economic",
+              "wgt": 15
+            },
+            {
+              "uri": "dmoz/Society/Government/Finance",
+              "label": "dmoz/Society/Government/Finance",
+              "wgt": 24
+            },
+            {
+              "uri": "dmoz/Recreation/Picture_Ratings",
+              "label": "dmoz/Recreation/Picture Ratings",
+              "wgt": 20
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 99
+            }
+          ],
+          "articleCounts": {
+            "eng": 23
+          },
+          "sentiment": 0.05882352941176472,
+          "wgt": 518832000,
+          "relevance": 4
+        },
+        {
+          "uri": "eng-11729993",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Gold",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Gold"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Inflation",
+              "type": "wiki",
+              "score": 99,
+              "label": {
+                "eng": "Inflation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Interest_rate",
+              "type": "wiki",
+              "score": 73,
+              "label": {
+                "eng": "Interest rate"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Iran",
+              "type": "loc",
+              "score": 72,
+              "label": {
+                "eng": "Iran"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Iran"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Price_of_oil",
+              "type": "wiki",
+              "score": 51,
+              "label": {
+                "eng": "Price of oil"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Futures_contract",
+              "type": "wiki",
+              "score": 50,
+              "label": {
+                "eng": "Futures contract"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Federal_Reserve",
+              "type": "org",
+              "score": 46,
+              "label": {
+                "eng": "Federal Reserve"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Silver",
+              "type": "wiki",
+              "score": 35,
+              "label": {
+                "eng": "Silver"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Middle_East",
+              "type": "loc",
+              "score": 34,
+              "label": {
+                "eng": "Middle East"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States",
+              "type": "loc",
+              "score": 33,
+              "label": {
+                "eng": "United States"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "United States"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Precious_metal",
+              "type": "wiki",
+              "score": 30,
+              "label": {
+                "eng": "Precious metal"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Donald_Trump",
+              "type": "person",
+              "score": 30,
+              "label": {
+                "eng": "Donald Trump"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Strait_of_Hormuz",
+              "type": "wiki",
+              "score": 28,
+              "label": {
+                "eng": "Strait of Hormuz"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Metal",
+              "type": "wiki",
+              "score": 27,
+              "label": {
+                "eng": "Metal"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States_dollar",
+              "type": "wiki",
+              "score": 26,
+              "label": {
+                "eng": "United States dollar"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Geopolitics",
+              "type": "wiki",
+              "score": 23,
+              "label": {
+                "eng": "Geopolitics"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Bullion",
+              "type": "wiki",
+              "score": 23,
+              "label": {
+                "eng": "Bullion"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Hedge_(finance)",
+              "type": "wiki",
+              "score": 20,
+              "label": {
+                "eng": "Hedge (finance)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Monetary_policy",
+              "type": "wiki",
+              "score": 20,
+              "label": {
+                "eng": "Monetary policy"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Producer_price_index",
+              "type": "wiki",
+              "score": 17,
+              "label": {
+                "eng": "Producer price index"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Consumer_price_index",
+              "type": "wiki",
+              "score": 17,
+              "label": {
+                "eng": "Consumer price index"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Central_bank",
+              "type": "wiki",
+              "score": 17,
+              "label": {
+                "eng": "Central bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Chicago_Mercantile_Exchange",
+              "type": "org",
+              "score": 16,
+              "label": {
+                "eng": "Chicago Mercantile Exchange"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Petroleum",
+              "type": "wiki",
+              "score": 16,
+              "label": {
+                "eng": "Petroleum"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Currency",
+              "type": "wiki",
+              "score": 14,
+              "label": {
+                "eng": "Currency"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Tehran",
+              "type": "loc",
+              "score": 14,
+              "label": {
+                "eng": "Tehran"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Tehran"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Iran"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Palladium",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "Palladium"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/India",
+              "type": "loc",
+              "score": 8,
+              "label": {
+                "eng": "India"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "India"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Jordan",
+              "type": "loc",
+              "score": 7,
+              "label": {
+                "eng": "Jordan"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Jordan"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Israel",
+              "type": "loc",
+              "score": 6,
+              "label": {
+                "eng": "Israel"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Israel"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/China",
+              "type": "loc",
+              "score": 6,
+              "label": {
+                "eng": "China"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "China"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Kevin_Warsh",
+              "type": "person",
+              "score": 5,
+              "label": {
+                "eng": "Kevin Warsh"
+              }
+            }
+          ],
+          "eventDate": "2026-06-10",
+          "totalArticleCount": 72,
+          "title": {
+            "eng": "Gold prices drop 2.5% as US inflation data fuels Fed rate hike fears"
+          },
+          "summary": {
+            "eng": "Gold futures also fell 2.5% and were trading at $4,179.05 per ounce. The U.S. Consumer Price Index (CPI) showed prices rose 0.5% month-on-month in May, matching market expectations.\n\nOn a yearly basis, inflation stood at 4.2%, matching what experts had anticipated. After the inflation data was released, U.S. Treasury yields fell slightly and the U.S. dollar also became weaker. When the dollar is strong, gold becomes more expensive for buyers in other countries, which can reduce demand. This often"
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Society/Issues/Warfare_and_Conflict",
+              "label": "dmoz/Society/Issues/Warfare and Conflict",
+              "wgt": 19
+            },
+            {
+              "uri": "dmoz/Society/Government/Finance",
+              "label": "dmoz/Society/Government/Finance",
+              "wgt": 20
+            },
+            {
+              "uri": "dmoz/Business/Investing/Commodities_and_Futures",
+              "label": "dmoz/Business/Investing/Commodities and Futures",
+              "wgt": 20
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 98
+            }
+          ],
+          "articleCounts": {
+            "eng": 72
+          },
+          "sentiment": 0.01960784313725483,
+          "wgt": 518745600,
+          "relevance": 7
+        },
+        {
+          "uri": "eng-11739963",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Japanese_yen",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Japanese yen"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Bank_of_Japan",
+              "type": "org",
+              "score": 91,
+              "label": {
+                "eng": "Bank of Japan"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Inflation",
+              "type": "wiki",
+              "score": 73,
+              "label": {
+                "eng": "Inflation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States_dollar",
+              "type": "wiki",
+              "score": 64,
+              "label": {
+                "eng": "United States dollar"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Japan",
+              "type": "loc",
+              "score": 49,
+              "label": {
+                "eng": "Japan"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Japan"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Interest_rate",
+              "type": "wiki",
+              "score": 47,
+              "label": {
+                "eng": "Interest rate"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Consumer_price_index",
+              "type": "wiki",
+              "score": 37,
+              "label": {
+                "eng": "Consumer price index"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Central_bank",
+              "type": "wiki",
+              "score": 34,
+              "label": {
+                "eng": "Central bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Middle_East",
+              "type": "loc",
+              "score": 33,
+              "label": {
+                "eng": "Middle East"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Monetary_policy",
+              "type": "wiki",
+              "score": 32,
+              "label": {
+                "eng": "Monetary policy"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Governor",
+              "type": "wiki",
+              "score": 27,
+              "label": {
+                "eng": "Governor"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/War_hawk",
+              "type": "wiki",
+              "score": 26,
+              "label": {
+                "eng": "War hawk"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/ING_Group",
+              "type": "org",
+              "score": 22,
+              "label": {
+                "eng": "ING Group"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Reserve_Bank_of_Australia",
+              "type": "org",
+              "score": 20,
+              "label": {
+                "eng": "Reserve Bank of Australia"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Currency",
+              "type": "wiki",
+              "score": 20,
+              "label": {
+                "eng": "Currency"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Probability",
+              "type": "wiki",
+              "score": 19,
+              "label": {
+                "eng": "Probability"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Iran",
+              "type": "loc",
+              "score": 19,
+              "label": {
+                "eng": "Iran"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Iran"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Australia",
+              "type": "loc",
+              "score": 19,
+              "label": {
+                "eng": "Australia"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Australia"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Kevin_Warsh",
+              "type": "person",
+              "score": 18,
+              "label": {
+                "eng": "Kevin Warsh"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Unemployment",
+              "type": "wiki",
+              "score": 18,
+              "label": {
+                "eng": "Unemployment"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Kazuo_Ueda",
+              "type": "wiki",
+              "score": 17,
+              "label": {
+                "eng": "Kazuo Ueda"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Government_of_Japan",
+              "type": "loc",
+              "score": 17,
+              "label": {
+                "eng": "Government of Japan"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sanae_Takaichi",
+              "type": "person",
+              "score": 16,
+              "label": {
+                "eng": "Sanae Takaichi"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Subsidy",
+              "type": "wiki",
+              "score": 16,
+              "label": {
+                "eng": "Subsidy"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Asia",
+              "type": "loc",
+              "score": 16,
+              "label": {
+                "eng": "Asia"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Strait_of_Hormuz",
+              "type": "wiki",
+              "score": 15,
+              "label": {
+                "eng": "Strait of Hormuz"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Federal_Reserve",
+              "type": "org",
+              "score": 13,
+              "label": {
+                "eng": "Federal Reserve"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Volatility_(finance)",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "Volatility (finance)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Artificial_intelligence",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "Artificial intelligence"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_Kingdom",
+              "type": "loc",
+              "score": 13,
+              "label": {
+                "eng": "United Kingdom"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "United Kingdom"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Balance_sheet",
+              "type": "wiki",
+              "score": 11,
+              "label": {
+                "eng": "Balance sheet"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States_Consumer_Price_Index",
+              "type": "wiki",
+              "score": 10,
+              "label": {
+                "eng": "United States Consumer Price Index"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sustainability",
+              "type": "wiki",
+              "score": 10,
+              "label": {
+                "eng": "Sustainability"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/China",
+              "type": "loc",
+              "score": 9,
+              "label": {
+                "eng": "China"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "China"
+                }
+              }
+            }
+          ],
+          "eventDate": "2026-06-09",
+          "totalArticleCount": 17,
+          "title": {
+            "eng": "Week Ahead: Central Bank Decisions, US Retail Sales, and Japan Inflation in Focus"
+          },
+          "summary": {
+            "eng": "* MON: G7 Summit (15-17 Jun), German Wholesale Prices (May), Indian WPI (May), EZ Industrial Production (Apr), US Industrial Production (May)\n\n* TUE: BoJ Policy Announcement (Jun), RBA Policy Announcement (Jun), G7 Summit (15-17 Jun), Chinese Industrial Production (May), Retail Sales (May), Unemployment Rate (May), Italian HICP Final (May), EZ/German ZEW Survey (Jun), US ADP Employment Change Weekly, US Building Permits (May), US Import Prices (May)\n\n* WED: Fed Policy Announcement (Jun), Riksbank"
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Society/Issues/Economic",
+              "label": "dmoz/Society/Issues/Economic",
+              "wgt": 16
+            },
+            {
+              "uri": "dmoz/Society/Government/Finance",
+              "label": "dmoz/Society/Government/Finance",
+              "wgt": 22
+            },
+            {
+              "uri": "dmoz/Recreation/Picture_Ratings",
+              "label": "dmoz/Recreation/Picture Ratings",
+              "wgt": 20
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 90
+            }
+          ],
+          "articleCounts": {
+            "eng": 17
+          },
+          "sentiment": 0.1529411764705881,
+          "wgt": 518659200,
+          "relevance": 4
+        },
+        {
+          "uri": "eng-11737720",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/New_York_City",
+              "type": "loc",
+              "score": 100,
+              "label": {
+                "eng": "New York City"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "New York City"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States_dollar",
+              "type": "wiki",
+              "score": 84,
+              "label": {
+                "eng": "United States dollar"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Union_Square,_Manhattan",
+              "type": "loc",
+              "score": 80,
+              "label": {
+                "eng": "Union Square, Manhattan"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/San_Francisco",
+              "type": "loc",
+              "score": 80,
+              "label": {
+                "eng": "San Francisco"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "San Francisco"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Atlanta",
+              "type": "loc",
+              "score": 80,
+              "label": {
+                "eng": "Atlanta, Georgia"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Atlanta, Georgia"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States",
+              "type": "loc",
+              "score": 80,
+              "label": {
+                "eng": "United States"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "United States"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Gig_worker",
+              "type": "wiki",
+              "score": 67,
+              "label": {
+                "eng": "Gig worker"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Marketplace",
+              "type": "wiki",
+              "score": 67,
+              "label": {
+                "eng": "Marketplace"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Financial_institution",
+              "type": "wiki",
+              "score": 64,
+              "label": {
+                "eng": "Financial institution"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Payment_service_provider",
+              "type": "wiki",
+              "score": 60,
+              "label": {
+                "eng": "Payment service provider"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Currency",
+              "type": "wiki",
+              "score": 53,
+              "label": {
+                "eng": "Currency"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Singapore",
+              "type": "loc",
+              "score": 39,
+              "label": {
+                "eng": "Singapore"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Singapore"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Ecosystem",
+              "type": "wiki",
+              "score": 35,
+              "label": {
+                "eng": "Ecosystem"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Americas",
+              "type": "loc",
+              "score": 27,
+              "label": {
+                "eng": "Americas"
+              },
+              "location": null
+            }
+          ],
+          "eventDate": "2026-06-09",
+          "totalArticleCount": 5,
+          "title": {
+            "eng": "Thunes Accelerates US Growth and Investment; Opens Strategic New York City Hub"
+          },
+          "summary": {
+            "eng": "Global payments leader accelerates its US expansion backed by Series D funding, underpinned by owned-and-operated regulatory licenses across every state and territory.\n\nNEW YORK, June 9, 2026 /PRNewswire/ -- Thunes, the Smart Superhighway to move money around the world, is accelerating its strategic US expansion, leveraging capital from its $150 million USD Series D funding round announced last year. The latest milestone in its growth is marked by the official opening of its new office in New Yor"
+          },
+          "location": {
+            "type": "place",
+            "label": {
+              "eng": "Atlanta, Georgia"
+            },
+            "country": {
+              "type": "country",
+              "label": {
+                "eng": "United States"
+              }
+            }
+          },
+          "categories": [
+            {
+              "uri": "dmoz/Society/Issues",
+              "label": "dmoz/Society/Issues",
+              "wgt": 21
+            },
+            {
+              "uri": "dmoz/Business/Financial_Services/Investment_Banks",
+              "label": "dmoz/Business/Financial Services/Investment Banks",
+              "wgt": 21
+            },
+            {
+              "uri": "dmoz/Business/Investing/Payment_Associations",
+              "label": "dmoz/Business/Investing/Payment Associations",
+              "wgt": 25
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 80
+            }
+          ],
+          "articleCounts": {
+            "eng": 5
+          },
+          "sentiment": 0.2627450980392156,
+          "wgt": 518659200,
+          "relevance": 3
+        },
+        {
+          "uri": "eng-11725191",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Share_repurchase",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Share repurchase"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Danish_krone",
+              "type": "wiki",
+              "score": 65,
+              "label": {
+                "eng": "Danish krone"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/European_Union",
+              "type": "loc",
+              "score": 55,
+              "label": {
+                "eng": "European Union"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Share_capital",
+              "type": "wiki",
+              "score": 39,
+              "label": {
+                "eng": "Share capital"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/European_Parliament",
+              "type": "org",
+              "score": 36,
+              "label": {
+                "eng": "European Parliament"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sydbank",
+              "type": "org",
+              "score": 25,
+              "label": {
+                "eng": "Sydbank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/European_Commission",
+              "type": "org",
+              "score": 20,
+              "label": {
+                "eng": "European Commission"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Denmark",
+              "type": "loc",
+              "score": 17,
+              "label": {
+                "eng": "Denmark"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Denmark"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/The_Manila_Times",
+              "type": "wiki",
+              "score": 14,
+              "label": {
+                "eng": "The Manila Times"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Aabenraa",
+              "type": "loc",
+              "score": 14,
+              "label": {
+                "eng": "Aabenraa"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Aabenraa"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Denmark"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/International_Space_Station",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "International Space Station"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Treasury_stock",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "Treasury stock"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/ISS_A/S",
+              "type": "loc",
+              "score": 12,
+              "label": {
+                "eng": "S"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Switzerland",
+              "type": "loc",
+              "score": 12,
+              "label": {
+                "eng": "Switzerland"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Switzerland"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Email",
+              "type": "wiki",
+              "score": 10,
+              "label": {
+                "eng": "Email"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Chief_executive_officer",
+              "type": "wiki",
+              "score": 9,
+              "label": {
+                "eng": "Chief executive officer"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Copenhagen",
+              "type": "loc",
+              "score": 9,
+              "label": {
+                "eng": "Copenhagen"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Copenhagen"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Denmark"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Euro",
+              "type": "wiki",
+              "score": 8,
+              "label": {
+                "eng": "Euro"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Danske_Bank",
+              "type": "org",
+              "score": 7,
+              "label": {
+                "eng": "Danske Bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Shareholder",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Shareholder"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Constitution_Day",
+              "type": "wiki",
+              "score": 6,
+              "label": {
+                "eng": "Constitution Day"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Nasdaq",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Nasdaq"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Full-time_equivalent",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Full-time equivalent"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Public_sector",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Public sector"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Public_administration",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Public administration"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Health_care",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Health care"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Financial_services",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Financial services"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Aviation",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Aviation"
+              }
+            }
+          ],
+          "eventDate": "2026-06-08",
+          "totalArticleCount": 16,
+          "title": {
+            "eng": "AL Sydbank completes week 23 share buyback transactions By Investing.com"
+          },
+          "summary": {
+            "eng": "AABENRAA, Denmark - AL Sydbank A/S (ISIN:DK0010311471) purchased 75,000 shares during week 23 as part of its ongoing share buyback programme, according to a press release statement.\n\nThe bank bought shares on four trading days between June 1 and June 4, with no transactions on June 5 due to Constitution Day. The purchases totaled DKK 38,629,330, with a volume-weighted average price ranging from DKK 509.43 to DKK 530.29 per share.\n\nDanske Bank A/S executed the transactions on behalf of AL Sydbank."
+          },
+          "location": {
+            "type": "place",
+            "label": {
+              "eng": "Copenhagen"
+            },
+            "country": {
+              "type": "country",
+              "label": {
+                "eng": "Denmark"
+              }
+            }
+          },
+          "categories": [
+            {
+              "uri": "dmoz/Business/Investing",
+              "label": "dmoz/Business/Investing",
+              "wgt": 18
+            },
+            {
+              "uri": "dmoz/Society/Government",
+              "label": "dmoz/Society/Government",
+              "wgt": 20
+            },
+            {
+              "uri": "dmoz/Business/Financial_Services/Investment_Banks",
+              "label": "dmoz/Business/Financial Services/Investment Banks",
+              "wgt": 18
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 87
+            }
+          ],
+          "articleCounts": {
+            "eng": 16
+          },
+          "sentiment": 0.3176470588235294,
+          "wgt": 518572800,
+          "relevance": 4
+        },
+        {
+          "uri": "eng-11724578",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Zealand_Pharma",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Zealand Pharma"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Nasdaq",
+              "type": "wiki",
+              "score": 75,
+              "label": {
+                "eng": "Nasdaq"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Danish_krone",
+              "type": "wiki",
+              "score": 72,
+              "label": {
+                "eng": "Danish krone"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Copenhagen",
+              "type": "loc",
+              "score": 65,
+              "label": {
+                "eng": "Copenhagen"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Copenhagen"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Denmark"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Metabolism",
+              "type": "wiki",
+              "score": 60,
+              "label": {
+                "eng": "Metabolism"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Biotechnology",
+              "type": "wiki",
+              "score": 60,
+              "label": {
+                "eng": "Biotechnology"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Share_capital",
+              "type": "wiki",
+              "score": 38,
+              "label": {
+                "eng": "Share capital"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Obesity",
+              "type": "wiki",
+              "score": 32,
+              "label": {
+                "eng": "Obesity"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/European_Union",
+              "type": "loc",
+              "score": 32,
+              "label": {
+                "eng": "European Union"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Denmark",
+              "type": "loc",
+              "score": 32,
+              "label": {
+                "eng": "Denmark"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Denmark"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Pharmaceutical_industry",
+              "type": "wiki",
+              "score": 28,
+              "label": {
+                "eng": "Pharmaceutical industry"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Stock",
+              "type": "wiki",
+              "score": 28,
+              "label": {
+                "eng": "Stock"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Danske_Bank",
+              "type": "org",
+              "score": 27,
+              "label": {
+                "eng": "Danske Bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Peptide",
+              "type": "wiki",
+              "score": 23,
+              "label": {
+                "eng": "Peptide"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Machine_learning",
+              "type": "wiki",
+              "score": 23,
+              "label": {
+                "eng": "Machine learning"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Artificial_intelligence",
+              "type": "wiki",
+              "score": 23,
+              "label": {
+                "eng": "Artificial intelligence"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Research_and_development",
+              "type": "wiki",
+              "score": 23,
+              "label": {
+                "eng": "Research and development"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Email",
+              "type": "wiki",
+              "score": 23,
+              "label": {
+                "eng": "Email"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Drug_development",
+              "type": "wiki",
+              "score": 20,
+              "label": {
+                "eng": "Drug development"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Vice_President_of_the_United_States",
+              "type": "wiki",
+              "score": 20,
+              "label": {
+                "eng": "Vice President of the United States"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Boston",
+              "type": "loc",
+              "score": 20,
+              "label": {
+                "eng": "Boston"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Boston"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Dividend",
+              "type": "wiki",
+              "score": 17,
+              "label": {
+                "eng": "Dividend"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/The_Manila_Times",
+              "type": "wiki",
+              "score": 15,
+              "label": {
+                "eng": "The Manila Times"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Ajanta_Pharma",
+              "type": "wiki",
+              "score": 10,
+              "label": {
+                "eng": "Ajanta Pharma"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Dr._Reddy's_Laboratories",
+              "type": "org",
+              "score": 10,
+              "label": {
+                "eng": "Dr. Reddy's Laboratories"
+              }
+            }
+          ],
+          "eventDate": "2026-06-08",
+          "totalArticleCount": 11,
+          "title": {
+            "eng": "Stocks making the biggest moves midday: Zee, Mankind Pharma, Reliance Infra and more"
+          },
+          "summary": {
+            "eng": "Market sentiment also remained cautious after South Korea's benchmark KOSPI index plunged as much as 8%, triggering circuit breakers amid heavy profit booking in technology stocks and fresh concerns over escalating tension in the Middle East.\n\nDespite the broader weakness, several stocks witnessed sharp moves on the back of fundraising plans, order wins, regulatory developments and company-specific triggers. Here are top movers and shakers.\n\nReliance Infrastructure\n\nReliance Infrastructure Ltd. s"
+          },
+          "location": {
+            "type": "place",
+            "label": {
+              "eng": "Copenhagen"
+            },
+            "country": {
+              "type": "country",
+              "label": {
+                "eng": "Denmark"
+              }
+            }
+          },
+          "categories": [
+            {
+              "uri": "dmoz/Business/Investing",
+              "label": "dmoz/Business/Investing",
+              "wgt": 18
+            },
+            {
+              "uri": "dmoz/Business/Biotechnology_and_Pharmaceuticals",
+              "label": "dmoz/Business/Biotechnology and Pharmaceuticals",
+              "wgt": 29
+            },
+            {
+              "uri": "dmoz/Science/Biology/Biotechnology",
+              "label": "dmoz/Science/Biology/Biotechnology",
+              "wgt": 23
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 94
+            }
+          ],
+          "articleCounts": {
+            "eng": 11
+          },
+          "sentiment": 0.2784313725490195,
+          "wgt": 518572800,
+          "relevance": 9
+        },
+        {
+          "uri": "eng-11723181",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Danish_krone",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Danish krone"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/European_Union",
+              "type": "loc",
+              "score": 58,
+              "label": {
+                "eng": "European Union"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/European_Parliament",
+              "type": "org",
+              "score": 40,
+              "label": {
+                "eng": "European Parliament"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Share_capital",
+              "type": "wiki",
+              "score": 28,
+              "label": {
+                "eng": "Share capital"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Share_repurchase",
+              "type": "wiki",
+              "score": 22,
+              "label": {
+                "eng": "Share repurchase"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Royal_Unibrew",
+              "type": "org",
+              "score": 19,
+              "label": {
+                "eng": "Royal Unibrew"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/European_Commission",
+              "type": "org",
+              "score": 19,
+              "label": {
+                "eng": "European Commission"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Norway",
+              "type": "loc",
+              "score": 19,
+              "label": {
+                "eng": "Norway"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Norway"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Treasury_stock",
+              "type": "wiki",
+              "score": 18,
+              "label": {
+                "eng": "Treasury stock"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/The_Manila_Times",
+              "type": "wiki",
+              "score": 17,
+              "label": {
+                "eng": "The Manila Times"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Taiwan_News",
+              "type": "wiki",
+              "score": 16,
+              "label": {
+                "eng": "Taiwan News"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Maersk",
+              "type": "org",
+              "score": 15,
+              "label": {
+                "eng": "Maersk"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Email",
+              "type": "wiki",
+              "score": 14,
+              "label": {
+                "eng": "Email"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States_dollar",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "United States dollar"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Copenhagen",
+              "type": "loc",
+              "score": 13,
+              "label": {
+                "eng": "Copenhagen"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Copenhagen"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Denmark"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Nordic_countries",
+              "type": "loc",
+              "score": 12,
+              "label": {
+                "eng": "Nordic countries"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Danske_Bank",
+              "type": "org",
+              "score": 11,
+              "label": {
+                "eng": "Danske Bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Market_value",
+              "type": "wiki",
+              "score": 9,
+              "label": {
+                "eng": "Market value"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Taiwan",
+              "type": "loc",
+              "score": 9,
+              "label": {
+                "eng": "Taiwan"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Taiwan"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Mergers_and_acquisitions",
+              "type": "wiki",
+              "score": 8,
+              "label": {
+                "eng": "Mergers and acquisitions"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Shareholder",
+              "type": "wiki",
+              "score": 8,
+              "label": {
+                "eng": "Shareholder"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Denmark",
+              "type": "loc",
+              "score": 5,
+              "label": {
+                "eng": "Denmark"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Denmark"
+                }
+              }
+            }
+          ],
+          "eventDate": "2026-06-08",
+          "totalArticleCount": 24,
+          "title": {
+            "eng": "Jyske Bank buys back 51,107 shares in week 23 By Investing.com"
+          },
+          "summary": {
+            "eng": "DENMARK - Jyske Bank purchased 51,107 of its own shares during week 23 of 2026, according to a press release statement.\n\nThe transactions took place between June 1 and June 4, with an average purchase price of DKK 899.14 per share. The total transaction value for the week amounted to DKK 45.95 million.\n\nThe share buyback program runs from February 5, 2026 to January 29, 2027. Jyske Bank will acquire its own shares for a maximum value of DKK 3 billion during this period, as announced in company an"
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Society/Government",
+              "label": "dmoz/Society/Government",
+              "wgt": 18
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 74
+            }
+          ],
+          "articleCounts": {
+            "eng": 24
+          },
+          "sentiment": 0.2549019607843137,
+          "wgt": 518572800,
+          "relevance": 10
+        },
+        {
+          "uri": "eng-11725913",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Belfast",
+              "type": "loc",
+              "score": 100,
+              "label": {
+                "eng": "Belfast"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Belfast"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United Kingdom"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Northern_Ireland",
+              "type": "loc",
+              "score": 57,
+              "label": {
+                "eng": "Northern Ireland"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Northern Ireland"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United Kingdom"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sudan",
+              "type": "loc",
+              "score": 51,
+              "label": {
+                "eng": "Sudan"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Sudan"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Police_Service_of_Northern_Ireland",
+              "type": "wiki",
+              "score": 46,
+              "label": {
+                "eng": "Police Service of Northern Ireland"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Attempted_murder",
+              "type": "wiki",
+              "score": 41,
+              "label": {
+                "eng": "Attempted murder"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_Kingdom",
+              "type": "loc",
+              "score": 38,
+              "label": {
+                "eng": "United Kingdom"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "United Kingdom"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Opposition_to_immigration",
+              "type": "wiki",
+              "score": 28,
+              "label": {
+                "eng": "Opposition to immigration"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Keir_Starmer",
+              "type": "person",
+              "score": 25,
+              "label": {
+                "eng": "Keir Starmer"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Social_media",
+              "type": "wiki",
+              "score": 25,
+              "label": {
+                "eng": "Social media"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Chief_constable",
+              "type": "wiki",
+              "score": 24,
+              "label": {
+                "eng": "Chief constable"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Immigration",
+              "type": "wiki",
+              "score": 22,
+              "label": {
+                "eng": "Immigration"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Dublin",
+              "type": "loc",
+              "score": 14,
+              "label": {
+                "eng": "Dublin"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Dublin"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Ireland"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Michelle_O'Neill",
+              "type": "person",
+              "score": 13,
+              "label": {
+                "eng": "Michelle O'Neill"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Hurling",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "Hurling"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Murder",
+              "type": "wiki",
+              "score": 13,
+              "label": {
+                "eng": "Murder"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Somalia",
+              "type": "loc",
+              "score": 13,
+              "label": {
+                "eng": "Somalia"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Somalia"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Democratic_Unionist_Party",
+              "type": "org",
+              "score": 11,
+              "label": {
+                "eng": "Democratic Unionist Party"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Prime_Minister_of_the_United_Kingdom",
+              "type": "wiki",
+              "score": 11,
+              "label": {
+                "eng": "Prime Minister of the United Kingdom"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Racism",
+              "type": "wiki",
+              "score": 10,
+              "label": {
+                "eng": "Racism"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/First_Minister_and_deputy_First_Minister_of_Northern_Ireland",
+              "type": "wiki",
+              "score": 9,
+              "label": {
+                "eng": "First Minister and deputy First Minister of Northern Ireland"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Antrim_Road",
+              "type": "loc",
+              "score": 9,
+              "label": {
+                "eng": "Antrim Road"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/First_Minister_of_Scotland",
+              "type": "wiki",
+              "score": 9,
+              "label": {
+                "eng": "First Minister of Scotland"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Decapitation",
+              "type": "wiki",
+              "score": 9,
+              "label": {
+                "eng": "Decapitation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Right_of_asylum",
+              "type": "wiki",
+              "score": 9,
+              "label": {
+                "eng": "Right of asylum"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Far-right_politics",
+              "type": "wiki",
+              "score": 9,
+              "label": {
+                "eng": "Far-right politics"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Paris",
+              "type": "loc",
+              "score": 9,
+              "label": {
+                "eng": "Paris"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Paris"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "France"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Gavin_Robinson",
+              "type": "person",
+              "score": 8,
+              "label": {
+                "eng": "Gavin Robinson"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Asylum_seeker",
+              "type": "wiki",
+              "score": 8,
+              "label": {
+                "eng": "Asylum seeker"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Riot",
+              "type": "wiki",
+              "score": 8,
+              "label": {
+                "eng": "Riot"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Terrorism",
+              "type": "wiki",
+              "score": 8,
+              "label": {
+                "eng": "Terrorism"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Tommy_Robinson_(activist)",
+              "type": "person",
+              "score": 7,
+              "label": {
+                "eng": "Tommy Robinson (activist)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/BBC",
+              "type": "org",
+              "score": 7,
+              "label": {
+                "eng": "BBC"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Ireland",
+              "type": "loc",
+              "score": 7,
+              "label": {
+                "eng": "Ireland"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Ireland"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Naomi_Long",
+              "type": "person",
+              "score": 6,
+              "label": {
+                "eng": "Naomi Long"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/London",
+              "type": "loc",
+              "score": 6,
+              "label": {
+                "eng": "London"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "London"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United Kingdom"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Southampton",
+              "type": "loc",
+              "score": 6,
+              "label": {
+                "eng": "Southampton"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Southampton"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United Kingdom"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sikhs",
+              "type": "loc",
+              "score": 5,
+              "label": {
+                "eng": "Sikhs"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Travel_visa",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Travel visa"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Emma_Little-Pengelly",
+              "type": "person",
+              "score": 5,
+              "label": {
+                "eng": "Emma Little-Pengelly"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Republic_of_Ireland–United_Kingdom_border",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Republic of Ireland–United Kingdom border"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Hilary_Benn",
+              "type": "person",
+              "score": 5,
+              "label": {
+                "eng": "Hilary Benn"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Elon_Musk",
+              "type": "person",
+              "score": 5,
+              "label": {
+                "eng": "Elon Musk"
+              }
+            }
+          ],
+          "eventDate": "2026-06-08",
+          "totalArticleCount": 474,
+          "title": {
+            "eng": "Man Arrested in 'Brutal' Stabbing in Belfast, Police Say"
+          },
+          "summary": {
+            "eng": "The suspect, whom the police described as in his 30s and believed to be Somali, is alleged to have attacked another man in his 40s in an episode in Belfast that was recorded and spread quickly online.\n\nA man has been arrested on suspicion of attempted murder after a knife attack in Belfast, Northern Ireland, on Monday night, according to the police.\n\nThe man, who the police described as in his 30s and believed to be Somali, is alleged to have attacked another man, in his 40s. The victim is curren"
+          },
+          "location": {
+            "type": "place",
+            "label": {
+              "eng": "Belfast"
+            },
+            "country": {
+              "type": "country",
+              "label": {
+                "eng": "United Kingdom"
+              }
+            }
+          },
+          "categories": [
+            {
+              "uri": "dmoz/Society/Issues/Warfare_and_Conflict",
+              "label": "dmoz/Society/Issues/Warfare and Conflict",
+              "wgt": 20
+            },
+            {
+              "uri": "dmoz/Society/Law/Law_Enforcement",
+              "label": "dmoz/Society/Law/Law Enforcement",
+              "wgt": 17
+            },
+            {
+              "uri": "dmoz/Society/Crime/Murder",
+              "label": "dmoz/Society/Crime/Murder",
+              "wgt": 18
+            },
+            {
+              "uri": "news/Politics",
+              "label": "news/Politics",
+              "wgt": 75
+            }
+          ],
+          "articleCounts": {
+            "eng": 474
+          },
+          "sentiment": -0.4431372549019608,
+          "wgt": 518572800,
+          "relevance": 27
+        },
+        {
+          "uri": "eng-11722661",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Futures_contract",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Futures contract"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Asia",
+              "type": "loc",
+              "score": 94,
+              "label": {
+                "eng": "Asia"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Israel",
+              "type": "loc",
+              "score": 80,
+              "label": {
+                "eng": "Israel"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Israel"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Stock",
+              "type": "wiki",
+              "score": 76,
+              "label": {
+                "eng": "Stock"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Nasdaq",
+              "type": "wiki",
+              "score": 67,
+              "label": {
+                "eng": "Nasdaq"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Artificial_intelligence",
+              "type": "wiki",
+              "score": 65,
+              "label": {
+                "eng": "Artificial intelligence"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/S&P_500_Index",
+              "type": "wiki",
+              "score": 61,
+              "label": {
+                "eng": "S&P 500 Index"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Iran",
+              "type": "loc",
+              "score": 60,
+              "label": {
+                "eng": "Iran"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Iran"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/South_Korea",
+              "type": "loc",
+              "score": 59,
+              "label": {
+                "eng": "South Korea"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "South Korea"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Federal_Reserve",
+              "type": "org",
+              "score": 55,
+              "label": {
+                "eng": "Federal Reserve"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Wall_Street",
+              "type": "wiki",
+              "score": 54,
+              "label": {
+                "eng": "Wall Street"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Japan",
+              "type": "loc",
+              "score": 54,
+              "label": {
+                "eng": "Japan"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Japan"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/SpaceX",
+              "type": "org",
+              "score": 52,
+              "label": {
+                "eng": "SpaceX"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States_Department_of_the_Treasury",
+              "type": "wiki",
+              "score": 49,
+              "label": {
+                "eng": "United States Department of the Treasury"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Price_of_oil",
+              "type": "wiki",
+              "score": 48,
+              "label": {
+                "eng": "Price of oil"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Interest_rate",
+              "type": "wiki",
+              "score": 45,
+              "label": {
+                "eng": "Interest rate"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Petroleum",
+              "type": "wiki",
+              "score": 43,
+              "label": {
+                "eng": "Petroleum"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/KOSPI",
+              "type": "wiki",
+              "score": 42,
+              "label": {
+                "eng": "KOSPI"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Initial_public_offering",
+              "type": "wiki",
+              "score": 40,
+              "label": {
+                "eng": "Initial public offering"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Basis_point",
+              "type": "wiki",
+              "score": 38,
+              "label": {
+                "eng": "Basis point"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Beirut",
+              "type": "loc",
+              "score": 38,
+              "label": {
+                "eng": "Beirut"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Beirut"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Lebanon"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Middle_East",
+              "type": "loc",
+              "score": 36,
+              "label": {
+                "eng": "Middle East"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Semiconductor",
+              "type": "wiki",
+              "score": 35,
+              "label": {
+                "eng": "Semiconductor"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Brent_Crude",
+              "type": "wiki",
+              "score": 33,
+              "label": {
+                "eng": "Brent Crude"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Inflation",
+              "type": "wiki",
+              "score": 31,
+              "label": {
+                "eng": "Inflation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Macroeconomics",
+              "type": "wiki",
+              "score": 28,
+              "label": {
+                "eng": "Macroeconomics"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Equity_(finance)",
+              "type": "wiki",
+              "score": 28,
+              "label": {
+                "eng": "Equity (finance)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Market_capitalization",
+              "type": "wiki",
+              "score": 26,
+              "label": {
+                "eng": "Market capitalization"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Japanese_yen",
+              "type": "wiki",
+              "score": 24,
+              "label": {
+                "eng": "Japanese yen"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Europe",
+              "type": "loc",
+              "score": 23,
+              "label": {
+                "eng": "Europe"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/OpenAI",
+              "type": "org",
+              "score": 19,
+              "label": {
+                "eng": "OpenAI"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Taiwan",
+              "type": "loc",
+              "score": 19,
+              "label": {
+                "eng": "Taiwan"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Taiwan"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Canada",
+              "type": "loc",
+              "score": 19,
+              "label": {
+                "eng": "Canada"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Canada"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Tehran",
+              "type": "loc",
+              "score": 18,
+              "label": {
+                "eng": "Tehran"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Tehran"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Iran"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Donald_Trump",
+              "type": "person",
+              "score": 16,
+              "label": {
+                "eng": "Donald Trump"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Danske_Bank",
+              "type": "org",
+              "score": 15,
+              "label": {
+                "eng": "Danske Bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/European_Central_Bank",
+              "type": "org",
+              "score": 15,
+              "label": {
+                "eng": "European Central Bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Broadcom_Inc.",
+              "type": "org",
+              "score": 13,
+              "label": {
+                "eng": "Broadcom Inc."
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Frankfurt",
+              "type": "loc",
+              "score": 13,
+              "label": {
+                "eng": "Frankfurt"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Frankfurt"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Germany"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Tokyo",
+              "type": "loc",
+              "score": 13,
+              "label": {
+                "eng": "Tokyo"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Tokyo"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Japan"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Seoul",
+              "type": "loc",
+              "score": 13,
+              "label": {
+                "eng": "Seoul"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Seoul"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "South Korea"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Paris",
+              "type": "loc",
+              "score": 12,
+              "label": {
+                "eng": "Paris"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Paris"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "France"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/London",
+              "type": "loc",
+              "score": 12,
+              "label": {
+                "eng": "London"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "London"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United Kingdom"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Hezbollah",
+              "type": "org",
+              "score": 10,
+              "label": {
+                "eng": "Hezbollah"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Haifa",
+              "type": "loc",
+              "score": 10,
+              "label": {
+                "eng": "Haifa"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Haifa"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "Israel"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Singapore",
+              "type": "loc",
+              "score": 10,
+              "label": {
+                "eng": "Singapore"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Singapore"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Lebanon",
+              "type": "loc",
+              "score": 10,
+              "label": {
+                "eng": "Lebanon"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Lebanon"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Plymouth,_Massachusetts",
+              "type": "loc",
+              "score": 7,
+              "label": {
+                "eng": "Plymouth, Massachusetts"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Plymouth, Massachusetts"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            }
+          ],
+          "eventDate": "2026-06-08",
+          "totalArticleCount": 26,
+          "title": {
+            "eng": "Stocks bounce back, oil pares gains as Iran and Israel signal a pause | Stock Market News"
+          },
+          "summary": {
+            "eng": "By Sinéad Carew and Samuel Indyk\n\nNEW YORK/LONDON, June 8 (Reuters) - MSCI's global equities index fell slightly on Monday but Wall Street saw some support from a bounce in technology stocks while oil futures pared earlier gains as Iran and Israel said they had halted attacks on each other after an appeal from U.S. President Donald Trump.\n\nThe dollar eased, although uncertainty remained as Tehran said it would resume strikes if Israel continued to hit Iran-backed Hezbollah in Lebanon. Israel had"
+          },
+          "location": {
+            "type": "place",
+            "label": {
+              "eng": "Beirut"
+            },
+            "country": {
+              "type": "country",
+              "label": {
+                "eng": "Lebanon"
+              }
+            }
+          },
+          "categories": [
+            {
+              "uri": "dmoz/Business/Investing/Stocks_and_Bonds",
+              "label": "dmoz/Business/Investing/Stocks and Bonds",
+              "wgt": 21
+            },
+            {
+              "uri": "dmoz/Society/Issues/Warfare_and_Conflict",
+              "label": "dmoz/Society/Issues/Warfare and Conflict",
+              "wgt": 19
+            },
+            {
+              "uri": "dmoz/Business/Investing/Commodities_and_Futures",
+              "label": "dmoz/Business/Investing/Commodities and Futures",
+              "wgt": 24
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 100
+            }
+          ],
+          "articleCounts": {
+            "eng": 26
+          },
+          "sentiment": -0.0117647058823529,
+          "wgt": 518572800,
+          "relevance": 12
+        }
+      ],
+      "totalResults": 62,
+      "page": 1,
+      "count": 20,
+      "pages": 4
+    }
+  }
+}

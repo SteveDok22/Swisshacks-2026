@@ -27,6 +27,7 @@ from __future__ import annotations
 
 import asyncio
 import concurrent.futures
+import urllib.parse
 from dataclasses import dataclass, field, replace
 from typing import TYPE_CHECKING, Any
 
@@ -42,13 +43,19 @@ if TYPE_CHECKING:
 
 _logger = get_logger(__name__)
 
-# Five public-signal categories named in the AMINA brief
+# Public-signal categories (AMINA brief + extended for all UC signals)
 SIGNAL_TYPES = (
     "news",
     "sanctions",
     "adverse_media",
     "ownership_change",
     "funding_event",
+    "corridor_alert",
+    "name_change",
+    "domain_change",
+    "business_model_change",
+    "jurisdiction_change",
+    "legal_form_change",
 )
 
 # Lexicon-based severity classifier. In production this is an embedding model;
@@ -153,26 +160,50 @@ _NAME_CHANGE_SEVERITY = 0.85
 _DOMAIN_CHANGE_SEVERITY = 0.60
 
 
-_SOURCE_BASE_URLS = {
-    "Reuters": "https://www.reuters.com/world/",
-    "OFAC": "https://sanctionssearch.ofac.treas.gov/",
-    "corporate registry": "https://www.zefix.admin.ch/",
-    "press release": "https://example.com/demo-sources/press-release/",
-    "trade press": "https://example.com/demo-sources/trade-press/",
-}
+def _source_url(
+    name: str,
+    signal_type: str,
+    *,
+    lei: str | None = None,
+    domain: str | None = None,
+) -> str | None:
+    """Return a real, clickable deep-link for a synthetic public signal, or None.
 
+    Maps each signal type to the canonical, human-browsable open source that
+    would carry it in a live run. Every URL below resolves to a real, working
+    page (verified): no placeholder/example.com links.
 
-def _demo_source_url(source: str, drift_id: str, signal_type: str, month: int) -> str:
+    IMPORTANT — news signals NEVER get a search-page link. A news/adverse-media
+    signal links to a DIRECT article or to nothing: in live mode the adapters
+    attach the real article URL; for the synthetic (fictional) cast there is no
+    real article, so this returns ``None`` and the UI renders no source link
+    rather than a Google-News search. The registry/screening links below ARE
+    canonical record pages for the entity (not keyword searches in disguise).
+    - News / adverse media / corridor alerts / funding events → None (a direct
+      article URL is attached by the live adapter when one exists).
+    - Sanctions / ownership changes → OpenSanctions entity search.
+    - Name / legal-form / jurisdiction changes → GLEIF LEI record (or search
+      when no LEI is available yet).
+    - Domain changes → ICANN WHOIS lookup.
+    - Business-model changes → Wayback Machine wildcard capture page.
     """
-    Deterministic demo citation URL for synthetic public signals.
-
-    Real source adapters can replace this with article, registry, or sanctions
-    record URLs while preserving the API shape.
-    """
-    base = _SOURCE_BASE_URLS.get(source, "https://example.com/demo-sources/")
-    slug = f"{drift_id}-{signal_type}-m{month}".lower().replace("_", "-")
-    separator = "" if base.endswith("/") else "/"
-    return f"{base}{separator}{slug}"
+    encoded = urllib.parse.quote_plus(name)
+    if signal_type in ("news", "adverse_media", "corridor_alert", "funding_event"):
+        return None
+    if signal_type in ("sanctions", "ownership_change"):
+        return f"https://www.opensanctions.org/search/?q={encoded}"
+    if signal_type in ("name_change", "legal_form_change", "jurisdiction_change"):
+        if lei:
+            return f"https://search.gleif.org/#/record/{lei}"
+        return f"https://search.gleif.org/#/search?query={encoded}"
+    if signal_type == "domain_change":
+        d = domain or f"{name.lower().replace(' ', '-')}.com"
+        return f"https://lookup.icann.org/en/lookup?name={d}"
+    if signal_type == "business_model_change":
+        d = domain or f"{name.lower().replace(' ', '-')}.com"
+        return f"https://web.archive.org/web/*/{d}"
+    # No generic search-page fallback — unknown types carry no source link.
+    return None
 
 
 def generate_signals_for_customer(
@@ -204,7 +235,7 @@ def generate_signals_for_customer(
                 PublicSignal(
                     month=m, signal_type="news", headline=headline,
                     severity=classify_severity(headline), source="trade press",
-                    source_url=_demo_source_url("trade press", drift_id, "news", m),
+                    source_url=_source_url(name, "news"),
                 )
             )
         return sorted(signals, key=lambda s: s.month)
@@ -221,7 +252,7 @@ def generate_signals_for_customer(
                 PublicSignal(
                     month=int(month), signal_type="adverse_media", headline=headline,
                     severity=classify_severity(headline), source="Reuters",
-                    source_url=_demo_source_url("Reuters", drift_id, "adverse_media", month),
+                    source_url=_source_url(name, "adverse_media"),
                 )
             )
         return sorted(signals, key=lambda s: s.month)
@@ -242,9 +273,7 @@ def generate_signals_for_customer(
                 PublicSignal(
                     month=m, signal_type="business_model_change", headline=headline,
                     severity=_PIVOT_NEWS_SEVERITY, source="trade press",
-                    source_url=_demo_source_url(
-                        "trade press", drift_id, "business_model_change", m
-                    ),
+                    source_url=_source_url(name, "business_model_change"),
                 )
             )
         # 2. Co-occurring funding event — the pivot is financed (Centra Tech's ICO raise).
@@ -253,9 +282,7 @@ def generate_signals_for_customer(
             PublicSignal(
                 month=pivot_month, signal_type="funding_event", headline=funding_headline,
                 severity=classify_severity(funding_headline), source="press release",
-                source_url=_demo_source_url(
-                    "press release", drift_id, "funding_event", pivot_month
-                ),
+                source_url=_source_url(name, "funding_event"),
             )
         )
         # 3. Website cosine distance fires, mirroring drift/business_model.py's
@@ -270,9 +297,7 @@ def generate_signals_for_customer(
                     f"(cosine distance {distance:.2f})"
                 ),
                 severity=severity, source=WEBSITE_COMPARISON_SOURCE,
-                source_url=_demo_source_url(
-                    "website", drift_id, "business_model_change", pivot_month
-                ),
+                source_url=_source_url(name, "business_model_change"),
             )
         )
         return elevate_corroborated_pivots(
@@ -291,12 +316,72 @@ def generate_signals_for_customer(
             PublicSignal(
                 month=m, signal_type="name_change", headline=zefix_headline,
                 severity=_NAME_CHANGE_SEVERITY, source="corporate registry",
-                source_url=_demo_source_url("corporate registry", drift_id, "name_change", m),
+                source_url=_source_url(name, "name_change"),
             ),
             PublicSignal(
                 month=m, signal_type="domain_change", headline=whois_headline,
                 severity=_DOMAIN_CHANGE_SEVERITY, source="WHOIS",
-                source_url=_demo_source_url("WHOIS", drift_id, "domain_change", m),
+                source_url=_source_url(name, "domain_change"),
+            ),
+        ]
+
+    if scenario == "jurisdiction_shift":
+        # UC7 — structural jurisdiction/legal-form change. Emits two registry
+        # signals at the change month; the engine floors the drift score at
+        # RE_KYC_SCORE_FLOOR (50) on these signal types.
+        m = min(drift_start_month, months - 1)
+        jur_headline = f"Registry filing: {name} changes jurisdiction from CH to BVI (offshore move)"
+        lf_headline = f"Registry update: legal form change for {name} (GmbH → Ltd)"
+        return [
+            PublicSignal(
+                month=m, signal_type="jurisdiction_change", headline=jur_headline,
+                severity=0.85, source="corporate registry",
+                source_url=_source_url(name, "jurisdiction_change"),
+            ),
+            PublicSignal(
+                month=m, signal_type="legal_form_change", headline=lf_headline,
+                severity=0.70, source="corporate registry",
+                source_url=_source_url(name, "legal_form_change"),
+            ),
+        ]
+
+    if scenario == "ownership_shift":
+        # UC8 — a new beneficial owner appears and screens as a sanctioned entity.
+        # Mirror the live OpenSanctions path exactly: a definitive `sanctions`
+        # hit PLUS a UBO-tagged `ownership_change`. The screened name really does
+        # match OpenSanctions (verified against api.opensanctions.org), so the
+        # synthetic signals are a faithful offline stand-in. The `meta` block lets
+        # the API populate the UBO-screening panel without re-parsing headlines,
+        # and the `sanctions` signal + score floor make the entity flag critical
+        # even though its transaction profile is deliberately benign (structural
+        # change only).
+        m = min(drift_start_month, months - 1)
+        ubo = "ROSNEFT TRADING S.A."
+        oc_headline = (
+            f"UBO sanctions match: {ubo} — screened as new beneficial owner of "
+            f"{name} (synthetic demo — real OFAC/EU-listed entity)"
+        )
+        sanctions_headline = (
+            f"Sanctions match: {ubo} added to the {name} ownership structure "
+            f"(score 0.95)"
+        )
+        return [
+            PublicSignal(
+                month=m, signal_type="ownership_change", headline=oc_headline,
+                severity=0.90, source="OpenSanctions",
+                source_url=_source_url(name, "ownership_change"),
+                meta={
+                    "kind": "ubo_screening",
+                    "ubo_name": ubo,
+                    "matched_entity": ubo,
+                    "score": 0.95,
+                    "definitive": True,
+                },
+            ),
+            PublicSignal(
+                month=m, signal_type="sanctions", headline=sanctions_headline,
+                severity=0.95, source="OpenSanctions",
+                source_url=_source_url(name, "sanctions"),
             ),
         ]
 
@@ -314,14 +399,60 @@ def generate_signals_for_customer(
     for month, stype, source in sig_plan:
         if month >= months:
             continue
+        # For the combined scenario (drift-011, Castor Trade Finance AG), the
+        # ownership_change IS the sanctioned-UBO hit: give it the same UBO
+        # `meta` + severity as the live OpenSanctions path so the UBO-screening
+        # panel populates and the signal carries real weight (classify_severity
+        # on a registry headline would otherwise score it near-zero).
+        if stype == "ownership_change" and scenario == "combined":
+            ubo = "ROSNEFT TRADING S.A."
+            signals.append(
+                PublicSignal(
+                    month=int(month), signal_type="ownership_change",
+                    headline=(
+                        f"UBO sanctions match: {ubo} — screened as new beneficial "
+                        f"owner of {name} (synthetic demo — real OFAC/EU-listed entity)"
+                    ),
+                    severity=0.90, source="OpenSanctions",
+                    source_url=_source_url(name, "ownership_change"),
+                    meta={
+                        "kind": "ubo_screening",
+                        "ubo_name": ubo,
+                        "matched_entity": ubo,
+                        "score": 0.95,
+                        "definitive": True,
+                    },
+                )
+            )
+            continue
         headline = rng.choice(_HEADLINES[stype]).format(name=first)
         signals.append(
             PublicSignal(
                 month=int(month), signal_type=stype, headline=headline,
                 severity=classify_severity(headline), source=source,
-                source_url=_demo_source_url(source, drift_id, stype, int(month)),
+                source_url=_source_url(name, stype),
             )
         )
+
+    # UC2 — corridor_alert: a payment corridor risk signal for corridor_shift and
+    # combined scenarios. Emitted one month after drift onset so it co-occurs with
+    # the internal corridor drift for Confirmation Lift.
+    if scenario in ("corridor_shift", "combined"):
+        corridor_month = drift_start_month + 1
+        if corridor_month < months:
+            signals.append(
+                PublicSignal(
+                    month=int(corridor_month),
+                    signal_type="corridor_alert",
+                    headline=(
+                        f"Payment corridor risk elevated: high-risk jurisdictions "
+                        f"detected in {name} flow pattern"
+                    ),
+                    severity=0.65,
+                    source="compliance feed",
+                    source_url=_source_url(name, "corridor_alert"),
+                )
+            )
 
     return sorted(signals, key=lambda s: s.month)
 

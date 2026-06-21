@@ -28,25 +28,35 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
   const PAD_X = 68;
   const PAD_Y = 44;
   const explanation =
-    "Current book snapshot. X-axis is fused drift score from 0 to 100; Y-axis is drift velocity in bits per month. Higher and farther right means a customer is both risky and changing quickly.";
+    "Current book snapshot. X-axis is fused drift score (0–100); Y-axis is drift velocity in bits per month on a log scale — this keeps dormancy-break outliers visible without collapsing the rest. Higher and farther right = most urgent.";
 
   const maxScore = 100;
-  const maxVel = Math.max(4, ...customers.map((c) => c.drift_velocity));
+
+  // Velocity axis: the dormancy-break scenario can produce 5000+ bits/month
+  // (a genuine outlier), which on any axis collapses all other entities to the
+  // floor. Fix: cap the chart axis at 4× the 90th-percentile velocity so the
+  // 14 non-outlier entities spread naturally. Any entity above the cap is
+  // pinned to the top with an upward-arrow overflow indicator showing its real
+  // value, so the information isn't lost — just moved off the main axis.
+  const rawMax = Math.max(1, ...customers.map((c) => c.drift_velocity));
+  const sortedVels = [...customers].map((c) => c.drift_velocity).sort((a, b) => a - b);
+  const p90 = sortedVels[Math.max(0, Math.floor(sortedVels.length * 0.9) - 1)] ?? rawMax;
+  const axisMax = Math.max(p90 * 4, 1);
+
+  const logV = (v: number) => Math.log1p(Math.max(0, v));
+  const maxLogVel = Math.max(logV(1), logV(axisMax));
 
   const sx = (score: number) =>
     PAD_X + (score / maxScore) * (W - PAD_X - PAD_Y);
+  // Velocity is capped at axisMax for positioning; outliers sit exactly at top
   const sy = (vel: number) =>
-    H - PAD_Y - (vel / maxVel) * (H - 2 * PAD_Y);
-  const scoreTicks = [0, 25, 50, 75, 100];
-  const velocityTicks = [0, maxVel / 2, maxVel].map((tick) =>
-    Number(tick.toFixed(1)),
-  );
-  const formatVelocityTick = (tick: number) => {
-    if (Math.abs(tick) >= 1000) {
-      return `${(tick / 1000).toFixed(Math.abs(tick) >= 10000 ? 0 : 1)}k`;
-    }
+    H - PAD_Y - (logV(Math.min(vel, axisMax)) / maxLogVel) * (H - 2 * PAD_Y);
 
-    return Number.isInteger(tick) ? tick.toFixed(0) : tick.toFixed(1);
+  const scoreTicks = [0, 25, 50, 75, 100];
+  const velTickValues = [0, Math.round(axisMax / 2), Math.round(axisMax)];
+  const formatVelocityTick = (tick: number) => {
+    if (tick >= 1000) return `${(tick / 1000).toFixed(1)}k`;
+    return tick.toFixed(0);
   };
 
   const dotColor = (band: string) => {
@@ -59,6 +69,17 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
         return "var(--risk-medium, #a16207)";
       default:
         return "var(--risk-low, #15803d)";
+    }
+  };
+
+  // List dot: use overall risk_level (not velocity_band) so entities with
+  // high fused risk score show red/orange even when velocity is "natural".
+  const riskLevelColor = (level: string) => {
+    switch (level) {
+      case "critical": return "var(--risk-critical, #b91c1c)";
+      case "high":     return "var(--risk-high, #c2410c)";
+      case "medium":   return "var(--risk-medium, #a16207)";
+      default:         return "var(--risk-low, #15803d)";
     }
   };
 
@@ -91,7 +112,7 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
           x={sx(55)}
           y={PAD_Y}
           width={W - PAD_Y - sx(55)}
-          height={sy(maxVel * 0.5) - PAD_Y}
+          height={sy(rawMax * 0.5) - PAD_Y}
           fill="var(--risk-critical, #b91c1c)"
           opacity={0.04}
         />
@@ -118,7 +139,7 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
             </text>
           </g>
         ))}
-        {velocityTicks.map((tick) => (
+        {velTickValues.map((tick) => (
           <g key={`vel-${tick}`}>
             <line
               x1={PAD_X}
@@ -171,9 +192,9 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
         />
         <line
           x1={sx(55)}
-          y1={sy(maxVel * 0.5)}
+          y1={sy(axisMax * 0.5)}
           x2={W - PAD_Y}
-          y2={sy(maxVel * 0.5)}
+          y2={sy(axisMax * 0.5)}
           stroke="var(--ink-faint, #a1a1aa)"
           strokeWidth={1}
           strokeDasharray="3 3"
@@ -185,30 +206,48 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
         {/* Dots */}
         {customers.map((c) => {
           const selected = c.drift_id === selectedId;
+          const capped = c.drift_velocity > axisMax;
+          const cx = sx(c.drift_score);
+          const cy = sy(c.drift_velocity);
+          const r = selected ? 9 : 6;
           return (
-            <g key={c.drift_id}>
+            <g key={c.drift_id} className="cursor-pointer" onClick={() => onSelect(c.drift_id)}>
               <circle
-                cx={sx(c.drift_score)}
-                cy={sy(c.drift_velocity)}
-                r={selected ? 9 : 6}
+                cx={cx}
+                cy={cy}
+                r={r}
                 fill={dotColor(c.velocity_band)}
                 opacity={selected ? 1 : 0.78}
                 stroke={selected ? "var(--ink, #0a0a0b)" : "white"}
                 strokeWidth={selected ? 2 : 1}
-                className="cursor-pointer transition-all"
-                onClick={() => onSelect(c.drift_id)}
+                className="transition-all"
               />
+              {/* Overflow arrow: entity is above the axis cap */}
+              {capped && (
+                <text
+                  x={cx}
+                  y={cy - r - 3}
+                  textAnchor="middle"
+                  fontSize={11}
+                  fill={dotColor(c.velocity_band)}
+                  className="pointer-events-none"
+                >
+                  ▲
+                </text>
+              )}
               {(selected || c.drift_score > 55) && (
                 <text
-                  x={sx(c.drift_score)}
-                  y={sy(c.drift_velocity) - 12}
+                  x={cx}
+                  y={cy - r - (capped ? 15 : 12)}
                   textAnchor="middle"
                   fontSize={10}
                   fill="var(--ink-soft, #3f3f46)"
                   fontWeight={selected ? 600 : 400}
                   className="pointer-events-none"
                 >
-                  {c.name.split(" ")[0]}
+                  {capped
+                    ? `${c.name.split(" ")[0]} (${c.drift_velocity >= 1000 ? (c.drift_velocity / 1000).toFixed(1) + "k" : Math.round(c.drift_velocity)}↑)`
+                    : c.name.split(" ")[0]}
                 </text>
               )}
             </g>
@@ -231,7 +270,7 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
             >
               <span
                 className="h-2.5 w-2.5 rounded-full shrink-0"
-                style={{ background: dotColor(c.velocity_band) }}
+                style={{ background: riskLevelColor(c.risk_level) }}
               />
               <span className={cn("text-xs flex-1 min-w-0 truncate", selected ? "text-accent font-medium" : "text-ink")}>
                 {c.name}
@@ -259,6 +298,11 @@ export function DriftRadar({ customers, selectedId, onSelect }: DriftRadarProps)
               {c.is_name_changed && (
                 <span className="text-2xs px-1.5 py-0.5 rounded bg-risk-medium text-white shrink-0">
                   name
+                </span>
+              )}
+              {c.mode === "live" && (
+                <span className="text-2xs px-1.5 py-0.5 rounded bg-accent text-white shrink-0 font-semibold">
+                  LIVE
                 </span>
               )}
               <span className="font-mono text-2xs tabular text-ink-soft w-8 text-right shrink-0">

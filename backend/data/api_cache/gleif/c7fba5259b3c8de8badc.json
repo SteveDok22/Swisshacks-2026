@@ -1,0 +1,135 @@
+{
+  "key_raw": "record:213800ZYR1FDQGULII19",
+  "cached_at": "2026-06-21T06:36:13.237862+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "213800ZYR1FDQGULII19",
+      "attributes": {
+        "lei": "213800ZYR1FDQGULII19",
+        "entity": {
+          "legalName": {
+            "name": "VIVEO FRANCE",
+            "language": "en"
+          },
+          "otherNames": [],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "fr",
+            "addressLines": [
+              "112 AVENUE KLEBER"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "PARIS",
+            "region": "FR-IDF",
+            "country": "FR",
+            "postalCode": "75116"
+          },
+          "headquartersAddress": {
+            "language": "fr",
+            "addressLines": [
+              "112 AVENUE KLEBER"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "PARIS",
+            "region": "FR-IDF",
+            "country": "FR",
+            "postalCode": "75116"
+          },
+          "registeredAt": {
+            "id": "RA000192",
+            "other": null
+          },
+          "registeredAs": "378 367 031",
+          "jurisdiction": "FR",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "6CHY",
+            "other": null
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": "1990-06-20T00:00:00Z",
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": []
+        },
+        "registration": {
+          "initialRegistrationDate": "2025-01-24T00:00:00Z",
+          "lastUpdateDate": "2026-01-06T13:26:03Z",
+          "status": "ISSUED",
+          "nextRenewalDate": "2027-01-24T00:00:00Z",
+          "managingLou": "213800WAVVOPS85N2205",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000192",
+            "other": null
+          },
+          "validatedAs": "378 367 031",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": "fr/378367031",
+        "qcc": "QFRAN9DA22",
+        "spglobal": [
+          "714231654"
+        ],
+        "conformityFlag": "CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/213800ZYR1FDQGULII19/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/213800ZYR1FDQGULII19/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/213800ZYR1FDQGULII19/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/213800ZYR1FDQGULII19/direct-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/213800ZYR1FDQGULII19/direct-parent"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/213800ZYR1FDQGULII19/ultimate-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/213800ZYR1FDQGULII19/ultimate-parent"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/213800ZYR1FDQGULII19"
+      }
+    }
+  }
+}

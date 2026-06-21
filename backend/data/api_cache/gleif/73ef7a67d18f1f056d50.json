@@ -1,0 +1,135 @@
+{
+  "key_raw": "record:391200PKEUF3Y2NUMW25",
+  "cached_at": "2026-06-21T07:59:04.013401+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "391200PKEUF3Y2NUMW25",
+      "attributes": {
+        "lei": "391200PKEUF3Y2NUMW25",
+        "entity": {
+          "legalName": {
+            "name": "Rosneft Deutschland GmbH",
+            "language": "de"
+          },
+          "otherNames": [],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "de",
+            "addressLines": [
+              "Behrenstraße 18"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Berlin",
+            "region": null,
+            "country": "DE",
+            "postalCode": "10117"
+          },
+          "headquartersAddress": {
+            "language": "de",
+            "addressLines": [
+              "Behrenstraße 18"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "Berlin",
+            "region": null,
+            "country": "DE",
+            "postalCode": "10117"
+          },
+          "registeredAt": {
+            "id": "RA000217",
+            "other": null
+          },
+          "registeredAs": "HRB 184025",
+          "jurisdiction": "DE",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "2HBR",
+            "other": null
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": "2016-02-23T23:00:00Z",
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": []
+        },
+        "registration": {
+          "initialRegistrationDate": "2018-02-26T10:44:54Z",
+          "lastUpdateDate": "2026-02-18T13:05:22Z",
+          "status": "ISSUED",
+          "nextRenewalDate": "2027-02-26T10:44:54Z",
+          "managingLou": "39120001KULK7200U106",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000217",
+            "other": null
+          },
+          "validatedAs": "HRB 184025",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": "de/F1103R_HRB184025",
+        "qcc": "QDE3NP0SSD",
+        "spglobal": [
+          "433885419"
+        ],
+        "conformityFlag": "CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/391200PKEUF3Y2NUMW25/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/391200PKEUF3Y2NUMW25/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/391200PKEUF3Y2NUMW25/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/391200PKEUF3Y2NUMW25/direct-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/391200PKEUF3Y2NUMW25/direct-parent"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/391200PKEUF3Y2NUMW25/ultimate-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/391200PKEUF3Y2NUMW25/ultimate-parent"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/391200PKEUF3Y2NUMW25"
+      }
+    }
+  }
+}

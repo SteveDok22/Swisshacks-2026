@@ -1,0 +1,137 @@
+{
+  "key_raw": "record:213800X1DM5VDG3JUY94",
+  "cached_at": "2026-06-21T06:36:12.970112+00:00",
+  "data": {
+    "meta": {
+      "goldenCopy": {
+        "publishDate": "2026-06-20T16:00:00Z"
+      }
+    },
+    "data": {
+      "type": "lei-records",
+      "id": "213800X1DM5VDG3JUY94",
+      "attributes": {
+        "lei": "213800X1DM5VDG3JUY94",
+        "entity": {
+          "legalName": {
+            "name": "TEMENOS CLOUD SWITZERLAND SA",
+            "language": "en"
+          },
+          "otherNames": [],
+          "transliteratedOtherNames": [],
+          "legalAddress": {
+            "language": "en",
+            "addressLines": [
+              "ESPLANADE DE PONT-ROUGE 9 C",
+              "GRAND-LANCY"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "GENEVA",
+            "region": "CH-GE",
+            "country": "CH",
+            "postalCode": "1212"
+          },
+          "headquartersAddress": {
+            "language": "en",
+            "addressLines": [
+              "ESPLANADE DE PONT-ROUGE 9 C",
+              "GRAND-LANCY"
+            ],
+            "addressNumber": null,
+            "addressNumberWithinBuilding": null,
+            "mailRouting": null,
+            "city": "GENEVA",
+            "region": "CH-GE",
+            "country": "CH",
+            "postalCode": "1212"
+          },
+          "registeredAt": {
+            "id": "RA000549",
+            "other": null
+          },
+          "registeredAs": "CHE-406.793.430",
+          "jurisdiction": "CH",
+          "category": "GENERAL",
+          "legalForm": {
+            "id": "MVII",
+            "other": null
+          },
+          "associatedEntity": {
+            "lei": null,
+            "name": null
+          },
+          "status": "ACTIVE",
+          "expiration": {
+            "date": null,
+            "reason": null
+          },
+          "successorEntity": {
+            "lei": null,
+            "name": null
+          },
+          "successorEntities": [],
+          "creationDate": "2018-11-12T00:00:00Z",
+          "subCategory": null,
+          "otherAddresses": [],
+          "eventGroups": []
+        },
+        "registration": {
+          "initialRegistrationDate": "2024-03-08T00:00:00Z",
+          "lastUpdateDate": "2026-02-11T16:13:59Z",
+          "status": "ISSUED",
+          "nextRenewalDate": "2027-03-08T00:00:00Z",
+          "managingLou": "213800WAVVOPS85N2205",
+          "corroborationLevel": "FULLY_CORROBORATED",
+          "validatedAt": {
+            "id": "RA000549",
+            "other": null
+          },
+          "validatedAs": "CHE-406.793.430",
+          "otherValidationAuthorities": []
+        },
+        "bic": null,
+        "mic": null,
+        "ocid": null,
+        "qcc": "QCHPAVS1X9",
+        "spglobal": [
+          "1874351521"
+        ],
+        "conformityFlag": "CONFORMING"
+      },
+      "relationships": {
+        "managing-lou": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/213800X1DM5VDG3JUY94/managing-lou"
+          }
+        },
+        "lei-issuer": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/213800X1DM5VDG3JUY94/lei-issuer"
+          }
+        },
+        "field-modifications": {
+          "links": {
+            "related": "https://api.gleif.org/api/v1/lei-records/213800X1DM5VDG3JUY94/field-modifications"
+          }
+        },
+        "direct-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/213800X1DM5VDG3JUY94/direct-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/213800X1DM5VDG3JUY94/direct-parent"
+          }
+        },
+        "ultimate-parent": {
+          "links": {
+            "relationship-record": "https://api.gleif.org/api/v1/lei-records/213800X1DM5VDG3JUY94/ultimate-parent-relationship",
+            "lei-record": "https://api.gleif.org/api/v1/lei-records/213800X1DM5VDG3JUY94/ultimate-parent"
+          }
+        }
+      },
+      "links": {
+        "self": "https://api.gleif.org/api/v1/lei-records/213800X1DM5VDG3JUY94"
+      }
+    }
+  }
+}

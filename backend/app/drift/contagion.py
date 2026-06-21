@@ -182,7 +182,7 @@ class OwnershipGraph:
         return {"nodes": nodes, "edges": edges}
 
 
-def build_demo_graph(drift_ids: list[str]) -> OwnershipGraph:
+def build_demo_graph(drift_ids: list[str] | dict[str, str]) -> OwnershipGraph:
     """
     Construct a demo ownership graph that connects some bank customers to a
     shell-company structure, which in turn connects to an entity that will
@@ -190,43 +190,54 @@ def build_demo_graph(drift_ids: list[str]) -> OwnershipGraph:
 
     Topology (designed for the contagion demo):
 
-        SANCTIONED_ENTITY  (the seed, flagged at month 0)
+        SANCTIONED_ENTITY  (the seed = Castor Trade Finance AG, drift-011)
               |
-        ShellCo_Alpha  ---- owns ---->  drift-004 (Sergei, combined drift)
+        ShellCo_Alpha  ---- owns ---->  drift-003 (Alpine Logistics, combined)
               |
-        ShellCo_Beta   ---- owns ---->  drift-002 (Helena, counterparty)
-              |
-        CleanHolding   ---- owns ---->  drift-005 (stable, should stay low)
+        ShellCo_Beta   ---- owns ---->  drift-008 (Bernina Wealth, ownership_shift)
 
-    So when SANCTIONED_ENTITY is flagged, Sergei and Helena light up via
-    propagation (2 hops), while distant stable customers do not.
+    When SANCTIONED_ENTITY is flagged, risk propagates via PageRank to Alpine
+    Logistics and Bernina Wealth (2 hops each) — customers who appear on no
+    list but are connected through this shell structure.
+
+    Args:
+        drift_ids: either a list of drift_id strings (name falls back to the id)
+            or a dict mapping drift_id → display name so customer nodes carry
+            their real entity names in the graph response.
     """
+    # Normalise: accept list[str] (legacy) or dict[str, str] (preferred)
+    if isinstance(drift_ids, dict):
+        id_name: dict[str, str] = drift_ids
+    else:
+        id_name = {cid: cid for cid in drift_ids}
+
     g = OwnershipGraph()
 
-    # The entity that gets sanctioned
-    g.add_entity("SANCTIONED_ENTITY", name="Orion Capital Partners", entity_type="company")
+    # The entity that gets sanctioned. Use its real drift_id ("drift-011") so the
+    # frontend can identify it by selectedId and show downstream connections when
+    # the user opens Castor Trade Finance AG's detail page.
+    g.add_entity("drift-011", name="Castor Trade Finance AG", entity_type="company")
 
     # Shell layer
     g.add_entity("ShellCo_Alpha", name="Alpha Holdings SA", entity_type="shell")
     g.add_entity("ShellCo_Beta", name="Beta Ventures Ltd", entity_type="shell")
-    g.add_entity("CleanHolding", name="Helvetia Trust AG", entity_type="company")
 
-    # Customers (link a few of our synthetic drift customers)
-    for cid in drift_ids:
-        g.add_entity(cid, name=cid, is_customer=True, entity_type="individual")
+    # Only add the customers that have ownership edges into the sanctioned
+    # structure — unconnected entities would add noise without story value.
+    CONNECTED = {
+        "drift-003": ("ShellCo_Alpha", 0.30),   # Alpine Logistics — 2 hops, affected
+        "drift-008": ("ShellCo_Beta",  0.25),   # Bernina Wealth   — 2 hops, affected
+    }
+    for cid, (shell, stake) in CONNECTED.items():
+        entity_name = id_name.get(cid, cid)
+        g.add_entity(cid, name=entity_name, is_customer=True, entity_type="individual")
 
     # Ownership edges (owner -> target, stake)
-    g.add_ownership("SANCTIONED_ENTITY", "ShellCo_Alpha", 0.6)
-    g.add_ownership("SANCTIONED_ENTITY", "ShellCo_Beta", 0.4)
+    g.add_ownership("drift-011", "ShellCo_Alpha", 0.6)
+    g.add_ownership("drift-011", "ShellCo_Beta", 0.4)
 
-    # Connect the high-drift customers through the shells
-    if "drift-004" in drift_ids:
-        g.add_ownership("ShellCo_Alpha", "drift-004", 0.3)
-    if "drift-002" in drift_ids:
-        g.add_ownership("ShellCo_Beta", "drift-002", 0.25)
-
-    # A clean holding owning a stable customer (control)
-    g.add_ownership("CleanHolding", "drift-005", 0.5) if "drift-005" in drift_ids else None
+    for cid, (shell, stake) in CONNECTED.items():
+        g.add_ownership(shell, cid, stake)
 
     return g
 

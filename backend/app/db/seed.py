@@ -1,8 +1,12 @@
 """
-Database seeding — fills the freshly recreated DB with mock data at startup.
+Database seeding — two independent paths, both idempotent:
 
-Uses the existing mock_data generators from services/mock_data.py.
-Idempotent: only runs if DB is empty.
+1. KYC baselines (entity_snapshots table): one snapshot per drift subject from
+   the synthetic book. Used by the Drift Engine for source-level comparison.
+
+2. Case Queue (clients + cases tables): 10 private-wealth clients and 18 cases
+   (social engineering, investment recommendations, XRPL transactions) from
+   mock_data.py. Used by the /cases workspace.
 """
 
 from __future__ import annotations
@@ -25,92 +29,34 @@ logger = get_logger(__name__)
 
 async def seed_if_empty(session: AsyncSession) -> bool:
     """
-    Seed the DB with mock data if no clients exist.
-    
-    Returns True if seeding happened, False if skipped.
+    Seed the database if either table is empty. Both paths are idempotent and
+    independent — one can be populated without the other.
+
+    Returns True if any seeding happened, False if both were already populated.
     """
-    # Check if already seeded
-    result = await session.execute(select(ClientDB).limit(1))
-    if result.scalar_one_or_none() is not None:
+    seeded = False
+
+    # --- Path 1: KYC baselines for the Drift Engine ---
+    snap_result = await session.execute(select(EntitySnapshotDB).limit(1))
+    if snap_result.scalar_one_or_none() is None:
+        logger.info("seed_starting", path="kyc_baselines")
+        await _seed_kyc_baselines(session)
+        seeded = True
+
+    # --- Path 2: Case Queue (clients + cases) ---
+    client_result = await session.execute(select(ClientDB).limit(1))
+    if client_result.scalar_one_or_none() is None:
+        logger.info("seed_starting", path="case_queue")
+        await _seed_case_queue(session)
+        seeded = True
+
+    if seeded:
+        await session.commit()
+        logger.info("seed_completed")
+    else:
         logger.info("seed_skipped", reason="already_populated")
-        return False
-    
-    logger.info("seed_starting")
-    
-    # === Seed clients ===
-    mock_clients = generate_mock_clients()
-    for client in mock_clients:
-        profile = client.profile
-        
-        # Pull dynamic profile fields into JSON column
-        profile_data = {
-            "date_of_birth": (
-                profile.date_of_birth.isoformat()
-                if profile.date_of_birth
-                else None
-            ),
-            "preferred_asset_classes": profile.preferred_asset_classes,
-            "typical_transaction_hours": profile.typical_transaction_hours,
-            "typical_transaction_currency": profile.typical_transaction_currency,
-            "whitelist_wallets": profile.whitelist_wallets,
-        }
-        
-        client_db = ClientDB(
-            id=client.id,
-            full_name=profile.full_name,
-            email=profile.email,
-            nationality=profile.nationality,
-            residence_country=profile.residence_country,
-            primary_jurisdiction=profile.primary_jurisdiction,
-            risk_tolerance=profile.risk_tolerance,
-            aum_chf=profile.aum_chf,
-            esg_focus=profile.esg_focus,
-            is_pep=profile.is_pep,
-            sanctions_check_passed=profile.sanctions_check_passed,
-            onboarded_at=profile.onboarded_at,
-            last_review_date=profile.last_review_date,
-            profile_data=profile_data,
-            created_at=client.created_at,
-            updated_at=client.updated_at,
-        )
-        session.add(client_db)
-    
-    # Flush to make clients available for FK references
-    await session.flush()
-    
-    # === Seed cases ===
-    mock_cases = generate_mock_cases(mock_clients)
-    for case in mock_cases:
-        case_db = CaseDB(
-            id=case.id,
-            client_id=case.client_id,
-            case_type=case.case_type,
-            jurisdiction=case.jurisdiction,
-            status=case.status,
-            summary=case.context.summary,
-            context_data=case.context.data,
-            risk_score=case.risk_score,
-            risk_level=case.risk_level,
-            confidence=case.confidence,
-            assigned_to=case.assigned_to,
-            created_at=case.created_at,
-            updated_at=case.updated_at,
-            scored_at=case.scored_at,
-            resolved_at=case.resolved_at,
-        )
-        session.add(case_db)
-    
-    # === Seed KYC baselines from the synthetic drift book ===
-    await _seed_kyc_baselines(session)
 
-    await session.commit()
-
-    logger.info(
-        "seed_completed",
-        client_count=len(mock_clients),
-        case_count=len(mock_cases),
-    )
-    return True
+    return seeded
 
 
 def _mean_of_windows(windows: list) -> float | None:
@@ -164,6 +110,26 @@ async def _seed_kyc_baselines(session: AsyncSession) -> None:
             "AG" if "AG" in customer.name or "Holdings" in customer.name else None
         )
 
+        raw: dict = {
+            "scenario": customer.scenario,
+            "months": customer.months,
+            "drift_start_month": customer.drift_start_month,
+            "sanctions_month": customer.sanctions_month,
+            "causal_truth": customer.causal_truth,
+        }
+        # Persist domain and sanctioned UBO name when set on the customer object,
+        # so the live business-model comparison (UC9) and UBO screening (UC8) can
+        # read them back from the snapshot without re-deriving from the name slug.
+        if getattr(customer, "domain", None):
+            raw["domain"] = customer.domain
+            # Onboarding "as-of" date (yyyymmdd) so the Wayback adapter fetches the
+            # company's website as it looked at onboarding (~4 years before the
+            # demo's present) for the UC9 website-drift comparison. A fixed, old
+            # date guarantees a meaningfully different "before" capture exists.
+            raw["onboarding_date"] = "20220101"
+        if getattr(customer, "sanctioned_ubo_name", None):
+            raw["sanctioned_ubo_name"] = customer.sanctioned_ubo_name
+
         snapshot = EntitySnapshotDB(
             drift_id=customer.drift_id,
             snapshot_date=snapshot_date,
@@ -179,13 +145,7 @@ async def _seed_kyc_baselines(session: AsyncSession) -> None:
             counterparty_risk_mean=_mean_of_windows(baseline_cp),
             corridor_risk_mean=_mean_of_windows(baseline_cr),
             margin_ratio_mean=_mean_of_windows(baseline_margin),
-            raw_data={
-                "scenario": customer.scenario,
-                "months": customer.months,
-                "drift_start_month": customer.drift_start_month,
-                "sanctions_month": customer.sanctions_month,
-                "causal_truth": customer.causal_truth,
-            },
+            raw_data=raw,
         )
         await store_snapshot(session, snapshot, flush=False)
 
@@ -216,3 +176,67 @@ async def _seed_kyc_baselines(session: AsyncSession) -> None:
         await store_snapshot(session, gleif_snapshot, flush=False)
 
     logger.info("kyc_baselines_seeded", count=len(book))
+
+
+async def _seed_case_queue(session: AsyncSession) -> None:
+    """
+    Seed the Case Queue with 10 private-wealth clients and 18 compliance cases
+    (social engineering, investment recommendations, XRPL transactions).
+
+    Converts mock_data.py domain objects to DB rows using the same field
+    mapping as DbStore.add_case() / _client_db_to_domain().
+    """
+    clients = generate_mock_clients()
+
+    for c in clients:
+        p = c.profile
+        client_db = ClientDB(
+            id=c.id,
+            full_name=p.full_name,
+            email=p.email,
+            nationality=p.nationality,
+            residence_country=p.residence_country,
+            primary_jurisdiction=p.primary_jurisdiction,
+            risk_tolerance=p.risk_tolerance,
+            aum_chf=p.aum_chf,
+            esg_focus=p.esg_focus,
+            is_pep=p.is_pep,
+            sanctions_check_passed=p.sanctions_check_passed,
+            onboarded_at=p.onboarded_at,
+            last_review_date=p.last_review_date,
+            profile_data={
+                "date_of_birth": p.date_of_birth.isoformat() if p.date_of_birth else None,
+                "preferred_asset_classes": p.preferred_asset_classes,
+                "whitelist_wallets": p.whitelist_wallets,
+                "typical_transaction_hours": p.typical_transaction_hours,
+                "typical_transaction_currency": p.typical_transaction_currency,
+            },
+            created_at=c.created_at,
+            updated_at=c.updated_at,
+        )
+        session.add(client_db)
+
+    await session.flush()
+
+    cases = generate_mock_cases(clients)
+    for case in cases:
+        case_db = CaseDB(
+            id=case.id,
+            client_id=case.client_id,
+            case_type=case.case_type,
+            jurisdiction=case.jurisdiction,
+            status=case.status,
+            summary=case.context.summary,
+            context_data=case.context.data,
+            risk_score=case.risk_score,
+            risk_level=case.risk_level,
+            confidence=case.confidence,
+            assigned_to=case.assigned_to,
+            created_at=case.created_at,
+            updated_at=case.updated_at,
+            scored_at=case.scored_at,
+            resolved_at=case.resolved_at,
+        )
+        session.add(case_db)
+
+    logger.info("case_queue_seeded", clients=len(clients), cases=len(cases))

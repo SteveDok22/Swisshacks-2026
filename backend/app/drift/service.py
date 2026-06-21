@@ -21,6 +21,7 @@ import json
 import time
 import zlib
 from collections.abc import Iterable
+from dataclasses import replace
 from datetime import UTC, date, datetime
 from typing import Any
 
@@ -90,7 +91,11 @@ from app.schemas.enums import DecisionAction
 from app.services.anthropic_client import get_anthropic_client
 from app.sources.base import EntitySnapshot
 from app.sources.firecrawl import FirecrawlAdapter
-from app.sources.gleif import gather_ownership_snapshots, ownership_change_signals
+from app.sources.gleif import (
+    gather_ownership_snapshots,
+    name_change_signals,
+    ownership_change_signals,
+)
 from app.sources.wayback import WaybackAdapter
 
 logger = get_logger(__name__)
@@ -109,16 +114,20 @@ LLM_PARSE_FALLBACK = {
     "recommended_action": "Request information",
 }
 
-# Sanctioned seed entity for the contagion demo
-SANCTIONED_SEED = "SANCTIONED_ENTITY"
+# Sanctioned seed entity for the contagion demo — must match the drift_id of
+# Castor Trade Finance AG so the contagion graph node is reachable by drift_id.
+SANCTIONED_SEED = "drift-011"
 # Display name for the sanctioned seed node (kept in sync with build_demo_graph
 # so the live-LEI and synthetic graphs label the flagged entity identically).
-SANCTIONED_SEED_NAME = "Orion Capital Partners"
+# drift-011 (Castor Trade Finance AG) is the flagship combo entity that anchors
+# the contagion graph; it is the sanctioned node from which risk propagates.
+SANCTIONED_SEED_NAME = "Castor Trade Finance AG"
 # Wall-clock cap for the startup GLEIF ownership fetch (live mode only). On any
 # timeout or failure the engine falls back to the synthetic demo graph.
 _GLEIF_FETCH_TIMEOUT_S = 30.0
-# Customers wired into the ownership graph as contagion-affected
-CONTAGION_AFFECTED = {"drift-004", "drift-002"}
+# Customers wired into the ownership graph as contagion-affected (1 hop from Castor).
+# drift-003 = Alpine Logistics Group AG (combined), drift-008 = Bernina Wealth Partners AG.
+CONTAGION_AFFECTED = {"drift-003", "drift-008"}
 DRIFT_ANALYSIS_VERSION = "drift-v1"
 
 # Wall-clock cap for the live business-model website fetch (Wayback + Firecrawl)
@@ -126,7 +135,9 @@ DRIFT_ANALYSIS_VERSION = "drift-v1"
 # overrun (a slow archive.org capture, a hung scrape) is abandoned and the
 # customer simply gets no business-model signal. Sized above the Wayback polite
 # delay + two HTTP round-trips, well under the cascade's per-customer budget.
-_WEBSITE_FETCH_TIMEOUT_S = 30.0
+# Generous bound: a cold UC9 fetch chains Wayback (CDX, up to ~30s) + Firecrawl +
+# embedding. Only the first uncached load pays it; cached loads are instant.
+_WEBSITE_FETCH_TIMEOUT_S = 60.0
 # raw_data key under which the comparator's embeddings are persisted, keyed by
 # the SHA-256 text fingerprint the comparator returns. A re-scan reads this back
 # as a read-through cache to skip re-embedding when the website text is unchanged.
@@ -152,6 +163,54 @@ def requires_re_kyc_floor(public_signals: Iterable[PublicSignal]) -> bool:
     these registry-sourced types.
     """
     return any(s.signal_type in RE_KYC_FLOOR_SIGNAL_TYPES for s in public_signals)
+
+
+# A confirmed (definitive) OFAC/EU sanctions match — on the entity itself or on a
+# newly-added UBO — is the strongest possible signal: mandatory escalation to
+# critical regardless of how benign the transaction behaviour looks (UC 5 / UC 8).
+# Floor the drift score here. Fires on the live OpenSanctions definitive hits and
+# on the synthetic ownership_shift / combined sanctioned-UBO scenarios, which
+# mirror that path. Probable (sub-threshold) matches are excluded — they carry a
+# lower severity and still surface via the public layer without forcing critical.
+# 90 lands in the CRITICAL band (>=86 in score_to_level) — a confirmed sanctions
+# match is critical in any AML workflow.
+SANCTIONS_SCORE_FLOOR = 90.0
+
+# News-derived "narrative" signal types. These come from news feeds (Event
+# Registry / GDELT) and the website comparator — sources that are unreliable in
+# live mode (rate limits; the real adverse event often predates the query
+# window). Registry/screening types (ownership_change, sanctions,
+# jurisdiction_change, name_change, domain_change) are NOT here: those are
+# authoritative live and must never be overwritten by a modeled fallback.
+_NARRATIVE_SIGNAL_TYPES = frozenset(
+    {
+        "news",
+        "adverse_media",
+        "funding_event",
+        "business_model_change",
+        "corridor_alert",
+    }
+)
+
+
+def is_definitively_sanctioned(public_signals: Iterable[PublicSignal]) -> bool:
+    """Return True if any public signal is a definitive sanctions match.
+
+    Covers a direct ``sanctions`` hit at the critical severity band and a
+    UBO-screening ``ownership_change`` flagged ``definitive`` in its ``meta``.
+    Pure predicate so the floor policy is unit-testable without the engine.
+    """
+    for s in public_signals:
+        if s.signal_type == "sanctions" and s.severity >= 0.90:
+            return True
+        if (
+            s.signal_type == "ownership_change"
+            and s.meta
+            and s.meta.get("kind") == "ubo_screening"
+            and s.meta.get("definitive")
+        ):
+            return True
+    return False
 
 
 def recommend_drift_action(
@@ -322,7 +381,9 @@ class DriftEngine:
         # has a same-source anchor to fire against (PR #45 follow-up). Live mode
         # only — offline keeps the empty mapping so the diff stays inert and the
         # offline scores are unchanged.
-        if settings.external_apis_enabled:
+        if settings.external_apis_enabled or any(
+            getattr(c, "mode", "synthetic") == "live" for c in self._book
+        ):
             self._gleif_baselines = self._load_gleif_baselines()
         # Contagion is computed once (sanctions already hit in demo state)
         self._contagion = self._graph.propagate(seeds=[SANCTIONED_SEED])
@@ -366,9 +427,9 @@ class DriftEngine:
         synthetic :func:`build_demo_graph` so the contagion demo always has a
         topology to propagate over.
         """
-        drift_ids = [c.drift_id for c in self._book]
+        drift_id_names = {c.drift_id: c.name for c in self._book}
         if not settings.external_apis_enabled:
-            return build_demo_graph(drift_ids)
+            return build_demo_graph(drift_id_names)
 
         self._gleif_snapshots = self._fetch_gleif_snapshots(
             [(c.drift_id, c.name) for c in self._book]
@@ -386,7 +447,7 @@ class DriftEngine:
                 "ownership_graph_fallback_demo",
                 reason="gleif_returned_no_ownership_links",
             )
-            return build_demo_graph(drift_ids)
+            return build_demo_graph(drift_id_names)
         logger.info(
             "ownership_graph_from_gleif", customers=len(self._gleif_snapshots)
         )
@@ -475,6 +536,42 @@ class DriftEngine:
             return []
         return ownership_change_signals(baseline, current)
 
+    def _gleif_name_change_signals(self, cust: SyntheticCustomer) -> list[PublicSignal]:
+        """Emit a real ``name_change`` signal from GLEIF's documented former name.
+
+        Needs only the live GLEIF record (no baseline): GLEIF stores the previous
+        legal name on the record itself. Uses the prebuilt ownership-graph
+        snapshot when present (live-graph mode); otherwise fetches the single
+        record directly (per-entity live mode, the default). Returns ``[]`` when
+        the entity has never been renamed or GLEIF is unreachable.
+        """
+        current = self._gleif_snapshots.get(cust.drift_id)
+        if current is None:
+            current = self._fetch_gleif_record(cust.name)
+        return name_change_signals(current)
+
+    @staticmethod
+    def _fetch_gleif_record(name: str) -> EntitySnapshot | None:
+        """Fetch a single live GLEIF record (thread-isolated, cached, best-effort)."""
+        async def _fetch() -> EntitySnapshot | None:
+            from app.sources.gleif import GleifAdapter
+
+            adapter = GleifAdapter()
+            try:
+                return await adapter.fetch("", name)
+            finally:
+                await adapter.aclose()
+
+        pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        future = pool.submit(asyncio.run, _fetch())
+        try:
+            return future.result(timeout=_GLEIF_FETCH_TIMEOUT_S)
+        except Exception:  # noqa: BLE001 — best-effort; degrade to no signal
+            logger.warning("gleif_name_change_fetch_failed", exc_info=True)
+            return None
+        finally:
+            pool.shutdown(wait=False)
+
     # ------------------------------------------------------------------ #
     # Public-intelligence acquisition (live vs offline)
     # ------------------------------------------------------------------ #
@@ -491,12 +588,34 @@ class DriftEngine:
         the time-travel replay), seeded by ``drift_id`` so the same customer
         always yields the same signals across requests.
         """
-        if settings.external_apis_enabled:
+        if settings.external_apis_enabled or getattr(cust, "mode", "synthetic") == "live":
             signals = gather_public_signals_sync(cust.drift_id, cust.name)
             # The aggregator cannot carry per-source KYC baselines, so the GLEIF
             # ownership-chain diff (use case 3) is layered in here alongside the
             # other adapters' signals, then re-sorted by month.
             signals.extend(self._gleif_ownership_signals(cust))
+            # Real GLEIF name-change (UC4/UC8) from the record's former legal name.
+            signals.extend(self._gleif_name_change_signals(cust))
+            # Hybrid fallback: registry/screening sources (GLEIF, OpenSanctions,
+            # WHOIS) are reliable live, but the live NEWS feeds frequently have no
+            # recent coverage of a given entity — rate limits, or the real adverse
+            # event predates the query window (e.g. a 2023 short-seller report seen
+            # from a 2026 "today"). When the live feed yields no news-derived
+            # narrative signal, fill the gap from the deterministic scenario so the
+            # public layer is never empty. These are tagged ("(modeled)" source +
+            # meta provenance) so they are never passed off as live data.
+            if not any(
+                s.signal_type in _NARRATIVE_SIGNAL_TYPES for s in signals
+            ):
+                # Prefer REAL recent articles (real title + real article URL) so
+                # the live entity's signal cards link straight to the source.
+                # Only when the live news feed is genuinely empty do we fall back
+                # to the deterministic, clearly-labelled modeled narrative.
+                real_news = self._live_news_signals(cust)
+                if real_news:
+                    signals.extend(real_news)
+                else:
+                    signals.extend(self._modeled_narrative_signals(cust))
             return sorted(signals, key=lambda s: s.month)
         return generate_signals_for_customer(
             cust.drift_id,
@@ -509,6 +628,65 @@ class DriftEngine:
             # PYTHONHASHSEED, which would make "deterministic" signals vary.
             seed=zlib.crc32(cust.drift_id.encode()) % 10000,
         )
+
+    @staticmethod
+    def _live_news_signals(cust: SyntheticCustomer) -> list[PublicSignal]:
+        """Real recent-article news signals for a live entity (real title + URL).
+
+        Synchronous bridge (same thread-isolated ``asyncio.run`` pattern as the
+        GLEIF loaders) so it is safe under the running FastAPI loop. Best-effort:
+        any failure or timeout returns ``[]`` and the caller falls back to the
+        modeled narrative. Results are disk-cached by the adapter, so the demo
+        replays them offline.
+        """
+        async def _fetch() -> list[PublicSignal]:
+            from app.sources.event_registry import EventRegistryAdapter
+
+            adapter = EventRegistryAdapter()
+            return await adapter.fetch_recent_news(cust.drift_id, cust.name)
+
+        pool = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+        future = pool.submit(asyncio.run, _fetch())
+        try:
+            return future.result(timeout=_GLEIF_FETCH_TIMEOUT_S)
+        except Exception:  # noqa: BLE001 — best-effort; fall back to modeled
+            logger.warning("live_news_fetch_failed", exc_info=True)
+            return []
+        finally:
+            pool.shutdown(wait=False)
+
+    def _modeled_narrative_signals(
+        self, cust: SyntheticCustomer
+    ) -> list[PublicSignal]:
+        """News-derived narrative signals from the scenario, tagged as modeled.
+
+        Used only as the live-mode hybrid fallback (see ``_public_signals``) when
+        the live news feed returns no narrative coverage. Each signal's ``source``
+        gets a ``" (modeled)"`` suffix and ``meta["provenance"] = "scenario"`` so
+        the UI and any downstream consumer can tell it apart from authoritative
+        live data. Registry/screening types are excluded — those only ever come
+        from real adapters in live mode.
+        """
+        modeled = generate_signals_for_customer(
+            cust.drift_id,
+            cust.name,
+            cust.scenario,
+            months=cust.months,
+            drift_start_month=cust.drift_start_month,
+            seed=zlib.crc32(cust.drift_id.encode()) % 10000,
+        )
+        tagged: list[PublicSignal] = []
+        for s in modeled:
+            if s.signal_type not in _NARRATIVE_SIGNAL_TYPES:
+                continue
+            tagged.append(
+                replace(
+                    s,
+                    source=f"{s.source} (modeled)",
+                    meta={**(s.meta or {}), "provenance": "scenario"},
+                )
+            )
+        return tagged
 
     # ------------------------------------------------------------------ #
     # Business-model drift (UC 9)
@@ -533,7 +711,7 @@ class DriftEngine:
         Either way the pure comparator never raises and never requires a model
         download at request time — an unavailable backend yields a skipped result.
         """
-        if settings.external_apis_enabled:
+        if settings.external_apis_enabled or getattr(cust, "mode", "synthetic") == "live":
             return self._live_business_model_comparison(cust)
 
         onboarding = cust.onboarding_website_text
@@ -603,11 +781,12 @@ class DriftEngine:
             logger.info("business_model_live_no_domain", drift_id=drift_id)
             return None
 
-        wayback_text = await self._fetch_wayback_text(
-            drift_id, name, domain, onboarding_date
-        )
-        current_text, current_url = await self._fetch_firecrawl_text(
-            drift_id, name, domain
+        # Fetch the archived (Wayback) and current (Firecrawl) pages concurrently
+        # — they are independent, so this keeps a cold run well inside the
+        # _WEBSITE_FETCH_TIMEOUT_S budget instead of summing both fetches.
+        (wayback_text, wayback_url), (current_text, current_url) = await asyncio.gather(
+            self._fetch_wayback_text(drift_id, name, domain, onboarding_date),
+            self._fetch_firecrawl_text(drift_id, name, domain),
         )
 
         # Fingerprint the STRIPPED text the comparator embeds, so a persisted
@@ -631,6 +810,24 @@ class DriftEngine:
             current_cache=cur_cache,
             source_url=current_url,
         )
+
+        # Enrich the result with the archived/live URLs and two really-short
+        # before/after LLM summaries so the UC9 panel reads at a glance. Use the
+        # human-facing Wayback URL (strip the ``id_`` raw-bytes modifier, which
+        # serves unstyled content that does not render as a page in a browser).
+        if result.is_change and not result.skipped:
+            summary = self._summarize_website_change(
+                name, wayback_text or "", current_text or ""
+            )
+            display_wayback_url = (
+                wayback_url.replace("id_/", "/", 1) if wayback_url else None
+            )
+            result = replace(
+                result,
+                wayback_url=display_wayback_url,
+                current_url=current_url,
+                summary=summary,
+            )
 
         # Persist the embeddings actually used (never the degenerate ones a skip
         # withholds). Keep only the two current fingerprints so the cache stays
@@ -727,8 +924,8 @@ class DriftEngine:
 
     async def _fetch_wayback_text(
         self, drift_id: str, name: str, domain: str, onboarding_date: str | None
-    ) -> str | None:
-        """Fetch the onboarding-era website text via Wayback. None on any error."""
+    ) -> tuple[str | None, str | None]:
+        """Fetch onboarding website text + snapshot URL via Wayback. (None, None) on error."""
         adapter = WaybackAdapter()
         try:
             snap = await adapter.fetch(
@@ -738,10 +935,12 @@ class DriftEngine:
             logger.warning(
                 "business_model_wayback_failed", drift_id=drift_id, exc_info=True
             )
-            return None
+            return None, None
         finally:
             await self._safe_aclose(adapter)
-        return snap.raw_data.get("website_text") if snap else None
+        if snap is None:
+            return None, None
+        return snap.raw_data.get("website_text"), snap.raw_data.get("snapshot_url")
 
     async def _fetch_firecrawl_text(
         self, drift_id: str, name: str, domain: str
@@ -760,6 +959,29 @@ class DriftEngine:
         if snap is None:
             return None, None
         return snap.raw_data.get("website_text"), snap.raw_data.get("url")
+
+    @staticmethod
+    def _summarize_website_change(name: str, before: str, after: str) -> str | None:
+        """One really-short LLM summary of how the website changed (the diff).
+
+        A single short sentence (~max 16 words). One LLM call, disk-cached, so it
+        costs tokens once per entity and replays offline. ``None`` on any failure.
+        """
+        try:
+            llm = get_anthropic_client()
+            prompt = (
+                f"Company: {name}\n\n"
+                f"WEBSITE AT ONBOARDING (excerpt):\n{before[:1500]}\n\n"
+                f"WEBSITE NOW (excerpt):\n{after[:1500]}\n\n"
+                "In ONE short sentence (max 16 words), say what changed between "
+                "the onboarding website and the current one. If nothing "
+                "substantive changed, answer exactly: 'Minor wording changes only.'"
+            )
+            text, _, _ = llm.complete(prompt, max_tokens=70)
+            return text.strip()[:200] or None
+        except Exception:  # noqa: BLE001 — summary is best-effort
+            logger.warning("business_model_summary_failed", exc_info=True)
+            return None
 
     @staticmethod
     async def _safe_aclose(adapter: Any) -> None:
@@ -803,6 +1025,12 @@ class DriftEngine:
         bm = self._business_model_comparison(cust)
         if bm is not None and bm.signal is not None:
             public_signals = [*public_signals, bm.signal]
+        # Surface the real live website texts (Wayback onboarding vs Firecrawl
+        # current) so the UC9 side-by-side diff panel renders them. For the
+        # synthetic domain_pivot entity these are already set on the customer.
+        if bm is not None and bm.wayback_text and bm.current_text:
+            cust.onboarding_website_text = bm.wayback_text
+            cust.current_website_text = bm.current_text
 
         # --- Shared passive-layer analysis (identical formula to training) ---
         analysis = compute_drift_analysis(
@@ -815,6 +1043,9 @@ class DriftEngine:
         analysis["business_model_distance"] = (
             round(bm.distance, 4) if bm is not None else 0.0
         )
+        analysis["onboarding_website_url"] = bm.wayback_url if bm is not None else None
+        analysis["current_website_url"] = bm.current_url if bm is not None else None
+        analysis["business_model_summary"] = bm.summary if bm is not None else None
         score = analysis["drift_score"]
 
         # XGBoost ML blend — applied BEFORE the regulatory floors below.
@@ -876,6 +1107,14 @@ class DriftEngine:
         # the model can never lower a regulatory floor (see the note above it).
         if requires_re_kyc_floor(analysis["public_signals"]):
             score = max(score, RE_KYC_SCORE_FLOOR)
+
+        # Sanctions ELEVATION (UC 5 / UC 8) — a confirmed sanctions match on the
+        # entity or a newly-added UBO is a mandatory escalation. Floor at
+        # SANCTIONS_SCORE_FLOOR so a sanctioned entity with a deliberately clean
+        # transaction profile (the ownership_shift scenario) still surfaces as
+        # critical. Same "cannot hide below the radar" policy as the floors above.
+        if is_definitively_sanctioned(analysis["public_signals"]):
+            score = max(score, SANCTIONS_SCORE_FLOOR)
 
         # Name-change ELEVATION (UC8) — a confirmed legal-entity name change is a
         # mandatory re-KYC trigger. The ZEFIX/GLEIF/WHOIS diffs (live adapters)
@@ -1139,7 +1378,9 @@ class DriftEngine:
                     dormancy_break=round(a["dormancy"].dormancy_break, 3),
                     is_dormancy_break=a["dormancy"].is_dormancy_break,
                     is_name_changed=a["name_changed"],
+                    risk_level=score_to_level(a["drift_score"]).value,
                     scenario=cust.scenario,
+                    mode=getattr(cust, "mode", "synthetic"),
                 )
             )
         out.sort(key=lambda c: c.drift_score, reverse=True)
@@ -1215,6 +1456,7 @@ class DriftEngine:
             layers=self._build_layers(cust, a),
             timeline=timeline,
             scenario=cust.scenario,
+            mode=getattr(cust, "mode", "synthetic"),
             drift_start_month=cust.drift_start_month,
             sanctions_month=cust.sanctions_month,
             bocpd_changepoint_day=a["bocpd_changepoint_day"],
@@ -1229,6 +1471,13 @@ class DriftEngine:
             is_name_changed=a["name_changed"],
             is_business_model_change=a.get("is_business_model_change", False),
             business_model_distance=a.get("business_model_distance", 0.0),
+            # The raw crawled website text is intentionally NOT returned — it is
+            # long/noisy and the UI shows only the LLM summary + the two links.
+            onboarding_website_text=None,
+            current_website_text=None,
+            onboarding_website_url=a.get("onboarding_website_url"),
+            current_website_url=a.get("current_website_url"),
+            business_model_summary=a.get("business_model_summary"),
             causal=CausalVerdictOut(
                 causal_llr=round(a["causal"].causal_llr, 2),
                 p_risk=round(a["causal"].p_risk, 3),

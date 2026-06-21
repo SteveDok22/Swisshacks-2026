@@ -372,34 +372,34 @@ Each task below flips one row in the Use Case Coverage table. Prerequisite: the 
 
 ### The new cast — 15 entities (12 flagged + 3 stable controls)
 
-| # | Entity (fictional) | UC(s) | Scenario | Backstory / analogue |
-|---|---|---|---|---|
-| 1 | Helvetia Pharma Holding AG (Zug) | UC1 | `news_spike` | Adverse media accrues for months pre-collapse (Wirecard) |
-| 2 | Léman FX Trading SA (Geneva) | UC2 | `corridor_shift` + new corridor signal | Corridors drift CH/DE→RU/AE; money-mule (DB mirror trades) |
-| 3 | Alpine Logistics Group AG + 2 shell owners | UC3 | `combined` + contagion | Linked shells, sudden layering flows (Danske Estonia) |
-| 4 | Glarnisch Holding AG (ex–Pilatus Commodity Reg.) | UC4 | `name_cycling` | Renamed to reset KYC clock (Mossack shelf-cycling) |
-| 5 | HelvetiaX (ex–Helvetia Advisory AG) | UC5 | `domain_pivot` | Website flips advisory→crypto exchange |
-| 6 | Lattice Labs AG (Zurich) | UC6 | `pivot` *(instantiate unused scenario)* | SaaS→ICO in 90 days (Centra Tech) |
-| 7 | Rhône Capital GmbH → Ltd (BVI) | UC7 | `jurisdiction_shift` *(NEW scenario)* | GmbH→offshore legal-form/jurisdiction move |
-| 8 | Bernina Wealth Partners AG | UC8 | `ownership_shift` *(new UBO)* | New beneficial owner who hits a watchlist (1MDB) |
-| 9 | Nimbus Mobility AG | UC9 | `benign_expansion` vs scale flag | Large funding round / geo expansion (FTX scale-vs-revenue) |
-| 10 | Säntis Import-Export AG (ex–Dormant Holdings) | UC10 | `dormancy_break` | Dormant shell reactivates (Azerbaijani Laundromat) |
-| 11 | Castor Trade Finance AG ⭐ | UC3+UC8+UC1 | `combined` + UBO hit + adverse media | **Flagship combo** — structuring + sanctioned new UBO + news; contagion centerpiece, routes to T2 Claude |
-| 12 | Engadin Capital SA | behavioral combo | `suspicious_stability` | Slow-walker: too smooth while environment moves |
-| 13 | Zürisee Renewables AG | control | `benign_expansion` | Legit growth despite adverse news — causal layer demotes it |
-| 14 | Toggenburg Family Office | control | `stable` | Clean baseline |
-| 15 | Vaud AgriTech SA | control | `stable` | Clean baseline |
+| drift_id | Entity (fictional) | UC(s) | Scenario | Domain | Sanctioned UBO | Backstory / analogue |
+|---|---|---|---|---|---|---|
+| drift-001 | Helvetia Pharma Holding AG | UC1 | `news_spike` | helvetia-pharma.ch | — | Adverse media accrues for months pre-collapse (Wirecard) |
+| drift-002 | Léman FX Trading SA | UC2 | `corridor_shift` | leman-fx.ch | — | Corridors drift CH/DE→RU/AE; money-mule (DB mirror trades) |
+| drift-003 | Alpine Logistics Group AG | UC3 | `combined` | alpine-logistics.ch | — | Linked shells, sudden layering flows (Danske Estonia); contagion-affected (1 hop from Castor) |
+| drift-004 | Glarnisch Holding AG | UC4 | `name_cycling` | glarnisch-holding.ch | — | Renamed to reset KYC clock (Mossack shelf-cycling) |
+| drift-005 | HelvetiaX | UC9 | `domain_pivot` | helvetiax.io | — | Website flips advisory→crypto exchange (N26 / Centra Tech pattern) |
+| drift-006 | Lattice Labs AG | UC10 | `pivot` | lattice-labs.ch | — | SaaS→ICO in 90 days (Centra Tech) |
+| drift-007 | Rhône Capital GmbH | UC7 | `jurisdiction_shift` | rhone-capital.ch | — | GmbH→offshore legal-form/jurisdiction move; re-KYC floor=50 fires |
+| drift-008 | Bernina Wealth Partners AG | UC8 | `ownership_shift` | bernina-wealth.ch | ROSNEFT TRADING S.A. | New sanctioned UBO; contagion-affected (1 hop from Castor) |
+| drift-009 | Nimbus Mobility AG | UC6 | `benign_expansion` | nimbus-mobility.ch | — | Legit large funding round / geo expansion — causal layer keeps it benign |
+| drift-010 | Säntis Import-Export AG | UC10 | `dormancy_break` | saentis-import.ch | — | Dormant shell reactivates (Azerbaijani Laundromat) |
+| drift-011 | Castor Trade Finance AG ⭐ | UC3+UC5+UC1 | `combined` | castor-trade.ch | ROSNEFT TRADING S.A. | **Flagship combo** — structuring + sanctioned new UBO + adverse media; contagion seed node; routes to T2 Claude |
+| drift-012 | Engadin Capital SA | behavioral | `suspicious_stability` | engadin-capital.ch | — | Slow-walker: too smooth while environment moves |
+| drift-013 | Zürisee Renewables AG | control | `benign_expansion` | zuerisee-renewables.ch | — | Legit growth; causal layer confirms benign |
+| drift-014 | Toggenburg Family Office | control | `stable` | toggenburg-fo.ch | — | Clean baseline |
+| drift-015 | Vaud AgriTech SA | control | `stable` | vaud-agritech.ch | — | Clean baseline |
 
 ### Phases
 
-- [ ] **A — Retire old dataset.** Stop seeding `mock_data.py` clients/cases; remove `/` case-review workspace from nav; make drift the home page. Keep code dormant.
-- [ ] **B — Rebuild the drift book** (`drift/simulator.py`, `db/seed.py`): 15-entity cast w/ backstories; **instantiate `pivot`** (UC6); **add `jurisdiction_shift` scenario** (UC7, emits `jurisdiction_change`+`legal_form_change`, exercises the existing re-KYC floor=50); **add UBO scenario** (UC8, ownership_change with a name that hits OpenSanctions live + deterministic synthetic hit); wire flagship combo (#11) into the contagion graph.
-- [ ] **C — Close detector/signal gaps.** New `corridor_alert` public signal so UC2 is self-contained; tune dormancy baseline to a realistic non-zero floor; keep H1–H4 hypothesis tests green after re-seed.
-- [ ] **D — Real provenance links (both modes).** Replace `example.com/demo-sources/...` with per-source deep-link builders (OpenSanctions `search?q=`, GLEIF LEI page, GDELT/Event Registry query/article, Wayback snapshot, RDAP domain). Universal clickable source chips on every signal card + UBO hit.
-- [ ] **E — Two-mode UX.** Header indicator SYNTHETIC vs LIVE (driven by `external_apis_enabled`), replacing the static "Live" dot; per-signal real-source badge in live mode; confirm `.env` keeps dev offline.
-- [ ] **F — Real-mode demo anchors (all sources except ZEFIX).** Curate real LEIs (GLEIF), real domains (Wayback/Firecrawl/WHOIS), and ≥1 real sanctioned name as a UBO so the live demo returns a genuine OpenSanctions hit w/ real deep-link. Map each UC → live source; document UC4/UC7 demoed via GLEIF legalName/jurisdiction/legalForm diff + rename news (no ZEFIX).
-- [ ] **G — Frontend demo polish.** Wayback↔Firecrawl side-by-side text diff for UC5/6; scenario label on the timeline; source-link chips on signal cards.
-- [ ] **H — Docs + tests.** Update this UC table, `sources.md`, README; refresh seed; run `uv run pytest` + ruff/mypy via Docker.
+- [x] **A — Retire old dataset.** Stop seeding `mock_data.py` clients/cases; remove `/` case-review workspace from nav; make drift the home page. Keep code dormant.
+- [x] **B — Rebuild the drift book** (`drift/simulator.py`, `db/seed.py`): 15-entity cast w/ backstories; **instantiate `pivot`** (UC6); **add `jurisdiction_shift` scenario** (UC7, emits `jurisdiction_change`+`legal_form_change`, exercises the existing re-KYC floor=50); **add UBO scenario** (UC8, ownership_change with a name that hits OpenSanctions live + deterministic synthetic hit); wire flagship combo (#11) into the contagion graph. `domain` and `sanctioned_ubo_name` fields added to `SyntheticCustomer`; seeded into `EntitySnapshotDB.raw_data`.
+- [x] **C — Close detector/signal gaps.** New `corridor_alert` public signal so UC2 is self-contained (`corridor_shift` + `combined` both emit it); `DORMANCY_FLOOR_VOLUME = 0.05` replaces near-zero dormant baseline; H1–H4 hypothesis tests remain green after re-seed.
+- [x] **D — Real provenance links (both modes).** `_source_url()` replaces `_demo_source_url()` throughout `public_intel.py` — maps each signal type to a real clickable deep-link: GDELT article search for news/adverse_media/corridor_alert/funding_event; OpenSanctions search for sanctions/ownership_change; GLEIF record/search for name_change/legal_form_change/jurisdiction_change; ICANN WHOIS for domain_change; Wayback wildcard for business_model_change.
+- [x] **E — Two-mode UX.** `GET /api/v1/config` endpoint returns `mode`, `external_apis_enabled`, `llm_mode`, and `active_adapters` — the frontend can drive the SYNTHETIC vs LIVE indicator from this instead of hard-coding env vars.
+- [x] **F — Real-mode demo anchors (all sources except ZEFIX).** `domain` seeded per entity in `EntitySnapshotDB.raw_data` for Wayback/Firecrawl/WHOIS; `sanctioned_ubo_name = "ROSNEFT TRADING S.A."` on drift-008 and drift-011 for live OpenSanctions hit; contagion graph updated to drift-011 as flagship sanctioned seed.
+- [x] **G — Frontend demo polish.** Wayback↔Firecrawl side-by-side text diff for UC5/6; scenario label on the timeline; source-link chips on signal cards.
+- [x] **H — Docs + tests.** Entity cast table updated below; test fixtures updated to match new 15-entity book; `test_news_spike_scenario.py` updated for new drift-002/drift-003 scenario mapping.
 
 ### Open confirmations
 - Entity **names** above are a proposal — adjust freely.

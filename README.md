@@ -65,6 +65,10 @@ Derived from the [AMINA Challenge 4 brief](https://github.com/SwissHacks-2026/Am
   </div>
 
 - **BR6 — Audit logs:** immutable, replayable history of every signal, score, and decision.
+
+  <div align="center">
+  <img src="docs/screenshots/gifs/Audit-Log.gif" alt="Filterable, immutable audit log" width="700">
+  </div>
 - **BR7 — Cost awareness:** staged pipeline — rules first, ML second, LLM only for high-risk cases; the scan report tracks actual T2 LLM adjudications separately from the LLM-on-everything counterfactual baseline.
 
 ### Judging Criteria Coverage

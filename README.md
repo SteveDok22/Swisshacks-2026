@@ -196,6 +196,12 @@ The Drift Engine workspace presents a verdict-first view: a recommended action u
 <img src="docs/screenshots/gifs/TWO-LAYER-INTELLIGENCE-EXTERNAL-SIGNALS-Rosneft-Trading-Source.gif" alt="Two-Layer Intelligence panel: external signals and source for Rosneft Trading S.A." width="800">
 </div>
 
+**Contagion Graph** — UBO screening, ownership chain, and sanctions propagation:
+
+<div align="center">
+<img src="docs/screenshots/gifs/UBO-Screening-Ownership-Chain-Sanctions.gif" alt="UBO screening: ownership chain and sanctions feeding the Two-Layer Intelligence panel" width="800">
+</div>
+
 ---
 
 ## Technologies Used

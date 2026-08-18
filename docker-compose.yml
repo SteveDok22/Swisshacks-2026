@@ -3,8 +3,12 @@
 #   docker compose up --build
 #
 #   frontend (Next.js dev server, HMR) -> http://localhost:3000
-#   backend  (uvicorn --reload)        -> http://localhost:8000/docs
+#   backend  (uvicorn --reload)        -> http://localhost:8001/docs
 #   database -> disposable SQLite, recreated on backend startup (no DB container)
+#
+# Backend host port is 8001 (not 8000) to avoid clashing with other local
+# projects that commonly bind 8000; internal container-to-container traffic
+# (frontend -> backend, BACKEND_INTERNAL_URL) still uses port 8000 unchanged.
 #
 # Docker Compose has no built-in --dev/--prod switch and volume mounts can't be
 # toggled by env vars, so this single file is tuned for local development.
@@ -18,7 +22,7 @@ services:
     container_name: swisshacks-backend
     restart: unless-stopped
     ports:
-      - "8000:8000"
+      - "8001:8000"
     environment:
       - ENVIRONMENT=development
       - DEBUG=true

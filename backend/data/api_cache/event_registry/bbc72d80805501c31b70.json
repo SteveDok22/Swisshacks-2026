@@ -1,0 +1,243 @@
+{
+  "key_raw": "article/getArticles:6786a85ef8a9a58f",
+  "cached_at": "2026-07-15T08:17:50.378912+00:00",
+  "data": {
+    "articles": {
+      "results": [
+        {
+          "uri": "9395007756",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-15",
+          "time": "08:06:51",
+          "dateTime": "2026-07-15T08:06:51Z",
+          "dateTimePub": "2026-07-15T08:06:20Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.dailymirror.lk/breaking-news/Two-Russian-firms-registered-to-supply-crude-oil-to-CPC/108-345698",
+          "title": "Two Russian firms registered to supply crude oil to CPC",
+          "body": "Colombo, July 15 (Daily Mirror) - Two Russian companies have been registered as fuel suppliers for Sri Lanka, enabling them to bid to supply crude oil for the Ceylon Petroleum Corporation's (CPC) refinery operations.\n\nCPC Managing Director Mayura Neththikumarage said the registration allows M/s. Rosneft Oil Company and JSC Zarubezhneft to participate in fuel supply tenders.\n\nHe said the next tender for the purchase of crude oil is scheduled to open on July 21, and both Russian firms will be eligible to submit bids.\n\nAccording to the CPC, nearly 15 companies are currently registered to supply fuel to Sri Lanka.",
+          "source": {
+            "uri": "dailymirror.lk",
+            "dataType": "news",
+            "title": "Daily Mirror"
+          },
+          "authors": [],
+          "image": "https://bmkltsly13vb.compat.objectstorage.ap-singapore-1.oraclecloud.com/cdn.sg.dailymirror.lk/assets/uploads/image_6970361c7d.jpg",
+          "eventUri": null,
+          "sentiment": -0.2470588235294118,
+          "wgt": 521798811,
+          "relevance": 1
+        },
+        {
+          "uri": "9394526207",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-14",
+          "time": "20:50:24",
+          "dateTime": "2026-07-14T20:50:24Z",
+          "dateTimePub": "2026-07-14T20:49:17Z",
+          "dataType": "news",
+          "sim": 0.4235294163227081,
+          "url": "https://euromaidanpress.com/2026/07/14/russo-ukrainian-war-day-1602-allies-rally-around-kyiv-but-air-defense-still-lags-behind-wars-pace/",
+          "title": "Russo-Ukrainian war, day 1602: Allies rally around Kyiv, but air defense still lags behind war's pace",
+          "body": "Ukraine sank Russian ship that shot at its sailors in 2018 with Sargan-3000 naval drone. The satellite image confirms the destruction of the Russian border patrol ship Izumrud at the mooring wall.\n\nConsequences of own destruction: Russia is stripping canal it killed to fix Crimean substations Ukraine keeps hitting. ATESH says Russia has begun removing 10-40 MVA transformers from Northern Crimean Canal pumping stations, idle since Moscow destroyed the Kakhovka dam.\n\n116 Russian ships in nine days: One big export tanker needs 12-15 small ones to fill it. Ukraine is burning the small ones. Three drone units carried out the latest overnight strikes under operation MoLoChKa, whose name reads like Ukrainian slang for dairy products.\n\nA plant making 150 products from gasoline to polyethylene caught fire 1,300 km from the war zone -- Ukraine hits two refineries overnight. Fires broke out at the Afipsky refinery's tank farm area, the Gazprom Neftekhim Salavat complex, and, likely, the Rosneft-Opt depot next door, monitoring channels and Astra report.\n\nUkraine put armed robot on Russian-held ground. Naval drone was landing craft. Ukraine's 123rd Brigade delivered a ground robot to the Russian-held Kinburn Spit aboard an unmanned surface vessel and landed it to fight.\n\nIntelligence and technology\n\nUkraine kills Russian radars with drones, then strikes through gap. France flew both in one package on jet Ukraine gets in 2028. Dassault and Harmattan AI say a Rafale F4 controlled a drone carrying the new NAMIB system, which found a simulated enemy radar dozens of kilometers away.\n\nDenmark sent Ukraine something essential that keeps F-16 parts airworthy.\n\nUkraine is building a flight school under fire -- and the simulator delivery shows how fast. Scarce jets, contested skies, no fixed base that can stay hidden. Ukraine's answer: train pilots on Ukrainian soil, in equipment that moves.\n\nEurope's answer to the Patriot costs $700,000 a shot -- and no foreign government can switch it off. Ten nations joined the coalition. Ukraine has the missile. Germany has the seeker Ukraine still needs to sign for. Nobody has an intercept yet -- and the clock says 12 months\n\nRussia's ex-space chief calls for \"systematic zeroing out\" of the Starlink satellite constellation. Senator Dmitry Rogozin claims cutting Ukraine off from SpaceX's network would end the war within two to three weeks -- and that Russia knows several ways to do it.\n\nInternational\n\nUkrainian pilots opened the Bastille Day flypast from French fighter jets. Macron's last parade as president had no American aircraft and one deliberate message. Ukraine flew it\n\nHungary votes to remove Orbán-loyal president as Magyar dismantles Fidesz system. The constitutional amendment targets Tamás Sulyok and caps lawmakers' tenure at 12 years. Magyar's break with Orbán remains sharper at home than on Ukraine.\n\nTwo months in office, three blows to Ukraine: Bulgaria's premier stacks Coalition of the Willing exit on aid freeze and sanctions blocks. Since May, Radev has stopped state military aid, defended two prominent Russians from EU blacklists, and now removed Bulgaria from the group backing Kyiv against Russian aggression.\n\nWarsaw refuses to lift its embargo on Ukrainian agricultural products. The new EU-Ukraine trade agreement should erase all unilateral restrictions from November, yet Poland, Slovakia, and Hungary hold on to their own bans.\n\nHumanitarian and social impact\n\nPolish man approached passerby in Łódź and hit him twice in head. Police say he took him for Ukrainian. Police in Łódź are searching for a man who fractured a passerby's nose and jaw after mistaking him for a Ukrainian.\n\nPolitical and legal developments\n\nUkrainian new state award's second criterion contributes to security of all Europe. 271 MPs backed a new state award for services to Ukraine's EU accession, a day before the EU is due to open Ukraine's sixth negotiating cluster.\n\nUkraine votes to dismiss its PM. She hasn't accepted the exit job offered. Three sources say the outgoing premier is not considering the Washington posting used to justify her removal.\n\nOlenivka officials and Taganrog jail land on EU sanctions list for abuse of Ukrainian prisoners. Brussels adopted the listings under two human-rights regimes, targeting the command chains of detention facilities in occupied Ukraine and inside Russia.\n\n\"Incredible legacy for him\": Days after Graham's death, Trump says he's ready to move on his Russia sanctions bill. Trump supports the sanctions package the late Senator Lindsey Graham spent two years trying to pass. The Senate needs a new lead sponsor.\n\nUkraine's Supreme Court refused to lift Zelenskyy's sanctions on opposition leader. The Supreme Court rejected Poroshenko's challenge to sanctions that freeze his assets and strip his state awards. He says the judges were pressured.\n\nRead our earlier daily review here.",
+          "source": {
+            "uri": "euromaidanpress.com",
+            "dataType": "news",
+            "title": "Euromaidan Press"
+          },
+          "authors": [],
+          "image": "https://euromaidanpress.com/wp-content/uploads/2026/07/Russo-Ukrainian-war-daily-review-5.jpg",
+          "eventUri": "eng-11825957",
+          "sentiment": -0.3647058823529412,
+          "wgt": 521758224,
+          "relevance": 1
+        },
+        {
+          "uri": "9394368844",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-14",
+          "time": "17:39:49",
+          "dateTime": "2026-07-14T17:39:49Z",
+          "dateTimePub": "2026-07-14T17:15:00Z",
+          "dataType": "news",
+          "sim": 0.658823549747467,
+          "url": "https://www.wsj.com/politics/policy/lindsey-grahams-tariffs-bill-would-target-china-india-as-russian-oil-buyers-f871211c",
+          "title": "Exclusive | Lindsey Graham's Tariffs Bill Would Target China, India as Russian Oil Buyers",
+          "userHasPermissions": false,
+          "body": "A proposed bill backed by the late Sen. Lindsey Graham would give President Trump authority to impose up to 100% tariffs on the top five buyers of Russian oil and gas.View more\n\nWASHINGTON -- A new bill that had been championed by the late Sen. Lindsey Graham would give President Trump fresh ...",
+          "source": {
+            "uri": "wsj.com",
+            "dataType": "news",
+            "title": "The Wall Street Journal",
+            "private": true
+          },
+          "authors": [
+            {
+              "uri": "yoko_kubota@wsj.com",
+              "name": "Yoko Kubota",
+              "type": "author",
+              "isAgency": false
+            },
+            {
+              "uri": "alexander_ward@wsj.com",
+              "name": "Alexander Ward",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://images.wsj.net/im-87033485/social",
+          "eventUri": "eng-11831426",
+          "sentiment": -0.1137254901960785,
+          "wgt": 521746789,
+          "relevance": 1
+        },
+        {
+          "uri": "9394260700",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-14",
+          "time": "15:52:55",
+          "dateTime": "2026-07-14T15:52:55Z",
+          "dateTimePub": "2026-07-14T15:50:53Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://meduza.io/en/news/2026/07/14/no-exceptions-the-governor-of-russia-s-leningrad-region-tells-his-own-officials-to-line-up-for-gas-like-everyone-else",
+          "title": "'No exceptions': The governor of Russia's Leningrad region tells his own officials to line up for gas like everyone else -- Meduza",
+          "body": "Alexander Drozdenko, the governor of Russia's Leningrad region, has ordered limits on fueling government vehicles. Officials will be held to the same limits as local residents.\n\nThe authorities \"must set an example,\" Drozdenko said, when they are asking residents to be understanding about \"temporary difficulties with fuel.\"\n\n\"No exceptions. This is enough to handle current tasks, and if something isn't enough, there's always video calls. There will be no unnecessary trips,\" Drozdenko said.\n\nIn St. Petersburg, no such restrictions have been imposed on officials, but government vehicles refuel under the standard procedure at Rosneft gas stations, sources told the Telegram news channel Rotonda. On a hotline, however, a Rotonda journalist was told that government vehicles should be allowed to skip the line, the channel reported.\n\nIn the Leningrad region, gas station chains set their own fuel limits, the independent Russian news outlet Mediazona reported. In late June, for example, Lukoil was selling no more than 30 liters per customer.\n\nRussia began restricting fuel sales amid a fuel crisis that has worsened because of Ukrainian drone strikes on Russian oil facilities.",
+          "source": {
+            "uri": "meduza.io",
+            "dataType": "news",
+            "title": "Meduza"
+          },
+          "authors": [],
+          "image": "https://meduza.io/imgly/share/1784044253/en/news/2026/07/14/no-exceptions-the-governor-of-russia-s-leningrad-region-tells-his-own-officials-to-line-up-for-gas-like-everyone-else",
+          "eventUri": null,
+          "sentiment": -0.07450980392156858,
+          "wgt": 521740375,
+          "relevance": 1
+        },
+        {
+          "uri": "9394119428",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-14",
+          "time": "13:51:45",
+          "dateTime": "2026-07-14T13:51:45Z",
+          "dateTimePub": "2026-07-14T13:49:29Z",
+          "dataType": "news",
+          "sim": 0.4705882370471954,
+          "url": "https://euobserver.com/227816/russian-oil-industry-pushed-back-20-years-by-ukrainian-strikes-ukraine-battlefield-update-day-1602/",
+          "title": "Russian oil industry set back 20 years by Ukrainian strikes (Ukraine Battlefield update: Day 1,602)",
+          "body": "Every day, the Ukraine Battlefield update newsletter offers a clear look at how the war is unfolding on the ground. Subscribe for free here to get the full text delivered to your inbox.\n\n* A fuel crisis unlike anything Russia has ever experienced: drone attacks have pushed the country back 21 years.\n\n* A black swan for Putin's regime? Economist Milov predicted that Russia would have to import petrol like other states.\n\n* Nine countries plus Ukraine have formed an antiballistic coalition: they want to produce a cheaper answer to scarce Patriots as soon as possible.\n\n* Map of the day: two villages near Sloviansk were supposed to be fully under Russian control, but Ukrainians are still holding them.\n\n* Videos of the day: destruction of military logistics in Crimea and new simulators for F-16 pilots\n\nA fuel crisis unlike anything Russia has ever experienced. \"I have no illusions or worries about the long-term future of Russia. Russia is today a gas station masquerading as a country,\" the famous American Republican senator John McCain said in 2014.\n\nHe was referring to the economy of an autocratic regime built on selling oil and gas without reforms and technological progress. It is the summer of 2026 and Ukrainian analysts are comparing Russia to an empty canister.\n\nAn effective drone campaign against key Russian refineries and oil depots has caused a fuel crisis in the world's largest country, stretching from Crimea to Omsk and affecting at least 50 million people (35 percent of the population), according to estimates by the FT from a few days ago.\n\nThe latest attack on Tuesday morning hit the Gazprom Neftekhim refinery in the city of Salavat in the Republic of Bashkortostan, which is located roughly 1,300 km from the frontline.\n\nAfter a series of explosions, a fire broke out at one of the largest petrochemical plants in Russia. In 2024 it processed 7.2m tonnes of oil, which represented roughly 2.7 percent of total oil refining capacity. According to the Moscow Times, in addition to petrol and diesel it produces a whole range of oil products from kerosene to ammonia and urea.\n\nA fire also broke out at the Afipsky refinery in Krasnodar Krai.\n\nTwo days earlier, the process of converting hydrocarbons into fuels at Rosneft's Syzran refinery had completely stopped. Again, this was not a random attack; according to Reuters and The Insider, the Ukrainians managed to hit the primary processing unit AVT.5, with a daily capacity of 7,100 tonnes. The repair was estimated to last until the end of the month.\n\nAccording to the agency, the series of attacks caused a petrol shortage of up to 45,000 tonnes a day, and by the end of June sales restrictions applied to petrol stations in as many as 88 out of 89 regions under Russian control. Only Chukotka in the Far East was spared. However, the situation has been deteriorating rapidly every day, and the outlook is catastrophic, as we explain below.\n\nThe steep decline has, according to a Bloomberg chart, pushed refinery output back 21 years.\n\nAccording to EA Analytics data, Russia processed an average of 3.91m barrels a day over the past month, the lowest level since March 2005. Compared with last year, this is a drop of 1.4m barrels a day.\n\nA black swan for Putin's regime? The consequences are enormous and, as the Polish think tank OSW wrote, the Russian government is powerless in the face of this fuel crisis. Let us summarise the most important manifestations of the crisis:\n\n* Crimea has become an isolated island without fuel, where some areas have been without electricity for 12 days;\n\n* at risk are not only farmers' margins but, for example, also seasonal road repair works: wholesale diesel prices for road transport companies have risen by 75.8 percent and prices for bitumen, which is used in asphalt production, by 45.5 percent;\n\n* because of shortages, diesel exports have been restricted and petrol imports increased;\n\n* the sale of much lower-quality fuel, which damages modern engines, has been introduced;\n\n* opinion polls have recorded the lowest level of support for Putin in the past five years.\n\n\"Nothing is working, nothing is flying, nothing is being produced,\" the Russian economist Vladimir Milov summed up for The Insider. He compared Ukrainian drones to a black swan, that is, an unexpected effect with far-reaching consequences.\n\nAccording to Polish experts, Russia is going through the most serious fuel crisis since the creation of the Russian Federation, after the Ukrainian armed forces hit at least once every major oil refinery in the European part of the Russian Federation and, at the beginning of July, for the first time also the largest refinery in Omsk in Siberia, 2,500 km from the frontline.\n\nThere is no precedent for anything like this in Russian history.\n\n\"If Ukraine maintains the current frequency of its attacks, the situation will probably get even worse, as continued attacks will prevent repair works from being completed, while fuel stocks will continue to decline,\" OSW wrote. It noted that, compared with last summer, drones have been effectively striking secondary refining units, the repair of which is particularly difficult because Western components are unavailable.\n\nAccording to Milov, however, the situation will deteriorate significantly. He predicted, for example, that there would be no petrol at all. \"We have to prepare for this and it will be a long-term situation. Basically, it cannot be fixed. Russia's current outlook is essentially very simple: to become an importer of petrol. Like most countries in the world,\" he said in a podcast for The Insider website.\n\nRussians have even started, according to Yandex, to search for an answer to the question: how to make your own petrol?\n\nMilov pointed out that roughly 70 percent of freight transport in Russia goes by road, which will, of course, also be reflected in food prices.\n\nThe proverbial black swan does not concern only individuals who spend hours queuing at petrol stations. The Kremlin is even more troubled by the budget deficit. As the former energy minister said, in the first five months of this year it exceeded six trillion roubles, and that was before the state coffers felt the pressure of Ukraine's drone campaign.\n\nAccording to the Russian service of the BBC, the main risk for the Russian economy is also a budgetary problem: as of 26 June, the deficit was almost 8 trillion roubles, compared with the planned 5 trillion.\n\nThe situation has not been helped by the fact that oil prices began to fall after a not-quite-working truce between the US and Iran. Instead of GDP growth of 1.3 percent, state economists now have to live with 0.1 percent and a huge, growing hole in the budget.\n\nAs is customary in the Russian propaganda system, the new economic reality has generated a new economic language. As the Russian website The Bell quoted state propaganda, fuel prices are not \"rising\", they are merely \"changing\".\n\nThe antiballistic coalition and Ukrainian Patriots. During the summit of the coalition of the willing in Paris, another initiative to support Ukraine was launched, aimed at providing the country with effective air defence.\n\nHow important this is was demonstrated by yet another Russian attack in the night to Tuesday with drones and ballistic missiles on Kyiv. Among other things, they hit a boarding school. This time, however, the attacks fortunately caused no casualties, as five out of eight ballistic missiles were intercepted.\n\nAccording to the latest UN data, Russian attacks (some of them with ballistic missiles) killed at least 265 civilians and injured 1,816 in Ukraine in June, the highest monthly toll since the first months after Moscow launched its full-scale invasion in February 2022.\n\nBallistics, as Ukrainian president Volodymyr Zelensky also said, is currently the only serious card the Kremlin has in its hand, and in recent weeks it has cost dozens of lives, as Ukrainians have lacked the critically important weapons needed to repel these attacks.\n\nThe Ukrainian president said that in order to survive the next expected harsh winter, they would need one hundred Patriot missiles a month, that is, 300 missiles for the winter.\n\nThe aim of the antiballistic coalition (besides Ukraine it includes France, Britain, Germany, Italy, Norway, Denmark, Sweden, the Netherlands and Spain) is to launch the Freya antiballistic missile programme. According to Zelensky, in the future they could also become part of Europe's defence, and the first ones could be ready as early as this year.\n\nThe project is based on Ukrainian FP-7.x missiles. According to the Ukrainian website Defense Express, the goal is that they could at least compensate for the shortage of PAC-2 GEM-T munitions for the Patriot system. These are the most effective against Russian ballistic missiles, but they take a long time to produce, are expensive, and after the US-Israeli war against Iran far fewer are available.\n\nThe company Fire Point is behind Freya, which has a similar design to missiles of the Russian S-300 and S-400 systems.\n\nAccording to Defense Express, the main difference compared with Russian systems is that it will use an infrared guidance seeker from the German company Diehl. Many defence companies are also planning to cooperate on its development, including: FP, Thales, HENSOLDT, Saab, Kongsberg Defence & Aerospace, Weibel, Leonardo, MBDA, Eurosam, Safran, and Destinus.\n\nAccording to NV, it is expected that the system will be integrated with other air-defence elements in line with the Nato Link-16 standard.\n\nMap of the day\n\nThey were supposed to be fully occupied after Russian flag-raising operations, but as the Ukrainian blogger Oleg Petrenko wrote, fighting is still going on in the Kramatorsk-Sloviansk sector in the areas of Malynivka and Rai-Oleksandrivka. According to him, attacks on the central parts of both villages show that Ukrainian units are still holding their positions there.\n\nVideos of the day\n\nThe command of unmanned systems of the Armed Forces of Ukraine is continuing its attacks on military logistics in Crimea, where drones hit a launch unit of an S-400 surface-to-air missile system that had been spotted near Kerch.\n\nThey also hit a Pantsir-S1 surface-to-air missile and gun system near the settlement of Osovyn.\n\nBrovdi told the Russians that they did not want to attack the Kerch (Crimea) bridge. \"There is no fuel in Crimea! And I want to tell you that there will not be any ... We are blocking access routes, not escape routes. We will not touch the Crimea bridge. Let them flee across it. Let those millions flee across that bridge to their Russia. And let them go somewhere far beyond the Urals - to live in peace,\" he said.\n\nThey are focusing on disrupting the logistics routes that supply Russian units on the occupied peninsula.\n\nAccording to him, for the first time in history Ukraine is creating conditions for the de facto isolation of the peninsula without a ground operation. \"We are creating conditions that make it impossible for them to stay there without it costing the life of a single Ukrainian soldier. We are doing it entirely remotely,\" the Ukrainian website NV quoted his words.\n\nNew simulators for F-16 pilots. Last week we wrote about the trap in which F-16 pilots caught the Russian enemy flying a heavy Su-35 fighter. To carry out such operations, high-quality training is essential, and this is what a new batch of mobile simulators for complex combat scenarios is meant to provide.\n\nThe simulators are tailor-made for Ukrainian needs. Defence minister Mykhailo Fedorov thanked partners from the so-called Air Force Capability Coalition (the Netherlands, Czechia and Austria) for their support.",
+          "source": {
+            "uri": "euobserver.com",
+            "dataType": "news",
+            "title": "EU Observer"
+          },
+          "authors": [
+            {
+              "uri": "mirek_toda@euobserver.com",
+              "name": "Mirek Tóda",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://static.euobserver.com/2014/09/d18b137b6a07f78077cb35cbb3ca099b.jpg",
+          "eventUri": "ukr-356760",
+          "sentiment": -0.1450980392156863,
+          "wgt": 521733105,
+          "relevance": 1
+        },
+        {
+          "uri": "9394013332",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-14",
+          "time": "12:27:01",
+          "dateTime": "2026-07-14T12:27:01Z",
+          "dateTimePub": "2026-07-14T12:26:31Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.kyivpost.com/opinion/80247",
+          "title": "Opinion: Trump Iran War III",
+          "body": "Big picture take outs from a year plus of Trump's war with Iran and how it likely impacts the latest drumbeats of war in the Gulf:\n\n* The Islamic Republic (IR) is very durable. The regime has endured Western attacks and aggressive sanctions since its very foundation. And the regime MO, and even that of Shia Islam itself, is all about endurance and survival against the more powerful foe. It's about riding with the blows and surviving to fight another day. The IR has long prepared for the battle with the US and Israel, and it learned from the post Oct 7 attacks and the 12-day war, these have arguably improved its resilience.\n\n* Efforts by the U.S. and Israel to cut off the serpent's head (killing Khamenei and much of the prewar IR leadership) have failed as the regime is built to regenerate, with new cadres lined up to fill the void. Arguably decapitation efforts just resulted in greater radicalization, strengthening the position of the IRGC, and dissipated decision making, making negotiating and holding to any peace agreement more difficult.\n\n* Iran will lash out and escalate to hit its neighbors when it views attacks as existential to its survival. Previously it was willing to ride the blows, limiting retaliation, for example after the killing of Soleimani under Trump 45. But after the June 2025 12-day war and as the U.S. and Israel peeled through Iran's layers of deterrence, Iran seems to have seen the US attacks as much more existential and hence the bar for retaliation has been lowered.\n\n* Arguably Iran's nuclear program, and proxies proved little real deterrent from attack by Israel and the U.S., and Iran has been searching for a new deterrent ever since. Trump's war appeared to gift Iran a new and highly effective deterrent with the success of its drone and ballistic missiles attacks on the Gulf states, and efforts to restrict flows through the Straits. The new deterrent is Iran's ability to impact on global markets through these attacks.\n\n* A track record of failed foreign military adventures - Vietnam, Afghanistan and Iraq, have created an aversion in the U.S. to putting boots on the ground in Iran. But the consensus is that an air and naval war (blockade) is simply not sufficient to engineer regime change in Iran, but perhaps only regime change will bring policy change in Iran. But any boots operation in Iran to bring regime change would require a huge U.S. military commitment, comparable in many respects to Gulf Wars I and II. That commitment from the US, and its allies is simply not there. So the U.S., seemingly does not have the tools to deliver on its objectives, and Iran knows that.\n\n* Global markets have been remarkably resilient in the face of the first and second Iran wars. Oil prices failed to reach the highs that many had anticipated given the scale of disruption through the Straits. Partly this reflects the impact of China cutting back imports and releasing fuel from its huge strategic fuel reserve. Likely it also reflects global demand destruction and the flexibility in the energy supply chain, but also the Gulf states' ability to divert oil and energy exports through other routes. And oil and energy prices were quick to moderate after the Iran - US ceasefire deal as the market focused on new supply coming on stream (UAE leaving OPEC) and global demand destruction wrought by higher oil and energy prices.\n\n* The US eased sanctions on Russia - giving special licenses to Rosneft and Lukoil sell oil despite being prior sanctioned for the war in Ukraine - during the US/Israel - Iran war, in an effort to cap the rise in global energy prices. After the ceasefire deal was agreed the sanctions on Russia were reimposed, and the Trump administration is now suggesting it will support the Graham/Blumenthal sanctions bill on Russia (500% tariffs to be placed on countries importing Russian oil and energy).\n\n* All this comes as Ukraine has stepped up deep strike attacks on Russian energy infrastructure, and Russia is suffering diesel shortages, so much so that it has had to ban refined product exports and is now importing diesel. A shortage of refined capacity and storage is though forcing Russia to increase crude oil exports. Net net though the result of a resumption of the war in Iran and escalation in the war in the Russo-Ukraine war is likely a return of upward pressure on the price at the pumps, hurting GOP popularity before midterms.\n\n* Saudi has launched fresh air strikes against the Houthis in Iran, which creates a new risk of the closing of the Straits of Bab el-Mandeb through the Red Sea. This could mean that as Trump starts a fresh wave of attacks on Iran, the world is likely to see closures/disruptions to four major seas or waterways - the Straits of Hormuz, Bab el-Mandeb, the Sea of Azov and the Black Sea. That is totally unprecedented.\n\n* The Iran wars will accelerate the push by the Gulf states to diversify export routes away from the Straits, and in theory this reduces the long-term leverage held by Iran over global markets - the power of its newfound deterrence. This perhaps puts more pressure on Iran to hold out for a better and lasting deal now - to negotiate hard and to be prepared to quickly go back to conflict. Iran has cards now, but it might not have cards in a year or more's time.\n\n* Iran sees control of the Straits as existential and potentially, thru tolling, offering it an economic lifeline, while promises of sanctions moderation and investment in the MOU seem more aspirational. After Rubio et al earlier argued tolling of the Straits was illegal under international law, Trump has gifted Iran a win by now proposing a 20% US toll, which makes Iran's 1% toll pitch appear reasonable by comparison.\n\n* Ultimately the Gulf states would likely accept an Iranian toll regime if it brought a return of safe navigation through the Straits. The current U.S. approach seems to be making the Straits less safe, and remember the Straits were open, safe, and free to navigation before the U.S. and Israeli attacks on Iran from late March.\n\n* Perhaps you could argue that the best card that Iran has discovered is its ability to make the Gulf unsafe via its drone and missile strikes on the target rich and close proximity of the Gulf states. But could this card also be removed if the Gulf states invest heavily in anti-drone and missile defenses? The experience for Israel and\n\n* Ukraine in its war with Russia is that there is unlikely to be a 100% drone or missile Defence system. Typically this is a war of iteration with the attack and defense securing only temporary advantage before the other catches up. For Iran it only needs to secure a few hits out of a 100, on critical targets, to have enough of a deterrent effect on the Gulf states, and perhaps global markets. This would suggest that Iran will retain the deterrent from its potential to hit Gulf states for some time.\n\n* The US - Iran ceasefire deal was fragile - it was a framework for more talks and included no resolution on core issues such as nuclear, proxies, missiles and drones. The deal was short in content, and negotiated by very inexperienced negotiators - Kushner, Witkoff, et with chequered track records on their peace efforts elsewhere, more particularly on Russia Ukraine, Gaza and Lebanon. But a history of Iran talks has suggested that the devil is always in the detail, and the Iranians are accomplished negotiators.\n\n* The Trump administration seems to put low store in expertise, failing in this conflict with Iran to draw on the huge wealth of Iran knowledge and understanding in the US. Trump acts more on his own instinct which can delivery catastrophic failures where there is a fundamental lack of understanding of core issues and of one's opponents.\n\n* Israel was unhappy with the US - Iran ceasefire deal as it viewed that deal as rewarding and even strengthening Iran, without resolving any of the core issues. Israel was probably right there. And Netanyahu knows that the US - Iran deal is unpopular in Israel and likely will undermine his chances in elections in Israel in October. Likely Israel has been working to undermine the U.S. - Iran deal, and likely that is what we have been seeing through Israeli interventions still in Lebanon.\n\nReviewing the above it feels as though Trump has been swayed again by lobbying by Israel (Israeli intelligence suggesting Iran had planned an assassination attempt against Trump was probably instrumental in changing Trump's view), and domestic criticism of the ceasefire agreement, while the resilience of global markets has perhaps made Trump more confident that the U.S., and global markets can still outlast Iran in a battle for control of the Straits. T\n\nhe Trump view is perhaps that one last attempt can push the Iranian regime over the edge. But second time around things could be more difficult for global markets given four major shipping routes are currently subject to disruption while we are going into this third Iran war with global energy stocks at low levels. Meanwhile, there is no evidence that the Iranian regime is significantly weakened or likely to bow early to US pressure. Tehran still thinks it can outlast Trump, and especially with midterms approaching. Another 60-day war is unlikely to change the outlook for Trump albeit the damage will again be considerable to the global economy - more inflation, less growth.\n\nReprinted from the author's @tashecon blog. See the original here.\n\nThe views expressed in this opinion article are the author's and not necessarily those of Kyiv Post.",
+          "source": {
+            "uri": "kyivpost.com",
+            "dataType": "news",
+            "title": "KyivPost"
+          },
+          "authors": [
+            {
+              "uri": "timothy_ash@kyivpost.com",
+              "name": "Timothy Ash",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://static.kyivpost.com/storage/2026/05/06/27aefc8e774ad65406d7323c513468da.jpg?w=630&q=90&f=jpg",
+          "eventUri": null,
+          "sentiment": -0.4352941176470588,
+          "wgt": 521728021,
+          "relevance": 1
+        },
+        {
+          "uri": "9393974526",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-14",
+          "time": "11:57:04",
+          "dateTime": "2026-07-14T11:57:04Z",
+          "dateTimePub": "2026-07-14T11:38:00Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.eng.kavkaz-uzel.eu/articles/76925",
+          "title": "Donetsk residents demanded additional measures from the authorities to reduce queues at gas stations.",
+          "body": "Governor Yuri Slyusar instructed to involve volunteers and Cossacks in duty at gas stations, as well as to organize informing drivers about the availability of fuel and the operating hours of the stations. Residents of the Rostov region, commenting on his instructions in Telegram, suggested introducing an electronic queue, abandoning nighttime closures of gas stations, and opening additional cash registers.\n\nAs reported by \"Caucasian Knot\", on July 11, it became known that a limit on fuel sales at gas stations was introduced in the Rostov region. An individual can purchase no more than 30 liters of gasoline for one vehicle.\n\nGovernor of the Rostov region Yuri Slyusar reported in his Telegram channel that he instructed to involve volunteers and Cossacks in duty at gas stations to ensure order. He also instructed to adjust the photo and video recording cameras in front of the gas stations so that people do not receive fines while they are waiting in line, and to organize informing people at the gas stations about the availability of fuel and the intervals of operation.\n\nThis post in Yuri Slyusar's Telegram channel, which has more than 166 thousand subscribers, received 402 reactions and 239 comments by 14:35 MSK.\n\nSome authors of the comments demanded effective measures to reduce queues at gas stations. \"Make it possible to refuel by license plates... A lot of options,\" wrote Igor.\n\n\"An electronic queue - and then there will be no disputes at these gas stations,\" believes Ekaterina.\n\n\"Agree to allow gas stations to pour either 20-30 liters into a canister or into the car's tank,\" suggested Spartak.\n\nIn the comments, there were repeated requests to abandon nighttime closures of gas stations. \"What is being done to ensure that gas stations operate at night? Why are they closed?\" wrote user ec_ten.\n\n\"I can't understand why nighttime gasoline sales were stopped,\" noted Yuri.\n\n\"Don't close gas stations at night, and the queues will be shorter,\" believes Vyacheslav.\n\nMany users noted that it is the lack of information that creates additional queues. \"The priority is to inform people about the availability of fuel types and the operating schedule of gas stations,\" emphasized Texas.\n\n\"All types of fuel are lit on the display, but in fact, there is only diesel,\" wrote Galina.\n\n\"Rosneft\" displays all types of fuel with prices on the board, but in fact, only diesel,\" noted a user with the nickname BPL.\n\nUsers also debated the reasons for the formation of queues at gas stations. \"The queue is created at the cash register itself. For some reason, they do not open two or three cash registers,\" believes Paul.\n\n\"Why is there only one cashier working at the operating gas stations?\" asked Pavel.\n\n\"Some have to pay twice due to the 20-liter limit,\" pointed out Galina in another comment.\n\nRecall that the fuel problem arose against the backdrop of attacks on oil refineries, including those located in southern Russia. Thus, on June 10, a fire occurred at the refinery in the village of Afipsky. On June 5, an oil depot in Ust-Labinsk caught fire, requiring the evacuation of residents of nearby houses. On June 2, a fire broke out at the oil refinery in the village of Ilsk in the Seversky district as a result of a drone attack. The fire was extinguished the same day.",
+          "source": {
+            "uri": "eng.kavkaz-uzel.eu",
+            "dataType": "news",
+            "title": "Caucasian Knot"
+          },
+          "authors": [],
+          "image": "https://www.eng.kavkaz-uzel.eu/images/logos/en/v1/black/big.png",
+          "eventUri": null,
+          "sentiment": 0.003921568627450966,
+          "wgt": 521726224,
+          "relevance": 1
+        },
+        {
+          "uri": "9393736309",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-14",
+          "time": "08:37:30",
+          "dateTime": "2026-07-14T08:37:30Z",
+          "dateTimePub": "2026-07-14T08:35:09Z",
+          "dataType": "news",
+          "sim": 0.7960784435272217,
+          "url": "https://www.themoscowtimes.com/2026/07/14/ukraine-hits-oil-refineries-in-krasnodar-and-bashkortostan-a93239",
+          "title": "Ukraine Hits Oil Refineries in Krasnodar and Bashkortostan",
+          "body": "Fires broke out at two oil refineries in Russia after Ukrainian drones struck them early Tuesday morning, local authorities said.\n\nIn the republic of Bashkortostan, regional head Radiy Khabirov said smoke could be seen rising from an industrial area in the city of Salavat after drone debris fell to the ground. He said no one was injured but did not provide further details.\n\nSalavat, located around 1,300 kilometers (810 miles) east of Russia's border with Ukraine, is home to the Gazprom-operated Neftekhim Salavat refinery, one of Russia's largest oil refining and petrochemical facilities.\n\nIndependent media reports suggested that a Rosneft fuel depot was also targeted in the attack on Salavat.\n\nIn the southern Krasnodar region, local authorities said a fire broke out at the Afipsky refinery, which has been struck multiple times since the full-scale invasion of Ukraine in February 2022.\n\nAuthorities in Krasnodar later reported that firefighters extinguished the blaze. At least two people were injured in the attack.",
+          "source": {
+            "uri": "themoscowtimes.com",
+            "dataType": "news",
+            "title": "The Moscow Times"
+          },
+          "authors": [],
+          "image": "https://static.themoscowtimes.com/image/og/36/93239__3652127066f45e021b9e9c93a0a03159.jpg",
+          "eventUri": "eng-11829301",
+          "sentiment": -0.3568627450980392,
+          "wgt": 521714250,
+          "relevance": 1
+        }
+      ],
+      "totalResults": 853,
+      "page": 1,
+      "count": 8,
+      "pages": 107
+    }
+  }
+}

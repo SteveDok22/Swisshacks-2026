@@ -1,0 +1,977 @@
+{
+  "key_raw": "event/getEvents:f96798baa8317f3e",
+  "cached_at": "2026-08-18T08:24:25.285231+00:00",
+  "data": {
+    "events": {
+      "results": [
+        {
+          "uri": "eng-11917240",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Revenue",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Revenue"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Earnings_before_interest,_taxes,_depreciation,_and_amortization",
+              "type": "wiki",
+              "score": 97,
+              "label": {
+                "eng": "Earnings before interest, taxes, depreciation, and amortization"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Chief_executive_officer",
+              "type": "wiki",
+              "score": 97,
+              "label": {
+                "eng": "Chief executive officer"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Chief_financial_officer",
+              "type": "wiki",
+              "score": 76,
+              "label": {
+                "eng": "Chief financial officer"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Net_income",
+              "type": "wiki",
+              "score": 68,
+              "label": {
+                "eng": "Net income"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Email",
+              "type": "wiki",
+              "score": 68,
+              "label": {
+                "eng": "Email"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Gross_margin",
+              "type": "wiki",
+              "score": 60,
+              "label": {
+                "eng": "Gross margin"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Earnings_per_share",
+              "type": "wiki",
+              "score": 49,
+              "label": {
+                "eng": "Earnings per share"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/U.S._Securities_and_Exchange_Commission",
+              "type": "wiki",
+              "score": 48,
+              "label": {
+                "eng": "U.S. Securities and Exchange Commission"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Balance_sheet",
+              "type": "wiki",
+              "score": 46,
+              "label": {
+                "eng": "Balance sheet"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Shareholder",
+              "type": "wiki",
+              "score": 45,
+              "label": {
+                "eng": "Shareholder"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Artificial_intelligence",
+              "type": "wiki",
+              "score": 43,
+              "label": {
+                "eng": "Artificial intelligence"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Gross_income",
+              "type": "wiki",
+              "score": 41,
+              "label": {
+                "eng": "Gross income"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Cash_flow",
+              "type": "wiki",
+              "score": 40,
+              "label": {
+                "eng": "Cash flow"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Leverage_(finance)",
+              "type": "wiki",
+              "score": 40,
+              "label": {
+                "eng": "Leverage (finance)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Pipeline_transport",
+              "type": "wiki",
+              "score": 39,
+              "label": {
+                "eng": "Pipeline transport"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/The_Motley_Fool",
+              "type": "org",
+              "score": 35,
+              "label": {
+                "eng": "The Motley Fool"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Accounting_standard",
+              "type": "wiki",
+              "score": 34,
+              "label": {
+                "eng": "Accounting standard"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Basis_point",
+              "type": "wiki",
+              "score": 34,
+              "label": {
+                "eng": "Basis point"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Operating_expense",
+              "type": "wiki",
+              "score": 33,
+              "label": {
+                "eng": "Operating expense"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Marketing",
+              "type": "wiki",
+              "score": 31,
+              "label": {
+                "eng": "Marketing"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States",
+              "type": "loc",
+              "score": 20,
+              "label": {
+                "eng": "United States"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "United States"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Europe",
+              "type": "loc",
+              "score": 16,
+              "label": {
+                "eng": "Europe"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/North_America",
+              "type": "loc",
+              "score": 15,
+              "label": {
+                "eng": "North America"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/GlobeNewswire",
+              "type": "org",
+              "score": 12,
+              "label": {
+                "eng": "GlobeNewswire"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/China",
+              "type": "loc",
+              "score": 12,
+              "label": {
+                "eng": "China"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "China"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Canada",
+              "type": "loc",
+              "score": 12,
+              "label": {
+                "eng": "Canada"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Canada"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Middle_East",
+              "type": "loc",
+              "score": 9,
+              "label": {
+                "eng": "Middle East"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Target_Corporation",
+              "type": "org",
+              "score": 8,
+              "label": {
+                "eng": "Target Corporation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Asia-Pacific",
+              "type": "loc",
+              "score": 7,
+              "label": {
+                "eng": "Asia-Pacific"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Singapore",
+              "type": "loc",
+              "score": 7,
+              "label": {
+                "eng": "Singapore"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Singapore"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_Kingdom",
+              "type": "loc",
+              "score": 7,
+              "label": {
+                "eng": "United Kingdom"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "United Kingdom"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Federal_government_of_the_United_States",
+              "type": "org",
+              "score": 6,
+              "label": {
+                "eng": "Federal government of the United States"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/California",
+              "type": "loc",
+              "score": 6,
+              "label": {
+                "eng": "California"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "California"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Texas",
+              "type": "loc",
+              "score": 6,
+              "label": {
+                "eng": "Texas"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Texas"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Australia",
+              "type": "loc",
+              "score": 6,
+              "label": {
+                "eng": "Australia"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Australia"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Americas",
+              "type": "loc",
+              "score": 5,
+              "label": {
+                "eng": "Americas"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Asia",
+              "type": "loc",
+              "score": 5,
+              "label": {
+                "eng": "Asia"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Florida",
+              "type": "loc",
+              "score": 5,
+              "label": {
+                "eng": "Florida"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Florida"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Japan",
+              "type": "loc",
+              "score": 5,
+              "label": {
+                "eng": "Japan"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Japan"
+                }
+              }
+            }
+          ],
+          "eventDate": "2026-08-10",
+          "totalArticleCount": 742,
+          "title": {
+            "eng": "Similarweb stock surges 17% on earnings beat and raised guidance By Investing.com"
+          },
+          "summary": {
+            "eng": "TEL AVIV, Israel -On Wednesday, Similarweb Ltd. (NYSE:SMWB) delivered second quarter results that exceeded analyst expectations and raised full-year guidance, driven by strong demand for AI-related solutions.\n\nThe digital data and analytics company's shares surged 17% in pre-market trading following the announcement.\n\nThe company reported adjusted earnings per share of $0.06, beating the analyst consensus of $0.03 by $0.03.\n\nRevenue reached $77.2 million, surpassing the $75.54 million estimate an"
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Business",
+              "label": "dmoz/Business",
+              "wgt": 26
+            },
+            {
+              "uri": "dmoz/Computers",
+              "label": "dmoz/Computers",
+              "wgt": 22
+            },
+            {
+              "uri": "dmoz/Society/Issues/Business",
+              "label": "dmoz/Society/Issues/Business",
+              "wgt": 25
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 100
+            }
+          ],
+          "articleCounts": {
+            "eng": 742
+          },
+          "sentiment": 0.223529411764706,
+          "wgt": 524016000,
+          "relevance": 27
+        },
+        {
+          "uri": "eng-11888066",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Earnings_before_interest,_taxes,_depreciation,_and_amortization",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Earnings before interest, taxes, depreciation, and amortization"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Net_income",
+              "type": "wiki",
+              "score": 98,
+              "label": {
+                "eng": "Net income"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Chief_executive_officer",
+              "type": "wiki",
+              "score": 80,
+              "label": {
+                "eng": "Chief executive officer"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Earnings_per_share",
+              "type": "wiki",
+              "score": 65,
+              "label": {
+                "eng": "Earnings per share"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Revenue",
+              "type": "wiki",
+              "score": 58,
+              "label": {
+                "eng": "Revenue"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Gross_margin",
+              "type": "wiki",
+              "score": 52,
+              "label": {
+                "eng": "Gross margin"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Shareholder",
+              "type": "wiki",
+              "score": 50,
+              "label": {
+                "eng": "Shareholder"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Accounting_standard",
+              "type": "wiki",
+              "score": 49,
+              "label": {
+                "eng": "Accounting standard"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Amortization_(accounting)",
+              "type": "wiki",
+              "score": 45,
+              "label": {
+                "eng": "Amortization (accounting)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Generally_Accepted_Accounting_Principles_(United_States)",
+              "type": "wiki",
+              "score": 40,
+              "label": {
+                "eng": "Generally Accepted Accounting Principles (United States)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Earnings_before_interest_and_taxes",
+              "type": "wiki",
+              "score": 40,
+              "label": {
+                "eng": "Earnings before interest and taxes"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Gross_income",
+              "type": "wiki",
+              "score": 39,
+              "label": {
+                "eng": "Gross income"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Cash_flow",
+              "type": "wiki",
+              "score": 38,
+              "label": {
+                "eng": "Cash flow"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/U.S._Securities_and_Exchange_Commission",
+              "type": "wiki",
+              "score": 37,
+              "label": {
+                "eng": "U.S. Securities and Exchange Commission"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Income_tax",
+              "type": "wiki",
+              "score": 36,
+              "label": {
+                "eng": "Income tax"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Free_cash_flow",
+              "type": "wiki",
+              "score": 35,
+              "label": {
+                "eng": "Free cash flow"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Depreciation",
+              "type": "wiki",
+              "score": 34,
+              "label": {
+                "eng": "Depreciation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Balance_sheet",
+              "type": "wiki",
+              "score": 33,
+              "label": {
+                "eng": "Balance sheet"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Common_stock",
+              "type": "wiki",
+              "score": 32,
+              "label": {
+                "eng": "Common stock"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Operating_expense",
+              "type": "wiki",
+              "score": 31,
+              "label": {
+                "eng": "Operating expense"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States",
+              "type": "loc",
+              "score": 24,
+              "label": {
+                "eng": "United States"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "United States"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/North_America",
+              "type": "loc",
+              "score": 17,
+              "label": {
+                "eng": "North America"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/GlobeNewswire",
+              "type": "org",
+              "score": 16,
+              "label": {
+                "eng": "GlobeNewswire"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Canada",
+              "type": "loc",
+              "score": 12,
+              "label": {
+                "eng": "Canada"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Canada"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Europe",
+              "type": "loc",
+              "score": 11,
+              "label": {
+                "eng": "Europe"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Middle_East",
+              "type": "loc",
+              "score": 9,
+              "label": {
+                "eng": "Middle East"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/PR_Newswire",
+              "type": "org",
+              "score": 8,
+              "label": {
+                "eng": "PR Newswire"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/China",
+              "type": "loc",
+              "score": 8,
+              "label": {
+                "eng": "China"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "China"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_Kingdom",
+              "type": "loc",
+              "score": 6,
+              "label": {
+                "eng": "United Kingdom"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "United Kingdom"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Australia",
+              "type": "loc",
+              "score": 5,
+              "label": {
+                "eng": "Australia"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Australia"
+                }
+              }
+            }
+          ],
+          "eventDate": "2026-08-04",
+          "totalArticleCount": 1276,
+          "title": {
+            "eng": "Freedom Broker cuts Coinbase stock price target on weak Q2 results By Investing.com"
+          },
+          "summary": {
+            "eng": "Investing.com - Freedom Broker lowered its price target on Coinbase Global Inc. (NASDAQ:COIN) to $185 from $225 while maintaining a Buy rating following the company's second-quarter results.\n\nCoinbase reported diluted GAAP earnings per share of negative $1.36, compared with consensus expectations of negative $0.44. Adjusted EPS came in at negative $0.40 versus the consensus estimate of positive $0.12. Total revenue of $1.22 billion declined 14% sequentially and missed the Street expectation of $1"
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Business/Investing",
+              "label": "dmoz/Business/Investing",
+              "wgt": 26
+            },
+            {
+              "uri": "dmoz/Society/Issues/Business",
+              "label": "dmoz/Society/Issues/Business",
+              "wgt": 25
+            },
+            {
+              "uri": "dmoz/Home/Personal_Finance",
+              "label": "dmoz/Home/Personal Finance",
+              "wgt": 22
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 100
+            }
+          ],
+          "articleCounts": {
+            "eng": 1276
+          },
+          "sentiment": 0.3333333333333333,
+          "wgt": 523497600,
+          "relevance": 27
+        },
+        {
+          "uri": "eng-11893733",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Revenue",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Revenue"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Earnings_before_interest,_taxes,_depreciation,_and_amortization",
+              "type": "wiki",
+              "score": 67,
+              "label": {
+                "eng": "Earnings before interest, taxes, depreciation, and amortization"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Net_income",
+              "type": "wiki",
+              "score": 35,
+              "label": {
+                "eng": "Net income"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Earnings_per_share",
+              "type": "wiki",
+              "score": 31,
+              "label": {
+                "eng": "Earnings per share"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Basis_point",
+              "type": "wiki",
+              "score": 24,
+              "label": {
+                "eng": "Basis point"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Earnings_before_interest_and_taxes",
+              "type": "wiki",
+              "score": 18,
+              "label": {
+                "eng": "Earnings before interest and taxes"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Earnings_call",
+              "type": "wiki",
+              "score": 14,
+              "label": {
+                "eng": "Earnings call"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Gross_income",
+              "type": "wiki",
+              "score": 12,
+              "label": {
+                "eng": "Gross income"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Gross_margin",
+              "type": "wiki",
+              "score": 12,
+              "label": {
+                "eng": "Gross margin"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Accounting_standard",
+              "type": "wiki",
+              "score": 10,
+              "label": {
+                "eng": "Accounting standard"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Dividend",
+              "type": "wiki",
+              "score": 9,
+              "label": {
+                "eng": "Dividend"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Leverage_(finance)",
+              "type": "wiki",
+              "score": 8,
+              "label": {
+                "eng": "Leverage (finance)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Generally_Accepted_Accounting_Principles_(United_States)",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Generally Accepted Accounting Principles (United States)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/SG&A",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "SG&A"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Free_cash_flow",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Free cash flow"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Artificial_intelligence",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Artificial intelligence"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Operating_margin",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Operating margin"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Organic_growth",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Organic growth"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Research_and_development",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Research and development"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Marketing",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Marketing"
+              }
+            }
+          ],
+          "eventDate": "2026-08-02",
+          "totalArticleCount": 338,
+          "title": {
+            "eng": "Luckin Coffee Inc (LKNCY) (Q2 2026) Earnings Call Highlights: Revenue Surges 29% to RMB15. ..."
+          },
+          "summary": {
+            "eng": "This article first appeared on GuruFocus.\n\n* Total Net Revenues: RMB15.9 billion, up 29% year-over-year.\n\n* GMV: RMB18.4 billion, up 30% year-over-year.\n\n* Product Sales Revenue: RMB12.2 billion, up 29% year-over-year.\n\n* Freshly Brewed Drinks Revenue: RMB11.2 billion, representing about 70% of total net revenues.\n\n* Self-Operated Store Revenue: RMB11.6 billion, up 27% year-over-year.\n\n* Same-Store Sales Growth (Self-Operated): Declined 5.3% year-over-year.\n\n* Partnership Store Revenue: RMB3.7 bi"
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Computers/Programming/Component_Frameworks",
+              "label": "dmoz/Computers/Programming/Component Frameworks",
+              "wgt": 14
+            },
+            {
+              "uri": "dmoz/Home/Personal_Finance/Tax_Preparation",
+              "label": "dmoz/Home/Personal Finance/Tax Preparation",
+              "wgt": 14
+            },
+            {
+              "uri": "dmoz/Business/Transportation_and_Logistics/Armored_Car_Service",
+              "label": "dmoz/Business/Transportation and Logistics/Armored Car Service",
+              "wgt": 14
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 99
+            }
+          ],
+          "articleCounts": {
+            "eng": 338
+          },
+          "sentiment": 0.1215686274509804,
+          "wgt": 523324800,
+          "relevance": 19
+        }
+      ],
+      "totalResults": 3,
+      "page": 1,
+      "count": 3,
+      "pages": 1
+    }
+  }
+}

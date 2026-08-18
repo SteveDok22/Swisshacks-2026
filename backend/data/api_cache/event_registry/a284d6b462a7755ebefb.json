@@ -1,0 +1,235 @@
+{
+  "key_raw": "article/getArticles:81cffccb5d5bad9b",
+  "cached_at": "2026-08-18T08:24:22.763303+00:00",
+  "data": {
+    "articles": {
+      "results": [
+        {
+          "uri": "9435994618",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-08-18",
+          "time": "07:17:37",
+          "dateTime": "2026-08-18T07:17:37Z",
+          "dateTimePub": "2026-08-18T07:17:19Z",
+          "dataType": "news",
+          "sim": 0.5215686559677124,
+          "url": "https://interfax.com/newsroom/top-stories/118745/",
+          "title": "Caspian Pipeline Consortium's oil transportation down 7.4% in H1 2026 to 33.35 mln tonnes",
+          "body": "Caspian Pipeline Consortium's oil transportation down 7.4% in H1 2026 to 33.35 mln tonnes\n\nMOSCOW. Aug 18 (Interfax) - The Caspian Pipeline Consortium (CPC) shipped 33.35 million tonnes of oil in H1 2026, according to the operational report of one of the consortium's shareholders, the Kazakh national company KazMunayGas (KMG).\n\nAs reported, the CPC transported 36.024 million tonnes of oil in H1 2025. Shipments in January-June this year therefore decreased 7.4%.\n\nOut of the total oil transportation via the CPC in January-June, KMG accounted for 6.92 million tonnes.\n\nThe CPC ensures the transportation of oil from three major Kazakh fields - Tengiz, Kashagan and Karachaganak. Transshipment amounted to around 70.5 million tonnes in 2025, with more than 75% coming from foreign shippers, among which the largest are Tengizchevroil (Chevron Corp. ), ExxonMobil , JSC KazMunayGas, Eni and Shell (SPB: RDS.A). The transshipment forecast for 2026 is 72 million tonnes of oil.\n\nThe CPC pipeline links oil fields in western Kazakhstan and Russian fields on the Caspian Sea shelf with the marine terminal in Novorossiysk on the Black Sea. The length of the route is 1,500 km. It serves as the primary export route for Kazakh crude, with Kazakh volumes making up more than 80% of the system's total throughput. The pipeline can transport around 72.5 million tonnes of oil annually from Kazakhstan and up to 83 million tonnes per year across Russian territory.\n\nThe shareholders of the CPC are the Russian Federation (31%, comprised of 24% managed by Transneft and 7% on its balance sheet); Kazakhstan (20.75%, represented by KazMunayGas at 19% and Kazakhstan Pipeline Ventures LLC at 1.75%); Chevron Caspian Pipeline Consortium Company (15%); Lukoil International GmbH (12.5%); Mobil Caspian Pipeline Company (7.5%); Rosneft-Shell Caspian Ventures Limited (7.5%); BG Overseas Holding Limited (2%); Eni International N.A. N.V. (2%); and Oryx Caspian Pipeline LLC (1.75%).",
+          "source": {
+            "uri": "interfax.com",
+            "dataType": "news",
+            "title": "interfax.com"
+          },
+          "authors": [],
+          "image": null,
+          "eventUri": "ukr-362032",
+          "sentiment": 0.003921568627450966,
+          "wgt": 524733457,
+          "relevance": 1
+        },
+        {
+          "uri": "9435504614",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-08-17",
+          "time": "19:36:45",
+          "dateTime": "2026-08-17T19:36:45Z",
+          "dateTimePub": "2026-08-17T19:35:00Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.techradar.com/pro/security/russian-websites-could-soon-be-easy-pickings-for-hackers-as-security-certificates-expire-banks-emails-and-government-systems-all-potentially-at-risk",
+          "title": "Russian websites could soon be easy pickings for hackers as security certificates expire -- banks, emails, and government systems all potentially at risk",
+          "body": "* Japanese certificate authority GlobalSign revoked TLS certificates for thousands of Russian domains in June 2026 as it implemented US and EU sanctions\n\n* As a result, seven major Russian banks now serve certificates from a state root that no mainstream browser trusts, forcing users to manually install them\n\n* Ukraine's Foreign Intelligence Service says the losses turn Russian banking, email, and internal systems into easier targets\n\nRussian companies are finding themselves in an extremely tricky situation as US OFAC and EU sanctions now affect international security certificates issued by third-party providers.\n\nA statement issued by Ukraine's Foreign Intelligence Service on August 12 said the certificate withdrawals essentially left the country's internal systems, email, and banking exposed to attack because no internationally recognized certificates were issued for their domains.\n\nIt noted Russian state services, including the Federal Tax Service, increasingly fail to load in Chrome, Firefox, and Safari, and estimated that roughly 90% of the Russian market still depends on foreign-issued certificates, and that wide implementation of these sanctions could make it harder for users to access affected sites.\n\nWeb trust certificates sanctioned away?\n\nThe move began on June 13 2026 when Japanese certificate authority GlobalSign, which controls much of Russia's commercial foreign certificate market, force-revoked TLS certificates it had previously issued to Russian companies.\n\nIts local arm said that it could not influence the parent company's decision, which came due to new CA/Browser Forum rules, starting May 4. The rules effectively made screening applicants against the US OFAC and BIS lists, and European sanctions lists, mandatory for certificate authorities rather than optional, essentially tying the certificate provider's hands.\n\nThe move was implemented in two waves; the first affected an estimated 15,000-20,000 domains, and the second affected a more specific 310 domains across 44 companies, including large domestic names such as Rosneft, Gazprombank, Alrosa, and Positive Technologies.\n\nThe Ukrainian side insists that Russian internal systems, messengers, email, and banking APIs have become \"ideal targets for hacker attacks,\" and there is some truth to it, even if mitigation is already underway on the Russian end. It estimates that reconfiguring infrastructure could cost larger corporations as much as 10 to 50 million rubles and take up to six months, and it is an error-prone process.\n\nThe move saw Russian domain owners, including its banks and tax services, turn elsewhere, with some moving first to a Greek academic certificate authority, HARICA, before turning to China's TrustAsia, which currently provides its state entities with certificates.\n\nA more complicated play from the Russian end is a homegrown alternative the government continues pushing: state-issued trust root certificates that users must install manually. While the Ministry of Digital Development describes manual installation of its root certificate as \"safe\" and as having no effect on device function, security researchers have previously warned in 2022 and again in 2026 that a state-controlled root could be abused for \"HTTPS traffic interception and man-in-the-middle attacks\".\n\nMoscow's other recommendation is that users switch to Yandex Browser, which ships with the domestic root built in. Ukraine's narrative dismisses that as an alternative prone to freezing and cache failures and offering no meaningful data protection, an assessment it attributes to \"experts inside Russia.\"\n\nWhatever the short-term outcomes result in here for .RU domains, a move like this could further disconnect Russia from the rest of the world, with Russian services working smoothly only for users running Russian software with a state root installed.\n\nThis might already be the trajectory for a Russia reeling from cyberattacks and sanctions, but one can assume the certificate revocations will only compress the timeline to that point, whether by design or an unintended consequence.\n\nFollow TechRadar on Google News and add us as a preferred source to get our expert news, reviews, and opinion in your feeds.",
+          "source": {
+            "uri": "techradar.com",
+            "dataType": "news",
+            "title": "TechRadar"
+          },
+          "authors": [
+            {
+              "uri": "rahim_amir@techradar.com",
+              "name": "Rahim Amir",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://cdn.mos.cms.futurecdn.net/pVCXKrhThqmUjYVSZBjV5Z-1200-80.jpg",
+          "eventUri": null,
+          "sentiment": 0.1686274509803922,
+          "wgt": 524691405,
+          "relevance": 1
+        },
+        {
+          "uri": "9434927152",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-08-17",
+          "time": "10:37:39",
+          "dateTime": "2026-08-17T10:37:39Z",
+          "dateTimePub": "2026-08-17T10:31:29Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.thebarentsobserver.com/news/gasoline-from-morocco-remains-stuck-in-murmansk-amid-fuel-crisis/455882",
+          "title": "Gasoline from Morocco remains stuck in Murmansk amid fuel crisis",
+          "body": "Fuel that arrived from Tangier two weeks ago has still not been unloaded because of a dispute over its price.\n\nReuters reported about two weeks ago that Russia had imported AI-92 petrol from Morocco, citing two unnamed industry sources.\n\nAccording to the sources, a Panama-flagged tanker loaded 30,000 metric tonnes of fuel at the Moroccan port of Tangier -- approximately 40.5-41 million litres. Lukoil was identified as the shipper, but the company declined to comment.\n\nIt was also reported that the St Petersburg International Mercantile Exchange had introduced new exchange-traded instruments for AI-92 petrol delivered from the Kola station in the Murmansk region on 29 July. However, trading has not yet begun. Tankers carrying the petrol have not been unloaded in Murmansk, and trains carrying the fuel have not departed from the Kola station.\n\nSeveral days ago, the InfoTEK portal, citing three sources, reported that the imported petrol had still not entered the domestic market because oil companies and regulators had been unable to agree on a price.\n\nAccording to one of InfoTEK's sources, the seller wants to charge up to 150,000 roubles per tonne because of the complexity of the logistics, while Russian regulators require the petrol to be sold at domestic Russian prices.\n\nTwo other sources told InfoTEK that they had initially been offered AI-92 at 130,000 roubles per tonne, with the price later reduced to 110,000 roubles. Meanwhile, the domestic exchange price on 13 August was 77,620 roubles per tonne.\n\nWhile the fate of the petrol stored off the coast of Murmansk is being decided, a second wave of the fuel crisis has begun in the country's north-west.\n\nFor example, on 15 August, the Arctic Observer newspaper published a subscriber's report on the situation in the Murmansk region:\n\n\"In Kirovsk, only one of the two Rosneft stations has petrol, and they are handing out 30 litres per person according to some schedule. The Ivekt station is out of petrol, and the second Rosneft station has only had diesel for a week, apparently. In Apatity, the Gazprom station is out of petrol, Lukoil has it, and Rosneft is 50/50. If there is petrol, it's available according to a schedule and with restrictions.\"\n\nThe author's punctuation has been preserved.\n\nNord-News also reported fuel shortages in the Murmansk region. According to the portal, on Friday, AI-92 and AI-95 petrol almost completely disappeared from major petrol-station chains. An interactive map showing fuel availability in the region indicates that restrictions have now been imposed at almost all petrol stations.\n\nThe fuel crisis has also returned to Arkhangelsk. According to the city administration, on Sunday, AI-92 and AI-95 petrol were available at only three petrol stations, all of which were subject to limits of 30 to 60 litres per customer. The News29.ru portal reported the situation.\n\nQueues at petrol stations persist in Karelia, where restrictions on fuel sales have also been introduced. Rosneft stations are selling up to 30 litres per customer, while other stations are limiting sales to 40 litres, according to Karelinform.",
+          "source": {
+            "uri": "thebarentsobserver.com",
+            "dataType": "news",
+            "title": "The Independent Barents Observer"
+          },
+          "authors": [
+            {
+              "uri": "denis_zagore@thebarentsobserver.com",
+              "name": "Denis Zagore",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://image.thebarentsobserver.com/453507.jpg?imageId=453507&x=0&y=0&cropw=100&croph=100&panox=0&panoy=0&panow=100&panoh=100&width=1200&height=683",
+          "eventUri": null,
+          "sentiment": -0.04313725490196074,
+          "wgt": 524659059,
+          "relevance": 11
+        },
+        {
+          "uri": "9434844786",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-08-17",
+          "time": "09:28:22",
+          "dateTime": "2026-08-17T09:28:22Z",
+          "dateTimePub": "2026-08-17T09:27:10Z",
+          "dataType": "news",
+          "sim": 0.8078431487083435,
+          "url": "https://georgiatoday.ge/fuel-shortage-deepens-in-occupied-abkhazia-20-liter-limit-imposed-at-stations/",
+          "title": "Fuel shortage deepens in occupied Abkhazia, 20-liter limit imposed at stations",
+          "body": "An acute fuel shortage continues in Russian-occupied Abkhazia at the height of the tourist season, with filling stations imposing purchase limits as supplies remain strained, BPN reports.\n\nThe shortage has been linked to Ukrainian drone attacks on oil refining infrastructure in Russia, on which occupied Abkhazia relies for its fuel supplies.\n\nThe de facto authorities expect the first shipment of 1,600 tons of AI-92 gasoline from Russia to arrive in the coming days.\n\nUntil recently, gasoline remained available at Rosneft and Podorozhnik filling stations. However, local bloggers report that Podorozhnik has now also run out of fuel. Gasoline is also unavailable at the Abkhaz filling station chain Azid, although diesel remains on sale.\n\nRosneft filling stations have introduced a 20-liter purchase limit. Andromeda reports that 92-octane gasoline currently costs 73 rubles (around $0.90) per liter, 92-octane Ultra costs 76.5 rubles (around $0.90), while 95-octane gasoline costs 90 rubles (more than $1).\n\nFuel has also recently been supplied to occupied Abkhazia from Georgian-controlled territory. Georgian Prime Minister Irakli Kobakhidze confirmed the deliveries on August 12, stressing that the fuel had been transported not by the Georgian government but by private companies.\n\nOn August 13, the Georgian government published an August 11 decree concerning special authorization to conduct economic activities in Georgia's occupied territories. Based on the document, the authorization granted to Solidus LLC, a company established in 2010, was extended for another three months. Companies holding such special status are permitted to supply goods to the occupied territories.\n\nFollowing the worsening fuel shortage in occupied Abkhazia, Solidus, which is registered in Georgia and holds the required special status, sold 400 tons of fuel to the occupied region in recent days. The company purchased the petroleum products intended for Abkhazia from Repsol LLC.\n\nRepsol subsequently confirmed the sale, saying that Solidus does not coordinate with the company on where the purchased petroleum products are ultimately sold and that this falls outside Repsol's responsibility.\n\nThe de facto authorities in occupied Abkhazia also confirmed to Apsnypress that, due to circumstances caused by \"external factors,\" alternative sources of fuel supplies had been considered and that participants in the local fuel market had found a way to obtain gasoline from Georgian-controlled territory.\n\nThe de facto authorities sought to justify the arrangement by noting that, in the post-war period of the 1990s, Abkhazia had also supplied fuel to Georgia.",
+          "source": {
+            "uri": "georgiatoday.ge",
+            "dataType": "news",
+            "title": "Georgia Today on the Web"
+          },
+          "authors": [],
+          "image": "https://georgiatoday.ge/wp-content/uploads/2026/08/Screenshot_20260817_131230_Facebook.jpg",
+          "eventUri": "rus-2110434",
+          "sentiment": -0.1529411764705882,
+          "wgt": 524654902,
+          "relevance": 4
+        },
+        {
+          "uri": "9434614296",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-08-17",
+          "time": "05:36:18",
+          "dateTime": "2026-08-17T05:36:18Z",
+          "dateTimePub": "2026-08-17T05:32:48Z",
+          "dataType": "news",
+          "sim": 0.8705882430076599,
+          "url": "https://news.abplive.com/business/lpg-supply-government-changes-production-rules-after-west-asia-crisis-reliance-jamnagar-refinery-output-target-1862440",
+          "title": "LPG Supply: Govt Sets New Production Rules After West Asia Crisis Disrupted Imports; What Changes",
+          "body": "Companies must strengthen infrastructure; government can mandate additional output.\n\nThe government has put in place a new framework to ensure higher domestic availability of cooking gas in the event of an LPG supply disruption, assigning production targets to refineries and upstream companies across the country.\n\nUnder an order issued by the Petroleum and Natural Gas Ministry on August 13, 21 refineries and upstream companies have been given maximum LPG production levels. The combined production potential covered by the schedule is 63,810 tonnes per day, reported PTI.\n\nThe prescribed limits will apply when the government determines that there is a supply constraint and additional domestic production is required.\n\nReliance's Jamnagar Refinery Gets 18,000-Tonne Target\n\nReliance Industries has received the largest individual allocation under the new framework. Its 33 million tonnes per year domestic-tariff area (DTA) refinery at Jamnagar, Gujarat, has been assigned an LPG production target of up to 18,000 tonnes per day.\n\nThe company's 35.2 million tonnes per year refinery at the same location, which is dedicated to exports, has not been assigned a target under the schedule.\n\nPublic sector refineries account for a combined 31,470 tonnes per day of the prescribed output. A total of 18 refineries owned and operated by public sector oil companies have been included in this allocation.\n\nNayara Energy's 20 million tonnes per year Vadinar refinery has been assigned a target of 4,480 tonnes per day. The refinery is backed by Russia's Rosneft.\n\nCompanies involved in upstream production and gas processing, including ONGC and GAIL, have been assigned a combined LPG production target of 6,460 tonnes per day.\n\nAlso Read : Share Markets Open The Week In Red Despite Asian Peers' Rally: Sensex About 300 Points Down\n\nImport Dependence Exposed During West Asia Crisis\n\nThe government's move follows the disruption to LPG supplies during the West Asia conflict, when India's reliance on imports created pressure on domestic availability.\n\nIndia consumed 33.2 million tonnes of LPG in 2025-26, working out to around 91,000 tonnes per day. Domestic production during the year stood at 13.1 million tonnes, or approximately 35,900 tonnes per day. Imports made up the remaining 21.3 million tonnes, equivalent to about 58,400 tonnes per day.\n\nImports therefore accounted for more than 64 per cent of total LPG consumption.\n\nThe disruption was particularly significant because the Strait of Hormuz, through which India received 90 per cent of its imports from countries such as Saudi Arabia, was effectively shut after the Iran war began.\n\nThe government responded in March with emergency measures aimed at increasing domestic LPG availability. Refineries were directed to divert streams used for petrochemical production towards LPG, while supplies to industrial and commercial consumers were initially stopped and later restored gradually.\n\nFor household consumers, the interval between refill bookings was increased, and consumers were encouraged to move towards piped natural gas.\n\nDomestic LPG production reached around 55,000 tonnes per day at the peak of the crisis. The emergency directions were gradually withdrawn after supplies improved from mid-June.\n\nCompanies Must Strengthen Storage And Transport Capacity\n\nThe latest order establishes a longer-term mechanism instead of relying only on emergency directions during a supply disruption.\n\nRefineries and upstream oil companies have been instructed to develop and maintain sufficient infrastructure to store, evacuate and transport LPG corresponding to the quantities specified in the production schedule. This can be done either directly or through other entities, including railways and road tankers.\n\nThe ministry has also directed companies to examine technically and economically feasible ways of increasing LPG output from existing facilities.\n\nThese measures include technologies such as naphtha-to-LPG conversion and upgrades involving fluid catalytic cracking units. Companies have been asked to implement such measures where feasible to raise production beyond the minimum quantities specified in the schedule.\n\nAny such upgrades are to be intimated to the Centre for High Technology or another authorised agency.\n\nGovt Can Order Additional Production During Shortages\n\nThe framework also gives the central government the power to intervene when it considers additional LPG production necessary in the public interest.\n\nThe order allows the government, either directly or through the Centre for High Technology or another authorised agency, to direct oil refining companies, oil marketing companies and upstream oil companies to increase LPG production for specified quantities and periods.\n\nSuch directions may also include restrictions on alternative uses of input streams that are required for LPG production.\n\nOnce an order is issued, the concerned companies will have to raise production within the stipulated timeframe.\n\nAlso Read : Active Vs Passive Funds: 7 Key Differences Investors Should Know\n\nProduction Schedule To Be Updated Twice A Year\n\nThe government will revise the LPG production schedule every six months, with updates due on January 1 and July 1 each year.\n\nThe revisions will account for production from new refineries and upstream companies as well as additional LPG output from existing facilities. Changes arising from improvements in infrastructure, production technology, evacuation, supply, transportation or distribution can also be incorporated into the schedule.",
+          "source": {
+            "uri": "news.abplive.com",
+            "dataType": "news",
+            "title": "english"
+          },
+          "authors": [
+            {
+              "uri": "sakshi_arora@news.abplive.com",
+              "name": "Sakshi Arora",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://feeds.abplive.com/onecms/images/uploaded-images/2026/08/17/332d1d5e60a2b3498492c2ccb13154aa1786944596821800_original.jpg?impolicy=abp_cdn&imwidth=640",
+          "eventUri": "eng-11926591",
+          "sentiment": 0.04313725490196085,
+          "wgt": 524640978,
+          "relevance": 1
+        },
+        {
+          "uri": "9434539869",
+          "lang": "eng",
+          "isDuplicate": true,
+          "date": "2026-08-17",
+          "time": "03:58:39",
+          "dateTime": "2026-08-17T03:58:39Z",
+          "dateTimePub": "2026-08-17T03:58:18Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.shippingtribune.com/news/shipping/Drone%20Strike%20Sparks%20Blaze%20at%20Key%20Russian%20Oil%20and%20Fuel%20Terminal",
+          "title": "Drone Strike Sparks Blaze at Key Russian Oil and Fuel Terminal",
+          "body": "Ust-Luga, the top Russian port for exports of oil and other commodities from the Baltic Sea, caught fire early on Friday following an overnight drone attack from Ukraine.\n\nA fire was detected at the port of Ust-Luga as a result of damage from drones, Alexander Drozdenko, governor of Russia's Leningrad region, said in a post on Telegram on Friday.\n\nFirefighters are working to extinguish the fire, with operations ongoing, the official said.\n\nIn a separate statement later, Drozdenko posted that \"All consequences of the attack in the port of Ust-Luga were eliminated, there are no victims.\"\n\nThis was not the first Ukrainian drone attack on Ust-Luga, which is a key export port for Russia's crude oil, fuel, coal, fertilizers, and grain shipments. The previous attack was in early July.\n\nUkraine has intensified drone strikes on Russian energy infrastructure this year, targeting refineries, Russia-linked tankers in the Black Sea and the Sea of Azov, and supply routes, in a bid to cut Russia's energy export revenues and fuel supply to the frontlines.\n\nOn Thursday, Ukraine struck another major Russian refinery, hitting Gazprom's Neftekhim Salavat complex in the Urals as Kyiv intensified attacks that have already forced Moscow to curb fuel exports and even import gasoline.\n\nRussia has reportedly started importing fuels from India, with one cargo of 42,000 tons of gasoline from Nayara Energy's Vadinar refinery arriving in Russia earlier this month.\n\nThe Vadinar refinery is partly owned by Russia's top oil producer Rosneft, which supplies the crude oil that is processed at the facility.\n\nMeanwhile, Russia's diesel and gasoil exports crashed in the first seven days of August to just 80,000 barrels per day (bpd), the lowest in many years, as Moscow extended restrictions on diesel exports amid a fuel crisis triggered by incessant Ukrainian attacks on Russian refineries.\n\nAmid peak demand season, Russia has been suffering from gasoline and diesel shortages for over three months, as Ukraine's drone campaign to strike Russian refineries forced many large processing sites offline in the spring and summer.\n\nSource: Oilprice.com\n\n#latestnews #theshippingtribune #drone #strike #russianoil #fuleterminal",
+          "source": {
+            "uri": "shippingtribune.com",
+            "dataType": "news",
+            "title": "shippingtribune.com"
+          },
+          "authors": [],
+          "image": "https://www.shippingtribune.com/sadmin/assets/images/news/oil t.jpg",
+          "eventUri": null,
+          "sentiment": -0.4509803921568627,
+          "wgt": 524635119,
+          "relevance": 1
+        },
+        {
+          "uri": "9434450674",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-08-17",
+          "time": "01:04:12",
+          "dateTime": "2026-08-17T01:04:12Z",
+          "dateTimePub": "2026-08-17T00:59:00Z",
+          "dataType": "news",
+          "sim": 0.7568627595901489,
+          "url": "https://www.eng.kavkaz-uzel.eu/articles/77798",
+          "title": "Analysts assessed the gasoline supplies from Georgia to Abkhazia.",
+          "body": "THIS MATERIAL (INFORMATION) WAS PRODUCED AND DISTRIBUTED BY THE FOREIGN AGENT LLC \"MEMO\", OR RELATES TO THE ACTIVITIES OF THE FOREIGN AGENT LLC \"MEMO\".\n\nThe batch of gasoline that a private Georgian company supplied to Abkhazia was small, and there was no political subtext to it, Abkhaz experts believe. Georgian analysts considered the gasoline supplies to be legal, especially since food products have long been supplied to Abkhazia, for example.\n\nAs reported by \"Caucasian Knot\", the head of the Georgian government, Irakli Kobakhidze, confirmed the shipment of gasoline to the region by a private company against the backdrop of a severe fuel crisis in Abkhazia. The opposition called this fact contrary to Georgia's sovereign interests. On August 16, the company Repsol announced the suspension of gasoline shipments to LLC \"Solidus\", which supplied fuel to Abkhazia.\n\nThe situation surrounding the gasoline supplies to Abkhazia by a private Georgian company was commented on August 16 by the correspondent of \"Caucasian Knot\", political scientist David Dasania, an anonymous Abkhaz expert, an anonymous Georgian lawyer, an anonymous Georgian jurist, political scientist, founder and head of the SIKHA Foundation research institute Archil Sikharulidze, and political scientist, Caucasian studies expert Mamuka Areshidze.\n\nAbkhazia currently needs gasoline supplies, noted David Dasania. \"Like the residents of Sochi and other Russian cities, Abkhazians are standing in kilometer-long queues. At the same time, the price of gasoline has risen to 115 rubles per liter for A-95. Such prices were only in Dagestan, and even then not everywhere. And in Abkhazia, salaries are still lower than in Dagestan. This is compounded by the monopoly on gas station organization by 'Rosneft'. According to motorists, 'Lukoil' has better gasoline, but it is not allowed into the republic. At the same time, the rise in gasoline prices will inevitably lead to a rise in the prices of bread, milk, meat, and so on in the fall,\" he said.\n\nWe could negotiate with Iran about buying gasoline.\n\nThe political scientist noted that supplies from Georgia did not lead to a significant improvement in the situation, while the authorities of the republic, unfortunately, did not consider the issue of purchasing fuel from a third country. \"We could negotiate with Iran about buying gasoline. It could be brought through Russia or through Georgia,\" he emphasized.\n\nDasania noted that the sale of gasoline is not the first instance of contact between Georgian businessmen and Abkhazia. \"In the 1990s and 2000s, when there was a shortage of electricity, it was supplied from Abkhazia to Georgia and from Georgia to Abkhazia. Now many food products, wine that is consumed at Abkhaz weddings, are going through Georgia to Abkhazia,\" he said.\n\nThe political scientist rejected the assumption that the supplies are some political gesture by the Georgian government aimed at improving relations with Abkhazia. \"If that were the case, gasoline would not be sold, but would be given at a reduced price or for free,\" he concluded.\n\nThese were small-volume supplies.\n\nAbkhazia certainly needs gasoline supplies due to a severe shortage, but the inflow from Georgia did not play a significant role in reducing tension, noted an anonymous expert who has been studying Abkhazia for many years. \"These were small-volume supplies. Moreover, as far as I know, they were targeted and spread across the villages of the Gal district. It did not go further,\" he stated.\n\nThe expert also emphasized that he does not see any political subtext in these supplies. \"These were ordinary commercial supplies,\" he noted.\n\nSpeaking about the contacts of Georgian businesses with Abkhazians, the expert reminded that for several years there has been a \"quiet trade\" between Georgia and Abkhazia. \"They bring products, fertilizers, and so on,\" he stated.\n\nGeorgian experts considered the gasoline supply to Abkhazia to be legal.\n\nAn anonymous lawyer, working on the portal gruzia.ge, noted that gasoline supplies do not violate the law on occupied territories, nor are they an attempt to circumvent anti-Russian sanctions. \"If we are ready to accept the population from Abkhazia for treatment and residence, then the supply of fuel is also legal,\" he noted.\n\nSuch activities are permitted in exceptional cases aimed at peaceful resolution and support for residents in crisis situations.\n\nAn anonymous Georgian jurist stated that gasoline supplies from Georgia to Abkhazia are not considered a violation of the law \"On Occupied Territories\" if they are carried out for humanitarian purposes or under a special agreement from the Georgian government to assist the local population. \"Such activities are permitted in exceptional cases aimed at peaceful resolution and support for residents in crisis situations,\" he noted.\n\nThe jurist emphasized that gasoline supplies from Georgia to Abkhazia are not legally a violation or circumvention of international anti-Russian sanctions, as there are no direct global embargoes on the import of petroleum products concerning Abkhazia itself or its civilian economy.\n\n\"What is legal and what is not in terms of supplies is decided by the Georgian government. There is a certain law on occupied territories, but it does not prohibit providing humanitarian assistance to Abkhazia and South Ossetia, which are perceived in Georgia as its territory, in case of need. In fact, Georgians and Abkhazians actively cooperate when it comes to humanitarian assistance, electricity,\" stated Archil Sikharulidze.\n\nSpeaking about the reaction of the Georgian opposition to these supplies, Sikharulidze emphasized that for the opposition, any attempt by Georgia to communicate with Russia, Abkhazia, South Ossetia is a reason for another scandal. \"What they hope for is to raise another wave of protest, because the wave that was, has obviously died down,\" he noted.\n\nAnd we must not forget that in Georgia, in fact, the election campaign has already begun, Sikharulidze added. \"The Georgian Dream\" is actively going around the regions where it won overwhelmingly in the last elections, while the opposition has found itself in a serious deadlock. Despite the support of Brussels, its political capital has fallen, its voters are scattered, and unification is impossible. Therefore, the only thing they can hope for is a certain nationalist scandal. There was a case with a blow to the face of a Georgian-speaking tourist by a Georgian. They tried to present it as a defense of the honor and dignity of Georgia against the rude representative of the Russian occupying force, but they failed. Now the attempt to raise a scandal from these supplies, that we are helping terrorists-extremists. By the same logic, Georgia provides a lot of services in the healthcare sector to Abkhazians. And they use it very actively. It turns out that everything the Georgian side does for its citizens in Abkhazia is also illegal. In fact, this is a confrontation of two positions and an election campaign,\" he stated.\n\nThe view on the legality or illegality of the supplies depends on the perspective from which they are considered, believes Mamuka Areshidze. \"In legal terms, it was illegal. But besides jurisprudence, there are other forms of description. There are laws on humanitarian support. So if this is a commercial decision, then it is illegal; if humanitarian, then it is permissible,\" he stated.\n\nAreshidze noted that the trade of Georgian businessmen with Abkhazia and South Ossetia has been going on for many years. \"At different times, different goods were supplied to Abkhazia, especially food. Even during the time when the current opposition, which is shouting about these supplies, was in power, grapes were supplied to Abkhazia for Abkhaz wine drinks,\" he noted.\n\nHe also reminded of the cooperation between Georgia and Abkhazia in the operation of the Inguri Hydroelectric Power Station, the energy of which goes both ways.\n\nFacebook* users wrote polar comments on the news about gasoline supplies.\n\nThe news about gasoline supplies from Georgia to Abkhazia, published on the \"Caucasian Knot\" page on the social network Facebook*, received, as of 03:00 Moscow time today, August 17, 447 comments. Users were divided in their assessments.\n\n\"No betrayal... This is help to our Abkhaz brothers. And the opposition, as always, wants war,\" noted Lali Iashvili. \"Separatists are not our brothers! They are enemies and should be called by their name,\" replied Shalva Chubinidze. \"Lali Iashvili, at least someone wrote normally, while everyone else is just negative,\" noted David Gvazba.\n\n\"And who will say thank you? Apsua! They will say, you Georgians owe us, as they have always said. All help to them should be cut off; they will never be our brothers; they have only hatred in their blood,\" complained Luda Afrasidze. \"Read the comments; let's see who is full of hatred. Moreover, this is business,\" replied Ozlem Tarba.\n\n\"This is not betrayal,\" believes Bakuri Beriashviki. \"The population needs to be supplied,\" noted Gia Vacheishvili. \"And how did you want to establish relations with neighbors, only through quarrels? Sometimes use your heads. Many want to go to Abkhazia, where their childhood was spent,\" believes Sveta Sakartvelo.\n\n\"Only with good intentions, an open heart, and the ability to forgive can there be any changes in relations. I think that in this case, it is an act of goodwill. Even if not for free.) Abkhazia, like both Ossetias, is closely connected to Georgia. Whether we want to deny it or not, many families have suffered from these conflicts. Accumulating hatred will bring no benefit to anyone,\" wrote Luba Tabolova. Her comment received the most replies. \"You separatists and enemies of the Georgian state,\" replied Guram Mosashvili. \"You too, unfortunately. These disputes bring neither benefit nor hope for future peace,\" countered Tabolova. \"If everyone thought like that, there would be no wars; ordinary people suffer,\" believes Dato Tsikaridze. \"Respect must be mutual. For 33 years, I have seen steps towards reconciliation only from our side. Personally, this already causes me persistent hatred and disgust towards you,\" wrote Nana Dadeshqeliani. \"It is nice that there are still adequate people in Georgia who understand that only good brings people closer, not hatred!\" noted Lika Bargandzhia.\n\nNalik Tsugba, addressing Georgian commentators, writes: \"The UN recognized that Georgia started the war, and you want to hang all your sins on someone, well, what can we call you?\"",
+          "source": {
+            "uri": "eng.kavkaz-uzel.eu",
+            "dataType": "news",
+            "title": "Caucasian Knot"
+          },
+          "authors": [],
+          "image": "https://www.eng.kavkaz-uzel.eu/images/logos/en/v1/black/big.png",
+          "eventUri": "rus-2110434",
+          "sentiment": -0.03529411764705881,
+          "wgt": 524624652,
+          "relevance": 1
+        },
+        {
+          "uri": "9434447211",
+          "lang": "eng",
+          "isDuplicate": true,
+          "date": "2026-08-17",
+          "time": "00:57:35",
+          "dateTime": "2026-08-17T00:57:35Z",
+          "dateTimePub": "2026-08-17T00:54:16Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.bizzbuzz.news/national/centre-sets-lpg-output-targets-for-refiners-ril-gets-largest-quota-1401205",
+          "title": "Centre sets LPG output targets for refiners; RIL gets largest quota",
+          "body": "New Delhi: The government has for the first time fixed maximum LPG production targets for individual public- and private-sector refineries and upstream companies, seeking to build a domestic supply buffer after the West Asia conflict exposed India's vulnerability to disruptions in imported cooking gas.\n\nThe Petroleum and Natural Gas Ministry, in an order issued on August 13, specified production levels for 21 refineries and upstream companies, with combined production potential set at 63,810 tonnes a day. The targets will kick in whenever there is a supply constraint.\n\nReliance Industries' older refinery at Jamnagar has been assigned the largest target of 18,000 tonnes a day. Russia's Rosneft-backed Nayara Energy's Vadinar refinery has been given a target of 4,480 tonnes a day.\n\nEighteen refineries owned and operated by public-sector oil companies have been ordered to produce a combined 31,470 tonnes a day, while upstream gas producers and processors such as ONGC and GAIL have been given a target of 6,460 tonnes a day.\n\nIndia consumed 33.2 million tonnes of LPG in FY26, or around 91,000 tonnes a day. Domestic production was about 13.1 million tonnes, while 21.3 million tonnes was imported, leaving the country dependent on imports for more than 64% of its requirement. The government had ramped up domestic LPG production during the West Asia crisis after disruptions to imports. The new framework goes beyond those emergency measures by creating facility-wise production benchmarks and requiring companies to maintain adequate infrastructure for storage, evacuation and transportation.\n\nCompanies have also been asked to implement technically and economically feasible measures, including naphtha-to-LPG conversion and refinery upgrades, to maximise output. The production schedule will be reviewed every six months, with new capacity and technological upgrades incorporated into future targets.",
+          "source": {
+            "uri": "bizzbuzz.news",
+            "dataType": "news",
+            "title": "bizzbuzz.news"
+          },
+          "authors": [],
+          "image": "https://assets.bizzbuzz.news/h-upload/2026/08/17/2004118-lpg-tank.webp",
+          "eventUri": null,
+          "sentiment": -0.0980392156862745,
+          "wgt": 524624255,
+          "relevance": 1
+        }
+      ],
+      "totalResults": 435,
+      "page": 1,
+      "count": 8,
+      "pages": 55
+    }
+  }
+}

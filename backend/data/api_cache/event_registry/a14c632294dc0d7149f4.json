@@ -1,0 +1,656 @@
+{
+  "key_raw": "event/getEvents:72264e52bf933cd8",
+  "cached_at": "2026-07-15T08:17:56.637902+00:00",
+  "data": {
+    "events": {
+      "results": [
+        {
+          "uri": "eng-11809378",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sam's_Club",
+              "type": "org",
+              "score": 100,
+              "label": {
+                "eng": "Sam's Club"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Texas",
+              "type": "loc",
+              "score": 32,
+              "label": {
+                "eng": "Texas"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Texas"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/WW_International",
+              "type": "org",
+              "score": 30,
+              "label": {
+                "eng": "WW International"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/California",
+              "type": "loc",
+              "score": 26,
+              "label": {
+                "eng": "California"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "California"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Visalia,_California",
+              "type": "loc",
+              "score": 23,
+              "label": {
+                "eng": "Visalia, California"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Visalia, California"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Walmart",
+              "type": "org",
+              "score": 20,
+              "label": {
+                "eng": "Walmart"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/USA_Today",
+              "type": "wiki",
+              "score": 20,
+              "label": {
+                "eng": "USA Today"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Warehouse",
+              "type": "wiki",
+              "score": 20,
+              "label": {
+                "eng": "Warehouse"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Tennessee",
+              "type": "loc",
+              "score": 20,
+              "label": {
+                "eng": "Tennessee"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Tennessee"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Retail",
+              "type": "wiki",
+              "score": 19,
+              "label": {
+                "eng": "Retail"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Nutrition",
+              "type": "wiki",
+              "score": 17,
+              "label": {
+                "eng": "Nutrition"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Greater_Houston",
+              "type": "loc",
+              "score": 15,
+              "label": {
+                "eng": "Greater Houston"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Pharmacy",
+              "type": "wiki",
+              "score": 15,
+              "label": {
+                "eng": "Pharmacy"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Costco",
+              "type": "org",
+              "score": 14,
+              "label": {
+                "eng": "Costco"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/BJ's_Wholesale_Club",
+              "type": "org",
+              "score": 12,
+              "label": {
+                "eng": "BJ's Wholesale Club"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Warehouse_club",
+              "type": "wiki",
+              "score": 11,
+              "label": {
+                "eng": "Warehouse club"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Warehouse_store",
+              "type": "wiki",
+              "score": 9,
+              "label": {
+                "eng": "Warehouse store"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Baytown,_Texas",
+              "type": "loc",
+              "score": 9,
+              "label": {
+                "eng": "Baytown, Texas"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Baytown, Texas"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Medication",
+              "type": "wiki",
+              "score": 8,
+              "label": {
+                "eng": "Medication"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Tempe,_Arizona",
+              "type": "loc",
+              "score": 8,
+              "label": {
+                "eng": "Tempe, Arizona"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Tempe, Arizona"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Nashville,_Tennessee",
+              "type": "loc",
+              "score": 5,
+              "label": {
+                "eng": "Nashville, Tennessee"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Nashville, Tennessee"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Mayor",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Mayor"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Fiscal_year",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Fiscal year"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Lebanon,_Tennessee",
+              "type": "loc",
+              "score": 5,
+              "label": {
+                "eng": "Lebanon, Tennessee"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Lebanon, Tennessee"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            }
+          ],
+          "eventDate": "2026-07-06",
+          "totalArticleCount": 19,
+          "title": {
+            "eng": "Sam's Club confirms new swanky $24m store - see when warehouse is set to open"
+          },
+          "summary": {
+            "eng": "BULK-BUYING buffs will be overjoyed as Sam's Club confirms a brand new $24m store.\n\nThe sprawling Sam's Club location is set to open in San Antonio, Texas, in a major new project.\n\nThe 166,000 square foot store will be located at 3007 West Loop 1604 South, near Kriewald Road.\n\nThe estimated cost is a whopping $24 million, according to the Licensing and Regulation filing.\n\nSan Antonio currently has six Sams Club locations:\n\n* 5565 De Zavala Road\n\n* 12349 N. Interstate 35\n\n* 2530 Marshall Road\n\n* 5"
+          },
+          "location": {
+            "type": "place",
+            "label": {
+              "eng": "Texas"
+            },
+            "country": {
+              "type": "country",
+              "label": {
+                "eng": "United States"
+              }
+            }
+          },
+          "categories": [
+            {
+              "uri": "dmoz/Recreation",
+              "label": "dmoz/Recreation",
+              "wgt": 17
+            },
+            {
+              "uri": "dmoz/Business/Hospitality/Restaurant_Chains",
+              "label": "dmoz/Business/Hospitality/Restaurant Chains",
+              "wgt": 17
+            },
+            {
+              "uri": "dmoz/Business/Food_and_Related_Products/Retail",
+              "label": "dmoz/Business/Food and Related Products/Retail",
+              "wgt": 21
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 80
+            }
+          ],
+          "articleCounts": {
+            "eng": 19
+          },
+          "sentiment": 0.3098039215686275,
+          "wgt": 520992000,
+          "relevance": 3
+        },
+        {
+          "uri": "eng-11785484",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Medicare_(United_States)",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Medicare (United States)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Glucagon-like_peptide-1",
+              "type": "wiki",
+              "score": 86,
+              "label": {
+                "eng": "Glucagon-like peptide-1"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Weight_loss",
+              "type": "wiki",
+              "score": 84,
+              "label": {
+                "eng": "Weight loss"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Medication",
+              "type": "wiki",
+              "score": 69,
+              "label": {
+                "eng": "Medication"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Obesity",
+              "type": "wiki",
+              "score": 67,
+              "label": {
+                "eng": "Obesity"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Semaglutide",
+              "type": "wiki",
+              "score": 66,
+              "label": {
+                "eng": "Semaglutide"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Centers_for_Medicare_&_Medicaid_Services",
+              "type": "wiki",
+              "score": 59,
+              "label": {
+                "eng": "Centers for Medicare & Medicaid Services"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Body_mass_index",
+              "type": "wiki",
+              "score": 50,
+              "label": {
+                "eng": "Body mass index"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Copayment",
+              "type": "wiki",
+              "score": 44,
+              "label": {
+                "eng": "Copayment"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Prescription_drug",
+              "type": "wiki",
+              "score": 43,
+              "label": {
+                "eng": "Prescription drug"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Novo_Nordisk",
+              "type": "org",
+              "score": 39,
+              "label": {
+                "eng": "Novo Nordisk"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Medicare_Part_D",
+              "type": "wiki",
+              "score": 38,
+              "label": {
+                "eng": "Medicare Part D"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Pharmacy",
+              "type": "wiki",
+              "score": 35,
+              "label": {
+                "eng": "Pharmacy"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Kaiser_Family_Foundation",
+              "type": "org",
+              "score": 31,
+              "label": {
+                "eng": "Kaiser Family Foundation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Insurance",
+              "type": "wiki",
+              "score": 31,
+              "label": {
+                "eng": "Insurance"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Prediabetes",
+              "type": "wiki",
+              "score": 30,
+              "label": {
+                "eng": "Prediabetes"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Eli_Lilly_and_Company",
+              "type": "org",
+              "score": 29,
+              "label": {
+                "eng": "Eli Lilly and Company"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Diabetes",
+              "type": "wiki",
+              "score": 28,
+              "label": {
+                "eng": "Diabetes"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sleep_apnea",
+              "type": "wiki",
+              "score": 28,
+              "label": {
+                "eng": "Sleep apnea"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Cardiovascular_disease",
+              "type": "wiki",
+              "score": 27,
+              "label": {
+                "eng": "Cardiovascular disease"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Myocardial_infarction",
+              "type": "wiki",
+              "score": 25,
+              "label": {
+                "eng": "Myocardial infarction"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Stroke",
+              "type": "wiki",
+              "score": 25,
+              "label": {
+                "eng": "Stroke"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Hypertension",
+              "type": "wiki",
+              "score": 23,
+              "label": {
+                "eng": "Hypertension"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Federal_government_of_the_United_States",
+              "type": "org",
+              "score": 12,
+              "label": {
+                "eng": "Federal government of the United States"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Mehmet_Oz",
+              "type": "person",
+              "score": 9,
+              "label": {
+                "eng": "Mehmet Oz"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/CNN",
+              "type": "org",
+              "score": 9,
+              "label": {
+                "eng": "CNN"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Washington_(state)",
+              "type": "loc",
+              "score": 7,
+              "label": {
+                "eng": "Washington (state)"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Washington (state)"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Eli_Lilly",
+              "type": "person",
+              "score": 6,
+              "label": {
+                "eng": "Eli Lilly"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/University_of_Virginia",
+              "type": "org",
+              "score": 5,
+              "label": {
+                "eng": "University of Virginia"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Belize",
+              "type": "loc",
+              "score": 5,
+              "label": {
+                "eng": "Belize"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "Belize"
+                }
+              }
+            }
+          ],
+          "eventDate": "2026-07-01",
+          "totalArticleCount": 53,
+          "title": {
+            "eng": "What Older Adults Should Know About GLP-1 Drugs as Medicare Coverage Expands"
+          },
+          "summary": {
+            "eng": "A Medicare pilot beginning Wednesday will broaden access to medications like Wegovy and Zepbound. There are unique risks for those over 65.\n\nStarting Wednesday, millions of older Americans covered by Medicare will be able to get powerful weight-loss drugs for just $50 a month through a federal pilot program.\n\nUntil now, Medicare covered the medications only if they were prescribed for conditions like sleep apnea or heart issues. The new program will expand coverage of drugs including Wegovy, Zepb"
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Health/Weight_Loss",
+              "label": "dmoz/Health/Weight Loss",
+              "wgt": 36
+            },
+            {
+              "uri": "dmoz/Recreation/Camps/Weight_Loss",
+              "label": "dmoz/Recreation/Camps/Weight Loss",
+              "wgt": 26
+            },
+            {
+              "uri": "dmoz/Health/Pharmacy/Prescription_Services",
+              "label": "dmoz/Health/Pharmacy/Prescription Services",
+              "wgt": 24
+            },
+            {
+              "uri": "news/Health",
+              "label": "news/Health",
+              "wgt": 98
+            }
+          ],
+          "articleCounts": {
+            "eng": 53
+          },
+          "sentiment": 0.1529411764705881,
+          "wgt": 520560000,
+          "relevance": 5
+        }
+      ],
+      "totalResults": 2,
+      "page": 1,
+      "count": 2,
+      "pages": 1
+    }
+  }
+}

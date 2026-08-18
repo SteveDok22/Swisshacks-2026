@@ -1,0 +1,14 @@
+{
+  "key_raw": "article/getArticles:cc71bab1f5329f01",
+  "cached_at": "2026-06-28T00:00:38.531124+00:00",
+  "data": {
+    "articles": {
+      "results": [],
+      "totalResults": 0,
+      "page": 1,
+      "count": 0,
+      "pages": 1
+    },
+    "info": "No results match the search conditions."
+  }
+}

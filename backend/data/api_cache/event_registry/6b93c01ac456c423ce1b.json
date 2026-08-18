@@ -1,0 +1,132 @@
+{
+  "key_raw": "event/getEvents:8331433a4a71d86a",
+  "cached_at": "2026-08-18T08:24:20.190825+00:00",
+  "data": {
+    "events": {
+      "results": [
+        {
+          "uri": "eng-11857356",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Temenos_AG",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Temenos AG"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Software_as_a_service",
+              "type": "wiki",
+              "score": 95,
+              "label": {
+                "eng": "Software as a service"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Software",
+              "type": "wiki",
+              "score": 61,
+              "label": {
+                "eng": "Software"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Bank",
+              "type": "wiki",
+              "score": 55,
+              "label": {
+                "eng": "Bank"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Earnings_before_interest_and_taxes",
+              "type": "wiki",
+              "score": 44,
+              "label": {
+                "eng": "Earnings before interest and taxes"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Europe",
+              "type": "loc",
+              "score": 42,
+              "label": {
+                "eng": "Europe"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Earnings_per_share",
+              "type": "wiki",
+              "score": 41,
+              "label": {
+                "eng": "Earnings per share"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Core_banking",
+              "type": "wiki",
+              "score": 35,
+              "label": {
+                "eng": "Core banking"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Free_cash_flow",
+              "type": "wiki",
+              "score": 35,
+              "label": {
+                "eng": "Free cash flow"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Revenue",
+              "type": "wiki",
+              "score": 33,
+              "label": {
+                "eng": "Revenue"
+              }
+            }
+          ],
+          "eventDate": "2026-07-22",
+          "totalArticleCount": 6,
+          "title": {
+            "eng": "Earnings call transcript: Temenos Q2 2026 growth steadies as deals slip By Investing.com"
+          },
+          "summary": {
+            "eng": "Temenos said second-quarter results were mixed, with annual recurring revenue rising 11% and maintenance revenue beating expectations, but subscription and SaaS revenue falling 13% as several large deals slipped into the third quarter. The company did not provide actual EPS or revenue figures against the consensus forecast of $1.25 a share and $296.54 million in revenue, but management said the delay was timing-related and that most of the missed revenue had already been signed early in Q3. The s"
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Society/Issues/Business",
+              "label": "dmoz/Society/Issues/Business",
+              "wgt": 15
+            },
+            {
+              "uri": "dmoz/Business/Investing/Software",
+              "label": "dmoz/Business/Investing/Software",
+              "wgt": 12
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 95
+            }
+          ],
+          "articleCounts": {
+            "eng": 6
+          },
+          "sentiment": 0.1764705882352942,
+          "wgt": 522374400,
+          "relevance": 16
+        }
+      ],
+      "totalResults": 1,
+      "page": 1,
+      "count": 1,
+      "pages": 1
+    }
+  }
+}

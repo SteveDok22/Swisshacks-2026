@@ -175,7 +175,7 @@ Full diagrams and math: **[Architecture](docs/architecture.md)** · **[Drift Eng
 The Drift Engine workspace presents a verdict-first view: a recommended action up top, then the evidence.
 
 <div align="center">
-<img src="docs/screenshots/causal-panel.png" alt="Causal analysis panel" width="700">
+<img src="docs/screenshots/gifs/Drift-Engine-Drift-Radar-Drift-score-list.gif" alt="Drift Radar and drift-score list" width="800">
 </div>
 
 | View | Purpose |

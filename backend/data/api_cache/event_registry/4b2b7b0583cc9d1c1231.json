@@ -1,0 +1,241 @@
+{
+  "key_raw": "article/getArticles:a048f1b4c476ca7a",
+  "cached_at": "2026-06-27T00:00:37.770464+00:00",
+  "data": {
+    "articles": {
+      "results": [
+        {
+          "uri": "9373277721",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-26",
+          "time": "21:02:34",
+          "dateTime": "2026-06-26T21:02:34Z",
+          "dateTimePub": "2026-06-26T21:01:52Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.novinite.com/articles/239263/US+Extends+Deadline+for+Talks+on+Lukoil+Foreign+Asset+Sales+to+July+25",
+          "title": "US Extends Deadline for Talks on Lukoil Foreign Asset Sales to July 25",
+          "body": "The United States has extended the deadline for negotiations over the potential sale of foreign assets belonging to Russian oil giant Lukoil, pushing the authorization period to July 25. The decision was confirmed by the U.S. Treasury Department, according to a notice published by the Office of Foreign Assets Control (OFAC).\n\nThe license permits companies to continue talks on acquiring Lukoil's international portfolio, which remains under sanctions pressure following measures introduced last year against both Lukoil and Rosneft. U.S. Treasury Secretary Scott Bessent previously described the firms as key financial supporters of what he called Russia's \"war machine.\"\n\nThe assets involved in the potential divestment are estimated at around USD22 billion and include oil fields, refineries, and fuel stations spread across multiple countries, from the Middle East to Northern Europe. The sanctions regime effectively requires the company to reduce or restructure its foreign holdings.\n\nOFAC first issued the negotiation license in November, opening the door for interested buyers to explore possible transactions involving Lukoil's overseas operations. Since then, the process has attracted interest from roughly a dozen potential bidders, reflecting significant international attention on the assets.\n\nThe authorization has been repeatedly adjusted. Initially set to expire in January, it was later extended multiple times, including a previous extension to June 27, before the latest decision moved the deadline further to July 25.\n\nAny final agreement involving the purchase of Lukoil's international assets will still require explicit approval from OFAC, meaning that even advanced negotiations cannot be completed without U.S. regulatory clearance.",
+          "source": {
+            "uri": "novinite.com",
+            "dataType": "news",
+            "title": "Novinite.com"
+          },
+          "authors": [],
+          "image": "https://www.novinite.com/media/images/2026-06/photo_verybig_239263.jpg",
+          "eventUri": null,
+          "sentiment": 0.2627450980392156,
+          "wgt": 520203754,
+          "relevance": 1
+        },
+        {
+          "uri": "9373107588",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-26",
+          "time": "17:28:08",
+          "dateTime": "2026-06-26T17:28:08Z",
+          "dateTimePub": "2016-10-24T14:27:00Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://neftegazru.com/news/economics-markets-stocks/409529-moodys-raised-its-outlook-on-the-bank-system-for-oil-rich-russia/",
+          "title": "Moody's raised its outlook on the bank system for oil-rich Russia",
+          "body": "Though problem loans will continue to drag on performance, Moody's said it raised its outlook on the bank system for oil-rich Russia from negative to stable.\n\nThough problem loans will continue to drag on performance, Moody's said on October 24, 2016, it raised its outlook on the bank system for oil-rich Russia from negative to stable.\n\n\"Slow economic recovery and stabilization of macroeconomic indicators in Russia will support the operating environment for Russian banks,\" Irakli Pipia, a senior credit officer at Moody's, said in a statement from London.\n\nMoody's said the asset quality for Russian banks declines, and problem loans on the books increase, though overall profitability should post gains for full-year 2016.\n\nThe value of Russia's currency collapsed as oil prices moved from $100 per barrel in 2014 to under $30 early this year. From the perspective of the International Monetary Fund, the Russian economy is moving through a fiscal adjustment period that started in 2015, though there are prospects for \"modest\" recovery starting in 2017.\n\nThe government in September issued a joint declaration with Saudi Arabia that called for artificial action to control supply and demand in the energy sector and thereby lift crude oil prices from historic lows. Russian support for a proposal from the Organization of Petroleum Exporting Countries to freeze, or possibly cut, production levels has been fluid, however.\n\nRussian oil company Rosneft, the country's largest, aims to increase crude oil production at Far East operations by up to 20% to around 3 million barrels. Production for the second quarter for Rosneft was 4.1 million barrels of oil per day, an increase of 0.5% from the previous period\n\nMoody's said it expected the Russian economy will continue to contract this year, but only by about 1%.\n\nGrowth prospects return for 2017, however, as government stimulus efforts and the impact of stabilizing crude oil prices take hold.\n\n\"We therefore expect improvements in banks' profitability and capital retention,\" Irakli Pipia said.",
+          "source": {
+            "uri": "neftegazru.com",
+            "dataType": "news",
+            "title": "neftegazru.com"
+          },
+          "authors": [],
+          "image": "https://neftegazru.com/upload/uf/ca7/x8mwrd7zyspgoo9wdlqj5wyfhfqn24pk/Itogovyy.png",
+          "eventUri": null,
+          "sentiment": -0.03529411764705881,
+          "wgt": 520190888,
+          "relevance": 7
+        },
+        {
+          "uri": "9373099543",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-26",
+          "time": "17:19:44",
+          "dateTime": "2026-06-26T17:19:44Z",
+          "dateTimePub": "2026-06-26T17:14:57Z",
+          "dataType": "news",
+          "sim": 0.5921568870544434,
+          "url": "https://en.zona.media/article/2026/06/26/fuel_map",
+          "title": "Running on empty. Our map of fuel rationing in 56 Russian regions, as Ukrainian strikes on refineries drain gasoline supply",
+          "body": "The fuel crisis in Russia, deepened by Ukrainian armed forces' strikes on oil refineries, is spreading to more and more regions. Local authorities are bringing in restrictions on fuel sales, and queues are forming at gas stations. Mediazona has compiled a map of gas sale restrictions across Russia's regions.\n\nIn all, fuel restrictions have reached 56 of Russia's regions. In 18 of them, the restrictions have been imposed by local authorities and are binding on every gas station in the region. As a rule, this means capping the volume of fuel sold per car (usually around 30 litres) and requiring fuel to be dispensed into the tank only, with sales into gas cans banned.\n\nThe harshest restrictions have been imposed in annexed Crimea and Sevastopol, where fuel sales to the public have effectively been halted.\n\nA further 38 regions report partial restrictions: the limits are being set by gas station companies (we counted only chain operators and left out reports of limits at individual stations), while local authorities have issued no orders mandating such restrictions.\n\nIn 31 regions we found no reports of any significant supply disruption: here limits were set either by individual stations or not at all.\n\nCrimea and Sevastopol\n\nSince June 21, a complete ban on the open sale of fuel to persons has been in force at gas filling stations in Crimea and Sevastopol. Only emergency services, the police, public transport and municipal workers are allowed to refuel.\n\nOn June 26, the authorities in Crimea and Sevastopol declared a state of emergency \"to bring order to matters of an economic nature\".\n\nAdygea: partial restrictions\n\nOn June 24, the head of the republic announced \"temporary restrictions on the amount of fuel dispensed to cars\". The authorities did not specify how many litres car owners are allowed to buy.\n\nDagestan\n\nCustomers may buy 20 litres of gasoline and 50 litres of diesel each.\n\nKarelia\n\nAccording to local authorities, 20 filling stations in the region have suspended operations. Some stations are applying \"special fuel-dispensing rules\", meaning fuel cannot be bought above a certain volume. The authorities did not state the petrol limits.\n\nBelgorod region\n\nAt Lukoil stations, customers may buy no more than 30 litres of gasoline and 60 litres of diesel each. Rosneft is not selling fuel into gas cans. Some Gazprom Neft stations have stopped selling AI-95 premium-grade fuel.\n\nBryansk region\n\nGas stations are barred from dispensing petrol into gas cans. There are no other restrictions\n\nKursk region\n\nRefuelling is permitted into the tank only. Cans are banned.\n\nUdmurtia\n\nFuel-sale restrictions in Udmurtia were brought in at Tatneft stations as early as June 12: up to 20 litres of AI-92 unleaded motor gasoline and AI-95, and up to 40 litres of diesel. By June 17, the limit on AI-92 had been lifted and the AI-95 limit raised to 30 litres.\n\nChuvashia\n\nLukoil has imposed a limit of no more than 20 litres of gasoline per car. At Tatneft a 30-litre-per-customer cap on AI-95 remains in place. AI-92 and diesel are dispensed at the chain's stations without restriction.\n\nAltai krai\n\nThere are practically no restrictions, though some stations are not selling more than 20 litres of petrol per customer.\n\nKrasnodar krai\n\nRegional authorities have imposed no fuel bans. Gasoline sales are restricted at some stations.\n\nKrasnoyarsk krai\n\nSome gas stations have brought in restrictions and limits on fuel purchases.\n\nPrimorye\n\nDue to heightened demand for fuel, the Independent Petroleum Company (NNK) is not selling gasoline into cans at any of its stations in the region.\n\nAmur region\n\nSome filling stations in the Amur region have stopped dispensing gasoline into cans. A number of hauliers have run into diesel shortages.\n\nYamalo-Nenets Autonomous Okrug\n\nGas station chains do not dispense fuel in any container, only a gas tank. Smaller gas stations are struggling with the increased demand for fuel and adopt limits: no more than 40-70 liters per car.\n\nSverdlovsk region\n\nGazpromneft, Lukoil, Bashneft and Tatneft introduced restrictions on the sale of fuel at their gas stations.\n\nSaratov region\n\nUntil June 30, the region introduced limits on the sale of gasoline for ordinary drivers. Local authorities have set a limit of 30 liters per car.\n\nPerm region\n\nLukoil only fills gas tanks at several of its gas stations -- sale in canisters is prohibited. Neftehimprom introduced limits: no more than 40 liters per gas tank and no more than 20 liters per canister.\n\nOrenburg region\n\nSince mid-June, restrictions on the sale of fuel to one person have been introduced at Tatneft gas stations. The owners of passenger cars are not sold more than 20 liters of gasoline and 40 liters of diesel fuel. The limit for trucks is 200 liters. Bashneft has set a limit of 30 liters of gasoline and diesel.\n\nMagadan region\n\nAll types of fuel at Magadan gas stations are dispensed only into the vehicle's tank.\n\nSt. Petersburg\n\nAt Gazpromneft gas stations you cannot buy more than 30 liters. Restrictions also apply at some Tatneft stations.\n\nKaluga region\n\nAt some Rosneft gas stations, fuel is sold only to ambulances and vehicles of the Ministry of Emergency Situations. Other network companies set a limit of 30 liters, and Lukoil stopped filling canisters.\n\nIvanovo region\n\nIvanovo gas stations respond to increased demand for fuel with limits: no more than 30 liters of gasoline or 80 liters of diesel per person. Filling canisters is prohibited.\n\nKaliningrad region\n\nThe authorities have introduced limits on the volume of fuel sold to one person. At large gas stations you cannot fill the tank with more than 30 liters of gasoline and 60 liters of diesel.\n\nLipetsk region\n\nThe authorities of the Lipetsk region have extended the previously established restrictions on the sale of gasoline, according to which residents can purchase no more than 30 liters per car. Governor Igor Artamonov explained that this was necessary to prevent \"a new sharp washout of fuel from gas stations.\"\n\nOmsk region\n\nThe authorities have introduced limits: 40 liters per car for gasoline and 80 liters for diesel, except for highway gas stations, where the limit for diesel fuel is 200 liters.\n\nUlyanovsk region\n\nThe regional government introduced restrictions on the sale of fuel from June 25 \"to eliminate speculation\" and stabilise the situation. You can buy no more than 40 liters of gasoline or 100 liters of diesel fuel per passenger car and no more than 300 liters for trucks and buses.\n\nZabaykalsky krai\n\nSince June 25, the region has been in \"high alert mode.\" Fuel supply to individuals was reduced to 15 liters -- and only for car tanks. Fuel companies were required to provide an \"irreducible reserve\" of fuel for emergency and operational services.",
+          "source": {
+            "uri": "en.zona.media",
+            "dataType": "news",
+            "title": "Mediazona"
+          },
+          "authors": [],
+          "image": "https://s3.zona.media/c783ccd3719bdef1dd04eff598d62b8d.webp",
+          "eventUri": "eng-11769331",
+          "sentiment": -0.2549019607843137,
+          "wgt": 520190384,
+          "relevance": 7
+        },
+        {
+          "uri": "9373035055",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-26",
+          "time": "16:16:13",
+          "dateTime": "2026-06-26T16:16:13Z",
+          "dateTimePub": "2026-06-26T16:10:00Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.ukrinform.net/rubric-economy/4138070-us-restores-full-sanctions-on-russias-rosneft-and-lukoil-vlasiuk.html",
+          "title": "U.S. restores full sanctions on Russia's Rosneft and Lukoil - Vlasiuk",
+          "body": "The United States has restored full sanctions on Russian oil giants Rosneft and Lukoil after several postponements, as the latest sanctions waiver expired on June 16.\n\nThis was reported to Ukrinform by Vladyslav Vlasiuk, the Ukrainian Presidential Commissioner for Sanctions Policy.\n\n\"US sanctions against Rosneft and Lukoil, imposed in October, have once again fully come into force after several temporary postponements. The latest waiver expired on June 16 and was not extended,\" he said.\n\nAs previously reported, in March, the United States temporarily eased restrictions on Russian oil due to risks to global energy markets linked to the war with Iran and the blockade of the Strait of Hormuz.",
+          "source": {
+            "uri": "ukrinform.net",
+            "dataType": "news",
+            "title": "Ukrinform-EN"
+          },
+          "authors": [],
+          "image": "https://static.ukrinform.com/photos/2026_02/thumb_files/630_360_1770125401-752.jpg",
+          "eventUri": null,
+          "sentiment": 0.1372549019607843,
+          "wgt": 520186573,
+          "relevance": 7
+        },
+        {
+          "uri": "9372785184",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-26",
+          "time": "12:45:53",
+          "dateTime": "2026-06-26T12:45:53Z",
+          "dateTimePub": "2026-06-26T11:02:33Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://boereport.com/2026/06/26/ukraine-attacks-russian-energy-sites-what-has-been-hit/",
+          "title": "Ukraine attacks Russian energy sites -- What has been hit?",
+          "body": "The drone attacks are worsening fuel shortages in Russia, where people have reported rising prices and long queues at the filling stations across most regions.\n\nFollowing is a summary of the attacks -- starting with the most recent -- and their impact:\n\nNORSI NORSI, Russia's fourth-largest oil refinery, owned by Lukoil, suspended operations on Wednesday after a Ukrainian drone attack, a move likely to worsen nationwide fuel shortages, two industry sources said.\n\nNORSI, which is Russia's second-largest producer of gasoline, can process 16 million metric tons of oil per year, or around 320,000 barrels per day.\n\nORENBURG\n\nUkraine's military said on Wednesday it had struck Orenburg gas processing plant, which has a capacity of 45 billion cubic metres of natural gas per year.\n\nMOSCOW Moscow oil refinery halted operations after a Ukrainian drone attack on June 16, two industry sources said. On June 18, another attack damaged processing units and sparked multiple fires across the site.\n\nThe facility in the capital's southeastern Kapotnya district has an annual capacity of around 11 million tons of oil.\n\nTANECO Russian Tatneft's TANECO oil refinery halted operations after a drone attack on June 12.\n\nTANECO is one of Russia's most technologically advanced refineries, equipped with hydrocracking, catalytic cracking and delayed coking units.\n\nAccording to industry data, TANECO processed 17.0 million tons of crude oil in 2024, producing 2.7 million tons of motor gasoline, 8.5 million tons of diesel fuel and 1.3 million tons of petroleum coke.\n\nKUIBYSHEV\n\nRosneft's Kuibyshev oil refinery halted processing on June 10 after a drone attack.\n\nThe Kuibyshev refinery processed 4.7 million tons of crude in 2024, or 94,400 barrels a day, producing 0.8 million tons of gasoline, 1.4 million tons of diesel and 1.3 million tons of fuel oil, according to industry sources.\n\nYAROSLAVL\n\nUkrainian forces attacked a Russian oil refinery in Yaroslavl, about 700 km (435 miles) from the Ukrainian border, on May 25, according to President Volodymyr Zelenskiy.\n\nThe refinery has processing capacity of 15 million metric tons per year, or around 300,000 barrels per day.\n\nSYZRAN Ukrainian drones struck Russia's Rosneft-owned Syzran oil refinery in the Samara region, the Ukrainian military and President Zelenskiy said on May 21.\n\nThe refinery halted operations after the attack damaged a primary processing unit, two industry sources said.\n\nIt had previously suspended oil refining after drone attacks on April 18.\n\nThe refinery has processing capacity of 8.5 million tons per year, or around 170,000 barrels per day.\n\nIn 2024, it processed 4.3 million tons of crude into 800,000 tons of gasoline, 1.5 million tons of diesel and 700,000 tons of fuel oil, according to industry sources.\n\nTUAPSE\n\nUkraine struck a Russian oil refinery in the Black Sea port of Tuapse on May 27, the Ukrainian military's general staff said.\n\nA drone attack caused a major fire at the oil refinery on April 28, officials said, causing the facility, which sells most of its products for export, to halt operations, according to two industry sources.\n\nIt has a capacity of around 12 million tons per year, or 240,000 barrels per day, and produces naphtha, diesel, fuel oil and vacuum gasoil.\n\nPORTS/TANKERS\n\nA loading complex caught fire in Russia's Black Sea port of Novorossiysk after a drone attack, local authorities said on June 8.\n\nA fire broke out at the southern Russian port of Temryuk after a Ukrainian drone attack, regional authorities in the Krasnodar region said on May 29.\n\nAlso on May 29, fuel storage facilities caught fire following a Ukraine drone attack in Russia's Yaroslavl region, Governor Mikhail Yevrayev said.\n\nUkraine attacked Russia's ports on the Baltic and Black seas, including the Primorsk port, oil tankers and military ships on May 3.\n\n(Reporting by Reuters; Editing by Joe Bavier and Andrew Heavens)",
+          "source": {
+            "uri": "boereport.com",
+            "dataType": "news",
+            "title": "BOE Report"
+          },
+          "authors": [
+            {
+              "uri": "reuters@boereport.com",
+              "name": "Reuters",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://boereport.com/wp-content/uploads/2025/11/image-37.jpg",
+          "eventUri": null,
+          "sentiment": -0.3333333333333334,
+          "wgt": 520173953,
+          "relevance": 7
+        },
+        {
+          "uri": "9372669326",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-26",
+          "time": "11:13:23",
+          "dateTime": "2026-06-26T11:13:23Z",
+          "dateTimePub": "2026-06-01T10:11:59Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.reuters.com/business/energy/ukraine-attacks-russian-energy-sites-what-has-been-hit-2026-06-26/",
+          "title": "Ukraine attacks Russian energy sites - what has been hit?",
+          "body": "MOSCOW, June 26 - Ukraine has stepped up attacks on Russian energy facilities in recent months, targeting the country's infrastructure in a war now well into its fifth year.\n\nThe drone attacks are worsening fuel shortages in Russia, where people have reported rising prices and long queues at the filling stations across most regions.\n\nFollowing is a summary of the attacks -- starting with the most recent -- and their impact:\n\nNORSI\n\nNORSI, Russia's fourth-largest oil refinery, owned by Lukoil (LKOH.MM), opens new tab, suspended operations on Wednesday after a Ukrainian drone attack, a move likely to worsen nationwide , two industry sources said.\n\nNORSI, which is Russia's second-largest producer of gasoline, can process 16 million metric tons of oil per year, or around 320,000 barrels per day.\n\nORENBURG\n\nUkraine's military said on Wednesday it had struck Orenburg gas processing plant, which has a capacity of 45 billion cubic metres of natural gas per year.\n\nMOSCOW\n\nMoscow oil refinery halted operations after a Ukrainian drone attack on June 16, two industry sources said.\n\nOn June 18, another attack damaged processing units and sparked multiple fires across the ⁠site.\n\nThe facility in the capital's southeastern Kapotnya district has an annual capacity of around 11 million tons of oil.\n\nTANECO\n\nRussian Tatneft's TANECO oil refinery halted operations after a drone attack on June 12.\n\nTANECO is one of Russia's most technologically advanced refineries, equipped with hydrocracking, catalytic cracking and delayed coking units.\n\nAccording to industry data, TANECO processed 17.0 million tons of crude oil in 2024, producing 2.7 million tons of motor gasoline, 8.5 million tons of diesel fuel and 1.3 million tons of petroleum coke.\n\nKUIBYSHEV\n\nRosneft's Kuibyshev oil refinery halted processing on June 10 after a drone attack.\n\nThe Kuibyshev refinery processed 4.7 million tons of crude in 2024, or 94,400 barrels a day, producing 0.8 million tons of gasoline, 1.4 million tons of diesel and 1.3 million tons of fuel oil, according to industry sources.\n\nYAROSLAVL\n\nUkrainian forces attacked a Russian oil refinery in Yaroslavl, about 700 km (435 miles) from the Ukrainian border, on May 25, according to President Volodymyr Zelenskiy.\n\nThe refinery has processing capacity of 15 million ⁠metric tons per year, or around 300,000 barrels per day.\n\nSYZRAN\n\nUkrainian drones struck Russia's Rosneft-owned Syzran oil refinery in the Samara region, the Ukrainian military and President Zelenskiy said on May 21.\n\nThe refinery halted operations after the attack damaged a primary processing unit, two industry sources said.\n\nIt had previously suspended oil refining after drone attacks on April 18.\n\nThe refinery has processing capacity of 8.5 million tons per year, or around 170,000 barrels per day.\n\nIn 2024, it processed 4.3 million tons of crude into 800,000 tons of gasoline, 1.5 million ⁠tons of diesel and 700,000 tons of fuel oil, according to industry sources.\n\nTUAPSE\n\nUkraine struck a Russian oil refinery in the Black Sea port of Tuapse on May 27, the Ukrainian military's general staff said.\n\nA drone attack caused a major fire at the oil refinery on April 28, officials said, causing the facility, which sells most of its products for export, ⁠to halt operations, according to two industry sources.\n\nIt has a capacity of around 12 million tons per year, or 240,000 barrels per day, and produces naphtha, diesel, fuel oil and vacuum gasoil.\n\nPORTS/TANKERS\n\nA loading complex caught fire in Russia's Black Sea port of Novorossiysk after a drone attack, local authorities said on June 8.\n\nA fire broke ⁠out at the southern Russian port of Temryuk after a Ukrainian drone attack, regional authorities in the Krasnodar region said on May 29.\n\nAlso on May 29, fuel storage facilities caught fire following a Ukraine drone attack in Russia's Yaroslavl region, Governor Mikhail Yevrayev said.\n\nUkraine attacked Russia's ports on the Baltic and Black seas, including the Primorsk port, oil tankers and military ships on M ay 3.\n\nReporting by Reuters; Editing by Joe Bavier and Andrew Heavens\n\nOur Standards: The Thomson Reuters Trust Principles., opens new tab",
+          "source": {
+            "uri": "reuters.com",
+            "dataType": "news",
+            "title": "Reuters"
+          },
+          "authors": [
+            {
+              "uri": "reuters@reuters.com",
+              "name": "Reuters",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://www.reuters.com/resizer/v2/JATTUDHB5NIBXPX25STIYW4VYY.jpg?auth=05dbf75bbcea4f947076b06657f0c42f2279cf4952878f72bb291230301da84d&height=1005&width=1920&quality=80&smart=true",
+          "eventUri": null,
+          "sentiment": -0.3960784313725491,
+          "wgt": 520168403,
+          "relevance": 7
+        },
+        {
+          "uri": "9372663439",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-26",
+          "time": "11:07:14",
+          "dateTime": "2026-06-26T11:07:14Z",
+          "dateTimePub": "2026-06-26T11:02:34Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.globalbankingandfinance.com/factbox-ukraine-attacks-russian-energy-sites-what-hit/",
+          "title": "Ukraine Attacks Russian Energy Sites: Recent Hits & Impact on Fuel",
+          "body": "Ukraine's Drone Attacks on Russian Energy Sites: Full List & Impact\n\nSummary and Impact of Ukrainian Drone Strikes on Russian Energy Infrastructure\n\nMOSCOW, June 26 (Reuters) - Ukraine has stepped up attacks on Russian energy facilities in recent months, targeting the country's infrastructure in a war now well into its fifth year.\n\nThe drone attacks are worsening fuel shortages in Russia, where people have reported rising prices and long queues at the filling stations across most regions.\n\nFollowing is a summary of the attacks -- starting with the most recent -- and their impact:\n\nMajor Oil Refineries Targeted\n\nNORSI Oil Refinery\n\nNORSI, Russia's fourth-largest oil refinery, owned by Lukoil, suspended operations on Wednesday after a Ukrainian drone attack, a move likely to worsen nationwide fuel shortages, two industry sources said.\n\nNORSI, which is Russia's second-largest producer of gasoline, can process 16 million metric tons of oil per year, or around 320,000 barrels per day.\n\nOrenburg Gas Processing Plant\n\nUkraine's military said on Wednesday it had struck Orenburg gas processing plant, which has a capacity of 45 billion cubic metres of natural gas per year.\n\nMoscow Oil Refinery\n\nMoscow oil refinery halted operations after a Ukrainian drone attack on June 16, two industry sources said.\n\nOn June 18, another attack damaged processing units and sparked multiple fires across the site.\n\nThe facility in the capital's southeastern Kapotnya district has an annual capacity of around 11 million tons of oil.\n\nTANECO Oil Refinery\n\nRussian Tatneft's TANECO oil refinery halted operations after a drone attack on June 12.\n\nTANECO is one of Russia's most technologically advanced refineries, equipped with hydrocracking, catalytic cracking and delayed coking units.\n\nAccording to industry data, TANECO processed 17.0 million tons of crude oil in 2024, producing 2.7 million tons of motor gasoline, 8.5 million tons of diesel fuel and 1.3 million tons of petroleum coke.\n\nKuibyshev Oil Refinery\n\nRosneft's Kuibyshev oil refinery halted processing on June 10 after a drone attack.\n\nThe Kuibyshev refinery processed 4.7 million tons of crude in 2024, or 94,400 barrels a day, producing 0.8 million tons of gasoline, 1.4 million tons of diesel and 1.3 million tons of fuel oil, according to industry sources.\n\nYaroslavl Oil Refinery\n\nUkrainian forces attacked a Russian oil refinery in Yaroslavl, about 700 km (435 miles) from the Ukrainian border, on May 25, according to President Volodymyr Zelenskiy.\n\nThe refinery has processing capacity of 15 million metric tons per year, or around 300,000 barrels per day.\n\nSyzran Oil Refinery\n\nUkrainian drones struck Russia's Rosneft-owned Syzran oil refinery in the Samara region, the Ukrainian military and President Zelenskiy said on May 21.\n\nThe refinery halted operations after the attack damaged a primary processing unit, two industry sources said.\n\nIt had previously suspended oil refining after drone attacks on April 18.\n\nThe refinery has processing capacity of 8.5 million tons per year, or around 170,000 barrels per day.\n\nIn 2024, it processed 4.3 million tons of crude into 800,000 tons of gasoline, 1.5 million tons of diesel and 700,000 tons of fuel oil, according to industry sources.\n\nTuapse Oil Refinery\n\nUkraine struck a Russian oil refinery in the Black Sea port of Tuapse on May 27, the Ukrainian military's general staff said.\n\nA drone attack caused a major fire at the oil refinery on April 28, officials said, causing the facility, which sells most of its products for export, to halt operations, according to two industry sources.\n\nIt has a capacity of around 12 million tons per year, or 240,000 barrels per day, and produces naphtha, diesel, fuel oil and vacuum gasoil.\n\nAttacks on Ports and Fuel Storage Facilities\n\nNovorossiysk Port\n\nA loading complex caught fire in Russia's Black Sea port of Novorossiysk after a drone attack, local authorities said on June 8.\n\nTemryuk Port\n\nA fire broke out at the southern Russian port of Temryuk after a Ukrainian drone attack, regional authorities in the Krasnodar region said on May 29.\n\nYaroslavl Fuel Storage Facilities\n\nAlso on May 29, fuel storage facilities caught fire following a Ukraine drone attack in Russia's Yaroslavl region, Governor Mikhail Yevrayev said.\n\nAttacks on Baltic and Black Sea Ports and Tankers\n\nUkraine attacked Russia's ports on the Baltic and Black seas, including the Primorsk port, oil tankers and military ships on May 3.\n\nReporting and Editorial Notes\n\n(Reporting by Reuters; Editing by Joe Bavier and Andrew Heavens)",
+          "source": {
+            "uri": "globalbankingandfinance.com",
+            "dataType": "news",
+            "title": "Global Banking & Finance Review"
+          },
+          "authors": [
+            {
+              "uri": "barnali_pal_sinha@globalbankingandfinance.com",
+              "name": "Barnali Pal Sinha",
+              "type": "author",
+              "isAgency": false
+            },
+            {
+              "uri": "reuters@globalbankingandfinance.com",
+              "name": "Reuters",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://www.globalbankingandfinance.com/i/cloud-11e47706-f5ce-4afe-99c3-7bed6e1cfeda/width=1200,height=630,quality=80,format=auto,fit=cover/",
+          "eventUri": null,
+          "sentiment": -0.4117647058823529,
+          "wgt": 520168034,
+          "relevance": 7
+        },
+        {
+          "uri": "9372558554",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-26",
+          "time": "09:40:48",
+          "dateTime": "2026-06-26T09:40:48Z",
+          "dateTimePub": "2026-06-26T09:40:16Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.mayerbrown.com/en/insights/publications/2026/06/russia-ukraine-sanctions-update-month-of-june-2026",
+          "title": "Russia/Ukraine Sanctions Update - Month of June 2026",
+          "body": "* U.S. Secretary of State Celebrates Russia National Day: On June 12, U.S. Secretary of State, Marco Rubio, issued a statement congratulating the Russian people on Russia Day. In his statement, Secretary Rubio emphasized the U.S. \"remains committed to advancing a peaceful solution to the Russia-Ukraine war.\" Read more >>\n\n* OFAC Extends General Licenses for Sakhalin-2 and Civil Nuclear Energy Projects: On June 11, the Department of the Treasury's Office of Foreign Assets Control (\"OFAC\") issued two amended Russia-related general licenses. General License 55F, \"Authorizing Certain Services Related to Sakhalin-2,\" extends the authorization through 12:01 a.m. eastern standard time, December 18, 2026, for certain transactions relating to the Sakhalin-2 project, including the maritime transport of raw materials originating from the project solely for importation into Japan, certain transactions involving Gazprombank Joint Stock Company (\"Gazprombank\"), or any entity in which Gazprombank owns, directly or indirectly, a 50 percent or greater interest, that are related to the Sakhalin-2 project. General License 115D, \"Authorizing Certain Transactions Related to Existing Civil Nuclear Energy Projects,\" extends the authorization of certain transactions with specified entities, including Gazprombank, relating to civil nuclear energy through 12:01 a.m. eastern standard time, December 18, 2026. OFAC also amended eight Russia-related Frequently Asked Questions. Read more >>\n\n* OFAC Announces $1 Million Settlement with FTI Consulting, Inc.: On June 1, OFAC announced a settlement with FTI Consulting, Inc. (\"FTI\") to resolve alleged violations of OFAC sanctions targeting Russia's financial sector. Specifically, OFAC alleged that between April 2019 and May 2021, FTI indirectly dealt in prohibited debt of VTB Bank OAO, a Russian state-owned bank on OFAC's Sectoral Sanctions Identification List, on six occasions. OFAC indicated that the settlement amount reflects OFAC's determination that FTI's conduct was non-egregious and not voluntarily self-disclosed. Read more >>\n\nII. EU Sanctions\n\n* EU Adoptes \"Mini\" Sanctions Package Against Russia: On June 15, the European Union adopted a \"mini\" sanctions package targeting Russia, delivering on the European Commission's announcement that it would now impose sanctions on a \"rolling\" basis to increase their effectiveness. This initiative is separate from the more comprehensive 21st sanctions package, which was presented by the European Commission on 9 June 2026, and is still under discussion between Member States. The mini package is essentially limited to new designations under asset freeze measures and prohibitions to make assets available, but also introduced an important derogation allowing EU operators to wind down or phase out their relationships with Yangzhou Yangjie Electronic Technology Co., Ltd., a Chinese chip trader notably supplying the automotive and defence industries, designated under the 20th Russia sanctions package on 23 April 2026. Read more >>, Read more >>, Read more >>, Read more >>, Read more >>, Read more >>, Read more >>, Read more >>, and Read more >>\n\n* EU Updates FAQs on the Import Ban on Refined Products Obtained from Russian Crude Oil: On June 15, the Commission updated its FAQs on the sanctions against Russia and Belarus, with a focus on Article 3ma of Council Regulation (EU) No 833/2014, which establishes the import ban on refined products obtained from Russian crude oil. Read more >>\n\n* Establishment of an International Claims Commission for Ukraine: On June 17, the EU approved the Convention Establishing an International Claims Commission for Ukraine. The Claims Commission is set up as an administrative body within the framework of the Council of Europe, tasked with reviewing, assessing and deciding on claims for compensation for damage, loss or injury caused by internationally wrongful acts committed by the Russian Federation in or against Ukraine. Read more >> and Read more >>\n\n* Commission Answer on the Operation of the Rosneft-Owned Schwedt Refinery in the EU: In an answer given by the Commissioner for Financial Services, Ms Albuquerque, the Commission addressed the continued operation of the Rosneft-owned PCK Schwedt refinery, located near Berlin, in the context of EU sanctions against Russia. The Commission explained that the sanctions include a transaction ban on Russian state-owned entities such as Rosneft, whose subsidiaries still predominantly own the PCK Schwedt refinery; transactions with those subsidiaries are, however, exempted because the German Government has imposed a public trusteeship preventing Rosneft from receiving any economically valuable benefit. The Commission noted comparable assets elsewhere, including Lukoil-owned refineries in Bulgaria and Romania that operate under strict government supervision blocking or limiting financial flows to Russia, and a minority stake in a refinery in the Netherlands, adding that Lukoil is in the process of selling its assets globally. Finally, the Commission recalled that the import of seaborne Russian crude oil into the EU is generally prohibited, subject to a pipeline exception for certain Member States, and that Poland and Germany have not been able to legally import Russian crude oil via pipeline since 23 June 2023; Member States must also submit diversification plans under the RePowerEU Regulation by 2027 on how to fully phase out Russian oil. Read more >> and Read more >>\n\n* Commission Answer on Operations Against Russia's Shadow Fleet: In a written question, MEP Siegbert Frank Droese asked whether the Commission had any information on Ukrainian state actors setting fire to, exploding or sinking vessels belonging to Russia's so-called shadow fleet (which sail under non-EU flags), and how the Commission assessed such military action under international and maritime law. In her reply of June 1, High Representative/Vice-President, Ms Kallas, reaffirmed the EU's commitment to a maritime order based on international law, including UNCLOS, and framing Russia's shadow fleet, drifting mines and data-jamming as regional security challenges requiring a collective response. She outlined the EU's strategic approach to the Black Sea, including a new Black Sea Maritime Security Hub and successive Council restrictive measures targeting the shadow fleet's enablers, and noted continued work with third countries and partners under the EEAS shadow fleet coordinator to make the fleet's operations more costly. Read more >> and Read more >>\n\n* EU's General Court Dismisses Action Against EU Sanctions Brought by Three Individuals: By its judgments delivered on June 10, the General Court dismissed action against EU sanctions brought by Anastasia Ignatova, Elena Petrovna Timchenko and Gennady Nikolayevich Timchenko. Read more >>, Read more >>, and Read more >>\n\n* EU's General Court Dismisses Action Against EU Sanctions Brought by Belaruskali AAT and Others: By its judgments delivered on June 18, the General Court dismissed action against EU sanctions brought by Belaruskali AAT, Mr Ivan Ivanovich Golovaty and Belarusian Potash Company AAT. Read more >>\n\n* Russia Reportedly Purchased German Engines for FSB Boats: According to press reports, Russia procured German-made engines for FSB patrol boats in circumvention of EU sanctions, relying on a network of intermediaries in Turkey and Hong Kong to disguise the true destination of the shipments. Investigators report that the engines manufactured by MAN were destined for the Almaz shipyard in St. Petersburg, where patrol boats are built for the FSB border service. The Turkish shipyard Vicem Yachts reportedly purchased the engines from a local MAN subsidiary and provided a written guarantee that the equipment would remain in Turkey and would not be re-exported to Russia. In practice, the engines were transferred on paper to two Hong Kong companies, Hongkong Pokwing and Scorpion's Holding Group, while the containers were actually unloaded in St. Petersburg. Through this scheme, Russia is believed to have received at least six engines for its \"Sobol\" project patrol boats. Read more >>\n\n* Russian Businessman Sentenced in Belgium Sanctions Case: A Brussels court sentenced Belgian-Russian national Victor Labin to five years in prison for illegally exporting dual-use goods and chemicals to Russia, finding that he played a central role in shipping more than 400 tonnes of goods, including sensors used to detect and control explosions and chemicals such as yttrium oxide, a raw material used in advanced technologies, to Russia. The court found that Labin and a Brussels-based entrepreneur falsified customs documents and routed shipments through companies in Turkey, Kazakhstan and Uzbekistan to conceal their final destination, and it described the offence as a \"political crime\". His son, Ruslan Labin, was sentenced in absentia to six years' imprisonment. Read more >>\n\nIII. UK Sanctions\n\n* OFSI amends Lukoil General Licence INT/2025/8031092: OFSI amended General Licence INT/2025/8031092 to remove the requirement that funds made available, either directly or indirectly, to or for the benefit of Lukoil International GmbH or a Lukoil International subsidiary must be paid into a frozen account. OFSI issued FAQ 196 further explaining the amendment. Read more >> and Read more >>\n\n* OFSI fines Sabre Global Technologies for breach of Russia Sanctions: On May 26, OFSI issued its largest ever penalty of £1,000,920 against technology firm Sabre Global Technologies (\"Sabre\") for breaches of the Russia (Sanctions) (EU Exit) Regulations 2019 (the \"Russia Regulations\"). The breaches included making funds and economic resource available to a designated Russian airline, JSC Ural Airlines, and circumvention by exploring alternative options for receiving payment from the designated airline. OFSI assessed the total breach value at £2,634,001.54 and rated the case as \"most serious\", with aggravating factors including Sabre not having applied for a licence, continuing to give a benefit to a designated person, high value breaches, and circumvention. The penalty is the first issued by OFSI for a circumvention offence. Read more >> and Read more >>\n\n* FCDO announces 70 new sanctions designations under the Russia Regulations: On June 16, the FCDO designated 27 ships, 32 entities, and 11 individuals said to be related to the Russian oil trade and defence sector. These sanctions target Russia's shadow fleet, military procurement supply chains, and finance networks used to circumvent sanctions. Read more >> and Read more >>\n\n* OFSI publishes new FAQs on UK financial sanctions and PJSC Transneft: On June 11, OFSI published eight new FAQs (188-195) clarifying how UK economic sanctions apply in relation to PJSC Transneft and associated activities. Read more >>\n\n* OFSI adds FAQ on \"date of issue\" rules for transferable securities under Russia and Belarus sanctions: On June 8, OFSI published a new FAQ (FAQ 187) addressing how to determine the \"date of issue\" of transferable securities and money market instruments for the purposes of the Russia and Belarus sanctions regulations, including where instruments or securities issued pursuant to a mandatory corporate action (MCA) relate to securities or instruments issued prior to the dates referred to in the relevant regulations. Read more >>\n\n* OFSI updates sanctions guidance on Huobi Global SA: On May 29, OFSI added FAQ 186 on Huobi Global SA, which was added to the UK Sanctions List on 26 May 2026. The FAQ states that OFSI considers that the HTX cryptocurrency exchange is subject to the UK's financial sanctions due to its ownership by Huobi, meeting the condition in regulation 7(2)(a) of the Russia Regulations. Read more >>\n\nIV. Russia/Ukraine Sanctions\n\n* Ukraine Extends the Sanction Lists: In June 2026, Ukraine extended the sanctions to 27 legal entities and 29 individuals. The sanctions cover Russian companies providing cell phone and Internet services in the occupied territories. The full list of the sanctioned persons is available at the website of the State Sanctions Register of Ukraine. Read more >>\n\n* Supreme Court of Russia Publishes a Legal Guidance on Economic Restrictions: The published review sets out the Russian Supreme Court's guidance on how commercial courts should apply special economic measures introduced to protect Russia's national interests in response to actions by \"unfriendly\" states. The review states that transactions, payments, and legal arrangements designed to bypass government approvals or special payment procedures may be declared void as contrary to public policy and national security. The review also clarifies a number of issues regarding intellectual property disputes, investment disputes, licensing and other issues. Read more >>\n\n* Euroclear Challenges RUB 26.8 Billion Judgment in Sberbank Dispute Before the Russian Commercial Court: Belgium-based Euroclear has filed a cassation appeal against a Russian court decision ordering it to pay approximately RUB 26.8 billion to Sberbank in a dispute related to assets frozen under international sanctions. The case is part of a broader wave of litigation by Russian financial institutions and investors seeking compensation from European depositories, including Euroclear and Clearstream, for losses linked to blocked securities and assets. The appeal will be heard by the Moscow District Arbitration Court on 5 August, amid growing legal claims against Euroclear, including major actions by the Central Bank of Russia concerning frozen reserves. Read more >>\n\n* Russia Approves Sale of 10% Stake in Arctic LNG 2 from TotalEnergies: Russian President Vladimir Putin has authorized Russian company NordLine to acquire the 10% stake in Arctic LNG 2 currently held by TotalEnergies, under Russia's special economic measures governing transactions involving investors from \"unfriendly\" jurisdictions. Arctic LNG 2, led by NOVATEK, is a major Arctic liquefied natural gas project designed to produce up to 19.8 million tonnes of LNG annually through three production trains. If completed, the transaction will replace TotalEnergies' participation with NordLine while leaving the project's other shareholders, including Chinese and Japanese partners, unchanged. Read more >>",
+          "source": {
+            "uri": "mayerbrown.com",
+            "dataType": "news",
+            "title": "mayerbrown.com"
+          },
+          "authors": [],
+          "image": "https://www.mayerbrown.com/-/media/images/tile-images-for-insights-and-news/tile_bucket-300x400_30.jpg?rev=56544cdf388b484983a2a6b1843c7830",
+          "eventUri": null,
+          "sentiment": 0.3019607843137255,
+          "wgt": 520162848,
+          "relevance": 18
+        }
+      ],
+      "totalResults": 831,
+      "page": 1,
+      "count": 8,
+      "pages": 104
+    }
+  }
+}

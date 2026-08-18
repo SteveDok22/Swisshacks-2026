@@ -1,0 +1,89 @@
+{
+  "key_raw": "article/getArticles:8c66b697c6f7ce0e",
+  "cached_at": "2026-07-14T10:13:40.388671+00:00",
+  "data": {
+    "articles": {
+      "results": [
+        {
+          "uri": "9392617367",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-13",
+          "time": "10:55:37",
+          "dateTime": "2026-07-13T10:55:37Z",
+          "dateTimePub": "2026-07-13T10:48:42Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.yahoo.com/news/world/articles/germanys-schwedt-refinery-receives-south-104842823.html",
+          "title": "Germany's Schwedt refinery receives South American oil via Poland",
+          "body": "Following EU sanctions on Russia after the Ukraine invasion, PCK refinery, majority-owned by Russian oil giant Rosneft, had to adapt its supply chains, with the German government placing Rosneft's German subsidiary under a federally controlled trust.\n\nThe PCK refinery in the Eastern German town of Schwedt is receiving a consignment of oil from South America via Poland.\n\nThe Polish fuel trader Unimot Paliwa announced the delivery of the oil on Monday.\n\nIt is intended to compensate for the shortfall in oil from Kazakhstan, as Russia has halted deliveries to Germany through the Druzhba (Friendship) pipeline since May.\n\nPoland's maritime and transport infrastructure is helping to ensure security of supply for both Germany and Poland, said Unimot Vice-President Robert Brzozowski in a statement.\n\nPCK not only supplies the greater Berlin area with oil products, it also exports 2 million tonnes of fuel annually to western Poland.\n\nPreviously reliant on Russian crude oil delivered via the Druzhba pipeline, the German refinery has had to adapt its supply chains following EU sanctions imposed on Russia after its invasion of Ukraine.\n\nThe PCK refinery is nominally majority-owned by the Russian oil giant Rosneft, which holds a stake of more than 90%. After the start of the Ukraine war, the German government placed Rosneft's German subsidiary under a federally controlled trust.\n\nA spokesman for PCK's owner, Rosneft Deutschland, confirmed the delivery via Poland. No exact quantity was given, but it was said to involve the contents of one tanker.\n\nThe shipment is helping the refinery to maintain stable operations at 80% capacity, it was stated.",
+          "source": {
+            "uri": "yahoo.com",
+            "dataType": "news",
+            "title": "Yahoo"
+          },
+          "authors": [],
+          "image": "https://s.yimg.com/lo/mysterio/api/55461954e66432b51798310fa3c525d0257a1758da74b0541fc85ebd93b503f7/lightyear_networkapi/resizefill_w1200;quality_80;format_webp/https:%2F%2Fmedia.zenfs.com%2Fen%2Fdpa_international_526%2F0a80ae02a94e528123ca58e051fb7b66",
+          "eventUri": null,
+          "sentiment": 0.1372549019607843,
+          "wgt": 521636137,
+          "relevance": 1
+        },
+        {
+          "uri": "9392607172",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-13",
+          "time": "10:45:48",
+          "dateTime": "2026-07-13T10:45:48Z",
+          "dateTimePub": "2026-07-13T10:42:29Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.dpa-international.com/economics/urn:newsml:dpa.com:20090101:260713-930-377184/",
+          "title": "Germany's Schwedt refinery receives South American oil via Poland",
+          "body": "The PCK refinery in the Eastern German town of Schwedt is receiving a consignment of oil from South America via Poland.\n\nThe Polish fuel trader Unimot Paliwa announced the delivery of the oil on Monday.\n\nIt is intended to compensate for the shortfall in oil from Kazakhstan, as Russia has halted deliveries to Germany through the Druzhba (Friendship) pipeline since May.\n\nPoland's maritime and transport infrastructure is helping to ensure security of supply for both Germany and Poland, said Unimot Vice-President Robert Brzozowski in a statement.\n\nPCK not only supplies the greater Berlin area with oil products, it also exports 2 million tonnes of fuel annually to western Poland.\n\nPreviously reliant on Russian crude oil delivered via the Druzhba pipeline, the German refinery has had to adapt its supply chains following EU sanctions imposed on Russia after its invasion of Ukraine.\n\nThe PCK refinery is nominally majority-owned by the Russian oil giant Rosneft, which holds a stake of more than 90%. After the start of the Ukraine war, the German government placed Rosneft's German subsidiary under a federally controlled trust.\n\nA spokesman for PCK's owner, Rosneft Deutschland, confirmed the delivery via Poland. No exact quantity was given, but it was said to involve the contents of one tanker.\n\nThe shipment is helping the refinery to maintain stable operations at 80% capacity, it was stated.",
+          "source": {
+            "uri": "dpa-international.com",
+            "dataType": "news",
+            "title": "dpa International"
+          },
+          "authors": [],
+          "image": "https://www.dpa-international.com/img/260713-935-1476893/6xujrwoqst-v5-ax-w800h450.jpeg",
+          "eventUri": null,
+          "sentiment": 0.06666666666666665,
+          "wgt": 521635548,
+          "relevance": 1
+        },
+        {
+          "uri": "9358368033",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-15",
+          "time": "13:00:55",
+          "dateTime": "2026-06-15T13:00:55Z",
+          "dateTimePub": "2020-03-23T13:09:00Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://neftegazru.com/news/oil-refining/537720-rosneft-deutschland-increases-sales-of-alfabit-by-37-5-in-2019/",
+          "title": "Rosneft Deutschland increases sales of alfabit by 37.5% in 2019",
+          "body": "Berlin, March 23 - Neftegaz.RU. In 2019, Rosneft Deutschland, a subsidiary of Rosneft in Germany, increased sales of polymer-modified bitumen (PMB) Alfabit by 37.5% year-on-year. Alfabit is high-tech material, the distinctive features of which are high elasticity and wear resistance.\n\nRosneft Deutschland began supplying Alfabit to German consumers in 2018, shortly after the start of sales and marketing of bitumen in the country. The company also established a supply chain for PMB in Germany using feedstock from the PCK,\n\nBayernoil, and MiRO refineries.\n\nIn 2019, Rosneft Deutschland supplied Alfabit PMB and other bituminous products to KUTTER GmbH. KG for the construction of an extended runway at the Memmingen Airport in Bavaria. The products were used to lay about 57 000 tonnes of asphalt in 165 000 sq. m. of the airport. Due to well-placed shipping terminals and the flexibility of the logistics system, Rosneft Deutschland was able to supply bitumen in a short time.\n\nDuring the last year the customer base of the German company grew by 30%. Bitumen products were supplied to Poland, Austria, Czech Republic, Switzerland, France, and other countries.\n\nIn February 2020, the company also took part in Deutsche Asphalttage - a major German exhibition and congress held by bitumen and road pavement producers in Berchtesgaden, Bavaria. Rosneft\n\nDeutschland presented its range of Bitumen products, specifically Rosneft's proprietary polymer-modified bitumen (PMB) Alfabit as well as held meetings with its customers and partners.\n\nRosneft is the 3rd-largest refiner on the German market with a total throughput performance of about 12.8 mtpa, which amounts to more than 12% of the overall refining capacity of Germany. The average refining conversion ratio of the company's facilities in the country is 93%, and the Nelson average complexity index is 9.1.",
+          "source": {
+            "uri": "neftegazru.com",
+            "dataType": "news",
+            "title": "neftegazru.com"
+          },
+          "authors": [],
+          "image": "https://neftegazru.com/upload/uf/ca7/x8mwrd7zyspgoo9wdlqj5wyfhfqn24pk/Itogovyy.png",
+          "eventUri": null,
+          "sentiment": 0.05882352941176472,
+          "wgt": 519224455,
+          "relevance": 100
+        }
+      ],
+      "totalResults": 3,
+      "page": 1,
+      "count": 3,
+      "pages": 1
+    }
+  }
+}

@@ -1,0 +1,228 @@
+{
+  "key_raw": "article/getArticles:9c94d47442ccc33f",
+  "cached_at": "2026-07-14T10:13:23.376997+00:00",
+  "data": {
+    "articles": {
+      "results": [
+        {
+          "uri": "9393736309",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-14",
+          "time": "08:37:30",
+          "dateTime": "2026-07-14T08:37:30Z",
+          "dateTimePub": "2026-07-14T08:35:09Z",
+          "dataType": "news",
+          "sim": 0.7960784435272217,
+          "url": "https://www.themoscowtimes.com/2026/07/14/ukraine-hits-oil-refineries-in-krasnodar-and-bashkortostan-a93239",
+          "title": "Ukraine Hits Oil Refineries in Krasnodar and Bashkortostan",
+          "body": "Fires broke out at two oil refineries in Russia after Ukrainian drones struck them early Tuesday morning, local authorities said.\n\nIn the republic of Bashkortostan, regional head Radiy Khabirov said smoke could be seen rising from an industrial area in the city of Salavat after drone debris fell to the ground. He said no one was injured but did not provide further details.\n\nSalavat, located around 1,300 kilometers (810 miles) east of Russia's border with Ukraine, is home to the Gazprom-operated Neftekhim Salavat refinery, one of Russia's largest oil refining and petrochemical facilities.\n\nIndependent media reports suggested that a Rosneft fuel depot was also targeted in the attack on Salavat.\n\nIn the southern Krasnodar region, local authorities said a fire broke out at the Afipsky refinery, which has been struck multiple times since the full-scale invasion of Ukraine in February 2022.\n\nAuthorities in Krasnodar later reported that firefighters extinguished the blaze. At least two people were injured in the attack.",
+          "source": {
+            "uri": "themoscowtimes.com",
+            "dataType": "news",
+            "title": "The Moscow Times"
+          },
+          "authors": [],
+          "image": "https://static.themoscowtimes.com/image/og/36/93239__3652127066f45e021b9e9c93a0a03159.jpg",
+          "eventUri": "ukr-356760",
+          "sentiment": -0.3568627450980392,
+          "wgt": 521714250,
+          "relevance": 1
+        },
+        {
+          "uri": "9393715506",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-14",
+          "time": "08:18:54",
+          "dateTime": "2026-07-14T08:18:54Z",
+          "dateTimePub": "2026-07-14T08:13:38Z",
+          "dataType": "news",
+          "sim": 0.7764706015586853,
+          "url": "https://euromaidanpress.com/2026/07/14/a-plant-making-150-products-from-gasoline-to-polyethylene-caught-fire-1300-km-from-the-war-zone-ukraine-hits-two-refineries-overnight/",
+          "title": "A plant making 150 products from gasoline to polyethylene caught fire 1,300 km from the war zone -- Ukraine hits two refineries overnight",
+          "body": "Ukrainian drones set fires at two Russian oil facilities at opposite ends of the country overnight on 14 July, according to monitoring channels and Russian regional authorities. The Gazprom Neftekhim Salavat petrochemical complex burned in Bashkortostan, some 1,300 km from the war zone, while the Afipsky refinery caught fire in Krasnodar Krai, around 400 km from the front. A Rosneft oil depot next to the Salavat plant was likely hit as well.\n\nThe last big gasoline producer still standing\n\nResidents of Salavat heard a series of explosions in the early hours, then watched thick black smoke climb over the industrial zone, visible across the city. Ukrainian monitoring Telegram channel Exilenova+ published footage of the fires. Russian news Telegram channel Astra confirmed through its OSINT analysis that the Gazprom Neftekhim Salavat complex was struck and burning.\n\nThe complex was the last major gasoline producer that strikes had not yet touched in 2026. Its loss means roughly 11,000 tons of daily fuel deliveries gone from the Russian market -- about 5% of domestic demand. Drones already struck the plant twice in September 2025, after which the regional head insisted it worked on as normal.\n\nPreliminary damage: primary unit and polyethylene workshop\n\nUkrainian monitoring channel Supernova+ reported preliminary hits on the AVT-6 primary oil distillation unit and workshop No. 20, which produces high-density polyethylene. Nothing leaves a refinery without primary distillation, so damage there stops the whole production chain.\n\nThe strike likely reached beyond the complex itself. The Rosneft-Opt oil depot nearby probably caught fire too, according to Astra.\n\nBashkortostan head Radiy Khabirov claimed a \"massive attack\" of drones on Salavat's industrial zone was repelled. He attributed the \"pockets of smoke\" to falling debris of downed drones and stated nobody was hurt. Russia's aviation authority restricted operations at the Ufa airport during the attack.\n\nAfipsky burns again at the other end of the fuel map\n\nIn Krasnodar Krai, the first explosions near the Afipsky refinery sounded around midnight, and a powerful fire followed, Ukrainian monitoring channel Krymsky Veter reported. The blaze rose near the plant's tank farm, according to Astra's analysis of witness footage. The Krasnodar Krai operational headquarters confirmed the fire at the refinery after the drone attack.\n\nAuthorities claimed drone fragments fell at 16 addresses across the Afipsky settlement, the stanitsa of Smolenskaya, and the khutor of Kovalenko in the Seversky district. One person was injured and hospitalized. Detached houses, an apartment in a multi-story building, and a structure at a railway crossing sustained damage, the operational headquarters stated.\n\nThe export-oriented plant runs two primary distillation units with capacities of 9,786 and 8,829 tons per day and does not currently make gasoline or diesel for the domestic market, Reuters reported. Together with the affiliated Krasnodar refinery, it processed 7.2 million tons in 2024 and 3 million tons in the first half of 2025. Ukraine's General Staff puts its share at about 2.1% of Russia's refining.\n\nDrones have hit Afipsky at least eight times since May 2023, including a March 2026 strike that damaged the AT-22/4 primary processing unit and the previous attack on 11 June.",
+          "source": {
+            "uri": "euromaidanpress.com",
+            "dataType": "news",
+            "title": "Euromaidan Press"
+          },
+          "authors": [
+            {
+              "uri": "yuri_zoria@euromaidanpress.com",
+              "name": "Yuri Zoria",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://euromaidanpress.com/wp-content/uploads/2026/07/Пожежа-в-Афіпському-Фото-Astra.webp",
+          "eventUri": "ukr-356760",
+          "sentiment": -0.3019607843137255,
+          "wgt": 521713134,
+          "relevance": 9
+        },
+        {
+          "uri": "9393707100",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-14",
+          "time": "08:11:21",
+          "dateTime": "2026-07-14T08:11:21Z",
+          "dateTimePub": "2026-07-14T08:11:00Z",
+          "dataType": "news",
+          "sim": 0.8117647171020508,
+          "url": "https://nt.am/en/news/356940/",
+          "title": "Ukrainian drones have struck two oil refining complexes in Russia.",
+          "body": "azatutyun.am Ukrainian drones have attacked the Afipsky oil refinery in the Krasnodar region and the Gazprom Neftkhim Salavat complex in Bashkortostan. It is also reported that a possible strike was inflicted on the Rosneft-Opt oil depot located in Salavat.\n\nThe Krasnodar operational headquarters has confirmed information about the fire that broke out at the Afipsky oil refinery. According to official data, drone fragments fell at 16 addresses. One person was injured, and private houses, an apartment in a multi-story building, and a railway crossing structure were damaged.\n\nIn Bashkortostan, according to Ukrainian OSINT sources, a fire broke out at one of Russia's largest oil refining and petrochemical complexes, Gazprom Neftkhim Salavat. Preliminary information indicates that the primary oil refining unit and the high-density polyethylene production workshop were damaged.\n\nThe head of Bashkortostan, Radiy Khabirov, confirmed the attack on the Salavat industrial zone, noting that there are several sources of smoke caused by the fall of drone fragments.\n\nUkrainian sources also report that a fire broke out in the section of the energy bridge in Kerch, while Russia's \"shadow fleet\" tankers were again attacked in the Sea of Azov.\n\n* This text was automatically translated by Artificial Intelligence (AI).\n\nNoyan Tapan | Politics\n\nRead 1",
+          "source": {
+            "uri": "nt.am",
+            "dataType": "news",
+            "title": "Noyan Tapan Information Center"
+          },
+          "authors": [],
+          "image": null,
+          "eventUri": "ukr-356760",
+          "sentiment": -0.4431372549019608,
+          "wgt": 521712681,
+          "relevance": 1
+        },
+        {
+          "uri": "9393660429",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-14",
+          "time": "07:30:00",
+          "dateTime": "2026-07-14T07:30:00Z",
+          "dateTimePub": "2026-07-14T07:20:00Z",
+          "dataType": "news",
+          "sim": 0.7215686440467834,
+          "url": "https://www.ukrinform.net/rubric-ato/4144013-drones-attack-afipsky-oil-refinery-and-gazproms-petrochemical-complex-in-bashkortostan.html",
+          "title": "Drones attack Afipsky Oil Refinery and Gazprom's petrochemical complex in Bashkortostan",
+          "body": "On the night of July 14, drones attacked the Afipsky Oil Refinery in the Krasnodar region and one of Russia's largest oil refining and petrochemical complexes -- Gazprom Neftekhim Salavat in Bashkortostan.\n\nAccording to Ukrinform, Astra reported this.\n\nEyewitnesses were the first to report a fire near the tank farm at the Afipsky Oil Refinery. Subsequently, the Kuban operational headquarters confirmed a fire at the facility following a drone attack.\n\n\"A fire broke out at the Afipsky Oil Refinery. The roofs, facades, windows, and fences of several private houses were damaged. Debris from the drones fell on the grounds of two facilities; in one case, a fire broke out,\" the operational headquarters reported.\n\nAlso, on the morning of July 14, residents of Salavat in Bashkortostan reported explosions and a fire. According to an analysis of eyewitness video footage conducted by Astra, the facility targeted was Gazprom Neftekhim Salavat LLC. According to publicly available data, this is one of Russia's largest oil refining and petrochemical complexes, part of the Gazprom Group.\n\nIn addition, a facility belonging to the Rosneft-Opt oil refining complex was likely attacked.\n\nAs reported by Ukrinform, on the night of July 13, drones attacked an oil depot in the Stavropol region of the Russian Federation. A fire broke out there.",
+          "source": {
+            "uri": "ukrinform.net",
+            "dataType": "news",
+            "title": "Ukrinform-EN"
+          },
+          "authors": [],
+          "image": "https://www.ukrinform.net/img/img_none.jpg",
+          "eventUri": "ukr-356760",
+          "sentiment": -0.3803921568627451,
+          "wgt": 521710200,
+          "relevance": 1
+        },
+        {
+          "uri": "9393616565",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-14",
+          "time": "06:49:01",
+          "dateTime": "2026-07-14T06:49:01Z",
+          "dateTimePub": "2026-07-14T06:48:42Z",
+          "dataType": "news",
+          "sim": 0.7686274647712708,
+          "url": "https://meduza.io/en/news/2026/07/14/ukrainian-drones-spark-fires-at-two-russian-refineries-overnight-including-one-of-the-country-s-biggest-petrochemical-plants",
+          "title": "Ukrainian drones spark fires at two Russian refineries overnight, including one of the country's biggest petrochemical plants -- Meduza",
+          "body": "Ukrainian forces attacked oil refineries with drones overnight into July 14, striking plants in Salavat, Bashkortostan, and in Afipsky, Krasnodar Krai.\n\nIn Salavat, the strike hit Gazprom Neftekhim Salavat, one of Russia's largest oil refining and petrochemical complexes. A fire broke out at the refinery, according to the Telegram channel Astra, which geolocated photos and videos taken by witnesses. Preliminary reports indicate that a Rosneft-Opt oil depot in the city also caught fire.\n\nThe head of Bashkortostan, Radiy Khabirov, confirmed the drone attack. \"There are several spots where smoke is rising,\" he wrote on his Telegram channel, adding that no one was hurt.\n\nIn Krasnodar Krai, the drone attack started a fire at the Afipsky refinery. The regional emergency operations center also said there had been \"debris falling at 16 properties in the settlement of Afipsky, the village of Smolenskaya, and the hamlet of Kovalenko.\" Several homes sustained roof and facade damage, and one person was injured.\n\nDrone strikes are forcing Russian refineries to suspend or shut down operations. Oil refining in Russia fell to a 21-year low in June 2026, according to Bloomberg.",
+          "source": {
+            "uri": "meduza.io",
+            "dataType": "news",
+            "title": "Meduza"
+          },
+          "authors": [],
+          "image": "https://meduza.io/imgly/share/1784011722/en/news/2026/07/14/ukrainian-drones-spark-fires-at-two-russian-refineries-overnight-including-one-of-the-country-s-biggest-petrochemical-plants",
+          "eventUri": "ukr-356760",
+          "sentiment": -0.4980392156862745,
+          "wgt": 521707741,
+          "relevance": 1
+        },
+        {
+          "uri": "9393576940",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-14",
+          "time": "06:08:07",
+          "dateTime": "2026-07-14T06:08:07Z",
+          "dateTimePub": "2026-07-14T05:58:00Z",
+          "dataType": "news",
+          "sim": 0.8196078538894653,
+          "url": "https://hromadske.ua/en/war/267575-odyn-iz-naybilshykh-kompleksiv-rf-drony-skhoze-atakuvaly-npz-hazpromu-v-bashkortostani",
+          "title": "Drones appear to have attacked Gazprom refinery in Russia's Bashkortostan",
+          "body": "Russian authorities reported an overnight drone attack in Salavat, Bashkortostan, with OSINT projects indicating that one of the country's largest oil refineries, Gazprom Neftekhim Salavat, was targeted.\n\nThe head of Bashkortostan, Radiy Habirov, confirmed explosions in the city but stated there were no casualties. While he described the incident as a repelled drone attack on the industrial zone, OSINT sources reported strikes on the Gazprom Neftekhim Salavat plant.\n\nAccording to the Russian Telegram channel Astra, it is one of the largest oil refining and petrochemical complexes in Russia and belongs to the Gazprom group.\n\nAstra also mentioned a possible strike on another site -- the Rosneft-Opt oil depot.\n\nIn Krasnodar Krai, the Afipsky oil refinery came under a repeated drone attack, with a fire breaking out on its territory. The plant has been targeted by drones before.\n\nResidents of Gelendzhik in the same region also reported explosions and a fire near the local airfield.",
+          "source": {
+            "uri": "hromadske.ua",
+            "dataType": "news",
+            "title": "hromadske.ua"
+          },
+          "authors": [
+            {
+              "uri": "юлія_лаврук@hromadske.ua",
+              "name": "Юлія Лаврук",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://hromadske.ua/static/content/thumbs/1200x630/c/42/htue6e---c1200x630x50px50p--a1a80f3370b5d9b7479c84eb5c74142c.jpeg",
+          "eventUri": "ukr-356760",
+          "sentiment": -0.3725490196078431,
+          "wgt": 521705287,
+          "relevance": 1
+        },
+        {
+          "uri": "9393561251",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-14",
+          "time": "05:51:10",
+          "dateTime": "2026-07-14T05:51:10Z",
+          "dateTimePub": "2026-07-14T05:48:11Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.oreanda-news.com/en/tek/putin-allowed-rosneft-s-structures-to-determine-the-amount-of-information-/article1596185/",
+          "title": "Putin allowed Rosneft's structures to determine the amount of information disclosed",
+          "body": "OREANDA-NEWS By his decree, Russian President Vladimir Putin allowed some other structures of Rosneft, as well as the fuel operators of the airports of Yekaterinburg, Krasnodar and St. Petersburg, to independently determine the amount of information disclosed, the document says.\n\nAmendments are being made to Decree of the President of the Russian Federation No. 903 dated November 27, 2023 \"On the Temporary Procedure for Disclosure and Provision of Information by certain Russian Business Entities.\" Initially, the list included 46 companies, including Rosneft and a number of its subsidiaries. Then it was expanded repeatedly.\n\nThe list includes such Rosneft structures as Neftegaztechnologiya-Energiya, RN-Aero, RN-Krasnodarskneftegaz, RN-Nakhodka Marine Terminal, RN-Tuapse Marine Terminal, RN-Purneftegaz, RN-Tuapse Oil Refinery, RN-Yuganskneftegaz, Udmurtenergoneft.",
+          "source": {
+            "uri": "oreanda-news.com",
+            "dataType": "news",
+            "title": "oreanda-news.com"
+          },
+          "authors": [],
+          "image": "https://www.oreanda-news.com/aimg/100x16000/1596185/head_0.jpg",
+          "eventUri": null,
+          "sentiment": 0.1058823529411765,
+          "wgt": 521704270,
+          "relevance": 16
+        },
+        {
+          "uri": "9393516031",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-14",
+          "time": "04:55:39",
+          "dateTime": "2026-07-14T04:55:39Z",
+          "dateTimePub": "2026-07-14T04:46:00Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.eng.kavkaz-uzel.eu/articles/76918",
+          "title": "Residents of Kabardino-Balkaria pointed out the discrepancy between statistics and real prices at gas stations.",
+          "body": "In Kabardino-Balkaria, prices for certain types of fuel have roughly doubled over the past month, and the authorities are not taking measures to curb them or reduce queues at gas stations, local residents said, commenting on the analysts' report on fuel prices.\n\nAs reported by \"Caucasian Knot\", on July 7, residents of Nalchik and local drivers said that the fuel crisis led to the closure of \"Lukoil\" gas stations in the city, prices at private gas stations are inflated, and at \"Rosneft\" gas stations, where previous prices remain, long queues are forming.\n\nThe analytical resource \"Check Index\" published a review of gasoline prices for the first decade of July. Analysts noted that the price of AI-92 and AI-95 gasoline increased by 20% and 24%, respectively. A sharp increase in purchases is observed for all types of fuel, with AI-100 leading in percentage terms, reported \"Kommersant\" on July 12.\n\nAn excerpt from the \"Check Index\" gasoline price review was also shared by the Instagram*-public chp.nalchik, which has about 514 thousand followers. As of 07:45 Moscow time on July 14, this post received 258 likes and 168 comments.\n\nSome users suggested that the statistics are based on the fuel prices at network gas stations, while most motorists are forced to buy gasoline from private sellers.\n\n\"20-24% they compare prices at 'Rosneft' and 'Lukoil'. The fact that private sellers sell at 2.5 times higher does not concern them,\" wrote stomatolog_azimkudaev.\n\n\"Rosneft\" - 65-70 rubles, private sellers - 135-140. Where is the 20%?\" asked a user with the nickname qwerty014qwerty.\n\n\"Yes, prices have increased by 20% at both 'Rosneft' and 'Lukoil', but there is no gasoline there. You have to fill up at private sellers for 140 rubles,\" noted smoeva.makeup.\n\nSome commentators called for increased control over fuel prices and the activities of private gas stations.\n\n\"Strip private representatives of their licenses,\" stated timur417s.\n\n\"Why doesn't the head of the republic control the price increase at private gas stations?\" wrote 666__777777.\n\n\"When will they lower prices for gasoline, diesel, and gas? Where is the FAS looking?\" asked rashidkekkezov.\n\nSome users compared fuel prices in Kabardino-Balkaria with prices in other regions.\n\n\"In Moscow, AI-92 costs 59 rubles,\" noted a user a_____07___________.\n\n\"These are our prices, there are no such prices in Moscow,\" wrote karina697254.\n\nSome discussion participants pointed out the lack of fuel at certain gas stations and queues for cheaper gasoline and gas.\n\n\"There is no 'Rosneft' available, and at other gas stations, it's 130-145,\" indicated zel1305.\n\n\"Now you have to stand in line even for gas, as everywhere gas in the city is 50 rubles, while at 'Gazprom' - 32.2 and at 'Lukoil' - 28.7, but there are kilometer-long queues,\" wrote yurij3308.\n\nUsers also complained about the impact of rising prices on family budgets, the cost of goods, and the standard of living.\n\n\"Can we raise salaries by 20% like that?\" wrote e.tleuzheva.\n\n\"Now we are waiting for salaries, pensions, child benefits... But hasn't food prices risen, if one lemon costs 80 rubles?\" noted julia_5559nalchik.\n\n\"The authorities should pay attention to prices, salaries, and utility tariffs. How long can they mock the people?\" wrote olec.hka001.\n\nLet us remind you that the fuel problem arose against the backdrop of attacks on oil refineries, including those located in southern Russia. For example, on June 10, a fire occurred in the village of Afipsky on the territory of the oil refinery. On June 5, an oil depot in Ust-Labinsk caught fire, and residents of nearby houses were evacuated. On June 2, a fire occurred at the oil refinery in the village of Ilsk in the Seversky district as a result of a drone attack.",
+          "source": {
+            "uri": "eng.kavkaz-uzel.eu",
+            "dataType": "news",
+            "title": "Caucasian Knot"
+          },
+          "authors": [],
+          "image": "https://www.eng.kavkaz-uzel.eu/system/uploads/article_image/image/0004/42960/view_AZS_KBR.jpg",
+          "eventUri": null,
+          "sentiment": 0.07450980392156858,
+          "wgt": 521700939,
+          "relevance": 31
+        }
+      ],
+      "totalResults": 846,
+      "page": 1,
+      "count": 8,
+      "pages": 106
+    }
+  }
+}

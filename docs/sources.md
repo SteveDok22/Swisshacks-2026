@@ -1,272 +1,186 @@
-# Sentinel — Source Adapters (`backend/app/sources/`)
+# Source Adapters
 
-> The Public Intelligence layer (Layer 2) draws on external sources and turns
-> each observed change into a `PublicSignal` the drift engine fuses with internal
-> bank data. This document is the catalogue: **what each source provides, whether
-> it is free and usable right now, and which ones we deliberately skip.**
->
-> Companion to [`source-integration-architecture.md`](source-integration-architecture.md)
-> (the pipeline design) and [`drift-engine.md`](drift-engine.md).
+The Public Intelligence layer draws on external data sources and turns each
+observed change into a `PublicSignal` the drift engine fuses with internal bank
+data. This page is the catalogue: **what each source provides, whether it is free
+and usable today, how it is cached, and the two we deliberately skip.**
 
----
-
-## Status: all adapters wired into the engine
-
-All eight free/free-tier adapters are fully implemented **and** wired into the
-drift engine via `drift/public_intel.py`'s aggregator (`gather_public_signals` /
-`gather_public_signals_sync`). Live adapter dispatch is gated by the
-`EXTERNAL_APIS_ENABLED` master switch (`config.py`): when it is **on**, every
-`_analyze_customer()` run calls the real adapters; when it is **off** (the default),
-the engine uses the synthetic-template generator (`generate_signals_for_customer`)
-for the whole book. The synthetic path also backs the time-travel audit replay
-(`drift/timetravel.py`).
-
-Eight adapters are fully implemented (real HTTP calls):
-- **WHOIS / RDAP** — free, no key required; returns RDAP domain metadata and domain-change signals from injected baselines (PR #29)
-- **GLEIF** — free, no key required (PR #25)
-- **ZEFIX** — FREEMIUM, free Basic-auth account; degrades gracefully (`None`/`[]`) when credentials absent (PR #23)
-- **Event Registry** — FREEMIUM, key-gated; returns `[]` when key absent (PR #24)
-- **OpenSanctions** — FREEMIUM, key optional; unauthenticated non-commercial free tier works without a key (PR #27). Screens the customer name (score ≥ 0.85 → `sanctions` critical; 0.70–0.85 → high/probable) and, via the `ubo_names` kwarg, each UBO/officer — a UBO hit emits an `ownership_change` signal carrying structured `meta` (screened name, matched entity, score). The aggregator resolves those UBO names from the GLEIF ownership chain (direct-child LEIs → legal names) and surfaces hits as `DriftSubjectDetail.ubo_screening` (UC5, PR #36)
-- **Wayback Machine** — free, no key required; `fetch_signals()` returns `[]` by design (signals via `drift/business_model.py`) (PR #26)
-- **Firecrawl** — FREEMIUM, key optional; cloud `/scrape` with key, else a zero-cost plain-HTTP + HTML-strip fallback (PR #28)
-- **GDELT** — free, no key required; GDELT 2.0 Doc API as the news fallback when Event Registry is unavailable (PR #30)
-
-Shared infrastructure (no source-specific I/O):
-
-- `base.py` — the shared contract: `RegistryAdapter` ABC, `EntitySnapshot`,
-  the canonical `PublicSignal`, and the `SnapshotDiff` / `diff_snapshots()`
-  pattern. (Built in PR #14.)
-- `cost.py` — the free-vs-paid layer on top: `SourceCost` / `AdapterStatus`
-  enums, `SourceUnavailableError`, and the `CostMixin` every adapter combines
-  with `RegistryAdapter`.
-- `registry.py` — the single catalogue (`REGISTRY`, `usable_adapters()`,
-  `skipped_adapters()`, `catalogue()`).
-
-OpenCorporates and Crunchbase remain deliberately skipped (paid) — metadata-only
-carcasses whose `fetch` / `fetch_signals` raise `SourceUnavailableError`.
-
-A carcass fails loudly and *differently* depending on intent:
-
-| Source kind | `fetch()` / `fetch_signals()` raises | Meaning |
-|---|---|---|
-| Free / free-tier (`PLANNED`) | `NotImplementedError` | to be built |
-| Paid / restricted (`SKIPPED`) | `SourceUnavailableError` | will **not** be built |
-
-So "not built yet" can never be confused with "skipped on purpose".
+All adapters live in `backend/app/sources/`. See
+[drift-engine.md](drift-engine.md) for how their signals fuse into the score, and
+[live-entities.md](live-entities.md) for how the 5 live entities use them.
 
 ---
 
-## The free-vs-paid decision
+## Decision rule: free only
 
-Hard requirement: **only sources that are 100% free / usable right now get
-implemented.** Anything without a sustainable free tier is marked `PAID` and
-skipped — and skipped in code, not just on paper.
-
-The whole decision collapses to one invariant (enforced by a unit test):
+**Only sources with a sustainable free tier are implemented.** Anything that
+needs a paid plan is marked `PAID` and skipped — in code, not just on paper. The
+rule collapses to one invariant, enforced by a unit test:
 
 ```
 status == SKIPPED   <=>   cost == PAID
-status == PLANNED   <=>   cost == FREE or FREEMIUM
+status == PLANNED   <=>   cost == FREE or FREEMIUM   (i.e. usable)
 ```
 
-### Catalogue
+Net result: **8 adapters implemented and wired, 2 skipped.** No use case is fully
+dropped (the one real gap — natural-person officers/directors — has no free
+source anywhere; entity-level ownership via GLEIF covers the rest).
 
-| Source | What it provides | Cost | Key? | Decision |
+---
+
+## The 8 implemented adapters
+
+All eight are fully implemented (real HTTP), wired into the engine through the
+aggregator, and **disk-cached** so the live demo replays offline.
+
+| Source | Provides | Cost | Key | Use cases |
 |---|---|---|---|---|
-| **ZEFIX** | Swiss commercial register: name, legal form, seat, status, purpose (Zweck), SHAB mutation log | FREEMIUM | yes⁰ | ✅ BUILT |
-| **GLEIF** | Global LEI: name, status, jurisdiction, parent/children ownership graph | FREE | no | ✅ BUILT |
-| **OpenSanctions** | OFAC/EU/UN sanctions + PEP screening with match scores | FREEMIUM | yes¹ | ✅ BUILT (key optional) |
-| **GDELT 2.0** | Global news article lists + volume time-series (free news feed) | FREE | no | ✅ BUILT |
-| **Event Registry** | News clustered into de-duplicated *events*, primary news source (hackathon key) | FREEMIUM³ | yes | ✅ BUILT (key-gated) |
-| **Firecrawl** | Live website → markdown (current page content) | FREEMIUM | yes² | ✅ BUILT (key-optional) |
-| **Wayback** | Historical website snapshot at the onboarding date | FREE | no | ✅ BUILT |
-| **WHOIS / RDAP** | Domain age + registrant change | FREE | no | ✅ BUILT |
-| **OpenCorporates** | Officers / directors in non-LEI jurisdictions | PAID | yes | ⛔ SKIP |
-| **Crunchbase** | Funding rounds, investors, amounts | PAID | yes | ⛔ SKIP |
+| **GLEIF** | LEI record, jurisdiction, status, ultimate-parent chain, direct children, `PREVIOUS_LEGAL_NAME` | FREE | none | 3, 4, 5, 8, 10 |
+| **ZEFIX** | Swiss commercial register: legal name, legal form, seat, dissolution status, SHAB mutations | FREE¹ | account | 4, 7 |
+| **OpenSanctions** | OFAC / EU / UN / SECO sanctions + PEP screening, with clickable entity URLs | FREEMIUM | optional² | 2, 5, 8 |
+| **Event Registry** | De-duplicated news *events* + articles with sentiment — **primary news source** | FREEMIUM | yes³ | 1, 6, 10 |
+| **GDELT** | Global news volume + article search — **news fallback** | FREE | none | 1, 6, 10 |
+| **Wayback Machine** | Historical website snapshot at the onboarding date (UC9 "before") | FREE | none⁴ | 9 |
+| **Firecrawl** | Current website → clean text (UC9 "after") | FREEMIUM | optional⁵ | 9, 10 |
+| **WHOIS / RDAP** | Domain registrant, registration/age, registrant change | FREE | none | 8, 9 |
 
-⁰ ZEFIX: free, but the ZefixPublicREST API requires a **free registered
-Basic-auth account** (verified live — `401 WWW-Authenticate: Basic` without
-credentials), so it is FREEMIUM, not FREE. The no-auth path is the daily ZEFIX
-*Open Data* bulk dump (name-index snapshot, not live detail). ZEFIX does **not**
-expose officers / board members / UBOs — those are in the cantonal registers.
-The adapter (`sources/zefix.py`) is implemented against the live OpenAPI schema
-(`POST /company/search` → `CompanyShort[]`, `GET /company/uid/{uid}` →
-`CompanyFull[]`; `legalForm` is a nested `{de,fr,it,en}` map, `status` ∈
-{ACTIVE, BEING_CANCELLED, CANCELLED}). Credentials come from
-`ZEFIX_USERNAME`/`ZEFIX_PASSWORD`; with none set the adapter degrades gracefully
-(`fetch → None`, `fetch_signals → []`) so the engine still runs. Engine wiring
-(aggregator, score floor, synthetic scenario, UI badge) is tracked separately in
-the ROADMAP use-case close-out tasks.
-¹ OpenSanctions: the hosted `yente` API at `api.opensanctions.org` works
-**unauthenticated** for non-commercial use (tighter rate limits). A key
-(`OPENSANCTIONS_API_KEY` env var, sent as `Authorization: ApiKey …`) unlocks
-higher limits. The adapter always attempts the API — it does **not** silently
-skip when no key is set, unlike Event Registry. Commercial use of the data
-needs a paid bulk-data licence — flag for production.
-² Firecrawl: cloud free tier ~1,000 pages/month (no card); self-host is AGPL-3.0.
-The adapter (`sources/firecrawl.py`) is implemented with a three-tier fallback
-ladder so the key is **optional**: with `FIRECRAWL_API_KEY` set it scrapes the
-cloud `/scrape` endpoint (clean markdown, JS-rendered); without a key it falls
-back to a plain `httpx.GET` + stdlib HTML-to-text strip (zero cost, no extra
-dependency); if the page is unreachable it returns an empty-`website_text`
-snapshot rather than `None`. `fetch` only returns `None` when no `domain` is
-supplied. The caller injects the customer's `domain` (from
-`EntitySnapshotDB.extra`) as a keyword argument — the adapter never reads the DB.
-`fetch_signals` is a deliberate no-op: business-model drift is detected by
-`drift/business_model.py`, which embeds this adapter's `website_text` against the
-Wayback onboarding snapshot (cosine distance ≥ 0.35 → `business_model_change`).
-³ Event Registry: previously treated as paid (one-time trial allowance only). The
-SwissHacks 2026 hackathon provides a full-access key (2,500 req/day), making it
-FREEMIUM and fully implemented. When `EVENT_REGISTRY_API_KEY` is set it runs as
-the primary news source; when absent it returns `[]` gracefully and GDELT is the
-always-on free fallback. The two adapters complement each other — GDELT covers
-free baseline article counts; Event Registry adds event-level de-duplication and
-structured sentiment.
+¹ **ZEFIX** — the live REST API needs a *free* registered Basic-auth account
+(`ZEFIX_USERNAME`/`ZEFIX_PASSWORD`); without it the adapter degrades gracefully
+(`fetch → None`, `fetch_signals → []`) and the engine still runs. ZEFIX exposes
+company fields but **not** officers/UBOs (those are in cantonal registers).
 
-### GDELT 2.0 — how it works and what it can't do
+² **OpenSanctions** — the hosted `yente` API works **unauthenticated** for
+non-commercial use (tighter limits); `OPENSANCTIONS_API_KEY` (sent as
+`Authorization: ApiKey …`) unlocks higher limits. The `/search` endpoint returns
+no `score` field, so the adapter **derives a match score** from name similarity
+(`difflib` ratio) *gated on the hit actually being a sanctions target* (its
+`topics`/`target` flags) — this stops an incidental fuzzy name match from firing.
+A definitive hit (≥ 0.85) → `sanctions` critical; 0.70–0.85 → high/probable. It
+also screens UBO/officer names passed via the `ubo_names` kwarg (resolved from
+the GLEIF ownership chain) and emits an `ownership_change` signal carrying
+structured `meta` (screened name, matched entity, score), surfaced as
+`DriftSubjectDetail.ubo_screening` (UC5/UC8).
 
-GDELT is a free, key-less news index. We use the `gdeltdoc` client (synchronous,
-wrapped in `asyncio.to_thread`). `fetch_signals(name)` runs two modes and merges
-their signals (`fetch()` is always `None` — GDELT has no entity record):
+³ **Event Registry** — the SwissHacks key gives full access (2,500 req/day). When
+`EVENT_REGISTRY_API_KEY` is set it is the primary news source; when absent it
+returns `[]` and GDELT takes over. `fetch_recent_news()` returns the latest real
+articles (real title + real URL); the aggregator retries a *simplified core name*
+(e.g. "Rosneft Trading S.A." → "Rosneft") so a real entity reliably yields real
+coverage.
 
-- **News-volume regime change (UC 1).** `timelinevolraw` over 12 months returns a
-  ~354-point *daily* article-count series (columns `datetime, Article Count,
-  All Articles`). We z-score it and run BOCPD; each changepoint → one signal,
-  with severity from the `timelinetone` average-tone value at that point
-  (negative tone → `adverse_media` ≥ 0.65, else `news`). Deduped to one per month.
-- **Funding + pivot (UC 6 / UC 10).** One `article_search` over the last ~3 months;
-  each headline is keyword-classified → `funding_event`, and pivot/rebrand hits
-  become a `business_model_change` *only* when ≥ 3 cluster inside a ~60-day window.
+⁴ **Wayback** — fetches the onboarding-era snapshot via the **CDX API**
+(`web.archive.org/cdx/search/cdx`), because the `/available` API is aggressively
+429-rate-limited from a shared IP. `fetch_signals` is a no-op by design — the
+signal is the *distance* to the current page (see UC9 below).
 
-**Verified live (June 2026)** against the real API on "Wirecard": the volume series
-parsed correctly and BOCPD detected changepoints; `article_search` returned the
-expected columns with `seendate` as `YYYYMMDDTHHMMSSZ`.
+⁵ **Firecrawl** — key-optional three-tier ladder: cloud `/scrape` with a key →
+plain-HTTP + stdlib HTML-strip without one → empty snapshot if unreachable. The
+caller injects the customer's `domain`; the adapter never reads the DB.
 
-**Limitations — GDELT is an obscure, quirky API; treat it as best-effort fallback:**
+### Skipped (paid) — coverage is not lost
 
-1. **Rate limiting (#1 failure mode).** ~1 request / 5 s per IP; bursts raise
-   `RateLimitError`. Each `fetch_signals` makes up to 3 calls (two concurrent), so
-   under load some are throttled. Every query degrades to `[]` on any error — the
-   adapter never crashes, but it can return **partial or no** signals. Add backoff
-   at the caller if you need reliable volume signals.
-2. **Major-media bias.** Small/private KYC subjects often have near-zero coverage →
-   no signals. GDELT shines for large, news-covered entities.
-3. **Keyword match, not entity resolution.** Common names yield false positives;
-   no concept/URI disambiguation. This is precisely why Event Registry is primary
-   and GDELT is only the free fallback.
-4. **Approximate month mapping** (~30-day buckets) and `article_search` reaches back
-   only ~3 months, so funding/pivot signals cluster in recent months.
-
-### Business-model drift — Wayback ↔ Firecrawl cosine comparator (UC 9, 10)
-
-`drift/business_model.py` closes the loop on the two website adapters. Neither
-Wayback nor Firecrawl emits a signal on its own (`fetch_signals()` is a no-op on
-both); the signal is the **distance between them**:
-
-1. `WaybackAdapter.fetch` recovers the onboarding-era `website_text`.
-2. `FirecrawlAdapter.fetch` recovers the current `website_text`.
-3. `compare_business_model(...)` embeds both and emits
-   `PublicSignal(signal_type="business_model_change")` when the cosine distance
-   between the two vectors is **≥ 0.35**. Severity follows the architecture-doc
-   formula `clip(0.20 + 1.30 × cosine_distance, 0, 0.95)`.
-
-**Embedder — model2vec (`minishlab/potion-base-8M`), not torch.** The ROADMAP
-named `sentence-transformers/all-MiniLM-L6-v2`; we run a **static MiniLM-class
-distillation via model2vec** instead. Inference is a pure-NumPy token-embedding
-average — no torch, no onnxruntime — so the ~30 MB model bundles into the image
-for a genuinely offline comparison and the core container stays lean (torch would
-add ~2 GB). model2vec is an **optional** dependency (`uv sync --extra
-embeddings`); when it is absent the comparator degrades to *no signal* (with a
-logged `skipped_reason="no_embedder"`) exactly as Firecrawl degrades to an empty
-snapshot. The embedder is pluggable behind a tiny `Embedder` protocol, so swapping
-in onnxruntime/MiniLM later is a one-line change.
-
-**Degrade-never-raise.** The comparator skips (no signal, machine-readable
-`skipped_reason`) when either side's text is under 50 chars (`"empty_text"`) or no
-embedder is available (`"no_embedder"`); it never raises into the scan.
-
-**Re-embedding cache.** Embedding is the only real cost. The comparator accepts
-previously-computed embeddings keyed by a SHA-256 text fingerprint and reuses them
-only while the fingerprint still matches the supplied text, and always returns the
-embeddings it used. The aggregator persists these in `EntitySnapshotDB.raw_data`
-(the column the ROADMAP calls `extra`) so a re-scan of an unchanged page skips
-re-embedding. The module itself stays DB-free, like everything under `drift/`.
-
-### Why each skip is safe (coverage is not lost)
-
-| Skipped (paid) | Use cases | Free source that covers it |
+| Skipped | Use cases | Free source that covers it |
 |---|---|---|
-| OpenCorporates | 3, 4, 5, 7 | **GLEIF** entity-level ownership (parent/child LEIs) + **ZEFIX** company fields. ⚠️ Natural-person **officers/directors** are a real gap — no free source (incl. ZEFIX) exposes them; entity-level UBO only. |
-| Crunchbase | 6 | **Event Registry** (structured funding articles) + **GDELT** (free fallback) |
+| **OpenCorporates** | 3, 4, 5, 7 | GLEIF (entity-level ownership) + ZEFIX (company fields). Gap: natural-person officers — no free source exposes them. |
+| **Crunchbase** | 6 | Event Registry (funding articles) + GDELT (fallback) |
 
-Net: **8 adapters to run (all 8 built — GLEIF, ZEFIX, Event Registry, OpenSanctions, Wayback, WHOIS/RDAP, Firecrawl, GDELT — 0 carcasses),
-2 skipped.** No use case is fully dropped; officer/director-level resolution
-(part of Cases 3/5) is degraded to entity-level ownership only — the one
-capability lost by skipping the paid OpenCorporates. Event Registry is the
-key-gated primary news source; GDELT remains the always-on free fallback.
+Both remain metadata-only carcasses whose `fetch` raises `SourceUnavailableError`,
+so "skipped on purpose" can never be confused with "not built yet"
+(`NotImplementedError`).
 
 ---
 
 ## The adapter contract
 
-Each source combines `CostMixin` (cost metadata) with `RegistryAdapter` (the
-`base.py` contract) and implements two async methods:
+Each adapter combines `CostMixin` (cost metadata, `cost.py`) with the
+`RegistryAdapter` ABC (`base.py`) and implements two async methods:
 
-```
+```python
 async fetch(drift_id, name, **kwargs) -> EntitySnapshot | None
-async fetch_signals(drift_id, name, since_month=0, **kwargs) -> [PublicSignal]
+async fetch_signals(drift_id, name, since_month=0, **kwargs) -> list[PublicSignal]
 ```
 
-### Aggregator entry point
+- **`fetch`** returns the source's current canonical `EntitySnapshot`
+  (`legal_form`, `jurisdiction`, `dissolution_status`, `beneficial_owners`,
+  `officers`, `raw_data`, …) or `None` if the entity isn't in that source. The
+  service layer stores it and diffs it against the onboarding baseline with
+  `diff_snapshots(baseline, current)` → `[SnapshotDiff]` (each carrying a routing
+  key + severity: name change, jurisdiction change, dissolution, UBO added/removed).
+- **`fetch_signals`** returns `PublicSignal`s directly — used by sources whose
+  output isn't a registry diff: OpenSanctions (match-score hit), GDELT/Event
+  Registry (news), and the Wayback↔Firecrawl comparator.
 
-`drift/public_intel.gather_public_signals(drift_id, name, **kwargs)` (async) fans
-out `fetch_signals()` to every `usable_adapters()` in parallel via `asyncio.gather`,
-catches per-adapter errors, and returns a merged time-sorted list. The sync bridge
-`gather_public_signals_sync()` runs it in a dedicated thread so it is safe to call
-from the synchronous `DriftEngine._analyze_customer()` even when FastAPI's event loop
-is active. Tests that exercise the engine patch this bridge via an autouse conftest
-fixture to avoid real HTTP calls.
+`base.py` is the shared contract; `registry.py` is the single catalogue
+(`usable_adapters()`, `skipped_adapters()`); `cost.py` holds the `SourceCost` /
+`AdapterStatus` enums and `SourceUnavailableError`.
 
-- `fetch` returns the source's current canonical `EntitySnapshot` (or `None` if
-  the entity isn't in that source). The service layer stores it via
-  `db.kyc_baseline.store_snapshot` and compares it to the onboarding baseline
-  with the module-level **`diff_snapshots(baseline, current)`** → `[SnapshotDiff]`
-  (each carrying a `drift_signal_type` and `severity` routed to a use case:
-  `name_changed`, `jurisdiction_changed`, `dissolution_status_changed`,
-  `ubo_added`/`ubo_removed`, …).
-- `fetch_signals` returns `PublicSignal`s directly — used by sources whose output
-  isn't a registry diff: **OpenSanctions** (match-score hit), **GDELT** (BOCPD
-  over the per-month article count), **Firecrawl + Wayback** (embedding cosine
-  distance, via `drift/business_model.py`).
-
-`EntitySnapshot` is the canonical shape (`legal_form`, `jurisdiction`,
-`registered_address`, `dissolution_status`, `beneficial_owners`, `officers`,
-`raw_data`, …). Scalar fields are optional — `None` means *"this source does not
-report this field"* and two `None`s are never a change; the list fields are
-set-diffed. `PublicSignal` carries `source_url` for the officer-UI citation; an
-adapter's `record_url()` supplies the click-through link.
-
-> **Two signal vocabularies — don't confuse them.** `diff_snapshots` emits
-> **past-tense** routing keys on `SnapshotDiff.drift_signal_type`
-> (`name_changed`, `jurisdiction_changed`, `dissolution_status_changed`,
-> `ubo_added`/`ubo_removed`, …). The adapter `signal_types` metadata and
-> `ADAPTER_SIGNAL_TYPES` use the **noun** form on `PublicSignal.signal_type`
-> (`name_change`, `jurisdiction_change`, `status_change`, …). These are two
-> deliberately separate namespaces — registry-diff routing keys vs. the public
-> signal type shown on a card. When the future aggregator turns a `SnapshotDiff`
-> into a `PublicSignal`, it must map `*_changed` → `*_change` explicitly.
+> **Two signal vocabularies.** `diff_snapshots` emits past-tense routing keys
+> (`name_changed`, `jurisdiction_changed`); the `PublicSignal.signal_type` shown
+> on a card uses the noun form (`name_change`, `jurisdiction_change`). They are
+> separate namespaces; the layer that turns a diff into a signal maps `*_changed`
+> → `*_change` explicitly.
 
 ---
 
-## Build order (when the carcasses get filled in)
+## Aggregator + hybrid fallback
 
-Mirrors the sprint plan in `source-integration-architecture.md` §12, restricted
-to the free sources:
+`public_intel.gather_public_signals(drift_id, name)` (async) fans
+`fetch_signals()` out to every `usable_adapters()` in parallel, catches
+per-adapter errors, and returns a merged, time-sorted list.
+`gather_public_signals_sync()` bridges it into the synchronous engine via a
+dedicated thread, so it is safe under FastAPI's running loop. Adapter dispatch is
+gated by `EXTERNAL_APIS_ENABLED`, but a per-entity `mode="live"` fires the real
+adapters regardless (the 5 live entities).
 
-1. **Registry** — `zefix` (free Basic-auth account), `gleif` (no key); highest signal → Cases 4, 7, 8, 10, 3, 5
-2. **Screening** — `opensanctions` (free non-commercial / self-host yente) → Cases 2, 5
-3. **News** — `gdelt` (free baseline) + `event_registry` (key-gated enhancement, event-level de-duplication) → Cases 1, 6, 8, 10
-4. **Web** — `whois` + `wayback` + `firecrawl` all built → Cases 8, 9, 10
+**Hybrid fallback (live mode).** Registry/screening sources (GLEIF, OpenSanctions,
+WHOIS) are reliable live, but the live *news* feeds frequently have no recent
+coverage (rate limits, or the real adverse event predates the query window). So a
+live entity uses:
 
-Prerequisite for all of them: `db/kyc_baseline.py` to store/load the
-`EntitySnapshot` baseline each adapter diffs against (see ROADMAP P1 §2).
+1. Real registry/sanctions signals + **real recent articles** (real title + real
+   URL) where available; then
+2. a clearly-labelled **`(modeled)` scenario narrative** *only* when the live news
+   feed is empty.
+
+News signals therefore always link to a **direct article or carry no link at all
+— never a search page**.
+
+---
+
+## UC9: Wayback ↔ Firecrawl website-drift comparator
+
+Neither website adapter emits a signal alone; the signal is the **distance
+between them** (`drift/business_model.py`):
+
+1. Wayback recovers the onboarding-era `website_text` (via CDX).
+2. Firecrawl recovers the current `website_text`.
+3. `compare_business_model(...)` embeds both and emits a `business_model_change`
+   signal when the cosine distance is **≥ 0.35** (severity `clip(0.20 + 1.30 ×
+   distance, 0, 0.95)`), plus a one-line LLM "what changed" summary and links to
+   both versions.
+
+**Embedder — model2vec (`minishlab/potion-base-8M`), not torch.** A static
+MiniLM-class distillation running on pure NumPy (~30 MB, no torch/onnx), baked
+into the image for a genuinely offline comparison. Pluggable behind an `Embedder`
+protocol. Degrade-never-raise: the comparator skips (machine-readable
+`skipped_reason`: `"empty_text"` / `"no_embedder"`) and never raises into a scan.
+Embeddings are cached by SHA-256 text fingerprint in `EntitySnapshotDB.raw_data`
+so a re-scan of an unchanged page skips re-embedding.
+
+---
+
+## Disk cache
+
+`core/api_cache.py` `DiskCache` is a per-service JSON cache under
+`backend/data/api_cache/{service}/`:
+
+- **Write-through** — a miss triggers the live call (when enabled + keyed), then
+  the response is saved; the next read is instant and free.
+- **Committed to the repo** — real GLEIF / Event Registry / OpenSanctions / GDELT
+  / Wayback / WHOIS / Firecrawl responses *and* Anthropic LLM completions are
+  committed, so the 5 live entities replay fully offline.
+- **Disabled under pytest** (`PYTEST_CURRENT_TEST` / `API_CACHE_DISABLED`) so
+  adapter unit tests see their mocked HTTP, not a stale cached value.
+
+To (re)populate after editing a live entity: open its detail page (or hit
+`/api/v1/drift/subjects/{id}`) twice, then commit `backend/data/api_cache/`.

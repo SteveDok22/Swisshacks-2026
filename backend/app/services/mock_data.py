@@ -2,7 +2,7 @@
 Mock data generator for development and demo.
 
 Realistic Swiss + international clients across all 4 AMINA jurisdictions.
-18 cases distributed across:
+19 cases distributed across:
 - Risk levels: low, medium, high, critical
 - Statuses: pending, in_review, resolved
 - Case types: social_engineering (AMINA), investment_recommendation (JB),

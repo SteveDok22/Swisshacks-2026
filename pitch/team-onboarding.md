@@ -88,7 +88,7 @@ Don't read everything. Start here:
 ```
 backend/app/
 ├── main.py                      # FastAPI app, lifespan (db init, ML load, seed)
-├── api/v1/                      # 8 routers, 19 endpoints
+├── api/v1/                      # 10 routers, ~30 endpoints
 │   ├── cases.py                 # Case queue + detail
 │   ├── scoring.py               # POST /scoring/{case_id}
 │   ├── explanations.py          # SSE streaming endpoint
@@ -230,7 +230,7 @@ Quick context on **why** things are the way they are:
 - **Tailwind v3 (not v4)** — v4 still has breaking changes, we need stability
 - **Custom components (not shadcn as-is)** — generic shadcn UI = generic AI aesthetic. We're going for Swiss institutional.
 - **Mock mode default** — demos must work offline at the venue (wifi sometimes flaky)
-- **No tests in MVP** — controversial, but every minute spent on test infra is a minute not on demo polish. We'll add tests on Monday.
+- **Tests run in Docker** — `docker compose run --rm backend-tests` (unit + BDD across the drift layers, sources, cascade, time-travel, and audit; ~975 passing).
 
 ---
 

@@ -1,0 +1,176 @@
+{
+  "key_raw": "event/getEvents:841888fb3ef523b4",
+  "cached_at": "2026-06-27T00:00:41.035657+00:00",
+  "data": {
+    "events": {
+      "results": [
+        {
+          "uri": "eng-11714595",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/WW_International",
+              "type": "org",
+              "score": 100,
+              "label": {
+                "eng": "WW International"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Medication",
+              "type": "wiki",
+              "score": 81,
+              "label": {
+                "eng": "Medication"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Glucagon-like_peptide-1",
+              "type": "wiki",
+              "score": 76,
+              "label": {
+                "eng": "Glucagon-like peptide-1"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Weight_loss",
+              "type": "wiki",
+              "score": 67,
+              "label": {
+                "eng": "Weight loss"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Prescription_drug",
+              "type": "wiki",
+              "score": 63,
+              "label": {
+                "eng": "Prescription drug"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Health_care",
+              "type": "wiki",
+              "score": 63,
+              "label": {
+                "eng": "Health care"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Weight_management",
+              "type": "wiki",
+              "score": 61,
+              "label": {
+                "eng": "Weight management"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Obesity",
+              "type": "wiki",
+              "score": 42,
+              "label": {
+                "eng": "Obesity"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Brand",
+              "type": "wiki",
+              "score": 42,
+              "label": {
+                "eng": "Brand"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Nasdaq",
+              "type": "wiki",
+              "score": 36,
+              "label": {
+                "eng": "Nasdaq"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Pharmacy",
+              "type": "wiki",
+              "score": 32,
+              "label": {
+                "eng": "Pharmacy"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Eli_Lilly_and_Company",
+              "type": "org",
+              "score": 30,
+              "label": {
+                "eng": "Eli Lilly and Company"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Nutrition",
+              "type": "wiki",
+              "score": 23,
+              "label": {
+                "eng": "Nutrition"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/License",
+              "type": "wiki",
+              "score": 16,
+              "label": {
+                "eng": "License"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Health_policy",
+              "type": "wiki",
+              "score": 10,
+              "label": {
+                "eng": "Health policy"
+              }
+            }
+          ],
+          "eventDate": "2026-06-04",
+          "totalArticleCount": 7,
+          "title": {
+            "eng": "Why WeightWatchers (WW) Stock Is Trading Up Today"
+          },
+          "summary": {
+            "eng": "Shares of personal wellness company WeightWatchers (NASDAQ:WW) jumped 6.3% in the afternoon session after the company announced its Weight Watchers Med+ program is now accessible through Eli Lilly's digital healthcare platform, LillyDirect.\n\nThis integration expands access to WW's clinical weight management services for patients using or considering prescription obesity treatments. The program combines GLP-1 medications, a class of drugs often used for weight loss, with behavioral, nutritional, a"
+          },
+          "location": null,
+          "categories": [
+            {
+              "uri": "dmoz/Health/Weight_Loss",
+              "label": "dmoz/Health/Weight Loss",
+              "wgt": 41
+            },
+            {
+              "uri": "dmoz/Recreation/Camps/Weight_Loss",
+              "label": "dmoz/Recreation/Camps/Weight Loss",
+              "wgt": 24
+            },
+            {
+              "uri": "dmoz/Health/Pharmacy/Prescription_Services",
+              "label": "dmoz/Health/Pharmacy/Prescription Services",
+              "wgt": 23
+            },
+            {
+              "uri": "news/Health",
+              "label": "news/Health",
+              "wgt": 97
+            }
+          ],
+          "articleCounts": {
+            "eng": 7
+          },
+          "sentiment": 0.5058823529411764,
+          "wgt": 518227200,
+          "relevance": 2
+        }
+      ],
+      "totalResults": 1,
+      "page": 1,
+      "count": 1,
+      "pages": 1
+    }
+  }
+}

@@ -1,0 +1,417 @@
+{
+  "key_raw": "event/getEvents:496870f58b1cfca8",
+  "cached_at": "2026-06-22T01:50:55.882208+00:00",
+  "data": {
+    "events": {
+      "results": [
+        {
+          "uri": "eng-11678970",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Tariff",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Tariff"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Semiconductor",
+              "type": "wiki",
+              "score": 88,
+              "label": {
+                "eng": "Semiconductor"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Office_of_the_United_States_Trade_Representative",
+              "type": "wiki",
+              "score": 82,
+              "label": {
+                "eng": "Office of the United States Trade Representative"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Micron_Technology",
+              "type": "org",
+              "score": 67,
+              "label": {
+                "eng": "Micron Technology"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Offshoring",
+              "type": "wiki",
+              "score": 37,
+              "label": {
+                "eng": "Offshoring"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/National_security",
+              "type": "wiki",
+              "score": 33,
+              "label": {
+                "eng": "National security"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Donald_Trump",
+              "type": "person",
+              "score": 32,
+              "label": {
+                "eng": "Donald Trump"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Washington_(state)",
+              "type": "loc",
+              "score": 25,
+              "label": {
+                "eng": "Washington (state)"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Washington (state)"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Presidency_of_Donald_Trump",
+              "type": "wiki",
+              "score": 23,
+              "label": {
+                "eng": "Presidency of Donald Trump"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Supply_chain",
+              "type": "wiki",
+              "score": 21,
+              "label": {
+                "eng": "Supply chain"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Manassas,_Virginia",
+              "type": "loc",
+              "score": 21,
+              "label": {
+                "eng": "Manassas, Virginia"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Manassas, Virginia"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States",
+              "type": "loc",
+              "score": 21,
+              "label": {
+                "eng": "United States"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "United States"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Virginia",
+              "type": "loc",
+              "score": 19,
+              "label": {
+                "eng": "Virginia"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Virginia"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/United_States_Department_of_Commerce",
+              "type": "wiki",
+              "score": 16,
+              "label": {
+                "eng": "United States Department of Commerce"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Artificial_intelligence",
+              "type": "wiki",
+              "score": 16,
+              "label": {
+                "eng": "Artificial intelligence"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Washington,_D.C.",
+              "type": "loc",
+              "score": 16,
+              "label": {
+                "eng": "Washington, D.C."
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Washington, D.C."
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/South_Korea",
+              "type": "loc",
+              "score": 9,
+              "label": {
+                "eng": "South Korea"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "South Korea"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/China",
+              "type": "loc",
+              "score": 9,
+              "label": {
+                "eng": "China"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "China"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/SK_Hynix",
+              "type": "org",
+              "score": 8,
+              "label": {
+                "eng": "SK Hynix"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Dynamic_random-access_memory",
+              "type": "wiki",
+              "score": 8,
+              "label": {
+                "eng": "Dynamic random-access memory"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Xi_Jinping",
+              "type": "person",
+              "score": 8,
+              "label": {
+                "eng": "Xi Jinping"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Samsung_Electronics",
+              "type": "org",
+              "score": 8,
+              "label": {
+                "eng": "Samsung Electronics"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Beijing",
+              "type": "loc",
+              "score": 8,
+              "label": {
+                "eng": "Beijing"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Beijing"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "China"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sanjay_Mehrotra",
+              "type": "person",
+              "score": 7,
+              "label": {
+                "eng": "Sanjay Mehrotra"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Wafer_(electronics)",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Wafer (electronics)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Reuters",
+              "type": "wiki",
+              "score": 7,
+              "label": {
+                "eng": "Reuters"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Wireless",
+              "type": "wiki",
+              "score": 6,
+              "label": {
+                "eng": "Wireless"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Personal_computer",
+              "type": "wiki",
+              "score": 6,
+              "label": {
+                "eng": "Personal computer"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/CHIPS_and_Science_Act",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "CHIPS and Science Act"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/New_York_(state)",
+              "type": "loc",
+              "score": 5,
+              "label": {
+                "eng": "New York (state)"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Semiconductor_industry",
+              "type": "wiki",
+              "score": 5,
+              "label": {
+                "eng": "Semiconductor industry"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Joe_Biden",
+              "type": "person",
+              "score": 5,
+              "label": {
+                "eng": "Joe Biden"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Idaho",
+              "type": "loc",
+              "score": 5,
+              "label": {
+                "eng": "Idaho"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Idaho"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "United States"
+                  }
+                }
+              }
+            }
+          ],
+          "eventDate": "2026-05-22",
+          "totalArticleCount": 18,
+          "title": {
+            "eng": "'The Assassin' Fahmi Quadir on How to Survive as a Short-Seller"
+          },
+          "summary": {
+            "eng": "'The Assassin' Fahmi Quadir on How to Survive as a Short-Seller\n\nArrow Right\n\n31:40\n\nListen to Odd Lots on Apple Podcasts\n\nListen to Odd Lots on Spotify\n\nWatch Odd Lots on YouTube\n\nSubscribe to the newsletter\n\nA short-seller is a gum shoe who roots out a particular story about a specific company and brings it to light. In this way, a short-seller is similar to an investigative journalist. Fahmi Quadir, the founder and CIO of Safkhet Capital, is known as the Assassin. Her notoriety proceeds her: A"
+          },
+          "location": {
+            "type": "place",
+            "label": {
+              "eng": "Manassas, Virginia"
+            },
+            "country": {
+              "type": "country",
+              "label": {
+                "eng": "United States"
+              }
+            }
+          },
+          "categories": [
+            {
+              "uri": "dmoz/Business/International_Business_and_Trade",
+              "label": "dmoz/Business/International Business and Trade",
+              "wgt": 27
+            },
+            {
+              "uri": "dmoz/Business/International_Business_and_Trade/Import_and_Export",
+              "label": "dmoz/Business/International Business and Trade/Import and Export",
+              "wgt": 34
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 74
+            }
+          ],
+          "articleCounts": {
+            "eng": 18
+          },
+          "sentiment": 0.2313725490196079,
+          "wgt": 517104000,
+          "relevance": 3
+        }
+      ],
+      "totalResults": 1,
+      "page": 1,
+      "count": 1,
+      "pages": 1
+    }
+  }
+}

@@ -3,7 +3,8 @@
 **Early detection of KYC drift for FINMA-regulated banks.** Built with Python, FastAPI, and Next.js for **SwissHacks 2026 · AMINA Challenge 4 (Dynamic Risk Profiling)**.
 
 <div align="center">
-<img src="docs/screenshots/drift-overview.png" alt="Drift Engine workspace" width="820">
+[![AEGIS demo](docs/screenshots/gifs/MockupPage.gif)](http://localhost:3000/about)
+
 </div>
 
 > *"Sanctions lists tell you who became toxic yesterday. Drift velocity tells you who is becoming toxic right now."*

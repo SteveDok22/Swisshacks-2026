@@ -1,109 +1,120 @@
 # API Reference
 
-Base URL: `http://localhost:8000/api/v1`  
-Interactive docs: `http://localhost:8000/docs`  
-Total API endpoints: 27
+Base URL: `http://localhost:8000/api/v1` · Interactive docs: `http://localhost:8000/docs`
 
-## Endpoint Map
-
-```mermaid
-flowchart TB
-    subgraph Drift["Drift Engine  — /drift"]
-        D1["GET /subjects\nScan full subject book\nReturns risk-ranked list\nis_name_changed flags re-KYC triggers (UC8)"]
-        D2["GET /subjects/{drift_id}\nFull per-subject analysis\nAll 7 layers + causal evidence + timeline"]
-        D3["POST /scan\nRun cost cascade scan\nReturns CascadeCostReport"]
-        D4["GET /contagion\nOwnership graph + PageRank scores"]
-        D5["GET /replay/{drift_id}\nTime-travel as-of replay"]
-        D6["POST /inject\nInject public signal\nBody: scenario, name"]
-        D7["POST /rfi/{drift_id}\nGenerate RFI\nValue-of-Information ordering"]
-    end
-
-    subgraph Cases["Cases  — /cases"]
-        C1["GET /\nFilterable case queue\n?case_type=&status=&jurisdiction=&page="]
-        C2["GET /{case_id}\nCase detail + full context"]
-        C3["POST /\nCreate case\nBody: client_id, case_type, jurisdiction, context"]
-        C4["PATCH /{case_id}/status\nUpdate workflow status"]
-        C5["GET /{case_id}/history\nFull audit trail for this case"]
-    end
-
-    subgraph Analysis["Analysis"]
-        A1["POST /scoring/{case_id}\nScore a case — returns risk_score + risk_level"]
-        A2["GET /scoring/models\nList available ML models"]
-        A3["POST /explanations/{case_id}\nGenerate full explanation (JSON)"]
-        A4["GET /explanations/{case_id}/stream\nSSE streaming explanation — chunked tokens"]
-        A5["GET /explanations/{case_id}/anonymization\nPreview what data is sent to LLM vs stays local"]
-        A6["POST /counterfactuals/{case_id}\nDiCE counterfactual scenarios"]
-    end
-
-    subgraph Governance["Governance"]
-        G1["POST /decisions\nLog officer decision\nBody: case_id OR drift_id, action, officer_id\nOptional: rationale"]
-        G2["GET /decisions/case/{case_id}\nList all decisions for a case"]
-        G7["GET /decisions/subject/{drift_id}\nList all drift-engine decisions for a subject"]
-        G3["GET /audit\nAudit log — paginated"]
-        G4["GET /jurisdictions\nList all loaded rule packs"]
-        G5["GET /jurisdictions/{code}\nGet rules for CH / EU / HK / AE"]
-        G6["POST /jurisdictions/compare/{case_id}\nScore case under all jurisdictions simultaneously"]
-    end
-
-    subgraph Clients["Clients  — /clients"]
-        CL1["GET /\nList all clients"]
-        CL2["GET /{client_id}\nClient detail + KYC profile"]
-    end
-```
+**28 endpoints across 10 routers.** (The OpenAPI schema reports 30 operations in
+total — the two extras are the unversioned `GET /health` and `GET /` root.) No
+authentication in the demo; CORS is open to `http://localhost:3000`.
 
 ---
 
-## Response Shape Reference
+## Drift Engine — `/drift`
 
-```mermaid
-flowchart LR
-    subgraph DriftSchemas["Drift Schemas"]
-        DS1["DriftSubjectSummary\ndrift_id · name · score · velocity\naction · risk_level\nis_suspicious · is_dormancy_break · is_name_changed"]
-        DS2["DriftSubjectDetail\n+ LayerContribution[]\n+ CausalVerdictOut\n+ StabilityOut\n+ DriftTimelinePoint[]\n+ PublicSignalOut[]\n+ UboScreeningOut[] (UC5)\n+ contagion_score\n+ is_business_model_change\n+ business_model_distance"]
-        DS3["ReplayResult\nas_of_score · current_score\nlead_time_months"]
-        DS4["CascadeCostReport\ntier_counts · costs · total_customers\n+ actual_t2_llm_calls\n+ llm_adjudications[]"]
-    end
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/drift/subjects` | Risk-ranked list of all 20 subjects (15 synthetic + 5 live). `DriftSubjectSummary[]` — score, velocity band, risk level, `is_name_changed`, `mode`. |
+| GET | `/drift/subjects/{drift_id}` | Full per-subject analysis — all 9 layers, causal verdict, stability, dormancy, timeline, public signals, UBO screening, website-drift. `DriftSubjectDetail`. |
+| POST | `/drift/scan` | Run the cost-aware cascade over the whole book. `CascadeCostReport` — tier counts, cost vs LLM-on-all, real/cached T2 adjudication counts. |
+| GET | `/drift/contagion` | Ownership graph + personalized-PageRank propagated risk from the sanctioned seed. `ContagionGraph`. |
+| GET | `/drift/replay/{drift_id}` | Time-travel replay — score as-of any past month using only data available then (no look-ahead). `ReplayResult` with `lead_time_months`. |
+| POST | `/drift/inject` | Red-team: synthesize a scenario on the fly (body: `scenario`, `name`). Volatile — lives one process. |
+| POST | `/drift/rfi/{drift_id}` | Generate a Request-for-Information, questions ordered by value-of-information. `RFIResponse`. |
 
-    subgraph CaseSchemas["Case Schemas"]
-        CS1["CaseRead\nid · client_id · case_type · jurisdiction\nstatus · summary · context_data\nrisk_score · risk_level · confidence"]
-        CS2["ScoringResponse\nrisk_score · risk_level · confidence\nshap_values · rule_overrides"]
-    end
+## Cases — `/cases`
 
-    subgraph ExplainSchemas["Explanation Schemas"]
-        ES1["CaseExplanation\nnarrative · key_factors · recommendation"]
-        ES2["SSE stream\nevent: message — data: token chunk\nevent: done — data: empty"]
-        ES3["AnonymizationPreview\noriginal_fields · anonymized_fields\nfields_sent_to_llm"]
-    end
-```
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/cases` | Filterable case queue (`?case_type=&status=&jurisdiction=&page=&page_size=`). `PaginatedResponse`. |
+| GET | `/cases/{case_id}` | Case detail + full `context_data`. `CaseRead`. |
+| POST | `/cases` | Create a case (body: `client_id`, `case_type`, `jurisdiction`, `context`). `201`. |
+| PATCH | `/cases/{case_id}/status` | Update workflow status. |
+| GET | `/cases/{case_id}/history` | This case's audit trail. `AuditEntryRead[]`. |
 
-`DriftSubjectDetail` carries two business-model drift fields (UC 9):
+## Clients — `/clients`
 
-- `is_business_model_change` (bool) — `true` when the customer's public-facing business model shifted materially since onboarding.
-- `business_model_distance` (float) — cosine distance between the onboarding (Wayback) and current (Firecrawl) website text; `0.0` = identical, `≥ 0.35` flags a change.
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/clients` | List all clients. `Client[]`. |
+| GET | `/clients/{client_id}` | Client detail + KYC profile. |
 
-Both come from the `drift/business_model.py` comparator. They stay at their neutral defaults (`false` / `0.0`) when no website texts are available for the customer or the optional `embeddings` backend (model2vec) is absent — the comparison degrades to a skip rather than failing the request.
+## Decisions — `/decisions`
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/decisions` | Record an officer decision (body: `case_id` **or** `drift_id`, `action`, `officer_id`, optional `rationale`). Appends to the audit log; overriding the AI requires a rationale. `201`. |
+| GET | `/decisions/case/{case_id}` | Decisions for a case. |
+| GET | `/decisions/subject/{drift_id}` | Decisions for a drift subject. |
+
+## Audit — `/audit`
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/audit` | Paginated, filterable audit log. `PaginatedResponse`. |
+
+Filter params: `event_type`, `case_id`, `drift_id`, `actor_id`, `risk_level`,
+`from_date`, `to_date`, `page`, `page_size`. The log is seeded with a realistic
+~97-entry compliance trail (see [data-model.md](data-model.md)).
+
+## Scoring — `/scoring`
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/scoring/{case_id}` | Run ML scoring for a case. `ScoringResponse` — `risk_score`, `risk_level`, `confidence`, SHAP values. |
+| GET | `/scoring/models` | List available ML models. |
+
+## Explanations — `/explanations`
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/explanations/{case_id}` | Generate a full case explanation. `CaseExplanation`. |
+| GET | `/explanations/{case_id}/stream` | **SSE** streaming explanation — chunked tokens ("AI thinking" UX). |
+| GET | `/explanations/{case_id}/anonymization` | Preview what is pseudonymized before it reaches the LLM. `AnonymizationPreview`. |
+
+## Counterfactuals — `/counterfactuals`
+
+| Method | Path | Purpose |
+|---|---|---|
+| POST | `/counterfactuals/{case_id}` | DiCE counterfactual scenarios ("what would flip this verdict"). `CounterfactualResponse`. |
+
+## Jurisdictions — `/jurisdictions`
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/jurisdictions` | List loaded rule packs (CH / EU / HK / AE). |
+| GET | `/jurisdictions/{code}` | Rules for one jurisdiction. |
+| POST | `/jurisdictions/compare/{case_id}` | Score a case under every jurisdiction at once. `dict[code, JurisdictionAdjustedScore]`. |
+
+## Config — `/config`
+
+| Method | Path | Purpose |
+|---|---|---|
+| GET | `/config` | Operating mode for the UI badge. `ConfigResponse`: `mode` (`synthetic`/`live`), `external_apis_enabled`, `llm_mode` (`mock`/`live`), `active_adapters[]`. |
 
 ---
 
-## Authentication & Privacy
+## Response shapes
 
-```mermaid
-flowchart LR
-    Request["Incoming request\n/explanations/{case_id}/stream"]
-    Anon["anonymizer.py\nPseudonymize client data:\nCLIENT_AAF7 · bucketed amounts\nno PII in LLM context"]
-    Claude["Claude AI\nReceives only anonymized context"]
-    Response["SSE token stream\nNo PII in explanation"]
+Schemas live in `backend/app/schemas/`. The richest is **`DriftSubjectDetail`**
+(`schemas/drift.py`):
 
-    Request --> Anon --> Claude --> Response
-```
+- `drift_score` (0–100), `risk_level`, `drift_velocity`, `velocity_band`, `reached_tier`, `recommended_action`, `mode`
+- `layers[]` — per-layer LLR contributions; `timeline[]` — monthly trajectory + BOCPD changepoint marker
+- `public_signals[]` — `signal_type`, `severity`, `headline`, `source`, `source_url`, `month` (news signals link to a direct article or carry no link — never a search page)
+- `ubo_screening[]` — screened UBO, matched watchlist entity, score, `definitive`, `source_url` (UC5/UC8)
+- `causal`, `stability`, `dormancy` — per-detector verdicts
+- **UC9 website-drift**: `is_business_model_change`, `business_model_distance` (Wayback↔Firecrawl model2vec cosine; `≥ 0.35` flags a pivot), `onboarding_website_url`, `current_website_url`, `business_model_summary` (one-line LLM "what changed"). These default to neutral when no website text is available or the embedder is absent.
 
-No auth tokens required in dev mode.
+`CascadeCostReport` (`POST /drift/scan`) carries `tier_counts`, `total_cost`,
+`llm_on_everything_cost`, `savings_pct`, and `real`/`cached` T2 call counts —
+the live cost-efficiency evidence.
 
-Case-explanation LLM calls pass through `anonymizer.py` so raw names and exact amounts are not sent to Claude. Drift scan T2 adjudication uses the shared `AnthropicClient` and sends structured drift evidence for customers that actually reach `T2_LLM`; when no Anthropic API key is configured, the same path runs in deterministic mock mode.
+---
 
-`POST /drift/scan` returns the counterfactual `llm_on_everything_cost` plus actual execution counters:
+## Privacy
 
-- `actual_t2_llm_calls`
-- `real_t2_llm_calls`
-- `mock_t2_llm_calls`
-- `llm_adjudications[]` with `drift_id`, `drift_name`, mode, cache flag, and parsed JSON adjudication.
+Case-explanation LLM calls pass through `services/anonymizer` first, so raw names
+and exact amounts never reach Claude (pseudonyms + bucketed amounts). Drift T2
+adjudication sends only structured, de-identified drift evidence — and only for
+customers that actually reach the `T2_LLM` tier. With no Anthropic key (or
+`ANTHROPIC_FORCE_MOCK=1`) the same path runs in deterministic mock mode. See
+[architecture.md](architecture.md) and [drift-engine.md](drift-engine.md).

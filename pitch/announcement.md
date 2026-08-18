@@ -23,7 +23,7 @@ case types via the same engine — we pick the skin/extension on Saturday
 based on which challenge we go for.
 
 📦 **What's built right now**:
-• 19 API endpoints, ML pipeline (XGBoost + SHAP + DiCE counterfactuals)
+• ~30 API endpoints, ML pipeline (XGBoost + SHAP + DiCE counterfactuals)
 • Next.js dashboard with streaming Claude explanations via SSE
 • 4-jurisdiction rule engine (FINMA/MiCA/SFC/FSRA), YAML-editable
 • FINMA-compliant anonymizer + immutable audit log
@@ -64,7 +64,7 @@ Let's build something good. 🇨🇭
 **Sentinel** — compliance dashboard for AMINA / Julius Baer / Ripple
 challenges. Universal engine, swap skins on Saturday based on challenge.
 
-What's built: backend (19 endpoints, ML pipeline, 4 jurisdictions),
+What's built: backend (~30 endpoints, ML pipeline, 4 jurisdictions),
 frontend (Next.js dashboard, streaming AI, SHAP, counterfactuals),
 18 mock cases, pitch deck, demo script.
 
@@ -94,7 +94,7 @@ challenges with the same universal engine, swapping case types and
 UI skins based on which challenge we ultimately pick.
 
 What's already built and tested:
-- FastAPI backend with 19 endpoints and an ML pipeline
+- FastAPI backend with ~30 endpoints and an ML pipeline
 - Next.js dashboard with streaming AI explanations
 - 4-jurisdiction rule engine (FINMA/MiCA/SFC/FSRA)
 - FINMA-compliant data anonymization
@@ -135,7 +135,7 @@ three hackathon partner challenges (AMINA, Julius Baer, Ripple) with
 the same engine — swap the skin based on which challenge gets picked.
 
 What I built solo before the team joins:
-- FastAPI backend, 19 endpoints, ML pipeline (XGBoost + SHAP + DiCE)
+- FastAPI backend, ~30 endpoints, ML pipeline (XGBoost + SHAP + DiCE)
 - Next.js 15 dashboard with streaming Claude explanations via SSE
 - YAML-driven jurisdiction rule engine (FINMA, MiCA, SFC, FSRA)
 - Privacy-by-design anonymizer (FINMA Circular 2024/3 compliant)

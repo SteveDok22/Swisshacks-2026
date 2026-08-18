@@ -1,0 +1,330 @@
+{
+  "key_raw": "event/getEvents:c3cd740d0d23a286",
+  "cached_at": "2026-08-18T08:24:23.878849+00:00",
+  "data": {
+    "events": {
+      "results": [
+        {
+          "uri": "eng-11887986",
+          "concepts": [
+            {
+              "uri": "http://en.wikipedia.org/wiki/Limited_liability_partnership",
+              "type": "wiki",
+              "score": 100,
+              "label": {
+                "eng": "Limited liability partnership"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Procedural_law",
+              "type": "loc",
+              "score": 87,
+              "label": {
+                "eng": "Procedural law"
+              },
+              "location": null
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Corporate_social_responsibility",
+              "type": "wiki",
+              "score": 83,
+              "label": {
+                "eng": "Corporate social responsibility"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/India",
+              "type": "loc",
+              "score": 83,
+              "label": {
+                "eng": "India"
+              },
+              "location": {
+                "type": "country",
+                "label": {
+                  "eng": "India"
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Corporate_governance",
+              "type": "wiki",
+              "score": 69,
+              "label": {
+                "eng": "Corporate governance"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Companies_Act_2013",
+              "type": "wiki",
+              "score": 65,
+              "label": {
+                "eng": "Companies Act 2013"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/New_Delhi",
+              "type": "loc",
+              "score": 58,
+              "label": {
+                "eng": "New Delhi"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "New Delhi"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "India"
+                  }
+                }
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Stakeholder_(corporate)",
+              "type": "wiki",
+              "score": 55,
+              "label": {
+                "eng": "Stakeholder (corporate)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Startup_company",
+              "type": "wiki",
+              "score": 53,
+              "label": {
+                "eng": "Startup company"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Lok_Sabha",
+              "type": "wiki",
+              "score": 52,
+              "label": {
+                "eng": "Lok Sabha"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Rajya_Sabha",
+              "type": "wiki",
+              "score": 49,
+              "label": {
+                "eng": "Rajya Sabha"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Corporate_law",
+              "type": "wiki",
+              "score": 45,
+              "label": {
+                "eng": "Corporate law"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Trust_law",
+              "type": "wiki",
+              "score": 43,
+              "label": {
+                "eng": "Trust law"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Member_of_parliament",
+              "type": "wiki",
+              "score": 42,
+              "label": {
+                "eng": "Member of parliament"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Parliament_of_the_United_Kingdom",
+              "type": "wiki",
+              "score": 41,
+              "label": {
+                "eng": "Parliament of the United Kingdom"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Parliament_of_India",
+              "type": "wiki",
+              "score": 40,
+              "label": {
+                "eng": "Parliament of India"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/National_Financial_Reporting_Authority",
+              "type": "wiki",
+              "score": 35,
+              "label": {
+                "eng": "National Financial Reporting Authority"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Investor",
+              "type": "wiki",
+              "score": 34,
+              "label": {
+                "eng": "Investor"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/International_Financial_Services_Centre,_Dublin",
+              "type": "wiki",
+              "score": 33,
+              "label": {
+                "eng": "International Financial Services Centre, Dublin"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Default_(finance)",
+              "type": "wiki",
+              "score": 27,
+              "label": {
+                "eng": "Default (finance)"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Sudhir_Gupta",
+              "type": "person",
+              "score": 26,
+              "label": {
+                "eng": "Sudhir Gupta"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Accountability",
+              "type": "wiki",
+              "score": 24,
+              "label": {
+                "eng": "Accountability"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Parliament",
+              "type": "wiki",
+              "score": 23,
+              "label": {
+                "eng": "Parliament"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Small_business",
+              "type": "wiki",
+              "score": 23,
+              "label": {
+                "eng": "Small business"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Bharatiya_Janata_Party",
+              "type": "org",
+              "score": 22,
+              "label": {
+                "eng": "Bharatiya Janata Party"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Asian_News_International",
+              "type": "org",
+              "score": 13,
+              "label": {
+                "eng": "Asian News International"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Liquidation",
+              "type": "org",
+              "score": 11,
+              "label": {
+                "eng": "Liquidation"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Reserve_Bank_of_India",
+              "type": "org",
+              "score": 10,
+              "label": {
+                "eng": "Reserve Bank of India"
+              }
+            },
+            {
+              "uri": "http://en.wikipedia.org/wiki/Mumbai",
+              "type": "loc",
+              "score": 6,
+              "label": {
+                "eng": "Mumbai"
+              },
+              "location": {
+                "type": "place",
+                "label": {
+                  "eng": "Mumbai"
+                },
+                "country": {
+                  "type": "country",
+                  "label": {
+                    "eng": "India"
+                  }
+                }
+              }
+            }
+          ],
+          "eventDate": "2026-08-03",
+          "totalArticleCount": 18,
+          "title": {
+            "eng": "Parliament panel backs corporate law overhaul | Today News"
+          },
+          "summary": {
+            "eng": "The committee report on the Corporate Laws (Amendment) Bill, 2026, said the primary objective of the Bill is to simplify corporate legal procedures, reduce compliance burdens and strengthen corporate governance.\n\nNew Delhi: A joint committee of parliament has backed an overhaul of India's corporate law framework, proposing further decriminalization of procedural lapses, compliance relief for small businesses, and relaxed corporate social responsibility (CSR) norms\n\nIn its report on the Corporate "
+          },
+          "location": {
+            "type": "place",
+            "label": {
+              "eng": "New Delhi"
+            },
+            "country": {
+              "type": "country",
+              "label": {
+                "eng": "India"
+              }
+            }
+          },
+          "categories": [
+            {
+              "uri": "dmoz/Society/Issues/Business",
+              "label": "dmoz/Society/Issues/Business",
+              "wgt": 22
+            },
+            {
+              "uri": "dmoz/Business/Investing/Socially_Responsible",
+              "label": "dmoz/Business/Investing/Socially Responsible",
+              "wgt": 21
+            },
+            {
+              "uri": "dmoz/Business/Business_and_Society",
+              "label": "dmoz/Business/Business and Society",
+              "wgt": 23
+            },
+            {
+              "uri": "news/Business",
+              "label": "news/Business",
+              "wgt": 89
+            }
+          ],
+          "articleCounts": {
+            "eng": 18
+          },
+          "sentiment": 0.2862745098039217,
+          "wgt": 523411200,
+          "relevance": 3
+        }
+      ],
+      "totalResults": 1,
+      "page": 1,
+      "count": 1,
+      "pages": 1
+    }
+  }
+}

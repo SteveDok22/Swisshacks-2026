@@ -1,0 +1,14 @@
+{
+  "key_raw": "event/getEvents:f1698ba69d88bce3",
+  "cached_at": "2026-07-14T10:13:03.986113+00:00",
+  "data": {
+    "events": {
+      "results": [],
+      "totalResults": 0,
+      "page": 1,
+      "count": 0,
+      "pages": 1
+    },
+    "info": "No results match the search conditions."
+  }
+}

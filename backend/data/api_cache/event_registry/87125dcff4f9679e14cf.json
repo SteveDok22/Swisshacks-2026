@@ -1,0 +1,39 @@
+{
+  "key_raw": "article/getArticles:022b164cf526dd6d",
+  "cached_at": "2026-06-29T00:00:39.186841+00:00",
+  "data": {
+    "articles": {
+      "results": [
+        {
+          "uri": "9358368033",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-15",
+          "time": "13:00:55",
+          "dateTime": "2026-06-15T13:00:55Z",
+          "dateTimePub": "2020-03-23T13:09:00Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://neftegazru.com/news/oil-refining/537720-rosneft-deutschland-increases-sales-of-alfabit-by-37-5-in-2019/",
+          "title": "Rosneft Deutschland increases sales of alfabit by 37.5% in 2019",
+          "body": "Berlin, March 23 - Neftegaz.RU. In 2019, Rosneft Deutschland, a subsidiary of Rosneft in Germany, increased sales of polymer-modified bitumen (PMB) Alfabit by 37.5% year-on-year. Alfabit is high-tech material, the distinctive features of which are high elasticity and wear resistance.\n\nRosneft Deutschland began supplying Alfabit to German consumers in 2018, shortly after the start of sales and marketing of bitumen in the country. The company also established a supply chain for PMB in Germany using feedstock from the PCK,\n\nBayernoil, and MiRO refineries.\n\nIn 2019, Rosneft Deutschland supplied Alfabit PMB and other bituminous products to KUTTER GmbH. KG for the construction of an extended runway at the Memmingen Airport in Bavaria. The products were used to lay about 57 000 tonnes of asphalt in 165 000 sq. m. of the airport. Due to well-placed shipping terminals and the flexibility of the logistics system, Rosneft Deutschland was able to supply bitumen in a short time.\n\nDuring the last year the customer base of the German company grew by 30%. Bitumen products were supplied to Poland, Austria, Czech Republic, Switzerland, France, and other countries.\n\nIn February 2020, the company also took part in Deutsche Asphalttage - a major German exhibition and congress held by bitumen and road pavement producers in Berchtesgaden, Bavaria. Rosneft\n\nDeutschland presented its range of Bitumen products, specifically Rosneft's proprietary polymer-modified bitumen (PMB) Alfabit as well as held meetings with its customers and partners.\n\nRosneft is the 3rd-largest refiner on the German market with a total throughput performance of about 12.8 mtpa, which amounts to more than 12% of the overall refining capacity of Germany. The average refining conversion ratio of the company's facilities in the country is 93%, and the Nelson average complexity index is 9.1.",
+          "source": {
+            "uri": "neftegazru.com",
+            "dataType": "news",
+            "title": "neftegazru.com"
+          },
+          "authors": [],
+          "image": "https://neftegazru.com/upload/uf/ca7/x8mwrd7zyspgoo9wdlqj5wyfhfqn24pk/Itogovyy.png",
+          "eventUri": null,
+          "sentiment": 0.05882352941176472,
+          "wgt": 519224455,
+          "relevance": 100
+        }
+      ],
+      "totalResults": 1,
+      "page": 1,
+      "count": 1,
+      "pages": 1
+    }
+  }
+}

@@ -1,0 +1,228 @@
+{
+  "key_raw": "article/getArticles:4acdfc09a7541928",
+  "cached_at": "2026-08-18T08:24:20.913231+00:00",
+  "data": {
+    "articles": {
+      "results": [
+        {
+          "uri": "9430801021",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-08-13",
+          "time": "11:32:39",
+          "dateTime": "2026-08-13T11:32:39Z",
+          "dateTimePub": "2026-08-13T11:29:27Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.marketscreener.com/news/cellebrite-di-s-q2-non-gaap-earnings-fall-revenue-increases-q3-outlook-issued-ce7859d9dc81f023",
+          "title": "Cellebrite DI's Q2 Non-GAAP Earnings Fall, Revenue Increases; Q3 Outlook Issued",
+          "body": "Thomas E.\n\nHogan currently works at Cellebrite DI Ltd., as Chief Executive Officer & Director from 2025.\n\nMr. Hogan also formerly worked at Vignette Corp., as President & Chief Executive Officer from 2002 to 2006, Kony, Inc., as Chairman & Chief Executive Officer from 2017 to 2019, Citrix Systems, Inc., as Independent Director from 2018 to 2022, Inforte Corp., as Director from 2001 to 2007, Vastera, Inc., as Director, DataDirect Networks, Inc., as Director, Pacific Asia China Energy, Inc., as Director, Vista Equity Partners LLC, as Managing Director-Operating from 2021 to 2023, Gainsight, Inc., as Director, Pluralsight, Inc., as Director, Vista Equity Partners Management LLC, as Managing Director from 2021 to 2023, OneMeta, Inc., as Independent Director from 2023 to 2024, Computer Sciences Corp., as EVP, GM-Global Business Services & Regions in 2013, HP, Inc., as Executive Vice President-Software Division from 2006 to 2011, International Business Machines Corp., as Vice President-Americas Region Midrange Servers, Siebel Systems, Inc., as Senior Vice President-Sales & Operations from 1999 to 2001, and Temenos AG, as President-North America from 2019 to 2020.\n\nMr. Hogan received his graduate degree from Northwestern University and undergraduate degree from the University of Illinois.",
+          "source": {
+            "uri": "marketscreener.com",
+            "dataType": "news",
+            "title": "Market Screener"
+          },
+          "authors": [
+            {
+              "uri": "mt_newswires@marketscreener.com",
+              "name": "Mt Newswires",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": null,
+          "eventUri": null,
+          "sentiment": 0.09019607843137245,
+          "wgt": 524316759,
+          "relevance": 1
+        },
+        {
+          "uri": "9425260155",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-08-08",
+          "time": "19:09:19",
+          "dateTime": "2026-08-08T19:09:19Z",
+          "dateTimePub": "2026-08-08T19:02:19Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.investing.com/news/stock-market-news/european-software-rally-leaves-next-leg-to-longonly-investors-deutsche-bank-says-4847680",
+          "title": "European software rally leaves next leg to long-only investors, Deutsche Bank says By Investing.com",
+          "body": "Investing.com - Deutsche Bank strategists have closed their directional \"overweight\" call on European software stocks following a 13% rally in the sector, advising investors to adopt a neutral stance across technology sub-sectors as artificial intelligence disruptions and data center constraints reshape market expectations.\n\nIn a research note titled \"Semi convinced II\" published last week, a Deutsche Bank strategy team led by Maximilian Uleer and Johannes Schaller noted that while short-term capital expenditure announcements from major tech companies could help European semiconductor shares stabilize following a 17% drop in July, longer-term demand uncertainties remain.\n\n\"Unless you have a strong view, the smartest way might be to stay neutral on the sector,\" the analysts wrote, pointing out that semiconductors have served as both the primary driver of market index performance and a key source of volatility this year.\n\nSoftware hedge dynamics\n\nDeutsche Bank had originally recommended adding European software stocks in March as a portfolio hedge against semiconductor volatility.\n\nAccording to the report, an equal-weighted 50/50 portfolio of European software and semiconductor shares delivered a Sharpe ratio of 4.7 since March 10, significantly outperforming the 3.8 risk-adjusted return of a pure semiconductor allocation.\n\nHowever, after software shares gained 13% over the past month - outperforming the broader STOXX 600 index's 2% rise and the 17% decline in tech hardware - the bank closed its tactical overweight position.\n\nShort positioning in European software, which had reached near-peak levels when Deutsche Bank turned bullish in March, has since normalized back toward historical averages.\n\nThe note highlighted specific software titles where short interest as a percentage of market capitalization has unwound, including SAP SE, Dassault Systemes SE, Hexagon AB, The Sage Group plc, Nemetschek SE, and Temenos AG.\n\n\"This means that the next leg up will need to come from long-only investors,\" the report stated, cautioning that the evolving \"agentic AI\" paradigm may continue to weigh on sentiment until software vendors demonstrate clearer evidence of future growth.\n\nData center constraints & valuations\n\nDespite closing the directional overweight, Deutsche Bank noted that European software valuations still reflect overly pessimistic long-term assumptions.\n\nCurrent market prices imply a terminal growth rate of roughly 2% from 2030 onward for European software incumbents - up from the flat-to-negative terminal growth implied during the sell-off in February and March, but still underappreciating the ability of established vendors to adapt.\n\nAmong individual stocks, implied terminal growth rates currently range from over 4% for Hexagon AB down to approximately 1.5% for Dassault Systemes SE, with SAP SE, The Sage Group plc, Nemetschek SE, and Temenos AG clustered in between.\n\nThe report also pointed to growing market concerns that major cloud \"hyperscalers\" may face increasing difficulty building out new data centers due to supply chain bottlenecks and waning local political support.\n\n\"In our view, markets will unlikely punish Hyperscalers for lower capex,\" the strategists added. \"Semis supply remains constrained in the short term, but potentially a bit less than before. The more obvious winner would be Software.",
+          "source": {
+            "uri": "investing.com",
+            "dataType": "news",
+            "title": "Investing.com"
+          },
+          "authors": [],
+          "image": "https://i-invdn-com.investing.com/news/moved_LYNXMPEHA40JZ_L.jpg",
+          "eventUri": null,
+          "sentiment": 0.2549019607843137,
+          "wgt": 523912159,
+          "relevance": 100
+        },
+        {
+          "uri": "9403890530",
+          "lang": "eng",
+          "isDuplicate": true,
+          "date": "2026-07-23",
+          "time": "01:02:47",
+          "dateTime": "2026-07-23T01:02:47Z",
+          "dateTimePub": "2026-07-23T01:00:28Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://finance.yahoo.com/markets/stocks/articles/temenos-ag-tmnsf-q2-2026-010028210.html",
+          "title": "Temenos AG (TMNSF) Q2 2026 Earnings Call Highlights: Strong Financial Performance Amid Deal Delays",
+          "body": "This article first appeared on GuruFocus.\n\n* Subscription and SaaS Revenue Growth: Expected to grow at least 30% year-on-year in Q3 '26.\n\n* Total Revenue Growth: Increased by 1% in Q2 '26 and 6% in H1 '26.\n\n* Non-IFRS EBIT Growth: Grew 4% in Q2 '26 and 10% in H1 '26.\n\n* Non-IFRS EPS Growth: Increased by 7% in Q2 '26 and 12% in H1 '26.\n\n* ARR Growth: Grew 11% to reach $881 million at quarter end.\n\n* Maintenance Revenue Growth: Increased by 12% in the quarter.\n\n* EBIT Margin: Improved by 1 percentage point to 41.3% year-on-year.\n\n* Net Profit Growth: Up 2% in the quarter.\n\n* Free Cash Flow: Generated $74 million in the quarter, up 14% year-on-year.\n\n* Leverage: Ended the quarter with leverage at 1.4 times.\n\n* Net Debt: Reported net debt stood at $691 million at quarter end.\n\nRelease Date: July 22, 2026\n\nFor the complete transcript of the earnings call, please refer to the full earnings call transcript.\n\nPositive Points\n\n* Temenos AG (TMNSF) reported a strong start to Q3 2026 with a robust pipeline of large and new logo deals, expecting subscription and SaaS revenue to grow at least 30% year-on-year.\n\n* The company successfully signed the majority of slipped subscription and SaaS revenue deals in the first three weeks of Q3 2026, including significant deals with major banks in Europe.\n\n* APAC region performed particularly well, securing a large new logo in the ASEAN region and multiple deals with existing customers.\n\n* Temenos AG (TMNSF) continues to execute on its strategic roadmap, making investments in core banking expertise and closing the acquisition of additiv to strengthen its wealth proposition.\n\n* The company achieved strong double-digit growth in free cash flow, reflecting solid financial management and operational leverage.\n\nNegative Points\n\n* A small number of large and new logo deals were delayed at the end of Q2 2026, primarily in Europe, impacting subscription and SaaS revenue.\n\n* Subscription and SaaS revenue declined by 13% in Q2 2026 and 4% in H1 2026 due to the delayed deals.\n\n* Product revenue declined marginally year-on-year in Q2 2026, despite a healthy 6% growth in H1 2026.\n\n* The company's cost base was broadly flat in Q2 2026, with an increase in fixed costs offset by lower variable cost accruals.\n\n* There was a deceleration in ARR growth compared to Q1 2026, with ARR growing 11% to reach $881 million at the end of the quarter.\n\nQ & A Highlights\n\nQ: Can you explain the regional differences in performance, particularly the strong results in Asia compared to the US and Europe? A: The strong start to the quarter was consistent across regions, but larger deals and new logos in Europe were not closed by the end of June. Sales cycles for core solutions are typically 12 to 18 months, making precise timing difficult. Most slipped deals were signed in early Q3, including significant deals in Central and Eastern Europe. APAC had a good quarter due to larger deals, while the Americas faced tough comparisons. No specific issues were noted in the Middle East or Europe beyond timing.",
+          "source": {
+            "uri": "finance.yahoo.com",
+            "dataType": "news",
+            "title": "Yahoo! Finance"
+          },
+          "authors": [],
+          "image": "https://s.yimg.com/cv/apiv2/cv/apiv2/social/images/yahoo-finance-default-logo.png",
+          "eventUri": null,
+          "sentiment": 0.5137254901960784,
+          "wgt": 522464567,
+          "relevance": 100
+        },
+        {
+          "uri": "9403890314",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-23",
+          "time": "01:02:03",
+          "dateTime": "2026-07-23T01:02:03Z",
+          "dateTimePub": "2026-07-23T01:00:28Z",
+          "dataType": "news",
+          "sim": 0.6705882549285889,
+          "url": "https://ca.finance.yahoo.com/news/temenos-ag-tmnsf-q2-2026-010028210.html",
+          "title": "Temenos AG (TMNSF) Q2 2026 Earnings Call Highlights: Strong Financial Performance Amid Deal Delays",
+          "body": "This article first appeared on GuruFocus.\n\n* Subscription and SaaS Revenue Growth: Expected to grow at least 30% year-on-year in Q3 '26.\n\n* Total Revenue Growth: Increased by 1% in Q2 '26 and 6% in H1 '26.\n\n* Non-IFRS EBIT Growth: Grew 4% in Q2 '26 and 10% in H1 '26.\n\n* Non-IFRS EPS Growth: Increased by 7% in Q2 '26 and 12% in H1 '26.\n\n* ARR Growth: Grew 11% to reach $881 million at quarter end.\n\n* Maintenance Revenue Growth: Increased by 12% in the quarter.\n\n* EBIT Margin: Improved by 1 percentage point to 41.3% year-on-year.\n\n* Net Profit Growth: Up 2% in the quarter.\n\n* Free Cash Flow: Generated $74 million in the quarter, up 14% year-on-year.\n\n* Leverage: Ended the quarter with leverage at 1.4 times.\n\n* Net Debt: Reported net debt stood at $691 million at quarter end.\n\nRelease Date: July 22, 2026\n\nFor the complete transcript of the earnings call, please refer to the full earnings call transcript.\n\nPositive Points\n\n* Temenos AG (TMNSF) reported a strong start to Q3 2026 with a robust pipeline of large and new logo deals, expecting subscription and SaaS revenue to grow at least 30% year-on-year.\n\n* The company successfully signed the majority of slipped subscription and SaaS revenue deals in the first three weeks of Q3 2026, including significant deals with major banks in Europe.\n\n* APAC region performed particularly well, securing a large new logo in the ASEAN region and multiple deals with existing customers.\n\n* Temenos AG (TMNSF) continues to execute on its strategic roadmap, making investments in core banking expertise and closing the acquisition of additiv to strengthen its wealth proposition.\n\n* The company achieved strong double-digit growth in free cash flow, reflecting solid financial management and operational leverage.\n\nNegative Points\n\n* A small number of large and new logo deals were delayed at the end of Q2 2026, primarily in Europe, impacting subscription and SaaS revenue.\n\n* Subscription and SaaS revenue declined by 13% in Q2 2026 and 4% in H1 2026 due to the delayed deals.\n\n* Product revenue declined marginally year-on-year in Q2 2026, despite a healthy 6% growth in H1 2026.\n\n* The company's cost base was broadly flat in Q2 2026, with an increase in fixed costs offset by lower variable cost accruals.\n\n* There was a deceleration in ARR growth compared to Q1 2026, with ARR growing 11% to reach $881 million at the end of the quarter.\n\nQ & A Highlights\n\nQ: Can you explain the regional differences in performance, particularly the strong results in Asia compared to the US and Europe? A: The strong start to the quarter was consistent across regions, but larger deals and new logos in Europe were not closed by the end of June. Sales cycles for core solutions are typically 12 to 18 months, making precise timing difficult. Most slipped deals were signed in early Q3, including significant deals in Central and Eastern Europe. APAC had a good quarter due to larger deals, while the Americas faced tough comparisons. No specific issues were noted in the Middle East or Europe beyond timing.",
+          "source": {
+            "uri": "ca.finance.yahoo.com",
+            "dataType": "news",
+            "title": "Yahoo! Finance"
+          },
+          "authors": [],
+          "image": "https://s.yimg.com/cv/apiv2/cv/apiv2/social/images/yahoo-finance-default-logo.png",
+          "eventUri": "eng-11857356",
+          "sentiment": 0.5137254901960784,
+          "wgt": 522464523,
+          "relevance": 100
+        },
+        {
+          "uri": "9403693805",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-22",
+          "time": "19:45:46",
+          "dateTime": "2026-07-22T19:45:46Z",
+          "dateTimePub": "2026-07-22T19:41:41Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.marketscreener.com/news/temenos-home-alone-with-20m-left-on-the-2q-table-ce7f51d9df8aff22",
+          "title": "Temenos: Home alone with $20m left on the 2Q table",
+          "body": "Temenos AG, formerly Temenos Group AG, is a Switzerland-based company engaged in the development and marketing of banking software systems. Its services include implementation, performance optimization, integration, administration, maintenance, upgrades, training and support for its software solutions. It offers solutions for retail, corporate, universal, Islamic and microfinance and community banking sectors, as well as for Private Wealth Management. The Company's client base consists of mostly banking and other financial services institutions. Its core products are Temenos T24 Core Banking (T24), a front to back office, Customer Relationship Management (CRM) and product lifecycle management software platform, as well as Front Office, an integrated, role-specific, and multi-channel solution that supports banksâ€™ daily interactions and long term relationships with their retail, corporate, mass affluent, and High-Net-Worth (HNW) customers. It offers also funds and securities solutions.",
+          "source": {
+            "uri": "marketscreener.com",
+            "dataType": "news",
+            "title": "Market Screener"
+          },
+          "authors": [],
+          "image": "https://www.marketscreener.com/images/twitter_MS_fdblanc.png",
+          "eventUri": null,
+          "sentiment": 0.4588235294117646,
+          "wgt": 522445546,
+          "relevance": 1
+        },
+        {
+          "uri": "9403683226",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-22",
+          "time": "19:31:56",
+          "dateTime": "2026-07-22T19:31:56Z",
+          "dateTimePub": "2026-07-22T19:30:33Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://seekingalpha.com/article/4924356-temenos-ag-tmsny-q2-2026-earnings-call-transcript",
+          "title": "Temenos AG (TMSNY) Q2 2026 Earnings Call Transcript | Seeking Alpha",
+          "body": "Temenos AG (TMSNY) Q2 2026 Earnings Call July 22, 2026 12:30 PM EDT\n\nCompany Participants\n\nPanagiotis Spiliopoulos - CEO & Interim CFO\n\nConference Call Participants\n\nFrederic Boulan - BofA Securities, Research Division\n\nJosh Levin - Bernstein Autonomous LLP\n\nMark Hyatt - Morgan Stanley, Research Division\n\nToby Ogg - JPMorgan Chase & Co, Research Division\n\nCharles Brennan - Jefferies LLC, Research Division\n\nLaurent Daure - Kepler Cheuvreux, Research Division\n\nJustin Forsythe - UBS Investment Bank, Research Division\n\nThomas Poutrieux - BNP Paribas, Research Division\n\nPresentation\n\nOperator\n\nLadies and gentlemen, welcome to the Temenos' Q2 2026 Results Conference Call and Live Webcast. I am Moira, the Chorus Call operator. [Operator Instructions] The conference is being recorded. [Operator Instructions] The conference must not be recorded for publication or broadcast.\n\nAt this time, it's my pleasure to hand over to Takis Spiliopoulos, CEO and Interim CFO. Please go ahead.\n\nPanagiotis Spiliopoulos\n\nCEO & Interim CFO\n\nGood afternoon, good evening. Thank you for joining our Q2 '26 results call. As usual, I will talk you through our key performance and operational highlights for the quarter before updating you on our financial performance.\n\nStarting on Slide 6. We had a strong start to the quarter and a stable sales environment throughout. However, we saw a small number of mainly large and new logo deals signed out at the end of the quarter. Most of these deals were in Europe. Importantly, none of these deals have been lost. We have also been able to sign the majority of the slipped subscription and SaaS revenue in the first 3 weeks of Q3 '26, which confirms the confidence we have in our pipeline conversion. These deals include one of the largest banks in Central and Eastern Europe as well as a Tier 1 European bank.\n\nWith a robust start to the third quarter and",
+          "source": {
+            "uri": "seekingalpha.com",
+            "dataType": "news",
+            "title": "Seeking Alpha"
+          },
+          "authors": [
+            {
+              "uri": "sa_transcripts@seekingalpha.com",
+              "name": "Sa Transcripts",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://static.seekingalpha.com/assets/og_image_1200-29b2bfe1a595477db6826bd2126c63ac2091efb7ec76347a8e7f81ba17e3de6c.png",
+          "eventUri": null,
+          "sentiment": 0.2784313725490195,
+          "wgt": 522444716,
+          "relevance": 1
+        },
+        {
+          "uri": "9403610923",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-07-22",
+          "time": "18:04:13",
+          "dateTime": "2026-07-22T18:04:13Z",
+          "dateTimePub": "2026-07-22T18:03:53Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.finanznachrichten.de/nachrichten-2026-07/69097483-temenos-q2-profit-down-020.htm",
+          "title": "Temenos Q2 Profit Down",
+          "body": "BRUSSELS (dpa-AFX) - Banking software provider Temenos AG (TMNSF.PK, TEMN.SW) on Wednesday reported a drop in profit for the second quarter, hurt largely by weaker subscription and SaaS revenue caused by the timing of several large customer deals. The company reaffirmed its full-year 2026 guidance.\n\nSecond-quarter profit was $67.2 million or $1.00 per share, compared to $164.7 million or $2.32 per share last year.\n\nFor the second quarter, annual recurring revenue (ARR) increased 11% in constant currency to $880.6 million. Revenue dropped to $281.5 million from $285.5 million last year.\n\nSubscription and SaaS revenue declined 13% to $109.0 million after several large deals, primarily in Europe, slipped into the third quarter. The company said most of those contracts have already been signed in the first three weeks of third quarter, supporting guidance for subscription and SaaS revenue growth of at least 30% in the third quarter.\n\nTemenos reaffirmed its full-year guidance, including approximately 12% ARR growth, 9% subscription and SaaS growth, 9% EBIT growth, 7% earnings per share growth and 16% free cash flow growth.\n\nCopyright(c) 2026 RTTNews.com. All Rights Reserved",
+          "source": {
+            "uri": "finanznachrichten.de",
+            "dataType": "news",
+            "title": "FinanzNachrichten.de"
+          },
+          "authors": [],
+          "image": "https://www.finanznachrichten.de/chart-temenos-ag-aktie-intraklein-tradegate.png",
+          "eventUri": null,
+          "sentiment": 0.223529411764706,
+          "wgt": 522439453,
+          "relevance": 1
+        },
+        {
+          "uri": "9403600968",
+          "lang": "eng",
+          "isDuplicate": true,
+          "date": "2026-07-22",
+          "time": "17:54:14",
+          "dateTime": "2026-07-22T17:54:14Z",
+          "dateTimePub": "2026-07-22T17:41:22Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://www.finanzen.at/nachrichten/aktien/temenos-q2-profit-down-1036352932",
+          "title": "Temenos Q2 Profit Down",
+          "body": "(RTTNews) - Banking software provider Temenos AG (TMNSF.PK, TEMN.SW) on Wednesday reported a drop in profit for the second quarter, hurt largely by weaker subscription and SaaS revenue caused by the timing of several large customer deals. The company reaffirmed its full-year 2026 guidance.\n\nSecond-quarter profit was $67.2 million or $1.00 per share, compared to $164.7 million or $2.32 per share last year.\n\nFor the second quarter, annual recurring revenue (ARR) increased 11% in constant currency to $880.6 million. Revenue dropped to $281.5 million from $285.5 million last year.\n\nSubscription and SaaS revenue declined 13% to $109.0 million after several large deals, primarily in Europe, slipped into the third quarter. The company said most of those contracts have already been signed in the first three weeks of third quarter, supporting guidance for subscription and SaaS revenue growth of at least 30% in the third quarter.\n\nTemenos reaffirmed its full-year guidance, including approximately 12% ARR growth, 9% subscription and SaaS growth, 9% EBIT growth, 7% earnings per share growth and 16% free cash flow growth.",
+          "source": {
+            "uri": "finanzen.at",
+            "dataType": "news",
+            "title": "finanzen.at"
+          },
+          "authors": [],
+          "image": "https://www.finanzen.at/Images/FacebookIcon.jpg",
+          "eventUri": null,
+          "sentiment": 0.2784313725490195,
+          "wgt": 522438854,
+          "relevance": 1
+        }
+      ],
+      "totalResults": 12,
+      "page": 1,
+      "count": 8,
+      "pages": 2
+    }
+  }
+}

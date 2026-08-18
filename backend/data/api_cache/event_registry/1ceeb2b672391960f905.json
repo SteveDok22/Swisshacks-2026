@@ -1,0 +1,256 @@
+{
+  "key_raw": "article/getArticles:b78962a9146ac8ce",
+  "cached_at": "2026-06-30T00:00:40.550376+00:00",
+  "data": {
+    "articles": {
+      "results": [
+        {
+          "uri": "9376452802",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-29",
+          "time": "23:07:40",
+          "dateTime": "2026-06-29T23:07:40Z",
+          "dateTimePub": "2026-06-29T23:07:15Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://meduza.io/en/feature/2026/06/30/what-does-a-russian-summer-look-like-without-gasoline-imagine-18-hour-lines-national-guard-patrols-and-brodsky-parodies",
+          "title": "What does a Russian summer look like without gasoline? Imagine 18-hour lines, National Guard patrols, and Brodsky parodies. -- Meduza",
+          "body": "Russia's fuel crisis, triggered by sustained Ukrainian drone strikes on oil refineries, grows more severe by the day. Gasoline shortages, or sharp spikes in demand driven by fears of a deeper deficit, have been reported in nearly every region of the country. Over the weekend, even President Vladimir Putin acknowledged the shortages, though he added that the gasoline deficit is \"not critical.\" Authorities in 26 regions have already imposed restrictions on fuel sales, but so far those measures have done little to contain the crisis. Lines at gas stations keep getting longer, and Russians are flooding social media with complaints that they can't fill up their cars. Meduza has collected some of the most striking online reactions to the fuel shortage.\n\nWarning: Some of the videos below contain Russian-language profanity.\n\nComplaints about fuel shortages across Siberia surged last week, driven by sales restrictions that authorities in the Irkutsk, Omsk, and Novosibirsk regions introduced on June 23. Per-vehicle limits vary by region.\n\nThe situation appears worst in Irkutsk. On June 28, Irkutsk Governor Igor Kobzev declared a state of high alert to keep the gasoline shortage from escalating into an emergency. Interior Ministry officers and the Russian National Guard began patrolling lines at local gas stations. The following day, police said they had issued four citations to residents caught reselling gasoline at inflated prices.\n\nResidents have been posting videos on Instagram showing long lines at gas stations. One user said she drove from Irkutsk to Angarsk -- about 50 kilometers (31 miles) -- and still could not fill up her car.\n\nDrivers are spending entire nights in line, and even then not everyone manages to buy fuel. In the local Telegram chat \"Gde zalit? | Irkutsk\" (\"Where to fill up? | Irkutsk\"), participants post videos from stations where signs say no fuel of any kind is available. Some drivers say they spent about 18 hours in line before filling up; others share tips on how to prepare for the trip to the pump.\n\nIrkutsk Mayor Ruslan Bolotov said late last week that the city would deploy portable toilets near gas stations to ease the inconvenience for drivers waiting in line. He added that the city had no diesel shortages but that gasoline was available at only one station chain. Residents said the portable toilets had also appeared along some of the highways where the longest lines had formed.\n\nLocal Telegram channels also reported that a home gasoline-delivery service has sprung up in Irkutsk, sparing residents the wait in line, though it costs customers roughly twice the usual price.\n\nResidents are reporting long lines (and stations with no fuel at all) in Ufa, Izhevsk, Yekaterinburg, Krasnodar, Kaliningrad, and many other cities. Some of the videos are highly charged.\n\nA resident of Rostov-on-Don said four gas stations in her area had only diesel fuel. After searching for three hours, she joined a line at one station -- only to learn, an hour later, that the gasoline had run out. She later managed to fill her tank.\n\nIn a video from Ivanovo region, an Instagram user drives along a line of about 150 cars and asks why people are arguing with each other instead of trying to understand what caused the shortage. Commenters say the situation in Ivanovo itself is no better.\n\nThe outlet Fortanga reported on June 26 that some Rosneft stations and several other companies' stations in Ingushetia had suspended operations. The day before, the independent Russian news outlet Verstka wrote that Ingushetia was one of five Russian regions the fuel crisis had not yet reached.\n\nThe Ukrainian Telegram channel Exilenova+ published several videos from various Russian cities, including Moscow, where residents are also complaining about the lack of gasoline and long lines at gas stations. Some residents were unable to buy fuel at all.\n\nIn one such video, a woman in Novosibirsk -- where some gas stations halted gasoline sales to private customers that day -- warns that the fuel crisis will hit supply chains across the country.\n\nResidents of Crimea, where fuel shortages began as early as late May, may soon face a new problem: internet outages. The outlet Krym.Realii reported as much, citing an unnamed employee at a local internet provider.\n\nThe source told the outlet that internet providers were not on the list of critical infrastructure. As a result, fuel shortages and prolonged power outages will soon leave them unable to meet their obligations to customers.\n\nDespite the difficulties at the pump, Russians are doing what they often do: joking about it. They are singing songs about gasoline, riffing on fuel-crisis news in the style of the poet Joseph Brodsky, and dubbing over popular films.\n\nThe Telegram channel Govorit NeMoskva published a collection of such videos, in which users jokingly blame the fuel crisis on VPNs -- a dig at Russian authorities known for blaming those services for every problem -- and declare a gas can the must-have accessory of the summer. They also play on the word \"zapravitsya\" (to fill up).",
+          "source": {
+            "uri": "meduza.io",
+            "dataType": "news",
+            "title": "Meduza"
+          },
+          "authors": [],
+          "image": "https://meduza.io/imgly/share/1782774400/en/feature/2026/06/30/what-does-a-russian-summer-look-like-without-gasoline-imagine-18-hour-lines-national-guard-patrols-and-brodsky-parodies",
+          "eventUri": null,
+          "sentiment": -0.388235294117647,
+          "wgt": 520470460,
+          "relevance": 1
+        },
+        {
+          "uri": "9376412835",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-29",
+          "time": "22:03:13",
+          "dateTime": "2026-06-29T22:03:13Z",
+          "dateTimePub": "2026-06-29T22:00:00Z",
+          "dataType": "news",
+          "sim": 0.7372549176216125,
+          "url": "https://oilprice.com/Energy/Energy-General/Ukraines-Refinery-Strikes-Push-Russia-Into-a-Fuel-Crisis.html",
+          "title": "Ukraine's Refinery Strikes Push Russia Into a Fuel Crisis",
+          "body": "Ukraine continues targeting Russia's energy infrastructure, with new drone attacks on the Slavyansk and Yaroslavl refineries as Kyiv seeks to weaken Russia's ability to sustain its war effort.\n\nAfter weeks of trying to downplay the impact of Ukrainian drone strikes on Russian refineries, the Kremlin acknowledged this weekend that Russia faces fuel shortages and a fuel crisis that needs further government intervention to solve.\n\nA few weeks ago, regional governors across Russia rushed to downplay the fuel crisis, seeking to assure residents that supply is tight only at limited gas stations and there is no need to panic about shortages.\n\nApparently, this narrative couldn't be contained for too long as Ukraine is stepping up attacks on Russian refineries and fuel supply routes, while demand for gasoline and diesel in Russia is rising with peak summer travel and the coming harvest.\n\nIn just a few weeks, Russia switched from 'don't panic, everything's fine' to a formal acknowledgment by President Vladimir Putin that the country faces a fuel supply crisis.\n\nThis weekend, Putin held a meeting with key government officials, including Deputy Prime Minister Alexander Novak, and the top executives from the biggest oil companies Rosneft, Lukoil, Gazprom Neft, Surgutneftegaz, and Transneft.\n\nThe mayor of Moscow, Sergei Sobyanin, was also in attendance, as the fuel shortages reached Russia's capital city, too, after Ukrainian strikes earlier this month hit and sent Moscow's Kapotnya refinery offline. The refinery is unlikely to resume fuel production before 2027 after suffering extensive structural damage from multiple strikes by Ukraine's long-range drones, industry sources told Reuters last week.\n\nDuring the meeting at the Kremlin this weekend, Putin proposed \"to consider additional steps to ensure uninterrupted and stable fuel supply to car owners, businesses, enterprises, and socially significant organisations, as well as to discuss the progress made in implementing past decisions in this area,\" according to a Kremlin-provided English transcript.\n\nRussia is now using its fuel reserves to ease the shortages, Putin said, but added that stockpiles remain sufficient and have fallen by just 4% compared to this time last year.\n\nFollowing the temporary ban on exports of gasoline and jet fuel, \"We are considering a full ban on exports of diesel fuels,\" Putin said.\n\n\"You are well aware that problems for car owners and businesses persist: unfortunately, there are still queues at petrol stations, and some highly demanded fuel brands may be hard to find,\" Putin told the officials and oil company executives.\n\n\"Of course, we are aware of the difficulties agricultural producers and farms face in summer. We need to do our best to ensure that the seasonal fuel supply schedules are strictly met for agricultural enterprises, as harvests depend on these supplies,\" said Putin in this rare public acknowledgment of how bad the fuel situation really is.\n\nThe Russian government has set up a 24/7 situation center to monitor the fuel supply in the country, as many Russian refineries are now offline due to Ukrainian drone attacks.\n\n\"The successful Ukrainian strikes on the oil refinery in Moscow's southeast Kapotnya district in early June 2026 signaled a new phase in Kyiv's campaign against the Russian oil industry,\" Sergey Vakulenko, Senior Fellow at Carnegie Russia Eurasia Center, wrote in an analysis last week.\n\n\"Significantly, they showed that not even the heavy air defenses around Moscow can stop drones getting through,\" Vakulenko added.\n\nAs a result, Russia's fuel crisis reached the capital city, and there was no room left for the Kremlin to deny the worsening situation with gasoline and diesel supply.\n\nUkraine continues its campaign against Russian refineries and other key energy infrastructure.\n\nWhile Putin was meeting with officials in the Kremlin, Ukrainian President Volodymyr Zelenskyy was ordering additional strikes on Russian refineries.\n\nOn Sunday night, Ukraine hit two oil refineries in Russia with long-range drones. The Slavyansk oil refinery in the Krasnodar region and a refinery in the Yaroslavl region were hit, Zelenskyy said.\n\n\"We continue our operations that weaken Russia's ability to wage this war,\" the Ukrainian President said.\n\n\"Each of our long-range sanctions means fewer resources serving Russia's war machine, and another step toward peace. We will continue to respond to Russian terror.\"\n\nBy Tsvetana Paraskova for Oilprice.com",
+          "source": {
+            "uri": "oilprice.com",
+            "dataType": "news",
+            "title": "OilPrice.com"
+          },
+          "authors": [
+            {
+              "uri": "tsvetana_paraskova@oilprice.com",
+              "name": "Tsvetana Paraskova",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://d32r1sh890xpii.cloudfront.net/article/1200x675/2026-06-29_eu0hf6tkzm.jpg",
+          "eventUri": "eng-11786199",
+          "sentiment": -0.4196078431372549,
+          "wgt": 520466593,
+          "relevance": 1
+        },
+        {
+          "uri": "9376402248",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-29",
+          "time": "21:47:49",
+          "dateTime": "2026-06-29T21:47:49Z",
+          "dateTimePub": "2026-06-29T21:44:34Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://meduza.io/en/news/2026/06/30/russian-governor-proposes-fuel-rationing-by-license-plate-number-as-gasoline-restrictions-spread-to-more-than-20-regions",
+          "title": "Russian governor proposes fuel rationing by license plate number as gasoline restrictions spread to more than 20 regions -- Meduza",
+          "body": "Oryol Governor Andrei Klychkov has proposed selling gasoline at Rosneft and Gazprom stations on a rotating schedule tied to the first digit of a vehicle's license plate number, announcing the idea in a live broadcast on VKontakte.\n\nKlychkov clarified that a final decision on a gasoline sales system has not yet been made. He described a plan across 57 stations operated by two chains. Under the proposal, vehicles with plates beginning with 0 or 1 could fuel up on Saturdays, those with 2 or 3 on Sundays, those with 4 or 5 on Mondays, and so on through 9. The proposal would also raise the per-person fuel purchase limit from 30 to 50 liters.\n\nDrivers with out-of-region plates would be able to fill up at three designated stations in Oryol. \"My priority is the residents of the Oryol region, not transit vehicles or people just passing through,\" Klychkov said.\n\nThe governor said the measure would curb panic buying and keep drivers supplied for a week and a half to two weeks, with the restrictions and plate-based rotation lifted once demand stabilizes.\n\n\"We have worked through these proposals. On Wednesday we will bring [them] to a meeting with security officials to make this decision and implement it in the region,\" the governor said.\n\nFuel sales restrictions are already in effect in the Oryol region. Starting June 24, regional authorities imposed a per-person limit on gasoline purchases: no more than 30 liters at city stations and 50 liters at highway stations.\n\nRussia's fuel crisis worsened in May amid Ukrainian drone strikes on the country's oil facilities. More than 20 regions have imposed gasoline sales restrictions.",
+          "source": {
+            "uri": "meduza.io",
+            "dataType": "news",
+            "title": "Meduza"
+          },
+          "authors": [],
+          "image": "https://meduza.io/imgly/share/1782769474/en/news/2026/06/30/russian-governor-proposes-fuel-rationing-by-license-plate-number-as-gasoline-restrictions-spread-to-more-than-20-regions",
+          "eventUri": null,
+          "sentiment": -0.0117647058823529,
+          "wgt": 520465669,
+          "relevance": 1
+        },
+        {
+          "uri": "9376295253",
+          "lang": "eng",
+          "isDuplicate": true,
+          "date": "2026-06-29",
+          "time": "19:28:31",
+          "dateTime": "2026-06-29T19:28:31Z",
+          "dateTimePub": "2026-06-29T19:19:32Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://us.cnn.com/2026/06/29/europe/russia-ukraine-war-putin-intl-latam",
+          "title": "Russia is burning, but don't expect Putin to blink | CNN",
+          "body": "On the streets of Moscow, disgruntled drivers wait patiently for gasoline in a long line of cars and trucks amid an acute national shortage. Many have spent the entire day, they tell CNN, driving around in search of fuel -- extraordinary in the capital of one of the world's biggest energy producers and unexpected in a city that has long been kept insulated from the effects of the Ukraine war.\n\nBut now, for the first time in a conflict that is in its fifth year, the stark reality of what the Kremlin still insists on calling a \"special military operation\" has become impossible for ordinary Russians to comfortably ignore.\n\nIn the past month, Ukraine's unprecedented drone campaign has been extraordinary in scale and impact.\n\nOn a single night last week, Russia reported intercepting 660 drones across 12 regions -- one of the largest Ukrainian attacks since Russia launched its full-scale invasion in 2022.\n\nThe targets, far from random, are carefully selected: refineries, oil terminals, naval vessels, weapons plants deep inside Russian territory. It is a campaign designed to bleed the Russian war economy, raising the economic and political costs to the Kremlin of further prosecuting its war.\n\nAnd it is working.\n\nAcross Russia, independent media outlets have been documenting growing lines of vehicles waiting at fuel stations as shortages kick in -- scenes the authorities would prefer to hide. In Crimea, annexed from Ukraine in 2014, fuel sales were suspended as the peninsula was placed under a state of emergency.\n\nCars wait in lines at a gas station operated by Rosneft, a state-controlled Russian oil company, on June 27, 2026, in Moscow.\n\nContributor/Getty Images\n\nEven for the Kremlin, which often plays down painful setbacks, the stark reality has become hard to sidestep.\n\nRussian President Vladimir Putin chaired an emergency meeting at the weekend and disclosed that national gasoline reserves have been drawn down to uncomfortable levels.\n\n\"You are well aware that problems for drivers and for businesses persist,\" Putin told assembled senior officials, acknowledging what authorities have been playing down for weeks.\n\n\"Unfortunately, there are still queues at gas stations, too,\" he added.\n\nThere were other indications that the Kremlin is feeling some pressure. Putin revealed that a complete ban on diesel exports is under consideration -- after his own deputy prime minister had told reporters that no such ban was necessary. The Russian leader confirmed that a task force is now at work on fuel issues.\n\nPutin also warned that agriculture is at risk and said Russia must \"reduce to a minimum the impact of terrorist attacks on our civilian targets and infrastructure\" -- a carefully worded reversal for a leader who has dismissed Ukrainian drone strikes as irrelevant.\n\nThere is no small irony in the fact that, for years, the systematic destruction of Ukrainian energy infrastructure -- power stations, substations, heating plants -- has been one of Russia's most deliberate wartime strategies, designed to break civilian morale by making ordinary life unbearable. Ukraine now appears to have turned that logic around, and Russians are beginning to feel the pointed end of that strategy themselves.\n\nIn this pool photo distributed by Russian state agency Sputnik, Russian President Vladimir Putin addresses the 23rd Congress of the United Russia party in Moscow on June 28, 2026.\n\nYekaterina Shtukina/Pool/AFP/Getty Images\n\nIt is fueling hope, though, among Moscow's Western critics.\n\nAt the Group of Seven summit in France earlier this month, European Commission President Ursula von der Leyen was unequivocal. \"The tide is turning for Ukraine,\" she asserted. \"The situation in 2026 is very different from 2025. Russia's fatigue is openly showing. That's the time to double down on our support.\"\n\nWestern officials say the Ukrainian campaign has choked Russian fuel supplies and military deliveries, stalling Moscow's efforts on the battlefield.\n\nIn a recent report, the Council on Foreign Relations noted that a scaling up of drone operations contributed directly to Ukraine retaking 78 square miles of territory in February and reversing a trend of Russian gains that had characterized the battlefield throughout 2025.\n\nEven the tone of US President Donald Trump appears to have shifted.\n\nAt the G7 summit, he told reporters that Russia \"should make a deal.\" Days later, back in Washington and speaking from the Oval Office, he called Ukrainian President Volodymyr Zelensky \"courageous\" and someone who is \"doing pretty well\" in the war -- notably warmer words from a president who spent much of last year publicly pressuring Kyiv to negotiate from a position of weakness.\n\nZelensky, for his part, has been explicit about what he believes his drone campaign can achieve. With the right support, Ukraine can \"quickly create conditions in which Russia will be forced to choose peace,\" he said.\n\nU.S. President Donald Trump and Ukraineian President Volodymyr Zelensky speak during the G7 summit in Evian-les-Bains, France, June 16, 2026.\n\nUkrainian Presidential Press Service/Handout/Reuters\n\nBut it may be a mistake to conclude that Russia's current problems will force the Kremlin to yield, at least not yet and probably not soon.\n\nPutin over the decades has built a relatively brittle image as an uncompromising leader -- a fact that makes capitulation, retreat or even compromise in Ukraine incredibly unlikely and difficult for him to pull off.\n\nWith well over a million dead and injured in Putin's invasion, according to the best Western estimates, and sovereignty claims staked on four Ukrainian regions he still doesn't fully control, any settlement that cannot be portrayed in Moscow as a decisive victory runs the risk of provoking serious internal political tensions.\n\nThe hawks in Putin's circle are still telling him that Ukraine's entire Donbas region can and should be taken. That argument doesn't disappear just because Russian refineries are on fire.\n\nAnd while the country's current fuel shortage is painfully real, it should not be mistaken for a white flag.",
+          "source": {
+            "uri": "us.cnn.com",
+            "dataType": "news",
+            "title": "CNN"
+          },
+          "authors": [
+            {
+              "uri": "matthew_chance@us.cnn.com",
+              "name": "Matthew Chance",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://media.cnn.com/api/v1/images/stellar/prod/gettyimages-2281563924.jpg?c=16x9&q=w_800,c_fill",
+          "eventUri": null,
+          "sentiment": -0.2862745098039216,
+          "wgt": 520457311,
+          "relevance": 1
+        },
+        {
+          "uri": "9376292938",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-29",
+          "time": "19:25:31",
+          "dateTime": "2026-06-29T19:25:31Z",
+          "dateTimePub": "2026-06-29T19:19:32Z",
+          "dataType": "news",
+          "sim": 0.7176470756530762,
+          "url": "https://edition.cnn.com/2026/06/29/europe/russia-ukraine-war-putin-intl-latam",
+          "title": "Russia is burning, but don't expect Putin to blink",
+          "body": "On the streets of Moscow, disgruntled drivers wait patiently for gasoline in a long line of cars and trucks amid an acute national shortage. Many have spent the entire day, they tell CNN, driving around in search of fuel -- extraordinary in the capital of one of the world's biggest energy producers and unexpected in a city that has long been kept insulated from the effects of the Ukraine war.\n\nBut now, for the first time in a conflict that is in its fifth year, the stark reality of what the Kremlin still insists on calling a \"special military operation\" has become impossible for ordinary Russians to comfortably ignore.\n\nIn the past month, Ukraine's unprecedented drone campaign has been extraordinary in scale and impact.\n\nOn a single night last week, Russia reported intercepting 660 drones across 12 regions -- one of the largest Ukrainian attacks since Russia launched its full-scale invasion in 2022.\n\nThe targets, far from random, are carefully selected: refineries, oil terminals, naval vessels, weapons plants deep inside Russian territory. It is a campaign designed to bleed the Russian war economy, raising the economic and political costs to the Kremlin of further prosecuting its war.\n\nAnd it is working.\n\nAcross Russia, independent media outlets have been documenting growing lines of vehicles waiting at fuel stations as shortages kick in -- scenes the authorities would prefer to hide. In Crimea, annexed from Ukraine in 2014, fuel sales were suspended as the peninsula was placed under a state of emergency.\n\nCars wait in lines at a gas station operated by Rosneft, a state-controlled Russian oil company, on June 27, 2026, in Moscow.\n\nContributor/Getty Images\n\nEven for the Kremlin, which often plays down painful setbacks, the stark reality has become hard to sidestep.\n\nRussian President Vladimir Putin chaired an emergency meeting at the weekend and disclosed that national gasoline reserves have been drawn down to uncomfortable levels.\n\n\"You are well aware that problems for drivers and for businesses persist,\" Putin told assembled senior officials, acknowledging what authorities have been playing down for weeks.\n\n\"Unfortunately, there are still queues at gas stations, too,\" he added.\n\nThere were other indications that the Kremlin is feeling some pressure. Putin revealed that a complete ban on diesel exports is under consideration -- after his own deputy prime minister had told reporters that no such ban was necessary. The Russian leader confirmed that a task force is now at work on fuel issues.\n\nPutin also warned that agriculture is at risk and said Russia must \"reduce to a minimum the impact of terrorist attacks on our civilian targets and infrastructure\" -- a carefully worded reversal for a leader who has dismissed Ukrainian drone strikes as irrelevant.\n\nThere is no small irony in the fact that, for years, the systematic destruction of Ukrainian energy infrastructure -- power stations, substations, heating plants -- has been one of Russia's most deliberate wartime strategies, designed to break civilian morale by making ordinary life unbearable. Ukraine now appears to have turned that logic around, and Russians are beginning to feel the pointed end of that strategy themselves.\n\nIn this pool photo distributed by Russian state agency Sputnik, Russian President Vladimir Putin addresses the 23rd Congress of the United Russia party in Moscow on June 28, 2026.\n\nYekaterina Shtukina/Pool/AFP/Getty Images\n\nIt is fueling hope, though, among Moscow's Western critics.\n\nAt the Group of Seven summit in France earlier this month, European Commission President Ursula von der Leyen was unequivocal. \"The tide is turning for Ukraine,\" she asserted. \"The situation in 2026 is very different from 2025. Russia's fatigue is openly showing. That's the time to double down on our support.\"\n\nWestern officials say the Ukrainian campaign has choked Russian fuel supplies and military deliveries, stalling Moscow's efforts on the battlefield.\n\nIn a recent report, the Council on Foreign Relations noted that a scaling up of drone operations contributed directly to Ukraine retaking 78 square miles of territory in February and reversing a trend of Russian gains that had characterized the battlefield throughout 2025.\n\nEven the tone of US President Donald Trump appears to have shifted.\n\nAt the G7 summit, he told reporters that Russia \"should make a deal.\" Days later, back in Washington and speaking from the Oval Office, he called Ukrainian President Volodymyr Zelensky \"courageous\" and someone who is \"doing pretty well\" in the war -- notably warmer words from a president who spent much of last year publicly pressuring Kyiv to negotiate from a position of weakness.\n\nZelensky, for his part, has been explicit about what he believes his drone campaign can achieve. With the right support, Ukraine can \"quickly create conditions in which Russia will be forced to choose peace,\" he said.\n\nU.S. President Donald Trump and Ukraineian President Volodymyr Zelensky speak during the G7 summit in Evian-les-Bains, France, June 16, 2026.\n\nUkrainian Presidential Press Service/Handout/Reuters\n\nBut it may be a mistake to conclude that Russia's current problems will force the Kremlin to yield, at least not yet and probably not soon.\n\nPutin over the decades has built a relatively brittle image as an uncompromising leader -- a fact that makes capitulation, retreat or even compromise in Ukraine incredibly unlikely and difficult for him to pull off.\n\nWith well over a million dead and injured in Putin's invasion, according to the best Western estimates, and sovereignty claims staked on four Ukrainian regions he still doesn't fully control, any settlement that cannot be portrayed in Moscow as a decisive victory runs the risk of provoking serious internal political tensions.\n\nThe hawks in Putin's circle are still telling him that Ukraine's entire Donbas region can and should be taken. That argument doesn't disappear just because Russian refineries are on fire.\n\nAnd while the country's current fuel shortage is painfully real, it should not be mistaken for a white flag.",
+          "source": {
+            "uri": "edition.cnn.com",
+            "dataType": "news",
+            "title": "CNN International"
+          },
+          "authors": [
+            {
+              "uri": "matthew_chance@edition.cnn.com",
+              "name": "Matthew Chance",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://media.cnn.com/api/v1/images/stellar/prod/gettyimages-2281563924.jpg?c=16x9&q=w_800,c_fill",
+          "eventUri": "eng-11786199",
+          "sentiment": -0.2862745098039216,
+          "wgt": 520457131,
+          "relevance": 1
+        },
+        {
+          "uri": "9376065397",
+          "lang": "eng",
+          "isDuplicate": true,
+          "date": "2026-06-29",
+          "time": "15:33:24",
+          "dateTime": "2026-06-29T15:33:24Z",
+          "dateTimePub": "2026-06-29T14:28:02Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://euromaidanpress.com/2026/06/29/russia-fuel-reserves-queues-pump/",
+          "title": "1.7 million tons in reserve, queues at the pump -- Russia's fuel math doesn't close",
+          "body": "Russia is drawing down gasoline reserves, has banned gasoline and jet fuel exports, and is weighing a ban on diesel exports as well, after Vladimir Putin admitted for the first time that shortages and queues persist at filling stations across the country.\n\nA reserve figure is not the same as fuel at the pump. The gasoline has to be the right grade, in the right region, and moved through a distribution network already strained by refinery outages -- and a ban on diesel, Russia's largest fuel export, would reach far beyond its borders.\n\nPutin told Kremlin officials on 28 June that \"problems for drivers and for businesses persist\" and that \"there are still queues at gas stations too.\" He said Russia had begun using gasoline reserves, which he put at 1.7 million tons, predicted that July production would exceed June's level, and confirmed that Moscow was considering a complete diesel export ban while a government task force worked around the clock to stabilize supplies and prices.\n\nReserves do not automatically reach the pump\n\nRussia's gasoline output has fallen about 25% from a year earlier after Ukrainian drone strikes, Reuters reported. The International Energy Agency called the disruption unprecedented in the war, RFE/RL reported.\n\nThat helps explain why a country can cite substantial stocks while drivers still face queues and purchase limits. Stored fuel is a buffer, not a guarantee: it cannot immediately replace refinery output, conjure a missing gasoline grade, or clear bottlenecks in rail, road, and regional distribution.\n\nThe day after Putin's meeting, Deputy Prime Minister Alexander Novak, who oversees Russia's energy sector, told regional heads to use fuel more efficiently and take a \"balanced approach\" to distribution, and ordered continued monitoring of prices, supply, and logistics, the Russian government said.\n\nRationing spreads across Russia\n\nReuters documented sales restrictions in central Russia, the Volga area, Siberia, the Far East, occupied Crimea, and Sevastopol, with at least 15 regions limiting sales by 23 June. Caps ranged from set volumes per vehicle to bans on filling portable containers, while some regions reserved fuel for emergency services and critical infrastructure.\n\nThe shortages have moved far beyond the refineries Ukrainian drones hit. In Siberia, thousands of kilometers from Ukraine, Irkutsk Oblast governor Igor Kobzev declared a high-alert regime, capped fuel at state Rosneft stations at 50 liters per vehicle a day with other stations free to set lower limits, banned sales into any container other than a vehicle tank, and urged employers in non-essential sectors to move as many staff as possible to remote work, Kobzev wrote on Telegram.\n\nUkrainian drones struck Russian refineries 16 times in May, Euromaidan Press reported earlier, and kept up the pace into June, hitting the Moscow refinery in Kapotnya twice in a week.\n\nA diesel ban would reach beyond Russia\n\nA diesel export ban would not stay a Russian problem. Russia supplied about 11% of the world's diesel last year and sends roughly 40% of its diesel output abroad, Bloomberg reported.\n\nSo cutting those exports would tighten a global market already disrupted by the Iran war. The diesel ban is not decided: Novak said on 29 June that as of Friday's task-force meeting the Energy Ministry still recommended against it, with another review set for Monday, Novak told journalists.\n\nAn oil exporter starts looking abroad\n\nAlexander Novak said on 29 June that importing fuel was one of the government's key stabilization measures and was already being implemented under preferential tax terms, Novak said -- a rare step for one of the world's largest exporters of oil and refined products.\n\nThe option had surfaced a week earlier: after a 22 June fuel-market meeting Novak chaired, the government was weighing fuel imports and a Finance Ministry tweak to let the budget subsidize them, Vedomosti reported.\n\nGasoline from Belarus runs an estimated 100,000 to 150,000 tons a month, roughly 3,000 to 5,000 tons a day, against a shortfall of about 25,000 tons a day, traders told The Insider.\n\nMoscow is also in talks with Kazakhstan over about 50,000 tons of AI-92 gasoline, Reuters reported on Kazakhstan, though available volumes may be limited: maintenance at the Atyrau refinery could constrain supply, and one potential supplier, the Kondensat refinery, lost feedstock after a Ukrainian strike disrupted the TANECO plant.\n\nRussia shipped out around 5 million tons of gasoline in 2025, Reuters reported in March, even as it repeatedly curbed exports to contain domestic shortages and rising prices.\n\nUkraine's refinery campaign reaches the consumers\n\nUkraine has spent months striking Russian refineries, fuel depots, and pipelines to cut the revenue and fuel that sustain Moscow's war. Overnight on 28 June, Ukrainian drones hit refineries in Krasnodar Krai and Yaroslavl Oblast; the Slavyansk-na-Kubani plant alone processes about 100,000 barrels per day.\n\nThat refinery is a key Crimean supplier, which ties the strikes straight to the pump.\n\nReserve drawdowns, delayed refinery work, lower-quality blends, rationing, export bans, talks to import fuel: the response now runs well beyond the refineries themselves.\n\nPutin insisted that Ukrainian strikes do not affect the front line. He also said occupied Crimea had fuel for only a few days, Putin told the Kremlin meeting, promising more deliveries by land and sea.",
+          "source": {
+            "uri": "euromaidanpress.com",
+            "dataType": "news",
+            "title": "Euromaidan Press"
+          },
+          "authors": [
+            {
+              "uri": "peeter_helme@euromaidanpress.com",
+              "name": "Peeter Helme",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://euromaidanpress.com/wp-content/uploads/2026/06/Fire_at_the_Moscow_Oil_Refinery_on_June_18_2026-scaled.jpg",
+          "eventUri": null,
+          "sentiment": -0.2627450980392156,
+          "wgt": 520443204,
+          "relevance": 1
+        },
+        {
+          "uri": "9375986215",
+          "lang": "eng",
+          "isDuplicate": false,
+          "date": "2026-06-29",
+          "time": "14:31:28",
+          "dateTime": "2026-06-29T14:31:28Z",
+          "dateTimePub": "2026-06-29T14:28:02Z",
+          "dataType": "news",
+          "sim": 0.5411764979362488,
+          "url": "https://euromaidanpress.com/2026/06/29/russia-fuel-crisis-putin-admits-imports/",
+          "title": "Oil exporter Russia rations fuel as Putin admits the crisis",
+          "body": "Russia is drawing down gasoline reserves, has banned gasoline and jet fuel exports, and is weighing a ban on diesel exports as well, after Vladimir Putin admitted for the first time that shortages and queues persist at filling stations across the country.\n\nA reserve figure is not the same as fuel at the pump. The gasoline has to be the right grade, in the right region, and moved through a distribution network already strained by refinery outages -- and a ban on diesel, Russia's largest fuel export, would reach far beyond its borders.\n\nPutin told Kremlin officials on 28 June that \"problems for drivers and for businesses persist\" and that \"there are still queues at gas stations too.\" He said Russia had begun using gasoline reserves, which he put at 1.7 million tons, predicted that July production would exceed June's level, and confirmed that Moscow was considering a complete diesel export ban while a government task force worked around the clock to stabilize supplies and prices.\n\nReserves do not automatically reach the pump\n\nRussia's gasoline output has fallen about 25% from a year earlier after Ukrainian drone strikes, Reuters reported. The International Energy Agency called the disruption unprecedented in the war, RFE/RL reported.\n\nThat helps explain why a country can cite substantial stocks while drivers still face queues and purchase limits. Stored fuel is a buffer, not a guarantee: it cannot immediately replace refinery output, conjure a missing gasoline grade, or clear bottlenecks in rail, road, and regional distribution.\n\nThe day after Putin's meeting, Deputy Prime Minister Alexander Novak, who oversees Russia's energy sector, told regional heads to use fuel more efficiently and take a \"balanced approach\" to distribution, and ordered continued monitoring of prices, supply, and logistics, the Russian government said.\n\nRationing spreads across Russia\n\nReuters documented sales restrictions in central Russia, the Volga area, Siberia, the Far East, occupied Crimea, and Sevastopol, with at least 15 regions limiting sales by 23 June. Caps ranged from set volumes per vehicle to bans on filling portable containers, while some regions reserved fuel for emergency services and critical infrastructure.\n\nThe shortages have moved far beyond the refineries Ukrainian drones hit. In Siberia, thousands of kilometers from Ukraine, Irkutsk Oblast governor Igor Kobzev declared a high-alert regime, capped fuel at state Rosneft stations at 50 liters per vehicle a day with other stations free to set lower limits, banned sales into any container other than a vehicle tank, and urged employers in non-essential sectors to move as many staff as possible to remote work, Kobzev wrote on Telegram.\n\nUkrainian drones struck Russian refineries 16 times in May, Euromaidan Press reported earlier, and kept up the pace into June, hitting the Moscow refinery in Kapotnya twice in a week.\n\nA diesel ban would reach beyond Russia\n\nA diesel export ban would not stay a Russian problem. Russia supplied about 11% of the world's diesel last year and sends roughly 40% of its diesel output abroad, Bloomberg reported.\n\nSo cutting those exports would tighten a global market already disrupted by the Iran war. The diesel ban is not decided: Novak said on 29 June that as of Friday's task-force meeting the Energy Ministry still recommended against it, with another review set for Monday, Novak told journalists.\n\nAn oil exporter starts looking abroad\n\nAlexander Novak said on 29 June that importing fuel was one of the government's key stabilization measures and was already being implemented under preferential tax terms, Novak said -- a rare step for one of the world's largest exporters of oil and refined products.\n\nThe option had surfaced a week earlier: after a 22 June fuel-market meeting Novak chaired, the government was weighing fuel imports and a Finance Ministry tweak to let the budget subsidize them, Vedomosti reported.\n\nGasoline from Belarus runs an estimated 100,000 to 150,000 tons a month, roughly 3,000 to 5,000 tons a day, against a shortfall of about 25,000 tons a day, traders told The Insider.\n\nMoscow is also in talks with Kazakhstan over about 50,000 tons of AI-92 gasoline, Reuters reported on Kazakhstan, though available volumes may be limited: maintenance at the Atyrau refinery could constrain supply, and one potential supplier, the Kondensat refinery, lost feedstock after a Ukrainian strike disrupted the TANECO plant.\n\nRussia shipped out around 5 million tons of gasoline in 2025, Reuters reported in March, even as it repeatedly curbed exports to contain domestic shortages and rising prices.\n\nUkraine's refinery campaign reaches the consumers\n\nUkraine has spent months striking Russian refineries, fuel depots, and pipelines to cut the revenue and fuel that sustain Moscow's war. Overnight on 28 June, Ukrainian drones hit refineries in Krasnodar Krai and Yaroslavl Oblast; the Slavyansk-na-Kubani plant alone processes about 100,000 barrels per day.\n\nThat refinery is a key Crimean supplier, which ties the strikes straight to the pump.\n\nReserve drawdowns, delayed refinery work, lower-quality blends, rationing, export bans, talks to import fuel: the response now runs well beyond the refineries themselves.\n\nPutin insisted that Ukrainian strikes do not affect the front line. He also said occupied Crimea had fuel for only a few days, Putin told the Kremlin meeting, promising more deliveries by land and sea.",
+          "source": {
+            "uri": "euromaidanpress.com",
+            "dataType": "news",
+            "title": "Euromaidan Press"
+          },
+          "authors": [
+            {
+              "uri": "peeter_helme@euromaidanpress.com",
+              "name": "Peeter Helme",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://euromaidanpress.com/wp-content/uploads/2026/06/Fire_at_the_Moscow_Oil_Refinery_on_June_18_2026-scaled.jpg",
+          "eventUri": "eng-11786199",
+          "sentiment": -0.2705882352941177,
+          "wgt": 520439488,
+          "relevance": 1
+        },
+        {
+          "uri": "9375974422",
+          "lang": "eng",
+          "isDuplicate": true,
+          "date": "2026-06-29",
+          "time": "14:22:35",
+          "dateTime": "2026-06-29T14:22:35Z",
+          "dateTimePub": "2026-06-29T14:03:41Z",
+          "dataType": "news",
+          "sim": 0,
+          "url": "https://thehornnews.com/ukraine-stuns-russian-forces-with-daring-drone-attacks/",
+          "title": "Ukraine stuns Russian forces with daring drone attacks - The Horn...",
+          "body": "Ukraine kept up its heavy drone assault on Russia, setting fire to a major oil refinery in the south, as President Vladimir Putin acknowledged for the first time on Sunday that the country was facing a \"certain deficit\" of fuel and vowed to strengthen protection of oil facilities and boost fuel output.\n\nUkraine has markedly stepped up its long-range attacks on Russian military industries and energy facilities in recent months, aiming to cut Moscow's revenue for its invasion -- now in its fifth year -- and make Russians feel the consequences.\n\n\"Our 'long-range sanctions' reached two oil refineries in Russia,\" Ukrainian President Volodymyr Zelenskyy wrote on the Telegram messaging app on Sunday. \"Each (strike) means a reduction in the resources that fuel the Russian war machine, and another step toward peace.\"\n\nThe campaign has choked Russian fuel supplies, causing widespread shortages and long lines at gas stations across the country and prompting authorities in many regions to introduce fuel rationing. According to Western analysts, it has also slowed Moscow's efforts on the battlefield, heaping pressure on the Kremlin to come to the negotiating table.\n\nPutin says Ukrainian attacks aim to split Russian society\n\nSpeaking to a Russian state TV reporter, Putin described the Ukrainian attacks on oil refineries as an attempt to \"cause a split in Russian society and force Russia to halt, even if only briefly, the advance of our troops along the line of contact, and create conditions for launching a negotiation process on terms advantageous to our adversary.\"\n\n\"We will not give them that chance,\" Putin said, adding that \"strikes on our infrastructure, wherever they are directed, have absolutely no effect on the situation at the front, on the line of contact.\"\n\nHe said for the first time that Ukraine has proposed a halt on deep strikes, arguing that Kyiv made the offer because Russian strikes deep into Ukrainian territory are more powerful and devastating.\n\nThe Russian leader added that Kyiv also offered to limit the fighting to the four regions that Russia annexed but never fully captured -- Donetsk, Luhansk, Kherson and Zaporizhzhia. He rejected the proposal, arguing it would allow Ukraine to relocate its forces that are fighting Russian troops in other areas to let them focus on fending off the Russian attacks in the four southeastern regions.\n\nUkrainian drones set major Russian refinery on fire\n\nMeanwhile, debris from downed Ukrainian drones sparked a blaze at the refinery in Slavyansk-na-Kubani, a town in Russia's Krasnodar region, east of occupied Crimea, according to regional Gov. Veniamin Kondratyev. The falling debris killed one person in Slavyansk and wounded another in a nearby village, local authorities said.\n\nThe facility is one of southern Russia's major refineries, processing close to 4 million tons of crude per year, according to its operator's website. It is also a key source of petroleum products intended for export through Russia's Black Sea ports, including fuel oil, naphtha and marine fuel.\n\nZelenskyy also claimed that another Russian refinery, in the Yaroslavl region around 700 kilometers (435 miles) from the Ukrainian border, was hit during the nighttime strikes.\n\nThere were no immediate reports from Russian authorities about the strike on the Yaroslavl refinery. Local Gov. Mikhail Evraev reported on Sunday morning that some roads between Moscow and the region's capital, Yaroslavl, were temporarily closed due to \"an enemy attack by Ukrainian drones.\"\n\nFuel shortages in Russia as Putin says plans will be 'adjusted'\n\nFor months, Ukraine has been stepping up attacks on energy facilities deep inside Russia. Despite a raft of Western sanctions, Moscow remains among the world's top exporters of oil and natural gas.\n\nMore recently, Ukraine has attempted to choke off fuel deliveries to Crimea, the Black Sea peninsula illegally annexed by Moscow in early 2014. Last weekend, Kremlin-installed officials in Crimea suspended gasoline sales to civilians, after Kyiv's targeting of supply routes triggered the worst energy crisis there since the annexation.\n\nSpeaking at a meeting with officials that focused on the fuel situation, Putin admitted that the country was \"going through a difficult period,\" but insisted that Moscow would \"honor all its social obligations.\"\n\nShortly after, he told state TV that the country's arms industries will quickly ramp up production of air defense systems to fend off Ukrainian attacks.\n\nPutin also said that Russia will import more fuel and speed up repair works at oil facilities to end the \"temporary deficit.\"\n\n\"All damaged facilities are being restored quite quickly, and the issues that arise are not critical,\" he said.\n\nPutin specifically pledged to quickly deal with fuel shortages in Crimea, saying that fuel deliveries to the Black Sea peninsula by land and sea will rise and voicing confidence that \"this task will be accomplished.\"\n\nAs fuel shortages spread across Russia, the governor of the Irkutsk region in Siberia, thousands of kilometers (miles) from the Ukrainian border, Igor Kobzev announced that drivers will only be allowed to buy no more than 50 liters (13 gallons) of fuel per vehicle per day at state-run Rosneft gas stations in the province. Other gas stations may set lower limits.\n\nRussia's Deputy Prime Minister Alexander Novak said that Moscow was actively reviewing fuel export agreements to avoid compromising domestic needs.\n\nDrones, bombs and missiles target more regions\n\nAlso on Sunday, a Russian aerial bomb killed two people in Zaporizhzhia -- a city in southern Ukraine -- and injured 16 others, including two children, said regional administration head Ivan Fedorov.\n\nIn Russia's border region of Belgorod, Ukrainian drone strikes killed one person and injured another earlier on Sunday, according to acting local Gov. Alexander Shuvayev.\n\nRussia's Defense Ministry said its forces shot down 213 Ukrainian drones during the night, including over Russia, occupied Crimea and the Black and Azov seas.\n\nMeanwhile, Russia attacked Ukraine with 142 long-range strike drones and eight missiles overnight, according to the Ukrainian air force. Of those, 125 drones and seven missiles were struck down, the air force said.\n\nThe Associated Press contributed to this article",
+          "source": {
+            "uri": "thehornnews.com",
+            "dataType": "news",
+            "title": "The Horn News"
+          },
+          "authors": [
+            {
+              "uri": "horn_editorial_team@thehornnews.com",
+              "name": "Horn Editorial Team",
+              "type": "author",
+              "isAgency": false
+            }
+          ],
+          "image": "https://thehornnews.com/wp-content/uploads/2026/06/Ukraine-Drone-Attacks-Russia-1-600x400.webp?p=196273",
+          "eventUri": null,
+          "sentiment": -0.4196078431372549,
+          "wgt": 520438955,
+          "relevance": 1
+        }
+      ],
+      "totalResults": 994,
+      "page": 1,
+      "count": 8,
+      "pages": 125
+    }
+  }
+}

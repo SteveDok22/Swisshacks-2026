@@ -19,7 +19,7 @@ flowchart TD
         S10["Dormant company\nresumes high volume\n→ Suspicious Activation"]
     end
 
-    Engine["Drift Engine\n7-layer analysis"]
+    Engine["Drift Engine\n9-layer analysis"]
     Officer(["Compliance Officer"])
 
     S1 & S2 & S3 & S4 & S5 & S6 & S7 & S8 & S9 & S10 --> Engine
@@ -36,10 +36,12 @@ flowchart TD
     Officer --> A1 & A2 & A3 & A4 & A5
 ```
 
-**Coverage status:**
-- ✅ S1 S2 S3 S7 S8 S9 S10 — fully covered by drift engine layers (S10 dormancy break via the explicit `dormancy.py` detector)
-- 🔶 S6 — business-model pivot: the comparator (`drift/business_model.py`, Wayback↔Firecrawl cosine distance) is **built**; end-to-end aggregator wiring (loading each customer's two website texts) is pending under UC 9
-- ❌ S4 S5 — entity name change and domain monitoring not yet implemented
+**Coverage status:** all ten signals are covered — see [use-cases.md](use-cases.md)
+for the entity-by-entity map (synthetic + live). S4 (name change) is proven live
+by WW International's real GLEIF rename; S5/S6 (domain / business-model pivot) by
+the UC9 Wayback↔Firecrawl website-drift comparator (`drift/business_model.py`),
+demonstrated live on Temenos AG; S10 (dormancy break) by the explicit
+`dormancy.py` detector.
 
 ---
 
@@ -100,13 +102,13 @@ sequenceDiagram
     O->>FE: Click high-risk subject
     FE->>API: GET /api/v1/drift/subjects/{id}
     API->>DE: get_subject(drift_id)
-    DE-->>API: DriftSubjectDetail + all 7 layers
+    DE-->>API: DriftSubjectDetail + all 9 layers
     API-->>FE: Full breakdown + causal evidence
     FE-->>O: Verdict bar · DecisionBar · Evidence panels · Score timeline
 
     O->>FE: Request AI explanation (SSE)
     FE->>API: GET /api/v1/explanations/{case_id}/stream
-    API->>API: anonymizer.pseudonymize()
+    API->>API: pseudonymize case fields
     API->>LLM: Anonymized case + drift context
     LLM-->>API: Streaming explanation tokens
     API-->>FE: Server-Sent Events
@@ -135,7 +137,7 @@ flowchart TD
     end
 
     subgraph Analyze["Per-Subject Analysis — service.py"]
-        Layers["Run 7 layers\nbocpd · velocity · contagion\npublic_intel · causal · stability"]
+        Layers["Run 9 layers\nbocpd · velocity · contagion · public_intel\ncausal · stability · dormancy · business_model"]
         Fuse["Fuse scores\nConfirmation Lift applied"]
         Route["Cost Cascade\nTier 0 → 1 → 2"]
     end

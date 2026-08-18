@@ -130,6 +130,10 @@ Most teams will build "news API + LLM + dashboard". Three things go deeper:
 | **Suspicious Stability** | *What if the launderer knows we monitor drift and stays still?* |
 | **Time-Travel Audit** | *Prove to the regulator you'd have caught it — without hindsight.* |
 
+<div align="center">
+<img src="docs/screenshots/gifs/Time-Travel-Audit.gif" alt="Time-Travel Audit: as-of replay with no look-ahead bias" width="800">
+</div>
+
 ---
 
 ## Architecture

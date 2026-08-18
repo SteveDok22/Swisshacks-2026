@@ -190,6 +190,12 @@ The Drift Engine workspace presents a verdict-first view: a recommended action u
 | **Contagion Graph** | Ownership risk propagation from a sanctioned entity |
 | **Cost Cascade** | Live cost meter vs LLM-on-everything, with actual T2 real/mock adjudication counts |
 
+**Two-Layer Panel** — public signals fused with internal drift via confirmation lift, on the live entity Rosneft Trading S.A.:
+
+<div align="center">
+<img src="docs/screenshots/gifs/TWO-LAYER-INTELLIGENCE-EXTERNAL-SIGNALS-Rosneft-Trading-Source.gif" alt="Two-Layer Intelligence panel: external signals and source for Rosneft Trading S.A." width="800">
+</div>
+
 ---
 
 ## Technologies Used

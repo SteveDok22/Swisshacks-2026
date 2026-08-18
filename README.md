@@ -112,6 +112,12 @@ For each customer, the Drift Engine produces a fused **drift score (0-100)**, a 
 
 A **Time-Travel Audit** can replay any customer as-of any past month, using only data available then — proving the system would have flagged them early, with no look-ahead bias (a regulatory-grade property).
 
+The seven layers fused into one verdict, on the flagship case:
+
+<div align="center">
+<img src="docs/screenshots/gifs/Castor-Trade-Finance-SIGNAL-LAYER.gif" alt="Per-layer signal breakdown for Castor Trade Finance AG" width="800">
+</div>
+
 ---
 
 ## Key Differentiators

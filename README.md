@@ -59,6 +59,11 @@ Derived from the [AMINA Challenge 4 brief](https://github.com/SwissHacks-2026/Am
 - **BR3 — KYC drift detection:** catch slow structural changes invalidating the original profile months before regulatory action.
 - **BR4 — Explainable AI:** every score decomposes into named contributions with source citations.
 - **BR5 — Human-in-the-loop:** an officer confirms or overrides every consequential action with a written rationale.
+
+  <div align="center">
+  <img src="docs/screenshots/gifs/Castor-Trade-Finance-AG-NEW-DECISION.gif" alt="Recording a new compliance decision for Castor Trade Finance AG" width="700">
+  </div>
+
 - **BR6 — Audit logs:** immutable, replayable history of every signal, score, and decision.
 - **BR7 — Cost awareness:** staged pipeline — rules first, ML second, LLM only for high-risk cases; the scan report tracks actual T2 LLM adjudications separately from the LLM-on-everything counterfactual baseline.
 

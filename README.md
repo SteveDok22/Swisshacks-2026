@@ -202,6 +202,12 @@ The Drift Engine workspace presents a verdict-first view: a recommended action u
 <img src="docs/screenshots/gifs/UBO-Screening-Ownership-Chain-Sanctions.gif" alt="UBO screening: ownership chain and sanctions feeding the Two-Layer Intelligence panel" width="800">
 </div>
 
+A full live-entity walkthrough (real GLEIF / OpenSanctions / news data, cached for offline replay):
+
+<div align="center">
+<img src="docs/screenshots/gifs/Rosneft-Trading-S-A-Drift-Engine.gif" alt="Drift Engine walkthrough for the live entity Rosneft Trading S.A." width="800">
+</div>
+
 ---
 
 ## Technologies Used
